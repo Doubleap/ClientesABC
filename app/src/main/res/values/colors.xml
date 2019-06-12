@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#E90101</color>
+    <color name="colorSecondary">#e57373</color>
+    <color name="colorPrimaryDark">#b30101</color>
+    <color name="colorAccent">#97082c</color>
+    <color name="accent_material_light_1">#f50000</color>
+    <color name="accent_material_light_2">#d50000</color>
+    <color name="primary_material_light">#d50000</color>
+    <color name="primary_dark_material_light">#f44336</color>
+    <color name="accent_material_light">#e57373</color>
+    <color name="background_material_light">#ffffff</color>
+    <color name="foreground_material_light">#f5f5f5</color>
+    <color name="text_color_primary">#ffffff</color>
+    <color name="backColor">#eeeeee</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    //Estados
+    <color name="pendientes">#428ef0</color>
+    <color name="sinFormularios">#d3d3d3</color>
+    <color name="aprobados">#0cb714</color>
+    <color name="devuelto">#fca42f</color>
+    <color name="rechazado">#d6201d</color>
+    <color name="nuevo">#ffe738</color>
+    //SuperLogin
+    <color name="colorBackground">#333C46</color>
+    <color name="colorSplashText">#8a0101</color>
+    <color name="colorProgressBar">#FFCE511C</color>
+    <color name="colorTextView">#83898E</color>
+</resources>

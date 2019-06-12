@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">ClientesABC</string>
+    <string name="title_activity_login">Maestro Clientes CAM</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Usuario</string>
+    <string name="prompt_password">Contrasena</string>
+    <string name="action_sign_in">Ingresar</string>
+    <string name="action_sign_in_short">Ingresar</string>
+    <string name="error_invalid_email">Usuario Invalido</string>
+    <string name="error_invalid_password">Contrasena Invalida</string>
+    <string name="error_incorrect_password">Contrasena Incorrecta</string>
+    <string name="error_field_required">Este campo es requerido</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+    <string name="solicitud">Solicitud Inclusion</string>
+    <string name="comunicacion">Comunicacion</string>
+    <string name="title_activity_comunicacion">Actualizacion de Datos</string>
+    <string name="title_activity_firma">Firma Aceptacion Cliente</string>
+    <string name="title_activity_solicitud">Crear Solicitud</string>
+
+    <string name="inicial">MAESTRO CLIENTES APP</string>
+    <string name="welcome_back">Bienvenido</string>
+    <string name="read_it_together">Junto</string>
+    <string name="skip">Saltar</string>
+    <string name="login">Login</string>
+    <string name="email">Usuario</string>
+    <string name="password">Password</string>
+    <string name="sign_up">Ingresar</string>
+    <string name="forget_password">Olvido su contrasena.?</string>
+    <string name="title_activity_mant_clientes">Mis Clientes</string>
+    <string name="title_activity_solicitudes">Mis Solicitudes</string>
+    <string name="title_activity_locacion_gps">Coordenadas GPS</string>
+</resources>
