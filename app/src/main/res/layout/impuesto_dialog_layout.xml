@@ -15,44 +15,33 @@
             android:paddingTop="5dp"
             android:paddingBottom="8dp"
             android:background="@color/colorPrimary"
-            android:text="+ Nuevo Contacto"
+            android:text="+ Nuevo Impuesto"
             android:textColor="@color/white"
             android:textSize="20dp"
             android:gravity="center"/>
         <!--INPUT VIEWS-->
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/nameLayout"
+        <android.support.v7.widget.AppCompatTextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <EditText
-                android:id="@+id/nameEditTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:singleLine="true"
-                android:hint= "Name" />
-        </android.support.design.widget.TextInputLayout>
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/propLayout"
+            android:layout_height="wrap_content"
+            android:text="Clave de Impuesto"
+            android:paddingLeft="5dp"/>
+        <android.widget.Spinner
+            android:id="@+id/claveSpinner"
+            android:layout_height="wrap_content"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <EditText
-                android:id="@+id/propEditTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:singleLine="true"
-                android:hint= "Propellant" />
-        </android.support.design.widget.TextInputLayout>
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/destLayout"
+            android:layout_margin="5dp"
+            ></android.widget.Spinner>
+        <android.support.v7.widget.AppCompatTextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <EditText
-                android:id="@+id/destEditTxt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:singleLine="true"
-                android:hint= "Destination" />
-        </android.support.design.widget.TextInputLayout>
+            android:layout_height="wrap_content"
+            android:text="Clasificacion Fiscal"
+            android:paddingLeft="5dp"/>
+        <android.widget.Spinner
+            android:id="@+id/clasiSpinner"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_margin="5dp"
+            ></android.widget.Spinner>
         <!--BUTTON-->
         <Button android:id="@+id/saveBtn"
             android:layout_width="match_parent"

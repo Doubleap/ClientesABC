@@ -12,10 +12,11 @@ import java.util.TimeZone;
 
 public class EditTextDatePicker  implements View.OnClickListener, DatePickerDialog.OnDateSetListener {
     EditText _editText;
-    private int _day;
-    private int _month;
-    private int _birthYear;
+    private String _day;
+    private String _month;
+    private String _birthYear;
     private Context _context;
+    private String _formato;
 
     public EditTextDatePicker(Context context, EditText editTextView)
     {
@@ -24,12 +25,21 @@ public class EditTextDatePicker  implements View.OnClickListener, DatePickerDial
         this._editText.setOnClickListener(this);
         this._context = context;
     }
+    public EditTextDatePicker(Context context, EditText editTextView, String formato)
+    {
+        Activity act = (Activity)context;
+        this._editText = editTextView;
+        this._editText.setOnClickListener(this);
+        this._context = context;
+        this._formato = formato;
+    }
 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        _birthYear = year;
-        _month = monthOfYear;
-        _day = dayOfMonth;
+
+        _birthYear = String.format("%04d", year);
+        _month = String.format("%02d", monthOfYear+1);
+        _day = String.format("%02d", dayOfMonth);
         updateDisplay();
     }
     @Override
@@ -44,9 +54,20 @@ public class EditTextDatePicker  implements View.OnClickListener, DatePickerDial
 
     // updates the date in the birth date EditText
     private void updateDisplay() {
+        switch (_formato){
+            case "yyyymmdd":
+                _editText.setText(new StringBuilder().append(_birthYear).append(_month).append(_day));
+                break;
+            case "dd/mm/yyyy":
+                _editText.setText(new StringBuilder().append(_day).append("/").append(_month).append("/").append(_birthYear).append(" "));
+                break;
+            case "dd-mm-yyyy":
+                _editText.setText(new StringBuilder().append(_day).append("-").append(_month).append("-").append(_birthYear).append(" "));
+                break;
+            default:
+                _editText.setText(new StringBuilder().append(_day).append("/").append(_month).append("/").append(_birthYear).append(" "));
+                break;
+        }
 
-        _editText.setText(new StringBuilder()
-                // Month is 0 based so add 1
-                .append(_day).append("/").append(_month + 1).append("/").append(_birthYear).append(" "));
     }
 }

@@ -32,4 +32,24 @@
     <string name="title_activity_mant_clientes">Mis Clientes</string>
     <string name="title_activity_solicitudes">Mis Solicitudes</string>
     <string name="title_activity_locacion_gps">Coordenadas GPS</string>
+    <string name="promptKvgr4">promptKvgr4</string>
+
+    <!-- CATALOGOS PARA ALGUNOS SPINNERS -->
+    <string-array name="OpcionesKvgr4">
+        <item>1DA</item>
+        <item>2DA</item>
+        <item>3DA</item>
+        <item>4DA</item>
+        <item>5DA</item>
+    </string-array>
+    <string-array name="OpcionesFcalid">
+        <item id="1">Cada Semana</item>
+        <item id="1">Cada 2 Semanas</item>
+        <item id="1">Cada 3 Semanas</item>
+        <item id="1">Cada 4 Semanas</item>
+        <item id="1">Cada 5 Semanas</item>
+        <item id="1">Cada 6 Semanas</item>
+        <item id="1">Cada 8 Semanas</item>
+        <item id="1">Cada 10 Semanas</item>
+    </string-array>
 </resources>

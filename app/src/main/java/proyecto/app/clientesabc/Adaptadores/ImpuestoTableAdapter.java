@@ -16,14 +16,14 @@ import proyecto.app.clientesabc.Modelos.Impuesto;
 
 public class ImpuestoTableAdapter extends TableDataAdapter<Impuesto> {
 
-    private static String[] headers = new String[]{"Nombre", "Funcion", "Telefono"};
+    private static String[] headers = new String[]{"Clave", "Nombre", "Clasif. Fiscal", "Descripcion"};
     private static final String LOG_TAG = TableDataAdapter.class.getName();
 
     private int paddingLeft = 20;
     private int paddingTop = 15;
     private int paddingRight = 20;
     private int paddingBottom = 15;
-    private int textSize = 18;
+    private int textSize = 8;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
     private int gravity = Gravity.START;
@@ -45,7 +45,7 @@ public class ImpuestoTableAdapter extends TableDataAdapter<Impuesto> {
         try {
             //final String textToShow = getItem(rowIndex)[columnIndex];
             Impuesto impuesto = getRowData(rowIndex);
-            final String textToShow = impuesto.getValueFromColumn(columnIndex);
+            final String textToShow = impuesto.getValueFromColumn(columnIndex+2);
             textView.setText(textToShow);
             textView.setGravity(gravity);
         } catch (final IndexOutOfBoundsException e) {

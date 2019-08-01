@@ -1,5 +1,7 @@
 package proyecto.app.clientesabc.Modelos;
 
+import android.widget.Spinner;
+
 public class OpcionSpinner {
     private String id;
     private String name;
@@ -39,7 +41,6 @@ public class OpcionSpinner {
         }
         return false;
     }
-
     public int getSelected() {
         return selected;
     }

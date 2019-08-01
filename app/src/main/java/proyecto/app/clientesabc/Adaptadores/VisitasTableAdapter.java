@@ -17,14 +17,14 @@ import proyecto.app.clientesabc.Modelos.Visitas;
 
 public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
 
-    private static String[] headers = new String[]{"Nombre", "Funcion", "Telefono"};
+    private static String[] headers = new String[]{"VP", "Metodo Venta", "Ruta", "Frec. Sem."};
     private static final String LOG_TAG = TableDataAdapter.class.getName();
 
     private int paddingLeft = 20;
     private int paddingTop = 15;
     private int paddingRight = 20;
     private int paddingBottom = 15;
-    private int textSize = 18;
+    private int textSize = 12;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
     private int gravity = Gravity.START;
@@ -46,7 +46,7 @@ public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
         try {
             //final String textToShow = getItem(rowIndex)[columnIndex];
             Visitas visita = getRowData(rowIndex);
-            final String textToShow = visita.getValueFromColumn(columnIndex);
+            final String textToShow = visita.getValueFromColumn(columnIndex+2);
             textView.setText(textToShow);
             textView.setGravity(gravity);
         } catch (final IndexOutOfBoundsException e) {

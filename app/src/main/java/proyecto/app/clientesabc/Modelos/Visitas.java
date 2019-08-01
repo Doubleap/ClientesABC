@@ -240,54 +240,12 @@ public class Visitas {
                 valorCelda = getVptyp();
                 break;
             case 3:
-                valorCelda = getVptyp();
-                break;
-            case 4:
                 valorCelda = getKvgr4();
                 break;
+            case 4:
+                valorCelda = getRuta();
+                break;
             case 5:
-                valorCelda = getRuta();
-                break;
-            case 6:
-                valorCelda = getRuta();
-                break;
-            case 7:
-                valorCelda = getLun_de();
-                break;
-            case 8:
-                valorCelda = getMar_de();
-                break;
-            case 9:
-                valorCelda = getMier_de();
-                break;
-            case 10:
-                valorCelda = getJue_de();
-                break;
-            case 11:
-                valorCelda = getVie_de();
-                break;
-            case 12:
-                valorCelda = getSab_de();
-                break;
-            case 13:
-                valorCelda = getDom_de();
-                break;
-            case 14:
-                valorCelda = getF_ini();
-                break;
-            case 15:
-                valorCelda = getF_fin();
-                break;
-            case 16:
-                valorCelda = getF_frec();
-                break;
-            case 17:
-                valorCelda = getF_ico();
-                break;
-            case 18:
-                valorCelda = getF_fco();
-                break;
-            case 19:
                 valorCelda = getFcalid();
                 break;
         }

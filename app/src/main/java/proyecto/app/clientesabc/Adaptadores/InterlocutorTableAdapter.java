@@ -17,14 +17,14 @@ import proyecto.app.clientesabc.Modelos.Interlocutor;
 
 public class InterlocutorTableAdapter extends TableDataAdapter<Interlocutor> {
 
-    private static String[] headers = new String[]{"Nombre", "Funcion", "Telefono"};
+    private static String[] headers = new String[]{"Cod.", "Funcion Inter.", "Cod. Cliente"};
     private static final String LOG_TAG = TableDataAdapter.class.getName();
 
     private int paddingLeft = 20;
     private int paddingTop = 15;
     private int paddingRight = 20;
     private int paddingBottom = 15;
-    private int textSize = 18;
+    private int textSize = 8;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
     private int gravity = Gravity.START;
@@ -46,7 +46,7 @@ public class InterlocutorTableAdapter extends TableDataAdapter<Interlocutor> {
         try {
             //final String textToShow = getItem(rowIndex)[columnIndex];
             Interlocutor interlocutor = getRowData(rowIndex);
-            final String textToShow = interlocutor.getValueFromColumn(columnIndex);
+            final String textToShow = interlocutor.getValueFromColumn(columnIndex+2);
             textView.setText(textToShow);
             textView.setGravity(gravity);
         } catch (final IndexOutOfBoundsException e) {

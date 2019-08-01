@@ -1,12 +1,18 @@
 package proyecto.app.clientesabc;
 
 import android.app.Application;
+import android.widget.Spinner;
+
+import proyecto.app.clientesabc.Modelos.OpcionSpinner;
 
 public class VariablesGlobales extends Application {
     private static String land1 = "CR";
     private static String sociedad = "F443";
     private static String orgvta = "0443";
     private static String rutapreventa = "CRP901";
+    private static String ipcon = "192.168.0.13";
+    //private static String ipcon = "10.124.4.137";
+    private static int puertocon = 3345;
 
     //Condicionales según la ruta de Preventa
     private static String bzirk = "CR0001";
@@ -21,6 +27,8 @@ public class VariablesGlobales extends Application {
     private static String TABLA_BLOQUE_INTERLOCUTOR_HH = "grid_interlocutor_solicitud";
     private static String TABLA_BLOQUE_VISITA_HH = "grid_visitas_solicitud";
     private static String TABLA_ADJUNTOS_SOLICITUD = "adjuntos_solicitud";
+    private static String TABLA_ENCUESTA_SOLICITUD = "encuesta_solicitud";
+    private static String TABLA_ENCUESTA_GEC_SOLICITUD = "encuesta_gec_solicitud";
 
     public static String getLand1() {
         return land1;
@@ -97,6 +105,30 @@ public class VariablesGlobales extends Application {
         VariablesGlobales.vkgrp = vkgrp;
     }
 
+    public static String getTablaEncuestaSolicitud() {
+        return TABLA_ENCUESTA_SOLICITUD;
+    }
+
+    public static String getTablaEncuestaGecSolicitud() {
+        return TABLA_ENCUESTA_GEC_SOLICITUD;
+    }
+
+    public static String getIpcon() {
+        return ipcon;
+    }
+
+    public static void setIpcon(String ipcon) {
+        VariablesGlobales.ipcon = ipcon;
+    }
+
+    public static int getPuertocon() {
+        return puertocon;
+    }
+
+    public static void setPuertocon(int puertocon) {
+        VariablesGlobales.puertocon = puertocon;
+    }
+
     public void setRutaPreventa(String nuevaRuta) {
         rutapreventa = nuevaRuta;
     }
@@ -122,5 +154,17 @@ public class VariablesGlobales extends Application {
     }
     public static String getTABLA_ADJUNTOS_SOLICITUD() {
         return TABLA_ADJUNTOS_SOLICITUD;
+    }
+
+    //Get IndexOf by value ID on some Spinner
+    public static int getIndex(Spinner spinner, String valorId){
+        int pos=-1;
+        for (int i=0;i<spinner.getCount();i++){
+            if (((OpcionSpinner)spinner.getItemAtPosition(i)).getId().equals(valorId)){
+                pos = i;
+                break;
+            }
+        }
+        return pos;
     }
 }

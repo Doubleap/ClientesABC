@@ -27,4 +27,5 @@
     <color name="colorSplashText">#8a0101</color>
     <color name="colorProgressBar">#FFCE511C</color>
     <color name="colorTextView">#83898E</color>
+    <color name="colorHeaderTableView">#000400</color>
 </resources>

@@ -26,7 +26,7 @@ public class ContactoTableAdapter extends TableDataAdapter<Contacto> {
     private int paddingTop = 15;
     private int paddingRight = 20;
     private int paddingBottom = 15;
-    private int textSize = 18;
+    private int textSize = 8;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
     private int gravity = Gravity.START;

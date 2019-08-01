@@ -1,20 +1,15 @@
 package proyecto.app.clientesabc.Adaptadores;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,16 +17,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import proyecto.app.clientesabc.Modelos.Contacto;
+import proyecto.app.clientesabc.Modelos.Impuesto;
+import proyecto.app.clientesabc.Modelos.Interlocutor;
 import proyecto.app.clientesabc.Modelos.Visitas;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.Modelos.Contacto;
-
-import static java.sql.Types.ROWID;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
     private static String DB_NAME = "FAWM_ANDROID_2";
@@ -180,12 +177,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ArrayList<HashMap<String, String>> userList = new ArrayList<>();
         String query = "SELECT zroute_pr as id, zroute_pr as descripcion" +
                 " FROM EX_T_RUTAS_VP" +
-                " WHERE  (zroute_pr IS NOT NULL) AND (vkorg = '0443') AND (trim(zroute_pr) <> '')";
+                " WHERE  (zroute_pr IS NOT NULL) AND (vkorg = '"+VariablesGlobales.getOrgVta()+"') AND (trim(zroute_pr) <> '')";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
             user.put("id",cursor.getString(0));
-            user.put("desccripcion",cursor.getString(1));
+            user.put("descripcion",cursor.getString(1));
             userList.add(user);
         }
         return  userList;
@@ -233,19 +230,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         while (cursor.moveToNext()){
             return cursor.getInt(0)+1;
         }
-        return 0;
+        return 1;
     }
 
     public ArrayList<HashMap<String, String>> getCamposPestana(String id_formulario, String pestana){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
         String query = "SELECT c.campo, c.nombre, c.tipo_input, c.id_seccion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip FROM configuracion c" +
-                " INNER JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = 'F443' and cc.ktokd = 'RCMA')" +
+                " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+VariablesGlobales.getSociedad()+"' and cc.ktokd = 'RCMA')" +
                 " INNER JOIN Seccion s ON (s.id_seccion = c.id_seccion)" +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip)" +
                 " WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"'" +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO')"+
-                " ORDER BY c.panta,c.id_seccion";
+                " ORDER BY c.panta,c.id_seccion, c.orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
 
         while (cursor.moveToNext()){
@@ -298,6 +295,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return list;
     }
 
+    /**
+     *
+     * @param tabla : nombre de la tabla de base de datos del catálogo
+     * @param filtroAdicional
+     * @return
+     */
     public ArrayList<HashMap<String, String>> getDatosCatalogo(String tabla, String... filtroAdicional){
         ArrayList<HashMap<String, String>> listaCatalogo = new ArrayList<>();
 
@@ -328,6 +331,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(existeColumna(tabla,"banks")){
             filtros.append(" AND banks = '"+vg.getLand1()+"'");
         }
+        if(existeColumna(tabla,"talnd")){
+            filtros.append(" AND talnd = '"+vg.getLand1()+"'");
+        }
+        //TODO filtros segun la agencia o/y ruta de la HH o de jefe de ventas para las rutas de su agencia
 
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
@@ -342,8 +349,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
                 do {
                     HashMap<String,String> lista = new HashMap<>();
-                    lista.put("id",cursor.getString(0));//1era columna del query
-                    lista.put("descripcion",cursor.getString(0) + " - " + cursor.getString(1));//1era y 2da columna del query
+                    lista.put("id",cursor.getString(0).trim());//1era columna del query
+                    lista.put("descripcion",cursor.getString(0).trim() + " - " + cursor.getString(1).trim());//1era y 2da columna del query
                     listaCatalogo.add(lista);
                 } while (cursor.moveToNext());
             }
@@ -361,6 +368,77 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         return listaCatalogo;
     }
+    /**
+     *
+     * @param tabla : nombre de la tabla de base de datos del catálogo
+     * @param filtroAdicional
+     * @return
+     */
+    public ArrayList<HashMap<String, String>> getDatosCatalogo(String tabla, int columnaId, int columnaDesc, String... filtroAdicional){
+        ArrayList<HashMap<String, String>> listaCatalogo = new ArrayList<>();
+
+        // Select All Query
+        String selectQuery = "SELECT * " +
+                " FROM " + tabla +" WHERE 1=1";
+
+        VariablesGlobales vg = new VariablesGlobales();
+        StringBuilder filtros = new StringBuilder();
+
+        //Crear Filtros manuales desde los parametros
+        for(String filtro : filtroAdicional){
+            filtros.append(" AND "+filtro);
+        }
+
+        //Crear Filtros Automaticos segun el pais
+
+        //Si existe BUKRS en la tabla del catalago vamos a filtros por Sociedad
+        if(existeColumna(tabla,"bukrs")){
+            filtros.append(" AND bukrs = '"+vg.getSociedad()+"'");
+        }
+        if(existeColumna(tabla,"land1")){
+            filtros.append(" AND land1 = '"+vg.getLand1()+"'");
+        }
+        if(existeColumna(tabla,"vkorg")){
+            filtros.append(" AND vkorg = '"+vg.getOrgVta()+"'");
+        }
+        if(existeColumna(tabla,"banks")){
+            filtros.append(" AND banks = '"+vg.getLand1()+"'");
+        }
+        if(existeColumna(tabla,"talnd")){
+            filtros.append(" AND talnd = '"+vg.getLand1()+"'");
+        }
+
+        try {
+            Cursor cursor = mDataBase.rawQuery(selectQuery + filtros, null);//selectQuery,selectedArguments
+            HashMap<String,String> seleccione = new HashMap<>();
+            seleccione.put("id","");
+            seleccione.put("descripcion","Seleccione...");
+            listaCatalogo.add(seleccione);
+            // looping through all rows and adding to list
+            if (cursor.moveToFirst()) {
+
+                do {
+                    HashMap<String,String> lista = new HashMap<>();
+                    lista.put("id",cursor.getString(columnaId));//1era columna del query
+                    lista.put("descripcion",cursor.getString(columnaId) + " - " + cursor.getString(columnaDesc));
+                    listaCatalogo.add(lista);
+                } while (cursor.moveToNext());
+            }
+            // closing connection
+            cursor.close();
+            //db.close();
+            // returning lables
+        }catch (Exception e){
+            e.getMessage();
+            e.printStackTrace();
+            HashMap<String,String> seleccione = new HashMap<>();
+            seleccione.put("id","");
+            seleccione.put("descripcion","Seleccione...");
+            listaCatalogo.add(seleccione);
+        }
+        return listaCatalogo;
+    }
+
 
     public boolean existeColumna(String tabla, String columna){
         String sql = "PRAGMA table_info('"+tabla+"');";
@@ -449,22 +527,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return losContactos;
     }
 
-   /*public  String[][] convertirArrayContactosParaAdaptador(ArrayList<Contacto> contactos)
-    {
-        String[][] losContactos = null;
-        if(contactos != null) {
-            Contacto c;
-            losContactos = new String[contactos.size()][10];
-            for (int i = 0; i < contactos.size(); i++) {
-                c = contactos.get(i);
-                losContactos[i][0] = c.getId();
-                losContactos[i][1] = c.getId_formulario();
-                losContactos[i][2] = c.getName1();
-            }
-        }
-        return losContactos;
-    }*/
-
     public boolean guardarContacto(Contacto contacto){
         try {
             SQLiteDatabase db = this.getReadableDatabase();
@@ -497,27 +559,101 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return  count;
     }
 
+    //IMPUESTOS DEFUALT X PAIS
+    public ArrayList<Impuesto> getImpuestosPais(){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<Impuesto> impuestoList = new ArrayList<>();
+        String query = "SELECT * FROM cat_impstos WHERE taxkd = 1 AND talnd = '"+VariablesGlobales.getLand1()+"'";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        while (cursor.moveToNext()){
+            Impuesto impuesto = new Impuesto();
+            impuesto.setTatyp(cursor.getString(1));
+            impuesto.setVtext(cursor.getString(2));
+            impuesto.setTaxkd(cursor.getString(3));
+            impuesto.setVtext2(cursor.getString(4));
+            impuestoList.add(impuesto);
+        }
+        return  impuestoList;
+    }
 
-    //Funciones de Ayuda apra interfaz
+    //INTERLOCUTORES DEFAULT X GRUPO DE CUENTAS
+    public ArrayList<Interlocutor> getInterlocutoresPais(){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<Interlocutor> interlocutorList = new ArrayList<>();
+        String grupoCuentasDefault = "RCMA";
+        //Buscar el grupo de ceuntas adecuado por pais
+        switch(VariablesGlobales.getLand1()){
+            case "CR":
+                grupoCuentasDefault = "RCMA";
+                break;
+            case "NI":
+                grupoCuentasDefault = "NCMA";
+                break;
+            case "PA":
+                grupoCuentasDefault = "PCMA";
+                break;
+            case "GT":
+                grupoCuentasDefault = "GCMA";
+                break;
+        }
+        String query = "SELECT * FROM cat_funcint WHERE ktokd = '"+grupoCuentasDefault+"'";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        while (cursor.moveToNext()){
+            Interlocutor interlocutor = new Interlocutor();
+            interlocutor.setParvw(cursor.getString(0));
+            interlocutor.setVtext(cursor.getString(1));
+            interlocutor.setKunn2("");
+            interlocutor.setName1("");
+            interlocutorList.add(interlocutor);
+        }
+        return  interlocutorList;
+    }
+
+    //Funciones de Ayuda para interfaz
     public ArrayList<Visitas> DeterminarPlanesdeVisita(String vkorg, String modalidad)
     {
         ArrayList<Visitas> visitasList = new ArrayList<>();
-        String fechaSistema = String.format(new Date().toString(), "yyyyMMdd");
-        String query = "select vpore as vptyp, '' as descripcion, '''1DA''' as kvgr4, '' as ruta,'' as fec_frec, '" + fechaSistema + "' as f_ico, '99991231' as f_fco, '' as f_ini, '' as f_fin, 1 as obligatorio, '''1''' as fcalid FROM cat_ztsdvto_00185_x WHERE zopcional != 'X' and vkorg = '" + vkorg.trim() + "' and kvgr5 = '" + modalidad + "'";
+        Date c = Calendar.getInstance().getTime();
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+        String fechaSistema = df.format(c);
+        String query = "select vpore as vptyp, '' as descripcion, '1DA' as kvgr4, '' as ruta,'' as fec_frec, '" + fechaSistema + "' as f_ico, '99991231' as f_fco, '' as f_ini, '' as f_fin, '1' as fcalid FROM cat_ztsdvto_00185_x WHERE zopcional != 'X' and vkorg = '" + vkorg.trim() + "' and kvgr5 = '" + modalidad + "'";
         Cursor cursor = mDataBase.rawQuery(query,null);
 
         while (cursor.moveToNext()){
             Visitas visita = new Visitas();
-            visita.setRuta(cursor.getString(cursor.getColumnIndex("ruta")));
             visita.setVptyp(cursor.getString(cursor.getColumnIndex("vptyp")));
+            visita.setRuta(cursor.getString(cursor.getColumnIndex("ruta")));
             visita.setKvgr4(cursor.getString(cursor.getColumnIndex("kvgr4")));
             visita.setF_ico(cursor.getString(cursor.getColumnIndex("f_ico")));
             visita.setF_fco(cursor.getString(cursor.getColumnIndex("f_fco")));
-            visita.setFcalid(cursor.getString(cursor.getColumnIndex("Fcalid")));
+            visita.setF_ini(cursor.getString(cursor.getColumnIndex("f_ini")));
+            visita.setF_fin(cursor.getString(cursor.getColumnIndex("f_fin")));
+            visita.setFcalid(cursor.getString(cursor.getColumnIndex("fcalid")));
 
             visitasList.add(visita);
         }
         return  visitasList;
+    }
+
+    public boolean EsTipodeReparto(String agencia, String tiporuta)
+    {
+        String query = "select vwerks FROM EX_T_RUTAS_VP WHERE bzirk = @agencia AND vptyp = @tiporuta";
+        Cursor cursor = mDataBase.rawQuery("select vwerks FROM EX_T_RUTAS_VP WHERE bzirk = ? AND vptyp = ?", new String[]{agencia, tiporuta});
+        while (cursor.moveToNext()){
+            if(cursor.getString(cursor.getColumnIndex("vwerks")).isEmpty() || cursor.getString(cursor.getColumnIndex("vwerks")).toString().trim() == ""){
+                return false;
+            }else{
+                return true;
+            }
+        }
+        return false;
+    }
+    public String RutaRepartoAsociada(String kvgr5, String vpore) {//vkorg,ktokd,name1,street,house_num1,suppl1,suppl3,city1,land1
+        Cursor cursor = mDataBase.rawQuery("select vpent FROM cat_ztsdvto_00185_x WHERE kvgr5 = ? AND vkorg = ? AND vpore = ?", new String[]{kvgr5, VariablesGlobales.getOrgVta(), vpore});
+        while (cursor.moveToNext()){
+            return cursor.getString(cursor.getColumnIndex("vpent"));
+        }
+        return "";
     }
 
     //Adjuntos x solicitud
@@ -528,5 +664,123 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cv.put("nombre",   nombre);
         cv.put("imagen",   imagen);
         mDataBase.insert( VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(), null, cv );
+    }
+
+    //ENCUESTA CANALES
+    public ArrayList<HashMap<String, String>> getPreguntasSegunGrupo(String grupo_isscom){
+        ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
+        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
+        String sql_encuesta = "select zid_quest,text  from cat_preguntas_isscom p where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("zid_quest",cursor.getString(0).trim());
+            user.put("text",cursor.getString(1).trim());
+            preguntasList.add(user);
+        }
+        return  preguntasList;
+    }
+    public ArrayList<HashMap<String, String>> getOpcionesPreguntaGrupo(String grupo_isscom, String pregunta){
+        ArrayList<HashMap<String, String>> respuestasList = new ArrayList<>();
+        String sql_encuesta = "select zid_resp,text from cat_respuestas_isscom p where trim(zid_grupo) = '"+grupo_isscom.trim()+"' and trim(zid_quest) = '"+pregunta.trim()+"'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("zid_resp",cursor.getString(0).trim());
+            user.put("text",cursor.getString(1).trim());
+            respuestasList.add(user);
+        }
+        return  respuestasList;
+    }
+
+    public HashMap<String,String> getValoresSegunEncuestaRealizada(String... valores) {
+        HashMap<String,String> registro_canales = new HashMap<>();
+        String sql_encuesta = "select zid_result from cat_ztsdvto_00186 p where trim(zid_grupo) = '"+valores[0].trim()+"'";
+        for(int x = 1; x < valores.length;x++){
+            if(valores[x] != null)
+                sql_encuesta += " AND zid_quest"+x+" = '"+valores[x].trim()+"'";
+        }
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        String idValores = "";
+        cursor.moveToNext();
+        idValores = cursor.getString(0).trim();
+
+        sql_encuesta = "select zzent3,zzent4,zzcanal,ztpocanal,zgpocanal,pson3  from cat_ztsdvto_00187 p where vkorg = '"+VariablesGlobales.getOrgVta()+"' AND trim(zid_result) = '"+idValores.trim()+"'";
+        cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            registro_canales.put("W_CTE-ZZENT3",cursor.getString(0).trim());
+            registro_canales.put("W_CTE-ZZENT4",cursor.getString(1).trim());
+            registro_canales.put("W_CTE-ZZCANAL",cursor.getString(2).trim());
+            registro_canales.put("W_CTE-ZTPOCANAL",cursor.getString(3).trim());
+            registro_canales.put("W_CTE-ZGPOCANAL",cursor.getString(4).trim());
+            registro_canales.put("W_CTE-PSON3",cursor.getString(5).trim());
+        }
+        return registro_canales;
+    }
+
+    public ArrayList<HashMap<String, String>> getRespuestasEncuesta(){
+        ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
+        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
+        String sql_encuesta = "select id_Grupo as id_grupo,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10 from encuesta_solicitud where idform = '" + getNextSolicitudId() + "'";
+        Cursor micursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (micursor.moveToNext()){
+            HashMap<String, String> user = new HashMap<>();
+            user.put("id_grupo", micursor.getString(0).trim());
+            user.put("col1", micursor.getString(1) == null ? "" : micursor.getString(1).trim());
+            user.put("col2", micursor.getString(2) == null ? "" : micursor.getString(2).trim());
+            user.put("col3", micursor.getString(3) == null ? "" : micursor.getString(3).trim());
+            user.put("col4", micursor.getString(4) == null ? "" : micursor.getString(4).trim());
+            user.put("col5", micursor.getString(5) == null ? "" : micursor.getString(5).trim());
+            user.put("col6", micursor.getString(6) == null ? "" : micursor.getString(6).trim());
+            user.put("col7", micursor.getString(7) == null ? "" : micursor.getString(7).trim());
+            user.put("col8", micursor.getString(8) == null ? "" : micursor.getString(8).trim());
+            user.put("col9", micursor.getString(9) == null ? "" : micursor.getString(9).trim());
+            user.put("col10", micursor.getString(10) == null ? "" : micursor.getString(10).trim());
+            preguntasList.add(user);
+        }
+        return  preguntasList;
+    }
+
+    //ENCUESTA GEC
+    public ArrayList<HashMap<String, String>> getPreguntasGec(){
+        ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
+        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
+        String sql_encuesta = "select zid_quest,text,text2  from cat_preguntas_gec p where bukrs = '" + VariablesGlobales.getSociedad() + "'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("zid_quest",cursor.getString(0).trim());
+            user.put("text",cursor.getString(1).trim());
+            user.put("text2",cursor.getString(2).trim());
+            preguntasList.add(user);
+        }
+        return  preguntasList;
+    }
+
+    public String getGecSegunEncuestaRealizada(Integer monto_total) {
+        String gec = "";
+
+        String sql_encuesta = "select klabc  from cat_rangos_gec p where bukrs = '"+VariablesGlobales.getSociedad()+"' AND min <=  "+monto_total+" AND max >="+monto_total+"";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            gec = cursor.getString(0).trim();
+        }
+        return gec;
+    }
+
+    public ArrayList<HashMap<String, String>> getEncuestaGec(int nextSolicitudId) {
+        ArrayList<HashMap<String, String>> respuestasEncuestaGec = new ArrayList<>();
+        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
+        String sql_encuesta = "select zid_quest, monto from encuesta_gec_solicitud p where idform = '" + nextSolicitudId + "'";
+        //String sql_encuesta2 = "select zid_quest, monto from encuesta_gec_solicitud p";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        //Cursor cursor2 = mDataBase.rawQuery(sql_encuesta2,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> resp = new HashMap<>();
+            resp.put("zid_quest",cursor.getString(0).trim());
+            resp.put("monto",cursor.getString(1).trim());
+            respuestasEncuestaGec.add(resp);
+        }
+        return  respuestasEncuestaGec;
     }
 }

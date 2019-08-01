@@ -2,16 +2,18 @@ package proyecto.app.clientesabc.Actividades;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Application;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -37,6 +39,7 @@ import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.TooltipCompat;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -66,6 +69,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -75,29 +79,38 @@ import java.util.regex.Pattern;
 
 import de.codecrafters.tableview.listeners.TableDataClickListener;
 import de.codecrafters.tableview.listeners.TableDataLongClickListener;
+import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
+import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.Adaptadores.AdjuntoTableAdapter;
 import proyecto.app.clientesabc.Adaptadores.BancoTableAdapter;
 import proyecto.app.clientesabc.Adaptadores.ContactoTableAdapter;
 import proyecto.app.clientesabc.Adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.Adaptadores.ImpuestoTableAdapter;
 import proyecto.app.clientesabc.Adaptadores.InterlocutorTableAdapter;
 import proyecto.app.clientesabc.Adaptadores.VisitasTableAdapter;
+import proyecto.app.clientesabc.Modelos.Adjuntos;
 import proyecto.app.clientesabc.Modelos.Banco;
+import proyecto.app.clientesabc.Modelos.Contacto;
+import proyecto.app.clientesabc.Modelos.EditTextDatePicker;
 import proyecto.app.clientesabc.Modelos.Impuesto;
 import proyecto.app.clientesabc.Modelos.Interlocutor;
 import proyecto.app.clientesabc.Modelos.OpcionSpinner;
 import proyecto.app.clientesabc.Modelos.Visitas;
-import proyecto.app.clientesabc.Modelos.Contacto;
-
-import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
-import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 
-import static android.support.design.widget.TabLayout.*;
+import static android.support.design.widget.TabLayout.GRAVITY_CENTER;
+import static android.support.design.widget.TabLayout.INDICATOR_GRAVITY_TOP;
+import static android.support.design.widget.TabLayout.INVISIBLE;
+import static android.support.design.widget.TabLayout.OnClickListener;
+import static android.support.design.widget.TabLayout.OnFocusChangeListener;
+import static android.support.design.widget.TabLayout.OnTouchListener;
+import static android.support.design.widget.TabLayout.TEXT_ALIGNMENT_CENTER;
 
 public class SolicitudActivity extends AppCompatActivity {
 
+    final static int alturaFilaTableView = 61;
     static String tipoSolicitud ="";
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
@@ -113,11 +126,13 @@ public class SolicitudActivity extends AppCompatActivity {
     static de.codecrafters.tableview.TableView<Interlocutor> tb_interlocutores;
     static de.codecrafters.tableview.TableView<Banco> tb_bancos;
     static de.codecrafters.tableview.TableView<Visitas> tb_visitas;
+    static de.codecrafters.tableview.TableView<Adjuntos> tb_adjuntos;
     private static ArrayList<Contacto> contactosSolicitud;
     private static ArrayList<Impuesto> impuestosSolicitud;
     private static ArrayList<Banco> bancosSolicitud;
     private static ArrayList<Interlocutor> interlocutoresSolicitud;
     private static ArrayList<Visitas> visitasSolicitud;
+    private static ArrayList<Adjuntos> adjuntosSolicitud;
 
     @SuppressLint("ResourceType")
     @Override
@@ -225,7 +240,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 }
                             }
                         }
-                        if(numErrores >= 0) {
+                        if(numErrores == 0) {
                             int NextId = mDBHelper.getNextSolicitudId();
                             if(NextId == 0)
                                 NextId = 1;
@@ -324,8 +339,19 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
                                                 visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
                                                 visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                                visitaValues.put("vie_d", visitasSolicitud.get(c).getVie_de());
+                                                visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
                                                 visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
+                                                visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
+                                                visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
+                                                visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
+                                                visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
+                                                visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
+                                                visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
+                                                visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
+                                                visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
+                                                visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
+                                                visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
+                                                visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
                                                 try {
                                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
                                                 } catch (Exception e) {
@@ -379,22 +405,48 @@ public class SolicitudActivity extends AppCompatActivity {
         tb_contactos.addDataClickListener(new ContactoClickListener());
         tb_contactos.addDataLongClickListener(new ContactoLongClickListener());
         tb_impuestos = new de.codecrafters.tableview.TableView<Impuesto>(this);
-        tb_impuestos.addDataClickListener(new ImpuestoClickListener());
-        tb_impuestos.addDataLongClickListener(new ImpuestoLongClickListener());
+        //tb_impuestos.addDataClickListener(new ImpuestoClickListener());
+        //tb_impuestos.addDataLongClickListener(new ImpuestoLongClickListener());
         tb_bancos = new de.codecrafters.tableview.TableView<Banco>(this);
         tb_bancos.addDataClickListener(new BancoClickListener());
         tb_bancos.addDataLongClickListener(new BancoLongClickListener());
         tb_interlocutores = new de.codecrafters.tableview.TableView<Interlocutor>(this);
-        tb_interlocutores.addDataClickListener(new InterlocutorClickListener());
-        tb_interlocutores.addDataLongClickListener(new InterlocutorLongClickListener());
+        //tb_interlocutores.addDataClickListener(new InterlocutorClickListener());
+        //tb_interlocutores.addDataLongClickListener(new InterlocutorLongClickListener());
         tb_visitas = new de.codecrafters.tableview.TableView<Visitas>(this);
         tb_visitas.addDataClickListener(new VisitasClickListener());
-        tb_visitas.addDataLongClickListener(new VisitasLongClickListener());
+        //tb_visitas.addDataLongClickListener(new VisitasLongClickListener());
+
+        tb_adjuntos = new de.codecrafters.tableview.TableView<Adjuntos>(this);
+        tb_adjuntos.addDataClickListener(new AdjuntosClickListener());
+        tb_adjuntos.addDataLongClickListener(new AdjuntosLongClickListener());
         contactosSolicitud = new ArrayList<Contacto>();
         impuestosSolicitud = new ArrayList<Impuesto>();
         interlocutoresSolicitud = new ArrayList<Interlocutor>();
         bancosSolicitud = new ArrayList<Banco>();
         visitasSolicitud = new ArrayList<Visitas>();
+        //TODO esto se debe quitar y hacer solo cuando se realize la seleccion de modalidad de venta
+        Visitas visitaSol = new Visitas();
+        visitaSol.setVptyp("ZPV");
+        visitaSol.setKvgr4("1DA");
+        Date c = Calendar.getInstance().getTime();
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+        String formattedDate = df.format(c);
+        visitaSol.setF_ico(formattedDate);
+        visitaSol.setF_fco("99991231");
+        visitaSol.setFcalid("1");
+        visitaSol.setRuta(VariablesGlobales.getRutaPreventa());
+        visitasSolicitud.add(visitaSol);
+        Visitas visitaSolR = new Visitas();
+        visitaSolR.setVptyp("ZDD");
+        visitaSolR.setKvgr4("1DA");
+        visitaSolR.setF_ico(formattedDate);
+        visitaSolR.setF_fco("99991231");
+        visitaSolR.setFcalid("1");
+        visitaSolR.setRuta("");
+        visitasSolicitud.add(visitaSolR);
+        adjuntosSolicitud = new ArrayList<Adjuntos>();
+        //notificantesSolicitud = new ArrayList<Adjuntos>();
     }
 
     //Menu de Opciones de Adjuntos para movil
@@ -453,6 +505,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
 
     }
+
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // TODO Fix no activity available
@@ -480,6 +533,17 @@ public class SolicitudActivity extends AppCompatActivity {
                         String name = getFileName(cR, uri);
                         byte[] inputData = getBytes(iStream);
                         mDBHelper.addAdjuntoSolicitud(type, name, inputData);
+                        //Agregar al tableView del UI
+                        Adjuntos nuevoAdjunto = new Adjuntos(Integer.toString(mDBHelper.getNextSolicitudId()), type, name, inputData);
+
+                        adjuntosSolicitud.add(nuevoAdjunto);
+                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
+                        stda.setPaddings(10, 5, 10, 5);
+                        stda.setTextSize(10);
+                        stda.setGravity(GRAVITY_CENTER);
+                        tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
+                        tb_adjuntos.setDataAdapter(stda);
+
                         Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
                     } catch (IOException e) {
                         Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
@@ -588,9 +652,8 @@ public class SolicitudActivity extends AppCompatActivity {
             if(nombre.equals("Marketing")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"M");
             }
-            if(nombre.equals("Adicionales")) {
+            if(nombre.equals("Adjuntos")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"Z");
-
             }
             return view;
         }
@@ -635,6 +698,16 @@ public class SolicitudActivity extends AppCompatActivity {
                 }
                 if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("adjuntos")) {
                     //Tipo ADJUNTOS
+                    DesplegarBloque(mDBHelper,ll,campos.get(i));
+                }else
+                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("grid")) {
+                    //Tipo GRID o BLOQUE de Datos (Estos Datos requieren una tabla de la BD adicional a FORMHVKOF)
+                    //Bloques Disponibles [Contactos, Impuestos, Funciones Interlocutor, visitas, bancos, notificantes]
+                    DesplegarBloque(mDBHelper,ll,campos.get(i));
+                }else
+                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("encuesta")) {
+                    //Encuesta Canales, se genera un checkbox que indicara si se ha realizado la encuesta de canales completa
+                    //Tipo CHECKBOX
                     CheckBox checkbox = new CheckBox(getContext());
                     checkbox.setText(campos.get(i).get("descr"));
                     if(campos.get(i).get("sup").trim().length() > 0){
@@ -647,12 +720,47 @@ public class SolicitudActivity extends AppCompatActivity {
                         checkbox.setChecked(true);
                     }
                     ll.addView(checkbox);
-
+                    checkbox.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            displayDialogEncuestaCanales(getContext());
+                            if(((CheckBox) v).isChecked())
+                                ((CheckBox) v).setChecked(false);
+                            else
+                                ((CheckBox) v).setChecked(true);
+                        }
+                    });
+                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                    mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
                 }else
-                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("grid")) {
-                    //Tipo GRID o BLOQUE de Datos (Estos Datos requieren una tabla de la BD adicional a FORMHVKOF)
-                    //Bloques Disponibles [Contactos, Impuestos, Funciones Interlocutor, visitas, bancos, notificantes]
-                    DesplegarBloque(mDBHelper,ll,campos.get(i));
+                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("encuesta_gec")) {
+                    //Encuesta gec, se genera un checkbox que indicara si se ha realizado la encuesta de canales completa
+                    //Tipo CHECKBOX
+                    final CheckBox checkbox = new CheckBox(getContext());
+                    checkbox.setText(campos.get(i).get("descr"));
+                    if(campos.get(i).get("sup").trim().length() > 0){
+                        checkbox.setVisibility(View.GONE);
+                    }
+                    if(campos.get(i).get("vis").trim().length() > 0){
+                        checkbox.setEnabled(false);
+                    }
+                    if(campos.get(i).get("dfaul").trim().length() > 0){
+                        checkbox.setChecked(true);
+                    }
+                    ll.addView(checkbox);
+                    checkbox.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            displayDialogEncuestaGec(getContext());
+                            if(((CheckBox) v).isChecked())
+                                ((CheckBox) v).setChecked(false);
+                            else
+                                ((CheckBox) v).setChecked(true);
+                        }
+                    });
+
+                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                    mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
                 }else
                 if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("checkbox")) {
                     //Tipo CHECKBOX
@@ -766,6 +874,23 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         });
                     }
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-KVGR5")){
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                tb_visitas.getLayoutParams().height = 50;
+                                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                                visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(VariablesGlobales.getOrgVta(), opcion.getId());
+                                tb_visitas.setDataAdapter(new VisitasTableAdapter(view.getContext(), visitasSolicitud));
+                                tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+(alturaFilaTableView*visitasSolicitud.size());
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
 
                     //label.addView(combo);
                     ll.addView(label);
@@ -855,16 +980,6 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         });
                     }
-                    /*if(campos.get(i).get("llamado1").trim().contains("ValidarCedula")){
-                        et.setOnFocusChangeListener(new OnFocusChangeListener() {
-                            @Override
-                            public void onFocusChange(View v, boolean hasFocus) {
-                                if (!hasFocus) {
-                                    ValidarCedula(v,"C1");
-                                }
-                            }
-                        });
-                    }*/
 
                     label.addView(et);
                     fila.addView(label);
@@ -894,6 +1009,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                 return false;
                             }
                         });
+                    }
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")){
+                        et.setSingleLine(false);
+                        et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                        et.setMinLines(5);
+                        et.setMaxLines(6);
+                        et.setVerticalScrollBarEnabled(true);
+                        et.setMovementMethod(ScrollingMovementMethod.getInstance());
+                        et.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
+                        et.setGravity(INDICATOR_GRAVITY_TOP);
                     }
 
                     listaCamposDinamicos.add(campos.get(i).get("campo").trim());
@@ -1012,8 +1137,11 @@ public class SolicitudActivity extends AppCompatActivity {
                     break;
                 case "W_CTE-IMPUESTOS":
                     de.codecrafters.tableview.TableView<Impuesto> bloque_impuesto;
+                    tb_impuestos.removeDataClickListener(null);
+                    tb_impuestos.removeDataLongClickListener(null);
                     bloque_impuesto = tb_impuestos;
-                    seccion_header.setOnClickListener(new View.OnClickListener() {
+                    btnAddBloque.setVisibility(INVISIBLE);
+                    /*seccion_header.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             displayDialogImpuesto(getContext(),null);
@@ -1024,9 +1152,8 @@ public class SolicitudActivity extends AppCompatActivity {
                         public void onClick(View view) {
                             displayDialogImpuesto(getContext(),null);
                         }
-                    });
-
-                    bloque_impuesto.setColumnCount(3);
+                    });*/
+                    bloque_impuesto.setColumnCount(4);
                     bloque_impuesto.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
                     bloque_impuesto.setHeaderElevation(2);
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
@@ -1034,11 +1161,12 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     //Adaptadores
                     if(impuestosSolicitud != null) {
-                        ImpuestoTableAdapter stda = new ImpuestoTableAdapter(getContext(), impuestosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        bloque_impuesto.setDataAdapter(stda);
+                        ArrayList<Impuesto> listaImpuestos = db.getImpuestosPais();
+                        for (int j = 0; j < listaImpuestos.size(); j++){
+                            impuestosSolicitud.add(listaImpuestos.get(j));
+                        }
+                        tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height+(listaImpuestos.size()*alturaFilaTableView);
+                        tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(getContext(), impuestosSolicitud));
                     }
                     headers = ((ImpuestoTableAdapter)bloque_impuesto.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
@@ -1057,7 +1185,8 @@ public class SolicitudActivity extends AppCompatActivity {
                 case "W_CTE-INTERLOCUTORES":
                     de.codecrafters.tableview.TableView<Interlocutor> bloque_interlocutor;
                     bloque_interlocutor = tb_interlocutores;
-                    btnAddBloque.setOnClickListener(new View.OnClickListener() {
+                    btnAddBloque.setVisibility(INVISIBLE);
+                    /*btnAddBloque.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             displayDialogInterlocutor(getContext(),null);
@@ -1068,20 +1197,22 @@ public class SolicitudActivity extends AppCompatActivity {
                         public void onClick(View view) {
                             displayDialogInterlocutor(getContext(),null);
                         }
-                    });
+                    });*/
                     bloque_interlocutor.setColumnCount(3);
-                    bloque_interlocutor.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
+                    bloque_interlocutor.setHeaderBackgroundColor(getResources().getColor(R.color.colorHeaderTableView,null));
                     bloque_interlocutor.setHeaderElevation(2);
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     bloque_interlocutor.setLayoutParams(hlp);
 
                     //Adaptadores
                     if(interlocutoresSolicitud != null) {
-                        InterlocutorTableAdapter stda = new InterlocutorTableAdapter(getContext(), interlocutoresSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        bloque_interlocutor.setDataAdapter(stda);
+                        ArrayList<Interlocutor> listaInterlocutores = db.getInterlocutoresPais();
+                        for (int j = 0; j < listaInterlocutores.size(); j++){
+                            interlocutoresSolicitud.add(listaInterlocutores.get(j));
+                        }
+                        tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height+(listaInterlocutores.size()*alturaFilaTableView);
+                        tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(getContext(), interlocutoresSolicitud));
+
                     }
                     headers = ((InterlocutorTableAdapter)bloque_interlocutor.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
@@ -1141,64 +1272,202 @@ public class SolicitudActivity extends AppCompatActivity {
                     ll.addView(rl);
                     break;
                 case "W_CTE-VISITAS":
-                    de.codecrafters.tableview.TableView<Visitas> bloque_visita;
-                    bloque_visita = tb_visitas;
-                    btnAddBloque.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            //displayDialogVisitas(view);
-                        }
-                    });
-                    seccion_header.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            //displayDialogVisitas(view);
-                        }
-                    });
-                    bloque_visita.setColumnCount(3);
-                    bloque_visita.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
-                    bloque_visita.setHeaderElevation(2);
+                    tb_visitas.setColumnCount(4);
+                    tb_visitas.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
+                    tb_visitas.setHeaderElevation(1);
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
-                    bloque_visita.setLayoutParams(hlp);
-
-                    //Textos de dias de visita
-                    TextInputEditText txt_lunes = new TextInputEditText(getContext());
-                    TextInputEditText txt_martes = new TextInputEditText(getContext());
-                    TextInputEditText txt_miercoles = new TextInputEditText(getContext());
-                    TextInputEditText txt_jueves = new TextInputEditText(getContext());
-                    TextInputEditText txt_viernes = new TextInputEditText(getContext());
-                    TextInputEditText txt_sabado = new TextInputEditText(getContext());
-                    TextInputEditText txt_domingo = new TextInputEditText(getContext());
-
-                    TextInputEditText txt_vptyp = new TextInputEditText(getContext());
-                    TextInputEditText txt_kvgr4 = new TextInputEditText(getContext());
-                    TextInputEditText txt_ruta = new TextInputEditText(getContext());
-
-
+                    tb_visitas.setLayoutParams(hlp);
 
                     //Adaptadores
-                if(visitasSolicitud != null) {
-                    VisitasTableAdapter stda = new VisitasTableAdapter(getContext(), visitasSolicitud);
-                    stda.setPaddings(10, 5, 10, 5);
-                    stda.setTextSize(10);
-                    stda.setGravity(GRAVITY_CENTER);
-                    bloque_visita.setDataAdapter(stda);
-                }
+                    if(visitasSolicitud != null) {
+                        VisitasTableAdapter stda = new VisitasTableAdapter(getContext(), visitasSolicitud);
+                        stda.setPaddings(10, 5, 10, 5);
+                        stda.setTextSize(10);
+                        stda.setGravity(GRAVITY_CENTER);
+                        tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+(visitasSolicitud.size()*alturaFilaTableView);
+                        tb_visitas.setDataAdapter(stda);
+                    }
+                    headers = ((VisitasTableAdapter)tb_visitas.getDataAdapter()).getHeaders();
+                    sta = new SimpleTableHeaderAdapter(getContext(), headers);
+                    sta.setPaddings(10,5,10,5);
+                    sta.setTextSize(12);
+                    sta.setTextColor(getResources().getColor(R.color.white,null));
+                    sta.setTypeface(Typeface.BOLD);
+                    sta.setGravity(GRAVITY_CENTER);
 
-                headers = ((VisitasTableAdapter)bloque_visita.getDataAdapter()).getHeaders();
-                sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                sta.setPaddings(10,5,10,5);
-                sta.setTextSize(12);
-                sta.setTextColor(getResources().getColor(R.color.white,null));
-                sta.setTypeface(Typeface.BOLD);
-                sta.setGravity(GRAVITY_CENTER);
+                    tb_visitas.setHeaderAdapter(sta);
+                    tb_visitas.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
+                    rl.addView(tb_visitas);
+                    ll.addView(rl);
+                    //Textos de dias de visita
+                    //Desplegar textos para las secuencias de los dias de visita de la preventa.
+                    //TODO Generar segun la Modalidad de venta seleccionada para usuarios tipo jefe de ventas y no preventas
+                    final String[] diaLabel = {"Lunes","Martes","Miercoles","Jueves","Viernes","Sabado","Domingo"};
+                    for(int x = 0; x < 6; x++){
+                        TextInputLayout label = new TextInputLayout(getContext());
+                        label.setHint("Secuencia dia "+diaLabel[x]);
+                        label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
+                        label.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
 
-                bloque_visita.setHeaderAdapter(sta);
-                bloque_visita.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
+                        final TextInputEditText et = new TextInputEditText(getContext());
+                        mapeoCamposDinamicos.put("ZPV_"+diaLabel[x],et);
+                        et.setMaxLines(1);
+                        et.setInputType(InputType.TYPE_CLASS_NUMBER);
+                        TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5f);
+                        lp.setMargins(0, 15, 0, 15);
+                        et.setLayoutParams(lp);
+                        //et.setPadding(20, 5, 20, 5);
+                        Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
+                        et.setBackground(d);
+                        final int finalX = x;
+                        et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                            @Override
+                            public void onFocusChange(View v, boolean hasFocus) {
+                                if (!hasFocus) {
+                                    Visitas visita = visitasSolicitud.get(0);
+                                    if(!((TextView)v).getText().toString().equals("") && Integer.valueOf(((TextView)v).getText().toString()) > 1440){
+                                        switch(finalX) {
+                                            case 0:
+                                                visita.setLun_a("1440");
+                                                visita.setLun_de("1440");
+                                                break;
+                                            case 1:
+                                                visita.setMar_a("1440");
+                                                visita.setMar_de("1440");
+                                                break;
+                                            case 2:
+                                                visita.setMier_a("1440");
+                                                visita.setMier_de("1440");
+                                                break;
+                                            case 3:
+                                                visita.setJue_a("1440");
+                                                visita.setJue_de("1440");
+                                                break;
+                                            case 4:
+                                                visita.setVie_a("1440");
+                                                visita.setVie_de("1440");
+                                                break;
+                                            case 5:
+                                                visita.setSab_a("1440");
+                                                visita.setSab_de("1440");
+                                                break;
+                                            case 6:
+                                                visita.setDom_a("1440");
+                                                visita.setDom_de("1440");
+                                                break;
+                                        }
+                                        ((TextView)v).setText("1440");
+                                        Toasty.warning(getContext(),"La secuencia no puede ser mayor 1440!").show();
+                                    }
 
-                rl.addView(bloque_visita);
-                ll.addView(rl);
+                                    //Si el valor es vacio, borrar si existe el dia
+                                    if(((TextView)v).getText().toString().trim().equals("")){
+                                        switch(finalX) {
+                                            case 0:
+                                                visita.setLun_a("");
+                                                visita.setLun_de("");
+                                                break;
+                                            case 1:
+                                                visita.setMar_a("");
+                                                visita.setMar_de("");
+                                                break;
+                                            case 2:
+                                                visita.setMier_a("");
+                                                visita.setMier_de("");
+                                                break;
+                                            case 3:
+                                                visita.setJue_a("");
+                                                visita.setJue_de("");
+                                                break;
+                                            case 4:
+                                                visita.setVie_a("");
+                                                visita.setVie_de("");
+                                                break;
+                                            case 5:
+                                                visita.setSab_a("");
+                                                visita.setSab_de("");
+                                                break;
+                                            case 6:
+                                                visita.setDom_a("");
+                                                visita.setDom_de("");
+                                                break;
+                                        }
+                                    }else{
+                                        int hours = Integer.valueOf(((TextView)v).getText().toString()) / 60; //since both are ints, you get an int
+                                        int minutes = Integer.valueOf(((TextView)v).getText().toString()) % 60;
+                                        String h = String.format("%02d", hours);
+                                        String m = String.format("%02d", minutes);
+                                        String secuenciaSAP = h+m;
+                                        switch(finalX) {
+                                            case 0:
+                                                visita.setLun_a(secuenciaSAP);
+                                                visita.setLun_de(secuenciaSAP);
+                                                break;
+                                            case 1:
+                                                visita.setMar_a(secuenciaSAP);
+                                                visita.setMar_de(secuenciaSAP);
+                                                break;
+                                            case 2:
+                                                visita.setMier_a(secuenciaSAP);
+                                                visita.setMier_de(secuenciaSAP);
+                                                break;
+                                            case 3:
+                                                visita.setJue_a(secuenciaSAP);
+                                                visita.setJue_de(secuenciaSAP);
+                                                break;
+                                            case 4:
+                                                visita.setVie_a(secuenciaSAP);
+                                                visita.setVie_de(secuenciaSAP);
+                                                break;
+                                            case 5:
+                                                visita.setSab_a(secuenciaSAP);
+                                                visita.setSab_de(secuenciaSAP);
+                                                break;
+                                            case 6:
+                                                visita.setDom_a(secuenciaSAP);
+                                                visita.setDom_de(secuenciaSAP);
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        label.addView(et);
+                        ll.addView(label);
+                    }
                 break;
+                case "W_CTE-ADJUNTOS":
+                    tb_adjuntos.setColumnCount(3);
+                    tb_adjuntos.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
+                    hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
+
+                    tb_adjuntos.setLayoutParams(hlp);
+
+                    //Adaptadores
+                    if(adjuntosSolicitud != null) {
+                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getContext(), adjuntosSolicitud);
+                        stda.setPaddings(10, 5, 10, 5);
+                        stda.setTextSize(10);
+                        stda.setGravity(GRAVITY_CENTER);
+                        tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*alturaFilaTableView);
+                        tb_adjuntos.setDataAdapter(stda);
+                    }
+                    headers = ((AdjuntoTableAdapter)tb_adjuntos.getDataAdapter()).getHeaders();
+                    sta = new SimpleTableHeaderAdapter(getContext(), headers);
+                    sta.setPaddings(10,5,10,5);
+                    sta.setTextSize(12);
+                    sta.setTextColor(getResources().getColor(R.color.white,null));
+                    sta.setTypeface(Typeface.BOLD);
+                    sta.setGravity(GRAVITY_CENTER);
+
+                    tb_adjuntos.setHeaderAdapter(sta);
+                    tb_adjuntos.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
+
+                    rl.addView(tb_adjuntos);
+                    ll.addView(rl);
+                    break;
+                case "W_CTE-NOTIFICANTES":
+                    break;
             }
         }
     }
@@ -1253,7 +1522,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(contactosSolicitud != null) {
                         tb_contactos.setDataAdapter(new ContactoTableAdapter(v.getContext(), contactosSolicitud));
                         if(seleccionado == null)
-                            tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height+100;
+                            tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height+alturaFilaTableView;
                         d.dismiss();
                     }
                 }catch(Exception e){
@@ -1302,9 +1571,8 @@ public class SolicitudActivity extends AppCompatActivity {
 
         //INITIALIZE VIEWS
         final TextView title = d.findViewById(R.id.title);
-        final EditText nameEditText= d.findViewById(R.id.nameEditTxt);
-        final EditText propellantEditTxt= d.findViewById(R.id.propEditTxt);
-        final EditText destEditTxt= d.findViewById(R.id.destEditTxt);
+        final Spinner claveSpinner= d.findViewById(R.id.claveSpinner);
+        final Spinner clasiSpinner= d.findViewById(R.id.clasiSpinner);
         Button saveBtn= d.findViewById(R.id.saveBtn);
         if(seleccionado != null){
             saveBtn.setText("Modificar");
@@ -1317,18 +1585,18 @@ public class SolicitudActivity extends AppCompatActivity {
                 if(seleccionado != null)
                     impuestosSolicitud.remove(seleccionado);
                 Impuesto nuevoImpuesto = new Impuesto();
-                nuevoImpuesto.setVtext(nameEditText.getText().toString());
-                nuevoImpuesto.setVtext2(propellantEditTxt.getText().toString());
-                nuevoImpuesto.setTaxkd(destEditTxt.getText().toString());
+                nuevoImpuesto.setTatyp(((OpcionSpinner)claveSpinner.getSelectedItem()).getId());
+                nuevoImpuesto.setVtext(((OpcionSpinner)claveSpinner.getSelectedItem()).getName());
+                nuevoImpuesto.setTaxkd(((OpcionSpinner)clasiSpinner.getSelectedItem()).getId());
+                nuevoImpuesto.setVtext2(((OpcionSpinner)clasiSpinner.getSelectedItem()).getName());
                 impuestosSolicitud.add(nuevoImpuesto);
                 if (true/*mDBHelper.guardarContacto(nuevoContacto)*/) {
-                    nameEditText.setText("");
-                    propellantEditTxt.setText("");
-                    destEditTxt.setText("");
+                    claveSpinner.setSelection(0);
+                    clasiSpinner.setSelection(0);
                     if(impuestosSolicitud != null) {
                         tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(v.getContext(), impuestosSolicitud));
                         if(seleccionado == null)
-                            tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height+100;
+                            tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height+alturaFilaTableView;
                         d.dismiss();
                     }
                 } else {
@@ -1337,11 +1605,78 @@ public class SolicitudActivity extends AppCompatActivity {
             }
         });
 
+        //Para campos de seleccion para grid impuestos campo clave de impuesto
+        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_impstos",1,2, "taxkd=1");
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndexClave = 0;
+        for (int j = 0; j < opciones.size(); j++){
+            if(seleccionado != null && opciones.get(j).get("id").equals(seleccionado.getTatyp())){
+                selectedIndexClave = j;
+            }
+            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+        }
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
+        claveSpinner.setBackground(spinner_back);
+        claveSpinner.setAdapter(dataAdapter);
+
+        claveSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                //Para campos de seleccion para grid bancos campo clasificacion fiscal
+                ArrayList<HashMap<String, String>> opcionesClasi = mDBHelper.getDatosCatalogo("cat_impstos",3,4,"tatyp='"+opcion.getId()+"'");
+
+                ArrayList<OpcionSpinner> listaopcionesClasi = new ArrayList<>();
+                int selectedIndexClasi = 0;
+                for (int j = 0; j < opcionesClasi.size(); j++){
+                    listaopcionesClasi.add(new OpcionSpinner(opcionesClasi.get(j).get("id"), opcionesClasi.get(j).get("descripcion")));
+                }
+                // Creando el adaptador(opcionesClasi) para el comboBox deseado
+                ArrayAdapter<OpcionSpinner> dataAdapterClasi = new ArrayAdapter<OpcionSpinner>(view.getContext(), R.layout.simple_spinner_item, listaopcionesClasi);
+                // Drop down layout style - list view with radio button
+                dataAdapterClasi.setDropDownViewResource(R.layout.spinner_item);
+                // attaching data adapter to spinner
+                Drawable spinner_back_clasi = view.getContext().getResources().getDrawable(R.drawable.spinner_underlined, null);
+                clasiSpinner.setBackground(spinner_back_clasi);
+                clasiSpinner.setAdapter(dataAdapterClasi);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //Para campos de seleccion para grid bancos campo clasificacion fiscal
+        ArrayList<HashMap<String, String>> opcionesClasi = mDBHelper.getDatosCatalogo("cat_impstos",3,4);
+
+        ArrayList<OpcionSpinner> listaopcionesClasi = new ArrayList<>();
+        int selectedIndexClasi = 0;
+        for (int j = 0; j < opcionesClasi.size(); j++){
+            if(seleccionado != null && opciones.get(j).get("id").equals(seleccionado.getTatyp())){
+                selectedIndexClave = j;
+            }
+            listaopcionesClasi.add(new OpcionSpinner(opcionesClasi.get(j).get("id"), opcionesClasi.get(j).get("descripcion")));
+        }
+        // Creando el adaptador(opcionesClasi) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapterClasi = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopcionesClasi);
+        // Drop down layout style - list view with radio button
+        dataAdapterClasi.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable spinner_back_clasi = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
+        clasiSpinner.setBackground(spinner_back_clasi);
+        clasiSpinner.setAdapter(dataAdapterClasi);
+
+
         if(seleccionado != null){
-            nameEditText.setText(seleccionado.getVtext());
-            nameEditText.setText(seleccionado.getVtext2());
-            nameEditText.setText(seleccionado.getTatyp());
-            //funcionSpinner.setSelection(selectedIndex);
+            claveSpinner.setSelection(selectedIndexClave);
+            clasiSpinner.setSelection(selectedIndexClave);
         }
 
         //SHOW DIALOG
@@ -1382,7 +1717,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(interlocutoresSolicitud != null) {
                         tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(v.getContext(), interlocutoresSolicitud));
                         if(seleccionado == null)
-                            tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height+100;
+                            tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height+alturaFilaTableView;
                         d.dismiss();
                     }
                 } else {
@@ -1441,7 +1776,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(bancosSolicitud != null) {
                         tb_bancos.setDataAdapter(new BancoTableAdapter(v.getContext(), bancosSolicitud));
                         if(seleccionado == null)
-                            tb_bancos.getLayoutParams().height = tb_bancos.getLayoutParams().height+100;
+                            tb_bancos.getLayoutParams().height = tb_bancos.getLayoutParams().height+alturaFilaTableView;
                         d.dismiss();
                     }
                 } else {
@@ -1502,6 +1837,288 @@ public class SolicitudActivity extends AppCompatActivity {
         window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
     }
 
+    public static void displayDialogEncuestaCanales(final Context context)
+    {
+        final Dialog d=new Dialog(context);
+        d.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                //Toasty.info(context,"Dialogo Dismissed!").show();
+            }
+        });
+        d.setContentView(R.layout.encuesta_canales_dialog_layout);
+
+        //INITIALIZE VIEWS
+        final TextView title = d.findViewById(R.id.title);
+        final Spinner grupoIsscomSpinner = d.findViewById(R.id.grupoIsscomSpinner);
+
+        grupoIsscomSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @SuppressLint("ResourceType")
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                LinearLayout layout = d.findViewById(R.id.layoutDinamico);
+                layout.removeAllViews();
+
+                RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                params1.setMargins(10,10,10,10);
+                ArrayList<HashMap<String, String>> preguntas = mDBHelper.getPreguntasSegunGrupo(opcion.getId());
+                ArrayList<HashMap<String, String>> respuestas = mDBHelper.getRespuestasEncuesta();
+
+                for (int j = 0; j < preguntas.size(); j++){
+                    int selected = 0;
+                    Spinner pregunta = new Spinner(d.getContext());
+                    ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
+
+                    TextView label_pregunta = new TextView(d.getContext());
+                    label_pregunta.setText(preguntas.get(j).get("zid_quest") + ") "+preguntas.get(j).get("text"));
+                    //label_pregunta.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark,null));
+                    layout.addView(label_pregunta,params1);
+                    ArrayList<HashMap<String, String>> opcionesxpregunta = mDBHelper.getOpcionesPreguntaGrupo(opcion.getId(),preguntas.get(j).get("zid_quest"));
+                    for (int i = 0; i < opcionesxpregunta.size(); i++) {
+                        OpcionSpinner op = new OpcionSpinner(opcionesxpregunta.get(i).get("zid_resp"), opcionesxpregunta.get(i).get("zid_resp")+" - "+opcionesxpregunta.get(i).get("text"));
+                        if (respuestas.get(0) != null && opcionesxpregunta.get(i).get("zid_resp").equals(respuestas.get(0).get("col" + (j + 1)).toString())
+                                && (respuestas.get(0).get("id_grupo")).toString().equals(String.valueOf(position))) {
+                            op.setSelected(i);
+                            selected = i;
+                        }
+                        misOpciones.add(op);
+                    }
+
+                    ArrayAdapter<OpcionSpinner> dataAdapterP = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, misOpciones);
+                    dataAdapterP.setDropDownViewResource(R.layout.spinner_item);
+                    // attaching data adapter to spinner
+                    Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
+                    pregunta.setBackground(spinner_back);
+                    pregunta.setAdapter(dataAdapterP);
+
+                    pregunta.setId(j+1);
+                    pregunta.setSelection(selected);
+                    layout.addView(pregunta,params1);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Toasty.warning(context,"Seleccion el Grupo Isscom para generar la encuesta.").show();
+            }
+        });
+
+        Button saveBtn= d.findViewById(R.id.saveBtn);
+        //SAVE
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("ResourceType")
+            @Override
+            public void onClick(View v) {
+                if (true) {
+                    //Si existe una encuesta realizada se borrara y se guardara la nueva generada (Solo 1 encuesta x cliente permitida)
+                    int del = mDb.delete(VariablesGlobales.getTablaEncuestaSolicitud(), "idform = ?", new String[]{String.valueOf(mDBHelper.getNextSolicitudId())});
+                    //Guardar la encuesta generada en la Base de datos
+                    ContentValues encuestaValues = new ContentValues();
+
+                    encuestaValues.put("idform", mDBHelper.getNextSolicitudId());
+                    Spinner s = d.findViewById(R.id.grupoIsscomSpinner);
+                    String valorg = ((OpcionSpinner)s.getSelectedItem()).getId().toString();
+                    encuestaValues.put("id_Grupo", valorg);
+                    s = d.findViewById(1);
+                    String valor1 = s != null ? ((OpcionSpinner)s.getSelectedItem()).getId().toString() : null;
+                    encuestaValues.put("col1", valor1 );
+                    s = d.findViewById(2);
+                    String valor2 = s != null ? ((OpcionSpinner)s.getSelectedItem()).getId().toString() : null;
+                    encuestaValues.put("col2", valor2 );
+                    s = d.findViewById(3);
+                    String valor3 = s != null ? ((OpcionSpinner)s.getSelectedItem()).getId().toString() : null;
+                    encuestaValues.put("col3", valor3 );
+                    s = d.findViewById(4);
+                    String valor4 = s != null ? ((OpcionSpinner)s.getSelectedItem()).getId().toString() : null;
+                    encuestaValues.put("col4", valor4 );
+                    s = d.findViewById(5);
+                    String valor5 = s != null ? ((OpcionSpinner)s.getSelectedItem()).getId().toString() : null;
+                    encuestaValues.put("col5", valor5 );
+                    s = d.findViewById(6);
+                    String valor6 = s != null ? ((OpcionSpinner)s.getSelectedItem()).getId().toString() : null;
+                    encuestaValues.put("col6", valor6 );
+
+                    HashMap<String, String> valor_canales = mDBHelper.getValoresSegunEncuestaRealizada(valorg, valor1, valor2, valor3, valor4, valor5, valor6);
+
+                    Spinner zzent3Spinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZENT3");
+                    ArrayAdapter<OpcionSpinner> catalagoAdaptador = (ArrayAdapter<OpcionSpinner>)zzent3Spinner.getAdapter();
+                    zzent3Spinner.setSelection(VariablesGlobales.getIndex(zzent3Spinner,valor_canales.get("W_CTE-ZZENT3").trim()));
+
+                    Spinner zzent4Spinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZENT4");
+                    catalagoAdaptador = (ArrayAdapter<OpcionSpinner>)zzent4Spinner.getAdapter();
+                    zzent4Spinner.setSelection(VariablesGlobales.getIndex(zzent3Spinner,valor_canales.get("W_CTE-ZZENT4").trim()));
+
+                    Spinner zzcanalSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZCANAL");
+                    catalagoAdaptador = (ArrayAdapter<OpcionSpinner>)zzcanalSpinner.getAdapter();
+                    zzcanalSpinner.setSelection(VariablesGlobales.getIndex(zzcanalSpinner,valor_canales.get("W_CTE-ZZCANAL").trim()));
+
+                    Spinner ztpocanalSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTPOCANAL");
+                    catalagoAdaptador = (ArrayAdapter<OpcionSpinner>)ztpocanalSpinner.getAdapter();
+                    ztpocanalSpinner.setSelection(VariablesGlobales.getIndex(ztpocanalSpinner,valor_canales.get("W_CTE-ZTPOCANAL").trim()));
+
+                    Spinner zgpocanalSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZGPOCANAL");
+                    catalagoAdaptador = (ArrayAdapter<OpcionSpinner>)zgpocanalSpinner.getAdapter();
+                    zgpocanalSpinner.setSelection(VariablesGlobales.getIndex(zgpocanalSpinner,valor_canales.get("W_CTE-ZGPOCANAL").trim()));
+
+                    Spinner pson3Spinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-PSON3");
+                    catalagoAdaptador = (ArrayAdapter<OpcionSpinner>)pson3Spinner.getAdapter();
+                    pson3Spinner.setSelection(VariablesGlobales.getIndex(pson3Spinner,valor_canales.get("W_CTE-PSON3").trim()));
+
+                    try {
+                        mDb.insert(VariablesGlobales.getTablaEncuestaSolicitud(), null, encuestaValues);
+                    } catch (Exception e) {
+                        Toasty.error(v.getContext(), "Error Insertando Encuesta Canales", Toast.LENGTH_SHORT).show();
+                    }
+                    //TODO Asignar los valores de los canales segun las respuestas obtenidas
+
+                    Toasty.success(v.getContext(), "Encuesta Canales ejecutada correctamente!", Toast.LENGTH_SHORT).show();
+                    d.dismiss();
+                    CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA");
+                    ejecutada.setChecked(true);
+                } else {
+                    Toasty.error(v.getContext(), "No se pudo salvar la encuesta", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_grupo_isscom");
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < opciones.size(); j++){
+            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+        }
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
+        grupoIsscomSpinner.setBackground(spinner_back);
+        grupoIsscomSpinner.setAdapter(dataAdapter);
+        ArrayList<HashMap<String, String>> respuestas = mDBHelper.getRespuestasEncuesta();
+        if(respuestas.size() > 0){
+            grupoIsscomSpinner.setSelection(VariablesGlobales.getIndex(grupoIsscomSpinner,respuestas.get(0).get("id_grupo").toString().trim()));
+        }
+
+        //SHOW DIALOG
+        d.show();
+        Window window = d.getWindow();
+        window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+    }
+
+    public static void displayDialogEncuestaGec(final Context context)
+    {
+        final Dialog d=new Dialog(context);
+        d.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                //Toasty.info(context,"Dialogo Dismissed!").show();
+            }
+        });
+        d.setContentView(R.layout.encuesta_gec_dialog_layout);
+
+        //INITIALIZE VIEWS
+        final TextView title = d.findViewById(R.id.title);
+        LinearLayout layout = d.findViewById(R.id.layoutDinamico);
+        layout.removeAllViews();
+
+        RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params1.setMargins(10,10,10,10);
+        final ArrayList<HashMap<String, String>> preguntas = mDBHelper.getPreguntasGec();
+        final ArrayList<HashMap<String, String>> respuestas = mDBHelper.getEncuestaGec(mDBHelper.getNextSolicitudId());
+
+        for (int j = 0; j < preguntas.size(); j++){
+            EditText monto = new EditText(d.getContext());
+            ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
+
+            TextView label_pregunta = new TextView(d.getContext());
+            label_pregunta.setText(preguntas.get(j).get("zid_quest") + ") "+preguntas.get(j).get("text"));
+            //label_pregunta.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark,null));
+            layout.addView(label_pregunta,params1);
+
+            //TODO revisar si ya se ha realizado una encuesta para la solicitud, para poder mostrar las respuestas existentes.
+            if(respuestas.size() > 0){
+                //monto.setText(respuestas.get(j).get("monto"));
+                monto.setText("2");
+            }
+            monto.setId(j+1);
+            layout.addView(monto,params1);
+        }
+
+        Button saveBtn= d.findViewById(R.id.saveBtn);
+        //SAVE
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("ResourceType")
+            @Override
+            public void onClick(View v) {
+                if (true) {
+                    //Si existe una encuesta realizada se borrara y se guardara la nueva generada (Solo 1 encuesta x cliente permitida)
+                    //Guardar la encuesta generada en la Base de datos
+                    int del = mDb.delete(VariablesGlobales.getTablaEncuestaGecSolicitud(), "idform = ?", new String[]{String.valueOf(mDBHelper.getNextSolicitudId())});
+                    ContentValues encuestaValues = new ContentValues();
+                    Integer suma_montos = 0;
+                    for (int j = 0; j < preguntas.size(); j++){
+                        EditText monto = d.findViewById(j+1);
+                        encuestaValues.clear();
+                        encuestaValues.put("id_encuesta_gec", mDBHelper.getNextSolicitudId());
+                        encuestaValues.put("idform", mDBHelper.getNextSolicitudId());
+                        encuestaValues.put("zid_grupo", (j+1));
+                        encuestaValues.put("zid_quest", (j+1));
+                        encuestaValues.put("monto", monto.getText().toString());
+                        if(!monto.getText().toString().trim().equals("")){
+                            suma_montos += Integer.valueOf(monto.getText().toString());
+                        }
+
+                        try {
+                            mDb.insert(VariablesGlobales.getTablaEncuestaGecSolicitud(), null, encuestaValues);
+                        } catch (Exception e) {
+                            Toasty.error(v.getContext(), "Error Insertando Encuesta Canales (Registro #"+j+")", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    String valor_gec = mDBHelper.getGecSegunEncuestaRealizada(suma_montos);
+                    Spinner gecSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
+                    gecSpinner.setSelection(VariablesGlobales.getIndex(gecSpinner,valor_gec));
+
+                    //TODO Asignar los valores de los canales segun las respuestas obtenidas
+                    Toasty.success(v.getContext(), "Encuesta GEC ejecutada correctamente!", Toast.LENGTH_SHORT).show();
+                    d.dismiss();
+                    CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
+                    ejecutada.setChecked(true);
+                } else {
+                    Toasty.error(v.getContext(), "No se pudo salvar la encuesta gec", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_grupo_isscom");
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < opciones.size(); j++){
+            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+        }
+
+        //SHOW DIALOG
+        d.show();
+        Window window = d.getWindow();
+        window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+    }
+
+    public void mostrarAdjunto(Context context, Bitmap imagen)
+    {
+        final Dialog d = new Dialog(context);
+        d.setContentView(R.layout.adjunto_layout);
+        ImageView adjunto = (ImageView)d.findViewById(R.id.imagen);
+        adjunto.setImageBitmap(imagen);
+        //SHOW DIALOG
+        d.show();
+        Window window = d.getWindow();
+        window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+    }
+
     private class ContactoClickListener implements TableDataClickListener<Contacto> {
         @Override
         public void onDataClicked(int rowIndex, Contacto seleccionado) {
@@ -1515,7 +2132,7 @@ public class SolicitudActivity extends AppCompatActivity {
             String salida = seleccionado.getName1() + " " + seleccionado.getNamev();
             contactosSolicitud.remove(rowIndex);
             tb_contactos.setDataAdapter(new ContactoTableAdapter(getBaseContext(), contactosSolicitud));
-            tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height-100;
+            tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height-alturaFilaTableView;
             Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
             return true;
         }
@@ -1532,7 +2149,7 @@ public class SolicitudActivity extends AppCompatActivity {
             String salida = seleccionado.getVtext() + " " + seleccionado.getVtext2();
             impuestosSolicitud.remove(rowIndex);
             tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(getBaseContext(), impuestosSolicitud));
-            tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height-100;
+            tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height-alturaFilaTableView;
             Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
             return true;
         }
@@ -1549,7 +2166,7 @@ public class SolicitudActivity extends AppCompatActivity {
             String salida = seleccionado.getBankn() + " " + seleccionado.getBanks();
             bancosSolicitud.remove(rowIndex);
             tb_bancos.setDataAdapter(new BancoTableAdapter(getBaseContext(), bancosSolicitud));
-            tb_bancos.getLayoutParams().height = tb_bancos.getLayoutParams().height-100;
+            tb_bancos.getLayoutParams().height = tb_bancos.getLayoutParams().height-alturaFilaTableView;
             Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
             return true;
         }
@@ -1566,7 +2183,7 @@ public class SolicitudActivity extends AppCompatActivity {
             String salida = seleccionado.getName1() + " " + seleccionado.getKunn2();
             interlocutoresSolicitud.remove(rowIndex);
             tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(getBaseContext(), interlocutoresSolicitud));
-            tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height-100;
+            tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height-alturaFilaTableView;
             Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
             return true;
         }
@@ -1574,16 +2191,234 @@ public class SolicitudActivity extends AppCompatActivity {
     private class VisitasClickListener implements TableDataClickListener<Visitas> {
         @Override
         public void onDataClicked(int rowIndex, Visitas seleccionado) {
-            //displayDialogVisitas(SolicitudActivity.this,seleccionado);
+            DetallesVisitPlan(SolicitudActivity.this, seleccionado);
         }
     }
+
+    private static void DetallesVisitPlan(final Context context, final Visitas seleccionado) {
+        final Dialog d = new Dialog(context);
+        d.setContentView(R.layout.visita_dialog_layout);
+        boolean reparto = mDBHelper.EsTipodeReparto(VariablesGlobales.getBzirk(), seleccionado.getVptyp());
+        //INITIALIZE VIEWS
+        final TextView title = d.findViewById(R.id.title);
+        final Spinner kvgr4Spinner = d.findViewById(R.id.kvgr4Spinner);
+        final EditText f_icoEditText = d.findViewById(R.id.f_icoEditTxt);
+        final EditText f_fcoEditText = d.findViewById(R.id.f_fcoEditTxt);
+        final EditText f_iniEditText = d.findViewById(R.id.f_iniEditTxt);
+        final EditText f_finEditText = d.findViewById(R.id.f_finEditTxt);
+        final Spinner fcalidSpinner = d.findViewById(R.id.fcalidSpinner);
+        Button saveBtn= d.findViewById(R.id.saveBtn);
+        title.setText("Plan de Visita "+seleccionado.getVptyp());
+
+        kvgr4Spinner.setSelection(((ArrayAdapter<CharSequence>)kvgr4Spinner.getAdapter()).getPosition(seleccionado.getKvgr4()));
+        f_icoEditText.setText(seleccionado.getF_ico());
+        f_fcoEditText.setText(seleccionado.getF_fco());
+        f_iniEditText.setText(seleccionado.getF_ini());
+        f_finEditText.setText(seleccionado.getF_fin());
+
+        /*if(reparto){
+            kvgr4Spinner.setVisibility(GONE);
+            f_icoEditText.setVisibility(GONE);
+            f_fcoEditText.setVisibility(GONE);
+            f_iniEditText.setVisibility(GONE);
+            f_finEditText.setVisibility(GONE);
+        }*/
+
+        EditTextDatePicker prueba = new EditTextDatePicker(context, f_icoEditText,"yyyymmdd");
+        EditTextDatePicker prueba2 = new EditTextDatePicker(context, f_fcoEditText,"yyyymmdd");
+        EditTextDatePicker prueba3 = new EditTextDatePicker(context, f_iniEditText,"yyyymmdd");
+        EditTextDatePicker prueba4 = new EditTextDatePicker(context, f_finEditText,"yyyymmdd");
+
+        //Catalogo quemado de frecuencia semanal
+        int selectedIndex = 0;
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        listaopciones.add(new OpcionSpinner("1","Cada semana"));
+        listaopciones.add(new OpcionSpinner("2","Cada 2 semanas"));
+        listaopciones.add(new OpcionSpinner("3","Cada 3 semanas"));
+        listaopciones.add(new OpcionSpinner("4","Cada 4 semanas"));
+        listaopciones.add(new OpcionSpinner("5","Cada 5 semanas"));
+        listaopciones.add(new OpcionSpinner("6","Cada 6 semanas"));
+        listaopciones.add(new OpcionSpinner("8","Cada 8 semanas"));
+        listaopciones.add(new OpcionSpinner("10","Cada 10 semanas"));
+
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_background, null);
+        fcalidSpinner.setBackground(spinner_back);
+        fcalidSpinner.setAdapter(dataAdapter);
+        fcalidSpinner.setSelection(selectedIndex);
+
+        //SAVE
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                seleccionado.setKvgr4(kvgr4Spinner.getSelectedItem().toString().trim());
+                seleccionado.setRuta(VariablesGlobales.getRutaPreventa());
+                //TODO: setear ruta segun su tipo de visita
+                seleccionado.setF_ini(f_iniEditText.getText().toString());
+                seleccionado.setF_fin(f_finEditText.getText().toString());
+                seleccionado.setF_ico(f_icoEditText.getText().toString());
+                seleccionado.setF_fco(f_fcoEditText.getText().toString());
+                seleccionado.setFcalid(((OpcionSpinner)fcalidSpinner.getSelectedItem()).getId());
+
+                //Replicar los cambios en setF_ico, setF_fco
+                for(int x=0; x < visitasSolicitud.size(); x++){
+                    Visitas vp = visitasSolicitud.get(x);
+                    vp.setF_ico(f_icoEditText.getText().toString());
+                    vp.setF_fco(f_fcoEditText.getText().toString());
+                }
+
+                //RECALCULAR DIAS DE VISITA
+                RecalcularDiasDeReparto();
+
+                tb_visitas.setDataAdapter(new VisitasTableAdapter(v.getContext(), visitasSolicitud));
+                tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+alturaFilaTableView;
+                try {
+                    d.dismiss();
+                }catch(Exception e){
+                    Toasty.error(v.getContext(), "No se pudo salvar la configuracion").show();
+                }
+            }
+        });
+        d.show();
+    }
+
+    private static void RecalcularDiasDeReparto() {
+        int numplanes = visitasSolicitud.size();
+        //Iterrar sobre todos los planes de la modalida de venta seleccionada
+        for (int y = 0 ; y < numplanes; y++) {
+            Visitas vp = visitasSolicitud.get(y);
+            //Revisar si el VP es una ruta de reparto para ser borrada y recalculada
+            if (mDBHelper.EsTipodeReparto(VariablesGlobales.getBzirk(), vp.getVptyp())) {
+                vp.setLun_de("");
+                vp.setLun_a("");
+                vp.setMar_de("");
+                vp.setMar_a("");
+                vp.setMier_de("");
+                vp.setMier_a("");
+                vp.setJue_de("");
+                vp.setJue_a("");
+                vp.setVie_de("");
+                vp.setVie_a("");
+                vp.setSab_de("");
+                vp.setSab_a("");
+            }
+        }
+        //Recalcular los dias de visita del(os) reparto segun las preventas existentes nuevas determinadas
+        //Se recorren la cantidad de visit plans para obtener la data de cada uno especifico
+        Visitas rep = null;
+        for (int y = 0 ; y < numplanes; y++) {
+            Visitas vp = visitasSolicitud.get(y);
+
+            //Si no es tipo de reparto debemos tomar en cuenta para calcular su reparto
+            boolean esReparto = mDBHelper.EsTipodeReparto(VariablesGlobales.getBzirk(), vp.getVptyp());
+            //TODO cambiar el valor "PR" por el valor dinamico del comboBox de Modalidad de venta
+            if(!esReparto){
+                String rutaReparto = mDBHelper.RutaRepartoAsociada("PR", vp.getVptyp());
+                for (int x = 0; x < visitasSolicitud.size(); x++) {
+                    if (rutaReparto.equals(visitasSolicitud.get(x).getVptyp())) {
+                        rep = visitasSolicitud.get(x);
+                        break;
+                    }
+                }
+                int diasParaReparto = Integer.valueOf(vp.getKvgr4().toString().replace("DA",""));
+                EditText vp_Lunes = ((EditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Lunes"));
+                EditText vp_Martes = ((EditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Martes"));
+                EditText vp_Miercoles = ((EditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Miercoles"));
+                EditText vp_Jueves = ((EditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Jueves"));
+                EditText vp_Viernes = ((EditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Viernes"));
+                EditText vp_Sabado = ((EditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Sabado"));
+
+                String l = vp_Lunes.getText().toString().isEmpty()? null : vp_Lunes.getText().toString();
+                String m = vp_Martes.getText().toString().isEmpty()? null : vp_Martes.getText().toString();
+                String k = vp_Miercoles.getText().toString().isEmpty()? null : vp_Miercoles.getText().toString();
+                String j = vp_Jueves.getText().toString().isEmpty()? null : vp_Jueves.getText().toString();
+                String v = vp_Viernes.getText().toString().isEmpty()? null : vp_Viernes.getText().toString();
+                String s = vp_Sabado.getText().toString().isEmpty()? null : vp_Sabado.getText().toString();
+
+                asignarDiaReparto(diasParaReparto, 1, l, rep);
+                asignarDiaReparto(diasParaReparto, 2, m, rep);
+                asignarDiaReparto(diasParaReparto, 3, k, rep);
+                asignarDiaReparto(diasParaReparto, 4, j, rep);
+                asignarDiaReparto(diasParaReparto, 5, v, rep);
+                asignarDiaReparto(diasParaReparto, 6, s, rep);
+
+            }
+
+        }
+    }
+
+    public static void asignarDiaReparto(int metodo, int diaPreventa, String secuencia, Visitas vp_reparto){
+        if(secuencia != null){
+            int diaReparto = 0;
+            if ((diaPreventa+metodo) > 6) {
+                diaReparto = ((diaPreventa+metodo) - 6);
+            } else {
+                diaReparto = (diaPreventa+metodo);
+            }
+            int hours = Integer.valueOf(secuencia) / 60; //since both are ints, you get an int
+            int minutes = Integer.valueOf(secuencia) % 60;
+            String h = String.format("%02d", hours);
+            String m = String.format("%02d", minutes);
+            String secuenciaSAP = h+m;
+            switch(diaReparto){
+                case 1:
+                    vp_reparto.setLun_a(secuenciaSAP);
+                    vp_reparto.setLun_de(secuenciaSAP);
+                    break;
+                case 2:
+                    vp_reparto.setMar_a(secuenciaSAP);
+                    vp_reparto.setMar_de(secuenciaSAP);
+                    break;
+                case 3:
+                    vp_reparto.setMier_a(secuenciaSAP);
+                    vp_reparto.setMier_de(secuenciaSAP);
+                    break;
+                case 4:
+                    vp_reparto.setJue_a(secuenciaSAP);
+                    vp_reparto.setJue_de(secuenciaSAP);
+                    break;
+                case 5:
+                    vp_reparto.setVie_a(secuenciaSAP);
+                    vp_reparto.setVie_de(secuenciaSAP);
+                    break;
+                case 6:
+                    vp_reparto.setSab_a(secuenciaSAP);
+                    vp_reparto.setSab_de(secuenciaSAP);
+                    break;
+            }
+        }
+    }
+
     private class VisitasLongClickListener implements TableDataLongClickListener<Visitas> {
         @Override
         public boolean onDataLongClicked(int rowIndex, Visitas seleccionado) {
             String salida = seleccionado.getVptyp() + " " + seleccionado.getRuta();
             visitasSolicitud.remove(rowIndex);
             tb_visitas.setDataAdapter(new VisitasTableAdapter(getBaseContext(), visitasSolicitud));
-            tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height-100;
+            tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height-alturaFilaTableView;
+            Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
+            return true;
+        }
+    }
+
+    private class AdjuntosClickListener implements TableDataClickListener<Adjuntos> {
+        @Override
+        public void onDataClicked(int rowIndex, Adjuntos seleccionado) {
+            //displayDialogVisitas(SolicitudActivity.this,seleccionado);
+            byte[] image = seleccionado.getImage();
+            Bitmap bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
+            mostrarAdjunto(SolicitudActivity.this, bitmap);
+        }
+    }
+    private class AdjuntosLongClickListener implements TableDataLongClickListener<Adjuntos> {
+        @Override
+        public boolean onDataLongClicked(int rowIndex, Adjuntos seleccionado) {
+            String salida = seleccionado.getType() + " " + seleccionado.getName();
+            adjuntosSolicitud.remove(rowIndex);
+            tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud));
+            tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height-(alturaFilaTableView-20);
             Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
             return true;
         }
