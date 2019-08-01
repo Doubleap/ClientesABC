@@ -246,7 +246,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 NextId = 1;
                             ContentValues insertValues = new ContentValues();
                             for (int i = 0; i < listaCamposDinamicos.size(); i++) {
-                                if(!listaCamposBloque.contains(listaCamposDinamicos.get(i))) {
+                                if(!listaCamposBloque.contains(listaCamposDinamicos.get(i)) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                                     try {
                                         EditText tv = ((EditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
                                         String valor = tv.getText().toString();
@@ -262,7 +262,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-CONTACTOS":
                                             ContentValues contactoValues = new ContentValues();
                                             for (int c = 0; c < contactosSolicitud.size(); c++) {
-                                                contactoValues.put("id_solicitud", NextId);
+                                                contactoValues.put("id_formulario", NextId);
                                                 contactoValues.put("name1", contactosSolicitud.get(c).getName1());
                                                 contactoValues.put("namev", contactosSolicitud.get(c).getNamev());
                                                 contactoValues.put("telf1", contactosSolicitud.get(c).getTelf1());
@@ -281,7 +281,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-IMPUESTOS":
                                             ContentValues impuestoValues = new ContentValues();
                                             for (int c = 0; c < impuestosSolicitud.size(); c++) {
-                                                impuestoValues.put("id_solicitud", NextId);
+                                                impuestoValues.put("id_formulario", NextId);
                                                 impuestoValues.put("vtext", impuestosSolicitud.get(c).getVtext());
                                                 impuestoValues.put("vtext2", impuestosSolicitud.get(c).getVtext2());
                                                 impuestoValues.put("tatyp", impuestosSolicitud.get(c).getTatyp());
@@ -297,7 +297,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-INTERLOCUTORES":
                                             ContentValues interlocutorValues = new ContentValues();
                                             for (int c = 0; c < interlocutoresSolicitud.size(); c++) {
-                                                interlocutorValues.put("id_solicitud", NextId);
+                                                interlocutorValues.put("id_formulario", NextId);
                                                 interlocutorValues.put("name1", interlocutoresSolicitud.get(c).getName1());
 
                                                 try {
@@ -311,7 +311,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-BANCOS":
                                             ContentValues bancoValues = new ContentValues();
                                             for (int c = 0; c < bancosSolicitud.size(); c++) {
-                                                bancoValues.put("id_solicitud", NextId);
+                                                bancoValues.put("id_formulario", NextId);
                                                 bancoValues.put("bankl", bancosSolicitud.get(c).getBankl());
                                                 bancoValues.put("bankn", bancosSolicitud.get(c).getBankn());
                                                 bancoValues.put("banks", bancosSolicitud.get(c).getBanks());
@@ -331,7 +331,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-VISITAS":
                                             ContentValues visitaValues = new ContentValues();
                                             for (int c = 0; c < visitasSolicitud.size(); c++) {
-                                                visitaValues.put("id_solicitud", NextId);
+                                                visitaValues.put("id_formulario", NextId);
                                                 visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
                                                 visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
                                                 visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
@@ -715,6 +715,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     if(campos.get(i).get("vis").trim().length() > 0){
                         checkbox.setEnabled(false);
+                        checkbox.setVisibility(View.GONE);
                     }
                     if(campos.get(i).get("dfaul").trim().length() > 0){
                         checkbox.setChecked(true);
@@ -743,6 +744,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     if(campos.get(i).get("vis").trim().length() > 0){
                         checkbox.setEnabled(false);
+                        checkbox.setVisibility(View.GONE);
                     }
                     if(campos.get(i).get("dfaul").trim().length() > 0){
                         checkbox.setChecked(true);
@@ -771,6 +773,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     if(campos.get(i).get("vis").trim().length() > 0){
                         checkbox.setEnabled(false);
+                        checkbox.setVisibility(View.GONE);
                     }
                     if(campos.get(i).get("dfaul").trim().length() > 0){
                         checkbox.setChecked(true);
@@ -925,6 +928,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     if(campos.get(i).get("vis").trim().length() > 0){
                         et.setEnabled(false);
+                        et.setVisibility(View.GONE);
                     }
                     et.setMaxLines(1);
 
@@ -1877,7 +1881,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     ArrayList<HashMap<String, String>> opcionesxpregunta = mDBHelper.getOpcionesPreguntaGrupo(opcion.getId(),preguntas.get(j).get("zid_quest"));
                     for (int i = 0; i < opcionesxpregunta.size(); i++) {
                         OpcionSpinner op = new OpcionSpinner(opcionesxpregunta.get(i).get("zid_resp"), opcionesxpregunta.get(i).get("zid_resp")+" - "+opcionesxpregunta.get(i).get("text"));
-                        if (respuestas.get(0) != null && opcionesxpregunta.get(i).get("zid_resp").equals(respuestas.get(0).get("col" + (j + 1)).toString())
+                        if (respuestas.size() > 0 && respuestas.get(0) != null && opcionesxpregunta.get(i).get("zid_resp").equals(respuestas.get(0).get("col" + (j + 1)).toString())
                                 && (respuestas.get(0).get("id_grupo")).toString().equals(String.valueOf(position))) {
                             op.setSelected(i);
                             selected = i;
