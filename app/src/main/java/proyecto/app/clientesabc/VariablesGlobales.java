@@ -1,17 +1,19 @@
 package proyecto.app.clientesabc;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.widget.Spinner;
 
-import proyecto.app.clientesabc.Modelos.OpcionSpinner;
+import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
+@SuppressLint("Registered")
 public class VariablesGlobales extends Application {
+
     private static String land1 = "CR";
     private static String sociedad = "F443";
     private static String orgvta = "0443";
-    private static String rutapreventa = "CRP901";
+    private static String rutapreventa = "CRP900";
     private static String ipcon = "192.168.0.13";
-    //private static String ipcon = "10.124.4.137";
     private static int puertocon = 3345;
 
     //Condicionales según la ruta de Preventa

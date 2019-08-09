@@ -33,6 +33,28 @@
     <string name="title_activity_solicitudes">Mis Solicitudes</string>
     <string name="title_activity_locacion_gps">Coordenadas GPS</string>
     <string name="promptKvgr4">promptKvgr4</string>
+    <string name="label_vp">Plan de Visita</string>
+    <string name="label_pregunta">%1$s) %2$s</string>
+    <string name="palabras_2">%1$s %2$s</string>
+    <string name="texto_modificar">Modificar</string>
+    <string name="texto_cuenta_bancaria">Cuenta Bancaria</string>
+    <string name="texto_interlocutor">Interlocutor</string>
+    <string name="texto_visita">Plan de Visita</string>
+    <string name="texto_contacto">Contacto</string>
+    <string name="texto_impuesto">Impuesto</string>
+    <string name="max_secuencia">1440</string>
+    <string name="error_max_secuencia">La secuencia no puede ser mayor 1440!</string>
+    <string name="texto_sin_datos">Sin Datos</string>
+    <string name="title_activity_TCP">Comunicacion con el Servidor</string>
+    <string name="longitud">Longitud</string>
+    <string name="longitud_label">Longitud:</string>
+    <string name="latitud">Latitud</string>
+    <string name="latitud_label">Latitud:</string>
+    <string name="signo_menos">-</string>
+    <string name="aceptar">Aceptar</string>
+    <string name="limpiar">Limpiar</string>
+    <string name="signo_mas">+</string>
+
 
     <!-- CATALOGOS PARA ALGUNOS SPINNERS -->
     <string-array name="OpcionesKvgr4">
