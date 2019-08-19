@@ -45,7 +45,6 @@
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -76,7 +75,7 @@
         <service android:name=".clases.NameService" />
 
         <activity
-            android:name=".actividades.panelActivity"
+            android:name=".actividades.PanelActivity"
             android:label="@string/title_activity_panel"></activity>
     </application>
 

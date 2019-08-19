@@ -2,26 +2,42 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/principal"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/curved_background"
     android:weightSum="10"
-    tools:context=".actividades.panelActivity">
-<RelativeLayout
+    tools:context=".actividades.PanelActivity">
 
+<RelativeLayout
     android:layout_weight="2"
     android:layout_width="match_parent"
     android:layout_height="0dp">
-
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
     <TextView
-        android:id="@+id/titlePanel"
-        android:text="Vista General"
-        android:textSize="34dp"
+        android:id="@+id/rutaPanel"
+        android:text="CRP900"
+        android:textSize="56dp"
         android:textColor="@color/white"
-        android:layout_centerInParent="true"
-        android:layout_width="wrap_content"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/userPanel"
+        android:text="CR01987384"
+        android:textAlignment="center"
+        android:textSize="28dp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>
 </RelativeLayout>
     
     <GridLayout
@@ -33,7 +49,8 @@
         android:layout_weight="8"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:padding="14dp">
+        android:padding="16dp"
+        >
         <!-- Opcion 1-->
         <android.support.v7.widget.CardView
             android:layout_width="0dp"
@@ -49,15 +66,16 @@
             <LinearLayout
                 android:gravity="center_horizontal|center_vertical"
                 android:layout_margin="16dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
                 <ImageView
                     android:src="@drawable/icon_config"
                     android:layout_gravity="center_horizontal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
                 <TextView
-                    android:text="Opcion 1"
+                    android:text="Clientes"
                     android:textAlignment="center"
                     android:textColor="@color/black"
                     android:textSize="18sp"
@@ -81,15 +99,19 @@
             <LinearLayout
                 android:gravity="center_horizontal|center_vertical"
                 android:layout_margin="16dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                >
                 <ImageView
+                    android:minWidth="50dp"
+                    android:minHeight="50dp"
                     android:src="@drawable/icon_config"
                     android:layout_gravity="center_horizontal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
                 <TextView
-                    android:text="Opcion 2"
+                    android:text="Solicitudes"
                     android:textAlignment="center"
                     android:textColor="@color/black"
                     android:textSize="18sp"
@@ -113,15 +135,16 @@
             <LinearLayout
                 android:gravity="center_horizontal|center_vertical"
                 android:layout_margin="16dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
                 <ImageView
                     android:src="@drawable/icon_config"
                     android:layout_gravity="center_horizontal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
                 <TextView
-                    android:text="Opcion 1"
+                    android:text="Creditos"
                     android:textAlignment="center"
                     android:textColor="@color/black"
                     android:textSize="18sp"
@@ -145,15 +168,16 @@
             <LinearLayout
                 android:gravity="center_horizontal|center_vertical"
                 android:layout_margin="16dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
                 <ImageView
                     android:src="@drawable/icon_config"
                     android:layout_gravity="center_horizontal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
                 <TextView
-                    android:text="Opcion 1"
+                    android:text="Equipo Frio"
                     android:textAlignment="center"
                     android:textColor="@color/black"
                     android:textSize="18sp"
@@ -177,15 +201,16 @@
             <LinearLayout
                 android:gravity="center_horizontal|center_vertical"
                 android:layout_margin="16dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
                 <ImageView
                     android:src="@drawable/icon_config"
                     android:layout_gravity="center_horizontal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
                 <TextView
-                    android:text="Opcion 1"
+                    android:text="Conexion"
                     android:textAlignment="center"
                     android:textColor="@color/black"
                     android:textSize="18sp"
@@ -209,15 +234,16 @@
             <LinearLayout
                 android:gravity="center_horizontal|center_vertical"
                 android:layout_margin="16dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
                 <ImageView
                     android:src="@drawable/icon_config"
                     android:layout_gravity="center_horizontal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
                 <TextView
-                    android:text="Opcion 1"
+                    android:text="Configurar"
                     android:textAlignment="center"
                     android:textColor="@color/black"
                     android:textSize="18sp"
@@ -226,8 +252,14 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
         </android.support.v7.widget.CardView>
-
-
-
     </GridLayout>
+    <android.support.design.widget.BottomNavigationView
+        android:id="@+id/bottom_navigation_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/colorPrimary"
+        app:itemIconTint="@color/white"
+        app:itemTextColor="@color/backColor"
+        app:menu="@menu/bottom_menu_panel" />
 </LinearLayout>

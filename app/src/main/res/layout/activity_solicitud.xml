@@ -22,5 +22,5 @@
         android:background="@color/colorPrimary"
         app:itemIconTint="@color/white"
         app:itemTextColor="@color/backColor"
-        app:menu="@menu/bottom_menu" />
+        app:menu="@menu/bottom_menu_solicitud" />
 </FrameLayout>

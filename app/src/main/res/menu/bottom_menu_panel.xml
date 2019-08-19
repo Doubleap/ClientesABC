@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_clientes"
+        android:icon="@android:drawable/ic_dialog_info"
+        android:title="Clientes" />
+    <item
+        android:id="@+id/action_solicitudes"
+        android:icon="@android:drawable/ic_menu_add"
+        android:title="Solicitudes" />
+
+    <item
+        android:id="@+id/action_config"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="Configuracion"/>
+</menu>

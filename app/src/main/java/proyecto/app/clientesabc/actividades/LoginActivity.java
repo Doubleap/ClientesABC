@@ -134,13 +134,14 @@ public class LoginActivity extends AppCompatActivity {
             boolean datosMinimos = db.checkDataBase();
             boolean intentovalido = db.LoginUsuario(user,password);
 
-            if(datosMinimos){
+            if(!datosMinimos){
                 Toasty.error(getBaseContext(),"Debe sincronizar el dispositivo antes de ingresar.").show();
+                return;
                 //intent = new Intent(getBaseContext(),TCPActivity.class);
                 //startActivity(intent);
             }
             if(intentovalido){
-                intent = new Intent(getBaseContext(),MantClienteActivity.class);
+                intent = new Intent(getBaseContext(),PanelActivity.class);
                 startActivity(intent);
             }else{
                 mPasswordView.setError(getString(R.string.error_incorrect_password));

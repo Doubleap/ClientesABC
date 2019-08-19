@@ -3,18 +3,18 @@
     <item>
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:shape="rectangle">
-            <solid android:color="@color/white" />
+            <solid android:color="@color/colorPrimary" />
         </shape>
     </item>
     <item
-        android:bottom="500dp"
-        android:left="-200dp"
-        android:right="-200dp"
+        android:bottom="100dp"
+        android:left="-400dp"
+        android:right="-400dp"
         android:top="-300dp">
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:shape="oval">
 
-            <solid android:color="@color/colorPrimary" />
+            <solid android:color="@color/white" />
         </shape>
     </item>
 </layer-list>

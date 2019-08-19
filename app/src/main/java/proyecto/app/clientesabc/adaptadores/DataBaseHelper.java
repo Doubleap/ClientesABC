@@ -31,6 +31,7 @@ import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.modelos.Contacto;
 import proyecto.app.clientesabc.modelos.Impuesto;
 import proyecto.app.clientesabc.modelos.Interlocutor;
+import proyecto.app.clientesabc.modelos.OpcionSpinner;
 import proyecto.app.clientesabc.modelos.Visitas;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
@@ -383,6 +384,85 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             listaCatalogo.add(seleccione);
         }
         return listaCatalogo;
+    }
+    /**
+     *
+     * @param tabla : nombre de la tabla de base de datos del catálogo
+     * @param filtroAdicional : where sql
+     * @return listaCatalogo : listaCatalogo
+     */
+    public ArrayList<OpcionSpinner> getDatosCatalogoParaSpinner(String tabla, String... filtroAdicional){
+        ArrayList<HashMap<String, String>> listaCatalogo = new ArrayList<>();
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        // Select All Query
+        String selectQuery = "SELECT * " +
+                " FROM " + tabla +" WHERE 1=1";
+
+        VariablesGlobales vg = new VariablesGlobales();
+        StringBuilder filtros = new StringBuilder();
+
+        //Crear Filtros manuales desde los parametros
+        for(String filtro : filtroAdicional){
+            filtros.append(" AND ").append(filtro);
+        }
+
+        //Crear Filtros Automaticos segun el pais
+
+        //Si existe BUKRS en la tabla del catalago vamos a filtros por Sociedad
+        if(existeColumna(tabla,"bukrs")){
+            filtros.append(" AND bukrs = '").append(VariablesGlobales.getSociedad()).append("'");
+        }
+        if(existeColumna(tabla,"land1")){
+            filtros.append(" AND land1 = '").append(VariablesGlobales.getLand1()).append("'");
+        }
+        if(existeColumna(tabla,"vkorg")){
+            filtros.append(" AND vkorg = '").append(VariablesGlobales.getOrgVta()).append("'");
+        }
+        if(existeColumna(tabla,"banks")){
+            filtros.append(" AND banks = '").append(VariablesGlobales.getLand1()).append("'");
+        }
+        if(existeColumna(tabla,"talnd")){
+            filtros.append(" AND talnd = '").append(VariablesGlobales.getLand1()).append("'");
+        }
+        //TODO filtros segun la agencia o/y ruta de la HH o de jefe de ventas para las rutas de su agencia
+
+        try {
+            //SQLiteDatabase db = this.getReadableDatabase();
+
+            Cursor cursor = mDataBase.rawQuery(selectQuery + filtros, null);//selectQuery,selectedArguments
+            HashMap<String,String> seleccione = new HashMap<>();
+            seleccione.put("id","");
+            seleccione.put("descripcion","Seleccione...");
+            listaCatalogo.add(seleccione);
+            // looping through all rows and adding to list
+            if (cursor.moveToFirst()) {
+
+                do {
+                    HashMap<String,String> lista = new HashMap<>();
+                    lista.put("id",cursor.getString(0).trim());//1era columna del query
+                    lista.put("descripcion",cursor.getString(0).trim() + " - " + cursor.getString(1).trim());//1era y 2da columna del query
+                    listaCatalogo.add(lista);
+                } while (cursor.moveToNext());
+            }
+            // closing connection
+            cursor.close();
+
+            int selectedIndex = 0;
+            for (int j = 0; j < listaCatalogo.size(); j++){
+                listaopciones.add(new OpcionSpinner(listaCatalogo.get(j).get("id"), listaCatalogo.get(j).get("descripcion")));
+            }
+
+            //db.close();
+            // returning lables
+        }catch (Exception e){
+            e.getMessage();
+            e.printStackTrace();
+            HashMap<String,String> seleccione = new HashMap<>();
+            seleccione.put("id","");
+            seleccione.put("descripcion","Seleccione...");
+            listaCatalogo.add(seleccione);
+        }
+        return listaopciones;
     }
     /**
      *
