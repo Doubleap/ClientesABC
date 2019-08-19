@@ -269,12 +269,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                             String valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
                                             insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
                                         } catch (Exception e2) {
-                                            CheckBox check = ((CheckBox) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
-                                            String valor = "";
-                                            if(check.isChecked()){
-                                                valor = "X";
+                                            try {
+                                                CheckBox check = ((CheckBox) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                                                String valor = "";
+                                                if (check.isChecked()) {
+                                                    valor = "X";
+                                                }
+                                                insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                            }catch(Exception e3){
+                                                Toasty.error(getBaseContext(),"No se pudo obtener el valor del campo "+listaCamposDinamicos.get(i)).show();
                                             }
-                                            insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
                                         }
                                     }
                                 }else{//Revisar que tipo de bloque es para guardarlo en el lugar correcto.
@@ -396,10 +400,10 @@ public class SolicitudActivity extends AppCompatActivity {
                                 insertValues.put("[feccre]", dateFormat.format(date));
 
                                 //mDBHelper.getWritableDatabase().insert("FormHvKof_solicitud", null, insertValues);
-                                long inserto = mDb.insert("FormHvKof_solicitud",null,insertValues);
+                                long inserto = mDb.insertOrThrow("FormHvKof_solicitud",null,insertValues);
 
                             } catch (Exception e) {
-                                Toasty.error(getApplicationContext(), "Error Insertando Solicitud", Toast.LENGTH_SHORT).show();
+                                Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_SHORT).show();
                             }
 
                             Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toast.LENGTH_SHORT).show();
@@ -488,7 +492,8 @@ public class SolicitudActivity extends AppCompatActivity {
                             startActivityForResult(intent, 1);
 
                         } catch (ActivityNotFoundException e) {
-                            Log.e("tag", "No activity can handle picking a file. Showing alternatives.");
+                            Toasty.warning(getBaseContext(), "NO existe aplicacion para abrir archivos. Mostrando alternativas").show();
+                            Log.e("tag", "NO existe aplicacion para abrir archivos. Mostrando alternativas.");
                         }
                         return true;
                     case R.id.item2:
@@ -500,7 +505,8 @@ public class SolicitudActivity extends AppCompatActivity {
                             startActivityForResult(intent, 1);
 
                         } catch (ActivityNotFoundException e) {
-                            Log.e("tag", "No activity can handle picking a file. Showing alternatives.");
+                            Toasty.warning(getBaseContext(), "NO existe aplicacion para abrir archivos. Mostrando alternativas").show();
+                            Log.e("tag", "NO existe aplicacion para abrir archivos. Mostrando alternativas.");
                         }
                         return true;
                     case R.id.item3:
@@ -512,7 +518,8 @@ public class SolicitudActivity extends AppCompatActivity {
                             startActivityForResult(intent, 1);
 
                         } catch (ActivityNotFoundException e) {
-                            Log.e("tag", "No activity can handle picking a file. Showing alternatives.");
+                            Toasty.warning(getBaseContext(), "NO existe aplicacion para abrir archivos. Mostrando alternativas").show();
+                            Log.e("tag", "NO existe aplicacion para abrir archivos. Mostrando alternativas");
                         }
                         return true;
                     default:
@@ -662,10 +669,10 @@ public class SolicitudActivity extends AppCompatActivity {
             LinearLayout ll = view.findViewById(R.id.miPagina);
             String nombre = Objects.requireNonNull(Objects.requireNonNull(((ViewPager) container).getAdapter()).getPageTitle(position)).toString().trim();
 
-            if(nombre.equals("Datos Generales")) {
+            if(nombre.equals("Datos Generales") || nombre.equals("Informacion General")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"D");
             }
-            if(nombre.equals("Facturación")) {
+            if(nombre.equals("Facturación")|| nombre.equals("Facturacion")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"F");
             }
             if(nombre.equals("Ventas")) {
@@ -674,7 +681,7 @@ public class SolicitudActivity extends AppCompatActivity {
             if(nombre.equals("Marketing")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"M");
             }
-            if(nombre.equals("Adjuntos")) {
+            if(nombre.equals("Adjuntos") || nombre.equals("Adicionales")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"Z");
             }
             return view;
@@ -691,7 +698,7 @@ public class SolicitudActivity extends AppCompatActivity {
             String seccionAnterior = "";
             LinearLayout ll = (LinearLayout)_ll;
             //DataBaseHelper db = new DataBaseHelper(getContext());
-            ArrayList<HashMap<String, String>> campos = db.getCamposPestana(tipoFormulario, pestana);
+            final ArrayList<HashMap<String, String>> campos = db.getCamposPestana(tipoFormulario, pestana);
 
             LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
 
@@ -862,17 +869,6 @@ public class SolicitudActivity extends AppCompatActivity {
                     combo.setAdapter(dataAdapter);
                     combo.setSelection(selectedIndex);
 
-                    /*combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                            OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-                            //Toast.makeText(getContext(), "ID: " + opcion.getId() + ",  Descripcion : " + opcion.getName(), Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onNothingSelected(AdapterView<?> parent) {
-                        }
-                    });*/
                     //Campo de regimen fiscal, se debe cambiar el formato de cedula segun el tipo de cedula
                     if(campos.get(i).get("campo").trim().equals("W_CTE-KATR3")){
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -925,12 +921,144 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         });
                     }
+                    if(campos.get(i).get("llamado1").trim().contains("Provincia")){
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                Provincias(parent);
+                            }
 
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
+                    if(campos.get(i).get("llamado1").trim().contains("Cantones")){
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                Cantones(parent);
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
+
+                    if(campos.get(i).get("llamado1").trim().contains("Distritos")){
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                Distritos(parent);
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
+                    if(campos.get(i).get("llamado1").trim().contains("DireccionCorta")){
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                DireccionCorta();
+                            }
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
+                    if(campos.get(i).get("llamado1").trim().contains("Canales(")){
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                Canales(parent);
+                            }
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
+                    if(campos.get(i).get("llamado1").trim().contains("CanalesKof")){
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                CanalesKof(parent);
+                            }
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
+                    if(campos.get(i).get("llamado1").trim().contains("ImpuestoSegunUnidadNegocio")){
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                ImpuestoSegunUnidadNegocio(parent);
+                            }
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
                     //label.addView(combo);
                     ll.addView(label);
                     ll.addView(combo);
-                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
-                    mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), combo);
+
+                    if(!listaCamposDinamicos.contains(campos.get(i).get("campo").trim())) {
+                        listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                        mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), combo);
+                    }else{
+                        //listaCamposDinamicos.add(campos.get(i).get("campo").trim()+"1");
+                        mapeoCamposDinamicos.put(campos.get(i).get("campo").trim()+"1", combo);
+                        //Replicar valores de campos duplicados en configuracion
+                        Spinner original = (Spinner) mapeoCamposDinamicos.get(campos.get(i).get("campo").trim());
+                        Spinner duplicado = (Spinner) mapeoCamposDinamicos.get(campos.get(i).get("campo").trim()+"1");
+                        final String nombreCampo = campos.get(i).get("campo").trim();
+                        final int indice = i;
+                        original.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                if(campos.get(indice).get("llamado1").contains("Provincia"))
+                                    Provincias(parent);
+                                if(campos.get(indice).get("llamado1").contains("Cantones"))
+                                    Cantones(parent);
+                                if(campos.get(indice).get("llamado1").contains("Distritos"))
+                                    Distritos(parent);
+                                ReplicarValorSpinner(parent,nombreCampo+"1",position);
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                        duplicado.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                if(campos.get(indice).get("llamado1").contains("Provincia"))
+                                    Provincias(parent);
+                                if(campos.get(indice).get("llamado1").contains("Cantones"))
+                                    Cantones(parent);
+                                if(campos.get(indice).get("llamado1").contains("Distritos"))
+                                    Distritos(parent);
+                                ReplicarValorSpinner(parent,nombreCampo,position);
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
                     if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
                         listaCamposObligatorios.add(campos.get(i).get("campo").trim());
                     }
@@ -2474,10 +2602,174 @@ public class SolicitudActivity extends AppCompatActivity {
         return name;
     }
 
+    private static void Provincias(AdapterView<?> parent){
+        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+        ArrayList<HashMap<String, String>> provincias = mDBHelper.Provincias(opcion.getId());
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < provincias.size(); j++){
+            listaopciones.add(new OpcionSpinner(provincias.get(j).get("id"), provincias.get(j).get("descripcion")));
+        }
+        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        combo.setBackground(d);
+        combo.setAdapter(dataAdapter);
+        DireccionCorta();
+    }
+    private static void Cantones(AdapterView<?> parent){
+        Spinner pais = (Spinner)mapeoCamposDinamicos.get("W_CTE-LAND1");
+        final OpcionSpinner opcionpais = (OpcionSpinner) pais.getSelectedItem();
+        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+        ArrayList<HashMap<String, String>> cantones = mDBHelper.Cantones(opcionpais.getId(),opcion.getId());
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < cantones.size(); j++){
+            listaopciones.add(new OpcionSpinner(cantones.get(j).get("id"), cantones.get(j).get("descripcion")));
+        }
+        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-CITY1");
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        combo.setBackground(d);
+        combo.setAdapter(dataAdapter);
+        DireccionCorta();
+    }
+    private static void Distritos(AdapterView<?> parent){
+        Spinner provincia = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
+        final OpcionSpinner opcionprovincia = (OpcionSpinner) provincia.getSelectedItem();
+        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+        ArrayList<HashMap<String, String>> distritos = mDBHelper.Distritos(opcionprovincia.getId(),opcion.getId());
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < distritos.size(); j++){
+            listaopciones.add(new OpcionSpinner(distritos.get(j).get("id"), distritos.get(j).get("descripcion")));
+        }
+        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-STR_SUPPL3");
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        combo.setBackground(d);
+        combo.setAdapter(dataAdapter);
+        DireccionCorta();
+    }
+    private static void  DireccionCorta() {
+        EditText home = (EditText)mapeoCamposDinamicos.get("W_CTE-HOME_CITY");
+
+        EditText dir = (EditText)mapeoCamposDinamicos.get("W_CTE-STREET");
+        EditText dirF = (EditText)mapeoCamposDinamicos.get("W_CTE-LOCATION");
+        Spinner prov = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
+        Spinner cant = (Spinner)mapeoCamposDinamicos.get("W_CTE-CITY1");
+        Spinner dist = (Spinner)mapeoCamposDinamicos.get("W_CTE-STR_SUPPL3");
+        OpcionSpinner p = (OpcionSpinner)prov.getSelectedItem();
+        OpcionSpinner c = (OpcionSpinner)cant.getSelectedItem();
+        OpcionSpinner d = (OpcionSpinner)dist.getSelectedItem();
+        if(!d.getId().isEmpty())
+            home.setText(d.getName().trim().split("-")[1]);
+
+        StringBuilder dircorta = new StringBuilder();
+        if (dir != null) {
+            if (prov != null && !((OpcionSpinner)prov.getSelectedItem()).getId().equals("")) {
+                if(!p.getId().isEmpty())
+                    dircorta.append(p.getName().trim().split("-")[1]);
+            }
+            if (cant != null && !((OpcionSpinner)cant.getSelectedItem()).getId().equals("")) {
+                if(!c.getId().isEmpty())
+                    dircorta.append(c.getName().trim().split("-")[1]);
+            }
+            if (dist != null && !((OpcionSpinner)dist.getSelectedItem()).getId().equals("")) {
+                if(!d.getId().isEmpty())
+                    dircorta.append(d.getName().trim().split("-")[1]);
+            }
+            dir.setText(dircorta.toString().toUpperCase(Locale.getDefault()));
+            dirF.setText(dircorta.toString().toUpperCase(Locale.getDefault()));
+        }
+    }
+
+    private static void Canales(AdapterView<?> parent){
+        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+        ArrayList<HashMap<String, String>> canales = mDBHelper.Canales(opcion.getId());
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < canales.size(); j++){
+            listaopciones.add(new OpcionSpinner(canales.get(j).get("id"), canales.get(j).get("descripcion")));
+        }
+        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZGPOCANAL");
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        combo.setBackground(d);
+        combo.setAdapter(dataAdapter);
+    }
+
+    private static void CanalesKof(AdapterView<?> parent){
+        Spinner grupo_canal = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTPOCANAL");
+        final OpcionSpinner opciongrupocanal = (OpcionSpinner) grupo_canal.getSelectedItem();
+        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+        ArrayList<HashMap<String, String>> distritos = mDBHelper.CanalesKOF(VariablesGlobales.getOrgVta(),opciongrupocanal.getId(),opcion.getId());
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < distritos.size(); j++){
+            listaopciones.add(new OpcionSpinner(distritos.get(j).get("id"), distritos.get(j).get("descripcion")));
+        }
+        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZCANAL");
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        combo.setBackground(d);
+        combo.setAdapter(dataAdapter);
+    }
+
+    private static void  ImpuestoSegunUnidadNegocio(AdapterView<?> parent) {
+        if (VariablesGlobales.getSociedad().equals("F443")) {
+            int indice=-1;
+            for (int x = 0; x < tb_impuestos.getDataAdapter().getCount(); x++) {
+                if (tb_impuestos.getDataAdapter().getData().get(x).getTatyp().equals("MWCR")) {
+                    indice = x;
+                    break;
+                }
+            }
+            final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+            if(indice != -1) {
+                if (opcion.getId().equals("MA")) {
+                    tb_impuestos.getDataAdapter().getData().get(indice).setTatyp("2");
+                } else {
+                    tb_impuestos.getDataAdapter().getData().get(indice).setTatyp("1");
+                }
+            }
+        }
+    }
+
     private static void ReplicarValor(View v, String campo){
         TextView desde = (TextView)v;
         TextView hasta = (TextView)mapeoCamposDinamicos.get(campo);
         hasta.setText(desde.getText());
+    }
+    private static void ReplicarValorSpinner(View v, String campo,int selection){
+        Spinner desde = (Spinner)v;
+        Spinner hasta = (Spinner)mapeoCamposDinamicos.get(campo);
+        hasta.setSelection(selection);
     }
     private static boolean ValidarCedula(View v, String tipoCedula){
         TextView texto = (TextView)v;

@@ -48,7 +48,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
             // Enviar archivo en socket
 
             //File myFile = new File("/data/user/0/proyecto.app.clientesabc/databases/", "FAWM_ANDROID_2");
-            File myFile = new File(context.get().getFilesDir().getPath(), "FAWM_ANDROID_2");
+            File myFile = new File(context.get().getDatabasePath("FAWM_ANDROID_2").getPath() );
 
             //files.add(myFile);
             //files.add(myFile);

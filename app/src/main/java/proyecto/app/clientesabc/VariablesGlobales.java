@@ -131,7 +131,7 @@ public class VariablesGlobales extends Application {
         VariablesGlobales.puertocon = puertocon;
     }
 
-    public void setRutaPreventa(String nuevaRuta) {
+    public static void setRutaPreventa(String nuevaRuta) {
         rutapreventa = nuevaRuta;
     }
 

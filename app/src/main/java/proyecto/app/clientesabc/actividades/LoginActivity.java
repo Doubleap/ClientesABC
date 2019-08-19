@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import java.util.Objects;
 
+import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.R;
 
@@ -130,10 +131,16 @@ public class LoginActivity extends AppCompatActivity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             DataBaseHelper db = new DataBaseHelper(getBaseContext());
+            boolean datosMinimos = db.checkDataBase();
             boolean intentovalido = db.LoginUsuario(user,password);
 
+            if(datosMinimos){
+                Toasty.error(getBaseContext(),"Debe sincronizar el dispositivo antes de ingresar.").show();
+                //intent = new Intent(getBaseContext(),TCPActivity.class);
+                //startActivity(intent);
+            }
             if(intentovalido){
-                intent = new Intent(getBaseContext(),MainActivity.class);
+                intent = new Intent(getBaseContext(),MantClienteActivity.class);
                 startActivity(intent);
             }else{
                 mPasswordView.setError(getString(R.string.error_incorrect_password));

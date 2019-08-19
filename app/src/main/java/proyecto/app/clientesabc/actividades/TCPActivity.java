@@ -7,29 +7,37 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 
+import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.clases.SincronizacionServidor;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
-import proyecto.app.clientesabc.R;
 
-public class TCPActivity extends Activity
+public class TCPActivity extends AppCompatActivity
 {
     private Button serverTransmitButton;
     private Button clientReceiveButton;
     private Button serverUDPButton;
     private Button clientUDPButton;
+    private EditText ip_text;
+    private EditText puerto_text;
+    private EditText ruta_text;
     private int PICKFILE_REQUEST_CODE = 100;
     private String filePath="";
     private String wholePath="";
-    private Button changeName;
+    private FloatingActionButton changeName;
     private String m_Text = "";
 
     private int ASK_MULTIPLE_PERMISSION_REQUEST_CODE = 1;
@@ -51,7 +59,12 @@ public class TCPActivity extends Activity
         }
 
         changeName = findViewById(R.id.change);
-
+        ip_text = findViewById(R.id.txtservidor);
+        ip_text.setText(VariablesGlobales.getIpcon());
+        puerto_text = (EditText)findViewById(R.id.txtPuerto);
+        puerto_text.setText(String.valueOf(VariablesGlobales.getPuertocon()));
+        ruta_text = findViewById(R.id.txtRuta);
+        ruta_text.setText(VariablesGlobales.getRutaPreventa());
 
         changeName.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,11 +78,16 @@ public class TCPActivity extends Activity
         serverTransmitButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.i("Start Server Clicked", "yipee");
-                //Realizar la transmision de lo que se necesita (Db o txt)
-                WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
-                WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
-                TransmisionServidor f = new TransmisionServidor(weakRef,weakRefA,filePath,wholePath);
-                f.execute();
+                if(validarConexion()) {
+                    //Realizar la transmision de lo que se necesita (Db o txt)
+                    WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
+                    WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
+                    VariablesGlobales.setIpcon(ip_text.getText().toString());
+                    VariablesGlobales.setPuertocon(Integer.valueOf(puerto_text.getText().toString()));
+                    VariablesGlobales.setRutaPreventa(ruta_text.getText().toString());
+                    TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, filePath, wholePath);
+                    f.execute();
+                }
             }
         });
 
@@ -78,34 +96,63 @@ public class TCPActivity extends Activity
         clientReceiveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.i("Read Button Clicked", "yipee");
-                //startService(new Intent(TCPActivity.this, NameService.class));
-                WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
-                WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
-                SincronizacionServidor s = new SincronizacionServidor(weakRef,weakRefA);
-                s.execute();
-
+                if(validarConexion()) {
+                    //startService(new Intent(TCPActivity.this, NameService.class));
+                    WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
+                    WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
+                    VariablesGlobales.setIpcon(ip_text.getText().toString());
+                    VariablesGlobales.setPuertocon(Integer.valueOf(puerto_text.getText().toString()));
+                    VariablesGlobales.setRutaPreventa(ruta_text.getText().toString());
+                    SincronizacionServidor s = new SincronizacionServidor(weakRef, weakRefA);
+                    s.execute();
+                }
             }
         });
+    }
+
+    private boolean validarConexion(){
+        boolean retorno = true;
+        if(VariablesGlobales.getIpcon().trim().isEmpty()){
+            Toasty.warning(getBaseContext(),"Por favor digite una direccion IP válida.");
+            retorno = false;
+        }
+        if(String.valueOf(VariablesGlobales.getPuertocon()).isEmpty()){
+            Toasty.warning(getBaseContext(),"Por favor digite un puerto válido.");
+            retorno = false;
+        }
+        if(VariablesGlobales.getRutaPreventa().trim().isEmpty()){
+            Toasty.warning(getBaseContext(),"Por favor digite una ruta de venta válida.");
+            retorno = false;
+        }
+        return retorno;
     }
 
     private void showInputDialog() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Title");
-
+        builder.setTitle("Nueva Conexion");
 // Set up the input
-        final EditText input = new EditText(this);
+        final EditText ip = new EditText(this);
+        final EditText puerto = new EditText(this);
+        final EditText ruta = new EditText(this);
 // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        builder.setView(input);
-
+        LinearLayout LL_view = new LinearLayout(this);
+        ip.setInputType(InputType.TYPE_CLASS_TEXT);
+        LL_view.addView(ip);
+        puerto.setInputType(InputType.TYPE_CLASS_NUMBER);
+        LL_view.addView(puerto);
+        ruta.setInputType(InputType.TYPE_CLASS_TEXT);
+        LL_view.addView(ruta);
+        builder.setView(LL_view);
 // Set up the buttons
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                m_Text = input.getText().toString();
-                PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("name", m_Text).apply();
-                Toast.makeText(TCPActivity.this,m_Text,Toast.LENGTH_LONG).show();
+                //TODO Poder guardar conexiones de diferentes tipos y poder seleccionarlo antes de conectar
+                PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("ip", ip.getText().toString()).apply();
+                PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("puerto", puerto.getText().toString()).apply();
+                PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("ruta", ruta.getText().toString()).apply();
+                Toasty.info(TCPActivity.this,"Se han guardado las preferencias de conexion",Toast.LENGTH_LONG).show();
             }
         });
         builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {

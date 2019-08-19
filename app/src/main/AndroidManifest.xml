@@ -10,7 +10,8 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+    <uses-permission
+        android:name="android.permission.WRITE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
     <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
@@ -22,12 +23,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-
     <uses-feature android:name="android.hardware.location.gps" />
 
     <application
-        android:allowBackup="true"
-        android:fullBackupContent="true"
         android:icon="@drawable/favicon"
         android:label="@string/app_name"
         android:roundIcon="@drawable/favicon"
@@ -71,10 +69,15 @@
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
         </activity>
-        <activity android:name=".actividades.TCPActivity"
-            android:label="@string/title_activity_TCP"/>
+        <activity
+            android:name=".actividades.TCPActivity"
+            android:label="@string/title_activity_TCP" />
 
         <service android:name=".clases.NameService" />
+
+        <activity
+            android:name=".actividades.panelActivity"
+            android:label="@string/title_activity_panel"></activity>
     </application>
 
 </manifest>

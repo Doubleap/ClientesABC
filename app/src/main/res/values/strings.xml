@@ -74,4 +74,5 @@
         <item id="1">Cada 8 Semanas</item>
         <item id="1">Cada 10 Semanas</item>
     </string-array>
+    <string name="title_activity_panel">panelActivity</string>
 </resources>

@@ -66,7 +66,7 @@ public class SolicitudesActivity extends AppCompatActivity {
             searchView.setMaxWidth(Integer.MAX_VALUE);
             searchView.setQueryHint("Buscar...");
 
-            // listening to search query text change
+            // listener de buscar query text change
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(String query) {

@@ -3,7 +3,6 @@ package proyecto.app.clientesabc.clases;
 import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -28,9 +27,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 import es.dmoral.toasty.Toasty;
-import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
-import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
 
@@ -60,7 +58,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
     protected void onProgressUpdate(Void... values) {
         super.onProgressUpdate(values);
         //Seteando listView para desplegar IPs disponibles
-        listView = new WeakReference<>((ListView)activity.get().findViewById(R.id.listView));
+        //listView = new WeakReference<>((ListView)activity.get().findViewById(R.id.listView));
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context.get(), android.R.layout.simple_list_item_1, a );
 
         listView.get().setAdapter(arrayAdapter);
@@ -133,10 +131,10 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 mDataBase.execSQL(sqlCreate);*/
 
 
-                //File myFile = new File("/data/user/0/proyecto.app.clientesabc/databases/", "FAWM_ANDROID_2");
-                File externalStorage = Environment.getExternalStorageDirectory();
-                String externalStoragePath = externalStorage.getAbsolutePath();
-                File myFile = new File(externalStoragePath + File.separator + context.get().getPackageName()+ File.separator+"Transmision", "PRUEBA_COPIA");
+                File myFile = new File(context.get().getApplicationInfo().dataDir + "/databases/", "FAWM_ANDROID_2");
+                //File externalStorage = Environment.getExternalStorageDirectory();
+                //String externalStoragePath = externalStorage.getAbsolutePath();
+                //File myFile = new File(externalStoragePath + File.separator + context.get().getPackageName()+ File.separator+"Transmision", "PRUEBA_COPIA");
                 files.add(myFile);
 
                 System.out.println("Creando Streams de datos...");
@@ -210,9 +208,8 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
         else{
             Toasty.success(context.get(),"Transmision Finalizada Correctamente!!",Toast.LENGTH_LONG).show();
             //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
-            //mDBHelper.ActualizarEstadosSolicitudesTransmitidas();
+            mDBHelper.ActualizarEstadosSolicitudesTransmitidas();
         }
-        //TODO si es posible recibir del server los archivos validar para cuando se quiera hcer una sincronizacion en vez de una transmision
     }
 
     public ArrayList<String> getClientList() {

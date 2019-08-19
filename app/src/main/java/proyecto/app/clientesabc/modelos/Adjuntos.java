@@ -1,7 +1,5 @@
 package proyecto.app.clientesabc.modelos;
 
-import java.util.Arrays;
-
 public class Adjuntos {
     private String id_formulario;
     private String id_solicitud;
@@ -32,7 +30,7 @@ public class Adjuntos {
                 valorCelda = getName();
                 break;
             case 4:
-                valorCelda = Arrays.toString(getImage());
+                valorCelda = getImage().toString();
                 break;
         }
         return valorCelda;

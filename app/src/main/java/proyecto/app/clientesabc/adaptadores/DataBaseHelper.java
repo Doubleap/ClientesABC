@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.modelos.Contacto;
 import proyecto.app.clientesabc.modelos.Impuesto;
@@ -73,7 +74,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         mNeedUpdate = false;
     }
 
-    private boolean checkDataBase() {
+    public boolean checkDataBase() {
         File dbFile = new File(DB_PATH + DB_NAME);
         return dbFile.exists();
     }
@@ -482,6 +483,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }catch (Exception e){
             e.getMessage();
             e.printStackTrace();
+            return false;
         }
         return true;
     }
@@ -499,6 +501,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }catch (Exception e){
             e.getMessage();
             e.printStackTrace();
+            return false;
         }
         return true;
     }
@@ -674,6 +677,53 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return valor;
     }
 
+    public ArrayList<HashMap<String, String>> Provincias(String pais)
+    {
+        ArrayList<HashMap<String, String>> provincias = getDatosCatalogo("cat_t005u", "land1 = '"+pais+"'");
+        return provincias;
+    }
+
+    public ArrayList<HashMap<String, String>> Cantones(String pais, String provincia)
+    {
+        String porpais = "";
+        switch (pais) {
+            case "CR":
+                porpais = " AND SUBSTR(CITY1,1,1) = 'C' OR CITY1 = 'PCCI'";
+                break;
+            case "NI":
+                porpais = " AND SUBSTR(CITY1,1,1) = 'N'";
+                break;
+            case "GT":
+                porpais = " AND SUBSTR(CITY1,1,1) = 'G'";
+                break;
+            case "PA":
+                porpais = " AND SUBSTR(CITY1,1,1) = 'P'";
+                break;
+        }
+        ArrayList<HashMap<String, String>> cantones = getDatosCatalogo("cat_ztsdvtc_00296", "regio = '"+provincia+"'"+porpais);
+        return cantones;
+    }
+
+    public ArrayList<HashMap<String, String>> Distritos(String provincia, String canton)
+    {
+        ArrayList<HashMap<String, String>> distritos = getDatosCatalogo("cat_ztsdvtc_00297", "region = '"+provincia+"' AND city1 = '"+canton+"'");
+        return distritos;
+    }
+
+    //Campo W_CTE-ZGPOCANAL, con Etiqueta 'Canal'
+    public ArrayList<HashMap<String, String>> Canales(String grupo_canal)
+    {
+        ArrayList<HashMap<String, String>> canales = getDatosCatalogo("cat_ztmdcmc_00036", "ztpocanal = '"+grupo_canal+"'");
+        return canales;
+    }
+    //Campo W_CTE-ZZCANAL0, con Etiqueta 'Canal KOF'
+    public ArrayList<HashMap<String, String>> CanalesKOF(String vkorg, String grupo_canal, String canal)
+    {
+        ArrayList<HashMap<String, String>> distritos = getDatosCatalogo("cat_ztmdcmc_00017", "vkorg = '"+vkorg+"' AND ztpocanal = '"+grupo_canal+"' AND zgpocanal = '"+canal+"'");
+        return distritos;
+    }
+
+
     //Adjuntos x solicitud
     public void addAdjuntoSolicitud( String tipo, String nombre, byte[] imagen) throws SQLiteException {
         ContentValues cv = new  ContentValues();
@@ -681,7 +731,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cv.put("tipo",   tipo);
         cv.put("nombre",   nombre);
         cv.put("imagen",   imagen);
-        mDataBase.insert( VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(), null, cv );
+        try {
+            mDataBase.insertOrThrow(VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(), null, cv);
+        }
+        catch(SQLiteException se){
+            Toasty.error(mContext, "No se pudo insertar en tabla "+VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD()+". "+se.getMessage()).show();
+
+        }
     }
 
     //ENCUESTA CANALES
@@ -832,4 +888,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return cantidad;
     }
+
+
 }
