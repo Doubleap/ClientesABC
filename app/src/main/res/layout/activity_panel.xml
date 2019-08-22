@@ -20,7 +20,7 @@
     android:layout_height="match_parent">
     <TextView
         android:id="@+id/rutaPanel"
-        android:text="CRP900"
+        android:text="SIN RUTA"
         android:textSize="56dp"
         android:textColor="@color/white"
         android:textStyle="bold"
@@ -29,12 +29,11 @@
         android:layout_height="wrap_content" />
     <TextView
         android:id="@+id/userPanel"
-        android:text="CR01987384"
+        android:text="Sin Usuario"
         android:textAlignment="center"
         android:textSize="28dp"
         android:textStyle="bold"
         android:textColor="@color/white"
-
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 </LinearLayout>
@@ -61,14 +60,17 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             app:cardElevation="5dp"
-            app:cardCornerRadius="5dp"
+            app:cardCornerRadius="25dp"
+            android:background="@null"
             >
             <LinearLayout
                 android:gravity="center_horizontal|center_vertical"
-                android:layout_margin="16dp"
+                android:layout_margin="0dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:background="@drawable/square_btn_bg_t1"
+                >
                 <ImageView
                     android:src="@drawable/icon_config"
                     android:layout_gravity="center_horizontal"
@@ -90,18 +92,19 @@
             android:layout_height="0dp"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
+            app:cardElevation="5dp"
+            app:cardCornerRadius="25dp"
             android:layout_marginBottom="16dp"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            app:cardElevation="5dp"
-            app:cardCornerRadius="5dp"
             >
             <LinearLayout
                 android:gravity="center_horizontal|center_vertical"
-                android:layout_margin="16dp"
+                android:layout_margin="0dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
+                android:background="@drawable/square_btn_bg_t1"
                 >
                 <ImageView
                     android:minWidth="50dp"
@@ -130,14 +133,16 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             app:cardElevation="5dp"
-            app:cardCornerRadius="5dp"
+            app:cardCornerRadius="25dp"
+
             >
             <LinearLayout
                 android:gravity="center_horizontal|center_vertical"
-                android:layout_margin="16dp"
+                android:layout_margin="0dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:background="@drawable/square_btn_bg_t1">
                 <ImageView
                     android:src="@drawable/icon_config"
                     android:layout_gravity="center_horizontal"
@@ -163,14 +168,15 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             app:cardElevation="5dp"
-            app:cardCornerRadius="5dp"
+            app:cardCornerRadius="25dp"
             >
             <LinearLayout
                 android:gravity="center_horizontal|center_vertical"
-                android:layout_margin="16dp"
+                android:layout_margin="0dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:background="@drawable/square_btn_bg_t1">
                 <ImageView
                     android:src="@drawable/icon_config"
                     android:layout_gravity="center_horizontal"
@@ -196,14 +202,15 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             app:cardElevation="5dp"
-            app:cardCornerRadius="5dp"
+            app:cardCornerRadius="25dp"
             >
             <LinearLayout
                 android:gravity="center_horizontal|center_vertical"
-                android:layout_margin="16dp"
+                android:layout_margin="0dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:background="@drawable/square_btn_bg_t1">
                 <ImageView
                     android:src="@drawable/icon_config"
                     android:layout_gravity="center_horizontal"
@@ -229,14 +236,15 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             app:cardElevation="5dp"
-            app:cardCornerRadius="5dp"
+            app:cardCornerRadius="25dp"
             >
             <LinearLayout
                 android:gravity="center_horizontal|center_vertical"
-                android:layout_margin="16dp"
+                android:layout_margin="0dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:background="@drawable/square_btn_bg_t1">
                 <ImageView
                     android:src="@drawable/icon_config"
                     android:layout_gravity="center_horizontal"
@@ -261,5 +269,6 @@
         android:background="@color/colorPrimary"
         app:itemIconTint="@color/white"
         app:itemTextColor="@color/backColor"
-        app:menu="@menu/bottom_menu_panel" />
+        app:menu="@menu/bottom_menu_panel"
+        app:itemBackground="@drawable/bottom_item_bg"/>
 </LinearLayout>

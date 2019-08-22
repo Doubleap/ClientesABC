@@ -107,7 +107,12 @@
                 android:layout_marginTop="16dp"
                 android:text="Ingresar"
                 android:textStyle="bold" />
-
+<CheckBox
+    android:id="@+id/guardar_contrasena"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Guardar mi contrasena"
+    android:layout_gravity="center"/>
         </LinearLayout>
         <LinearLayout
             android:id="@+id/footer"

@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.File;
@@ -188,7 +189,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ArrayList<HashMap<String, String>> userList = new ArrayList<>();
         String query = "SELECT zroute_pr as id, zroute_pr as descripcion" +
                 " FROM EX_T_RUTAS_VP" +
-                " WHERE  (zroute_pr IS NOT NULL) AND (vkorg = '"+VariablesGlobales.getOrgVta()+"') AND (trim(zroute_pr) <> '')";
+                " WHERE  (zroute_pr IS NOT NULL) AND (vkorg = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","")+"') AND (trim(zroute_pr) <> '')";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -249,11 +250,27 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return id;
     }
 
+    public String getGuiId(){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, String>> formList = new ArrayList<>();
+        String query = "SELECT \"ROWID\" from FormHvkof_solicitud order by \"ROWID\" DESC limit 1";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+        String currentDateandTime = sdf.format(new Date());
+        String id =PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH","")+currentDateandTime;
+
+        if (cursor.moveToNext()){
+            id += String.format("%10s", String.valueOf(cursor.getInt(0)+1)).replace(' ', '0');
+        }
+        cursor.close();
+        return id;
+    }
     public ArrayList<HashMap<String, String>> getCamposPestana(String id_formulario, String pestana){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
         String query = "SELECT c.campo, c.nombre, c.tipo_input, c.id_seccion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip FROM configuracion c" +
-                " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+VariablesGlobales.getSociedad()+"' and cc.ktokd = 'RCMA')" +
+                " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' and cc.ktokd = 'RCMA')" +
                 " INNER JOIN Seccion s ON (s.id_seccion = c.id_seccion)" +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip)" +
                 " WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"'" +
@@ -325,7 +342,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String selectQuery = "SELECT * " +
                 " FROM " + tabla +" WHERE 1=1";
 
-        VariablesGlobales vg = new VariablesGlobales();
         StringBuilder filtros = new StringBuilder();
 
         //Crear Filtros manuales desde los parametros
@@ -337,19 +353,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         //Si existe BUKRS en la tabla del catalago vamos a filtros por Sociedad
         if(existeColumna(tabla,"bukrs")){
-            filtros.append(" AND bukrs = '").append(VariablesGlobales.getSociedad()).append("'");
+            filtros.append(" AND trim(bukrs) = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")).append("'");
         }
         if(existeColumna(tabla,"land1")){
-            filtros.append(" AND land1 = '").append(VariablesGlobales.getLand1()).append("'");
+            filtros.append(" AND trim(land1) = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")).append("'");
         }
         if(existeColumna(tabla,"vkorg")){
-            filtros.append(" AND vkorg = '").append(VariablesGlobales.getOrgVta()).append("'");
+            filtros.append(" AND trim(vkorg) = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","")).append("'");
         }
         if(existeColumna(tabla,"banks")){
-            filtros.append(" AND banks = '").append(VariablesGlobales.getLand1()).append("'");
+            filtros.append(" AND trim(banks) = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")).append("'");
         }
         if(existeColumna(tabla,"talnd")){
-            filtros.append(" AND talnd = '").append(VariablesGlobales.getLand1()).append("'");
+            filtros.append(" AND trim(talnd) = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")).append("'");
         }
         //TODO filtros segun la agencia o/y ruta de la HH o de jefe de ventas para las rutas de su agencia
 
@@ -398,7 +414,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String selectQuery = "SELECT * " +
                 " FROM " + tabla +" WHERE 1=1";
 
-        VariablesGlobales vg = new VariablesGlobales();
         StringBuilder filtros = new StringBuilder();
 
         //Crear Filtros manuales desde los parametros
@@ -410,19 +425,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         //Si existe BUKRS en la tabla del catalago vamos a filtros por Sociedad
         if(existeColumna(tabla,"bukrs")){
-            filtros.append(" AND bukrs = '").append(VariablesGlobales.getSociedad()).append("'");
+            filtros.append(" AND trim(bukrs) = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")).append("'");
         }
         if(existeColumna(tabla,"land1")){
-            filtros.append(" AND land1 = '").append(VariablesGlobales.getLand1()).append("'");
+            filtros.append(" AND trim(land1) = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")).append("'");
         }
         if(existeColumna(tabla,"vkorg")){
-            filtros.append(" AND vkorg = '").append(VariablesGlobales.getOrgVta()).append("'");
+            filtros.append(" AND trim(vkorg) = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","")).append("'");
         }
         if(existeColumna(tabla,"banks")){
-            filtros.append(" AND banks = '").append(VariablesGlobales.getLand1()).append("'");
+            filtros.append(" AND trim(banks) = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")).append("'");
         }
         if(existeColumna(tabla,"talnd")){
-            filtros.append(" AND talnd = '").append(VariablesGlobales.getLand1()).append("'");
+            filtros.append(" AND trim(talnd) = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")).append("'");
         }
         //TODO filtros segun la agencia o/y ruta de la HH o de jefe de ventas para las rutas de su agencia
 
@@ -487,19 +502,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         //Si existe BUKRS en la tabla del catalago vamos a filtros por Sociedad
         if(existeColumna(tabla,"bukrs")){
-            filtros.append(" AND bukrs = '").append(VariablesGlobales.getSociedad()).append("'");
+            filtros.append(" AND bukrs = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")).append("'");
         }
         if(existeColumna(tabla,"land1")){
-            filtros.append(" AND land1 = '").append(VariablesGlobales.getLand1()).append("'");
+            filtros.append(" AND land1 = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")).append("'");
         }
         if(existeColumna(tabla,"vkorg")){
-            filtros.append(" AND vkorg = '").append(VariablesGlobales.getOrgVta()).append("'");
+            filtros.append(" AND vkorg = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","")).append("'");
         }
         if(existeColumna(tabla,"banks")){
-            filtros.append(" AND banks = '").append(VariablesGlobales.getLand1()).append("'");
+            filtros.append(" AND banks = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")).append("'");
         }
         if(existeColumna(tabla,"talnd")){
-            filtros.append(" AND talnd = '").append(VariablesGlobales.getLand1()).append("'");
+            filtros.append(" AND talnd = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")).append("'");
         }
 
         try {
@@ -586,13 +601,43 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return true;
     }
 
+    public boolean setPropiedadesDeUsuario(){
+        boolean ret = false;
+        PreferenceManager.getDefaultSharedPreferences(mContext).getString("user","");
+        String query = "SELECT RouteID FROM t_i_users WHERE UserName = ?";
+        Cursor cursor = mDataBase.rawQuery(query, new String [] {PreferenceManager.getDefaultSharedPreferences(mContext).getString("user","")});
+        String rutaAsignada = "";
+        while (cursor.moveToNext()){
+            rutaAsignada = cursor.getString(0);
+        }
+        PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_RUTAHH", rutaAsignada ).apply();
+        query = "SELECT * FROM EX_T_RUTAS_VP WHERE zroute_pr = ?";
+        cursor = mDataBase.rawQuery(query, new String [] {rutaAsignada});
+
+        while (cursor.moveToNext()){
+            ret = true;
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKORG", cursor.getString(cursor.getColumnIndex("vkorg")) ).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BUKRS", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg")))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg")))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KDGRP", cursor.getString(cursor.getColumnIndex("kdgrp"))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KVGR3", cursor.getString(cursor.getColumnIndex("kvgr3"))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BZIRK", cursor.getString(cursor.getColumnIndex("bzirk"))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKBUR", cursor.getString(cursor.getColumnIndex("vkbur"))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKGRP", cursor.getString(cursor.getColumnIndex("vkgrp"))).apply();
+
+        }
+        cursor.close();
+        return ret;
+    }
+
+
     //Informacion de BLOQUES DE DATOS
 
     //CONTACTOS
     private ArrayList<Contacto> getContactosDB(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<Contacto> contactList = new ArrayList<>();
-        String query = "SELECT * FROM cat_t171t";
+        String query = "SELECT * FROM "+VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH();
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             Contacto contacto = new Contacto();
@@ -661,7 +706,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<Impuesto> getImpuestosPais(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<Impuesto> impuestoList = new ArrayList<>();
-        String query = "SELECT * FROM cat_impstos WHERE taxkd = 1 AND talnd = '"+VariablesGlobales.getLand1()+"'";
+        String query = "SELECT * FROM cat_impstos WHERE taxkd = 1 AND talnd = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")+"'";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             Impuesto impuesto = new Impuesto();
@@ -681,7 +726,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ArrayList<Interlocutor> interlocutorList = new ArrayList<>();
         String grupoCuentasDefault = "RCMA";
         //Buscar el grupo de ceuntas adecuado por pais
-        switch(VariablesGlobales.getLand1()){
+        switch(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")){
             case "CR":
                 grupoCuentasDefault = "RCMA";
                 break;
@@ -748,7 +793,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return retorno;
     }
     public String RutaRepartoAsociada(String kvgr5, String vpore) {//vkorg,ktokd,name1,street,house_num1,suppl1,suppl3,city1,land1
-        Cursor cursor = mDataBase.rawQuery("select vpent FROM cat_ztsdvto_00185_x WHERE kvgr5 = ? AND vkorg = ? AND vpore = ?", new String[]{kvgr5, VariablesGlobales.getOrgVta(), vpore});
+        Cursor cursor = mDataBase.rawQuery("select vpent FROM cat_ztsdvto_00185_x WHERE kvgr5 = ? AND vkorg = ? AND vpore = ?", new String[]{kvgr5, PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG",""), vpore});
         String valor = "";
         if(cursor.moveToNext()) {
             valor = cursor.getString(cursor.getColumnIndex("vpent"));
@@ -824,7 +869,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getPreguntasSegunGrupo(String grupo_isscom){
         ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
         //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
-        String sql_encuesta = "select zid_quest,text  from cat_preguntas_isscom p where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
+        String sql_encuesta = "select zid_quest,text  from cat_preguntas_isscom p where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -861,7 +906,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.moveToNext();
         idValores = cursor.getString(0).trim();
 
-        sql_encuesta = new StringBuilder("select zzent3,zzent4,zzcanal,ztpocanal,zgpocanal,pson3  from cat_ztsdvto_00187 p where vkorg = '" + VariablesGlobales.getOrgVta() + "' AND trim(zid_result) = '" + idValores.trim() + "'");
+        sql_encuesta = new StringBuilder("select zzent3,zzent4,zzcanal,ztpocanal,zgpocanal,pson3  from cat_ztsdvto_00187 p where vkorg = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","") + "' AND trim(zid_result) = '" + idValores.trim() + "'");
         cursor = mDataBase.rawQuery(sql_encuesta.toString(),null);
         while (cursor.moveToNext()){
             registro_canales.put("W_CTE-ZZENT3",cursor.getString(0).trim());
@@ -903,7 +948,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getPreguntasGec(){
         ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
         //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
-        String sql_encuesta = "select zid_quest,text,text2  from cat_preguntas_gec p where bukrs = '" + VariablesGlobales.getSociedad() + "'";
+        String sql_encuesta = "select zid_quest,text,text2  from cat_preguntas_gec p where bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -919,7 +964,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public String getGecSegunEncuestaRealizada(Integer monto_total) {
         String gec = "";
 
-        String sql_encuesta = "select klabc  from cat_rangos_gec p where bukrs = '"+VariablesGlobales.getSociedad()+"' AND min <=  "+monto_total+" AND max >="+monto_total+"";
+        String sql_encuesta = "select klabc  from cat_rangos_gec p where bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' AND min <=  "+monto_total+" AND max >="+monto_total+"";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             gec = cursor.getString(0).trim();
@@ -928,10 +973,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return gec;
     }
 
-    public ArrayList<HashMap<String, String>> getEncuestaGec(int nextSolicitudId) {
+    public ArrayList<HashMap<String, String>> getEncuestaGec(String nextSolicitudId) {
         ArrayList<HashMap<String, String>> respuestasEncuestaGec = new ArrayList<>();
         //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
-        String sql_encuesta = "select zid_quest, monto from encuesta_gec_solicitud p where idform = '" + nextSolicitudId + "'";
+        String sql_encuesta = "select zid_quest, monto from encuesta_gec_solicitud p where id_solicitud = '" + nextSolicitudId + "'";
         //String sql_encuesta2 = "select zid_quest, monto from encuesta_gec_solicitud p";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         //Cursor cursor2 = mDataBase.rawQuery(sql_encuesta2,null);
@@ -947,20 +992,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     // Metodos de Ayuda para la Transmision de Datos y evitar que se vayan duplicados o que no se vayan del todo
     public void ActualizarEstadosSolicitudesTransmitidas(){
-        SQLiteDatabase db = this.getWritableDatabase();
-        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Transmitido' WHERE idform IN (SELECT idform FROM FormHvKof_solicitud WHERE estado = 'Nuevo');";
-        db.execSQL(sqlUpdate);
+        //SQLiteDatabase db = this.getWritableDatabase();
+        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Transmitido' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_solicitud WHERE trim(estado) = 'Nuevo');";
+        mDataBase.execSQL(sqlUpdate);
     }
     //Solo para debugging
     public void RestaurarEstadosSolicitudesTransmitidas(){
-        SQLiteDatabase db = this.getWritableDatabase();
-        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Nuevo' WHERE idform IN (SELECT idform FROM FormHvKof_solicitud WHERE estado = 'Transmitido');";
-        db.execSQL(sqlUpdate);
+        //SQLiteDatabase db = this.getWritableDatabase();
+        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Nuevo' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_solicitud WHERE trim(estado) = 'Transmitido');";
+        mDataBase.execSQL(sqlUpdate);
     }
     public int CantidadSolicitudesTransmision() {
         int cantidad = 0;
 
-        String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud where estado = 'Nuevo'";
+        String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud where trim(estado) = 'Nuevo'";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             cantidad = cursor.getInt(0);
@@ -969,5 +1014,28 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return cantidad;
     }
 
-
+    public String vkorgToLand1(String vkorg){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, String>> formList = new ArrayList<>();
+        String query = "SELECT land1 FROM cat_bukrs WHERE vkorg = ?";
+        Cursor cursor = mDataBase.rawQuery(query, new String[]{vkorg});
+        String land1 = "";
+        if (cursor.moveToNext()){
+            land1 = cursor.getString(0);
+        }
+        cursor.close();
+        return land1;
+    }
+    public String vkorgToBukrs(String vkorg){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, String>> formList = new ArrayList<>();
+        String query = "SELECT id_bukrs FROM cat_bukrs WHERE vkorg = ?";
+        Cursor cursor = mDataBase.rawQuery(query, new String[]{vkorg});
+        String bukrs = "";
+        if (cursor.moveToNext()){
+            bukrs = cursor.getString(0);
+        }
+        cursor.close();
+        return bukrs;
+    }
 }

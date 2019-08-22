@@ -3,6 +3,7 @@ package proyecto.app.clientesabc.actividades;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -13,6 +14,7 @@ import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -22,8 +24,8 @@ import android.widget.TextView;
 import java.util.Objects;
 
 import es.dmoral.toasty.Toasty;
-import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 /**
  * A login screen that offers login via email/password.
@@ -49,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
     // UI references.
     private AutoCompleteTextView mUserView;
     private EditText mPasswordView;
+    private CheckBox mCheckbox;
     private View mProgressView;
     private View mLoginFormView;
     private Intent intent;
@@ -59,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         // Set up the login form.
         mUserView = findViewById(R.id.user);
-
+        mCheckbox = findViewById(R.id.guardar_contrasena);
         mPasswordView = findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -71,6 +74,10 @@ public class LoginActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        mUserView.setText(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("user",""));
+        mPasswordView.setText(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("password",""));
+        mCheckbox.setChecked(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getBoolean("guardar_contrasena",false));
 
         Button mEmailSignInButton = findViewById(R.id.sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
@@ -124,12 +131,11 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if (cancel) {
-            // There was an error; don't attempt login and focus the first
+            // Hubo un error; no hacer login y focus el primer elemento con error
             // form field with an error.
             focusView.requestFocus();
         } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
+            //Realizar el login validando la base de datos sincronizada
             DataBaseHelper db = new DataBaseHelper(getBaseContext());
             boolean datosMinimos = db.checkDataBase();
             boolean intentovalido = db.LoginUsuario(user,password);
@@ -141,8 +147,23 @@ public class LoginActivity extends AppCompatActivity {
                 //startActivity(intent);
             }
             if(intentovalido){
-                intent = new Intent(getBaseContext(),PanelActivity.class);
-                startActivity(intent);
+
+                PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", mUserView.getText().toString()).apply();
+                if(mCheckbox.isChecked()) {
+                    PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("password", mPasswordView.getText().toString()).apply();
+                }else{
+                    PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("password", "").apply();
+                }
+                PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putBoolean("guardar_contrasena", mCheckbox.isChecked()).apply();
+
+                //Guardar las preferencias por ruta que tiene asignado el usuario logueado en la base de datos sincronizada.
+                boolean tienePropiedades = db.setPropiedadesDeUsuario();
+                if(tienePropiedades) {
+                    intent = new Intent(getBaseContext(), PanelActivity.class);
+                    startActivity(intent);
+                }else{
+                    Toasty.warning(LoginActivity.this,"Debe Sincronizar los datos primero. La informacion existente no pertenece al usuario!").show();
+                }
             }else{
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 focusView = mPasswordView;

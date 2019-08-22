@@ -17,7 +17,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
@@ -35,7 +37,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
-import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.TooltipCompat;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -52,9 +53,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TableRow;
@@ -67,6 +68,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -121,6 +123,8 @@ public class SolicitudActivity extends AppCompatActivity {
     static ArrayList<String> listaCamposObligatorios = new ArrayList<>();
     static ArrayList<String> listaCamposBloque = new ArrayList<>();
     static Map<String, View> mapeoCamposDinamicos = new HashMap<>();
+    private static String GUID;
+    private ProgressBar progressBar;
 
     Uri mPhotoUri;
 
@@ -151,48 +155,21 @@ public class SolicitudActivity extends AppCompatActivity {
         Bundle b = getIntent().getExtras();
         if(b != null)
             tipoSolicitud = b.getString("tipoSolicitud");
-        //tipoSolicitud = "2";
+
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setMax(10);
 
         BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation);
         mDBHelper = new DataBaseHelper(this);
         mDb = mDBHelper.getWritableDatabase();
+        GUID = mDBHelper.getGuiId();
         listaCamposDinamicos.clear();
         listaCamposBloque.clear();
         listaCamposObligatorios.clear();
-        //Traer primero las pestanas
-        TabLayout misTabs = new TabLayout(this);
-        misTabs.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        misTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
 
-        final ViewPager viewPager = new ViewPager(this);
-        viewPager.setId(1);
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        viewPager.setOffscreenPageLimit(5);
+        new MostrarFormulario(this).execute();
 
-        viewPager.setAdapter(adapter);
-        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(misTabs));
-
-        misTabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                viewPager.setCurrentItem(tab.getPosition());
-            }
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-
-            }
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-
-            }
-        });
-        misTabs.setupWithViewPager(viewPager);
-
-        LinearLayout ll = findViewById(R.id.LinearLayoutMain);
-        ll.addView(misTabs);
-        ll.addView(viewPager);
-
-        //Setear Eventos de Elementos
+        //Setear Eventos de Elementos del bottom navigation
         bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -207,7 +184,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             startActivityForResult(intent, 1);
 
                         } catch (ActivityNotFoundException e) {
-                            Log.e("tag", "No activity can handle picking a file. Showing alternatives.");
+                            Log.e("tag", getResources().getString(R.string.no_activity));
                         }
                         return true;
                     case R.id.action_file:
@@ -218,19 +195,22 @@ public class SolicitudActivity extends AppCompatActivity {
                             startActivityForResult(intent, 1);
 
                         } catch (ActivityNotFoundException e) {
-                            Log.e("tag", "No activity can handle picking a file. Showing alternatives.");
+                            Log.e("tag", getResources().getString(R.string.no_activity));
                         }
                         return true;
                     case R.id.action_save:
                         int numErrores = 0;
+                        String mensajeError="";
                         //Validacion de Datos Obligatorios Automatico
                         for(int i=0; i < listaCamposObligatorios.size(); i++) {
                             try{
-                                EditText tv = ((EditText) mapeoCamposDinamicos.get(listaCamposObligatorios.get(i)));
+                                MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposObligatorios.get(i)));
                                 String valor = tv.getText().toString().trim();
+
                                 if(valor.isEmpty()){
-                                    tv.setError("El campo "+tv.getHint()+" es obligatorio!");
+                                    tv.setError("El campo "+tv.getTag()+" es obligatorio!");
                                     numErrores++;
+                                    mensajeError += "- "+tv.getTag()+"\n";
                                 }
                             }catch(Exception e){
                                 Spinner combo = ((Spinner) mapeoCamposDinamicos.get(listaCamposObligatorios.get(i)));
@@ -241,26 +221,26 @@ public class SolicitudActivity extends AppCompatActivity {
                                         ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
                                         //combo.setError("El campo "+combo.getHint()+" es obligatorio!");
                                         numErrores++;
+                                        mensajeError += "- "+combo.getTag()+"\n";
                                     }
                                 }else{
                                     TextView error = (TextView)combo.getSelectedView();
                                     error.setError("El campo es obligatorio!");
                                     numErrores++;
+                                    mensajeError += "- "+combo.getTag()+"\n";
                                 }
                             }
                         }
                         if(numErrores == 0) {
-                            int NextId = mDBHelper.getNextSolicitudId();
-                            if(NextId == 0)
-                                NextId = 1;
+                            String NextId = GUID;
                             ContentValues insertValues = new ContentValues();
                             for (int i = 0; i < listaCamposDinamicos.size(); i++) {
                                 if(!listaCamposBloque.contains(listaCamposDinamicos.get(i)) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                                     try {
-                                        EditText tv = ((EditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                                        MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
                                         String valor = tv.getText().toString();
-                                        if(valor.length() == 0)
-                                            valor = valor+"1";
+                                        /*if(valor.length() == 0)
+                                            valor = valor+"1";*/
                                         if(!listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC"))
                                             insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor );
                                     } catch (Exception e) {
@@ -286,7 +266,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-CONTACTOS":
                                             ContentValues contactoValues = new ContentValues();
                                             for (int c = 0; c < contactosSolicitud.size(); c++) {
-                                                contactoValues.put("id_formulario", NextId);
+                                                contactoValues.put("id_solicitud", NextId);
                                                 contactoValues.put("name1", contactosSolicitud.get(c).getName1());
                                                 contactoValues.put("namev", contactosSolicitud.get(c).getNamev());
                                                 contactoValues.put("telf1", contactosSolicitud.get(c).getTelf1());
@@ -305,7 +285,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-IMPUESTOS":
                                             ContentValues impuestoValues = new ContentValues();
                                             for (int c = 0; c < impuestosSolicitud.size(); c++) {
-                                                impuestoValues.put("id_formulario", NextId);
+                                                impuestoValues.put("id_solicitud", NextId);
                                                 impuestoValues.put("vtext", impuestosSolicitud.get(c).getVtext());
                                                 impuestoValues.put("vtext2", impuestosSolicitud.get(c).getVtext2());
                                                 impuestoValues.put("tatyp", impuestosSolicitud.get(c).getTatyp());
@@ -321,7 +301,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-INTERLOCUTORES":
                                             ContentValues interlocutorValues = new ContentValues();
                                             for (int c = 0; c < interlocutoresSolicitud.size(); c++) {
-                                                interlocutorValues.put("id_formulario", NextId);
+                                                interlocutorValues.put("id_solicitud", NextId);
                                                 interlocutorValues.put("name1", interlocutoresSolicitud.get(c).getName1());
 
                                                 try {
@@ -335,7 +315,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-BANCOS":
                                             ContentValues bancoValues = new ContentValues();
                                             for (int c = 0; c < bancosSolicitud.size(); c++) {
-                                                bancoValues.put("id_formulario", NextId);
+                                                bancoValues.put("id_solicitud", NextId);
                                                 bancoValues.put("bankl", bancosSolicitud.get(c).getBankl());
                                                 bancoValues.put("bankn", bancosSolicitud.get(c).getBankn());
                                                 bancoValues.put("banks", bancosSolicitud.get(c).getBanks());
@@ -355,27 +335,51 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-VISITAS":
                                             ContentValues visitaValues = new ContentValues();
                                             for (int c = 0; c < visitasSolicitud.size(); c++) {
-                                                visitaValues.put("id_formulario", NextId);
-                                                visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
-                                                visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
-                                                visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
-                                                visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
-                                                visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
-                                                visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
-                                                visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                                visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
-                                                visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
-                                                visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
-                                                visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
-                                                visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
-                                                visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
-                                                visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
-                                                visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
-                                                visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
-                                                visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
-                                                visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
-                                                visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
-                                                visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
+                                                visitaValues.put("id_solicitud", NextId);
+                                                if(mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""),visitasSolicitud.get(c).getVptyp())){
+                                                    //Tipo visita de Reparto
+                                                    visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
+                                                    visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
+                                                    visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
+                                                    visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
+                                                    visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
+                                                    visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
+                                                    visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
+                                                    visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
+                                                    visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
+                                                    visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
+                                                    visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
+                                                    visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
+                                                    visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
+                                                    visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
+                                                    visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
+                                                    visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
+                                                    visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
+                                                    visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
+                                                    visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
+                                                    visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
+                                                }else {//Tipo Visita de Preventa
+                                                    visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
+                                                    visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
+                                                    visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
+                                                    visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
+                                                    visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
+                                                    visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
+                                                    visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
+                                                    visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
+                                                    visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
+                                                    visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
+                                                    visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
+                                                    visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
+                                                    visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
+                                                    visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
+                                                    visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
+                                                    visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
+                                                    visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
+                                                    visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
+                                                    visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
+                                                    visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
+                                                }
                                                 try {
                                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
                                                 } catch (Exception e) {
@@ -391,9 +395,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                 //Datos que siemrpe deben ir cuando se crea por primera vez.
                                 //TODO Se debe enviar el usuairo loqgueado al sistema (Nunca debe permitir un usuario default, este debe existir en KOF y el maestro de clientes WEB)
                                 insertValues.put("[estado]", "Nuevo");
-                                insertValues.put("[idform]", NextId);
+                                insertValues.put("[id_solicitud]", NextId);
                                 insertValues.put("[tipform]", tipoSolicitud);
-                                insertValues.put("[ususol]", "TCRORBAAYMER");
+                                insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("user",""));
                                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
                                 Date date = new Date();
                                 //ContentValues initialValues = new ContentValues();
@@ -408,7 +412,8 @@ public class SolicitudActivity extends AppCompatActivity {
 
                             Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toast.LENGTH_SHORT).show();
                         }else{
-                            Toasty.warning(getApplicationContext(), "Existen "+numErrores+" errores en los datos, por favor revise todos los campos.", Toast.LENGTH_SHORT).show();
+                            //Toasty.warning(getApplicationContext(), "Existen "+numErrores+" errores en los datos.", Toast.LENGTH_SHORT).show();
+                            Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toast.LENGTH_LONG).show();
                         }
                 }
                 return true;
@@ -451,7 +456,7 @@ public class SolicitudActivity extends AppCompatActivity {
         bancosSolicitud = new ArrayList<>();
         visitasSolicitud = new ArrayList<>();
         //TODO esto se debe quitar y hacer solo cuando se realize la seleccion de modalidad de venta
-        Visitas visitaSol = new Visitas();
+        /*Visitas visitaSol = new Visitas();
         visitaSol.setVptyp("ZPV");
         visitaSol.setKvgr4("1DA");
         Date c = Calendar.getInstance().getTime();
@@ -469,75 +474,14 @@ public class SolicitudActivity extends AppCompatActivity {
         visitaSolR.setF_fco("99991231");
         visitaSolR.setFcalid("1");
         visitaSolR.setRuta("");
-        visitasSolicitud.add(visitaSolR);
+        visitasSolicitud.add(visitaSolR);*/
         adjuntosSolicitud = new ArrayList<>();
         //notificantesSolicitud = new ArrayList<Adjuntos>();
-    }
-
-    //Menu de Opciones de Adjuntos para movil
-    public void showMenu(View v) {
-        PopupMenu popup = new PopupMenu(this, v);
-
-        // OnClick del menu de adjuntos x opcion
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                Intent intent;
-                switch (item.getItemId()) {
-                    case R.id.item1:
-                        intent = new Intent(Intent.ACTION_GET_CONTENT);
-                        intent.setType("image/*");
-                        intent.addCategory(Intent.CATEGORY_OPENABLE);
-                        try {
-                            startActivityForResult(intent, 1);
-
-                        } catch (ActivityNotFoundException e) {
-                            Toasty.warning(getBaseContext(), "NO existe aplicacion para abrir archivos. Mostrando alternativas").show();
-                            Log.e("tag", "NO existe aplicacion para abrir archivos. Mostrando alternativas.");
-                        }
-                        return true;
-                    case R.id.item2:
-                        intent = new Intent(Intent.ACTION_MAIN);
-                        intent.addCategory(Intent.CATEGORY_APP_GALLERY);
-                        intent.addCategory(Intent.CATEGORY_OPENABLE);
-                        //intent.setType("image/*");
-                        try {
-                            startActivityForResult(intent, 1);
-
-                        } catch (ActivityNotFoundException e) {
-                            Toasty.warning(getBaseContext(), "NO existe aplicacion para abrir archivos. Mostrando alternativas").show();
-                            Log.e("tag", "NO existe aplicacion para abrir archivos. Mostrando alternativas.");
-                        }
-                        return true;
-                    case R.id.item3:
-                        mPhotoUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                new ContentValues());
-                        intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                        intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
-                        try {
-                            startActivityForResult(intent, 1);
-
-                        } catch (ActivityNotFoundException e) {
-                            Toasty.warning(getBaseContext(), "NO existe aplicacion para abrir archivos. Mostrando alternativas").show();
-                            Log.e("tag", "NO existe aplicacion para abrir archivos. Mostrando alternativas");
-                        }
-                        return true;
-                    default:
-                        return false;
-                }
-
-            }
-        });
-        popup.inflate(R.menu.opciones_adjuntos);
-        popup.show();
-
-
     }
 
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // TODO Fix no activity available
-
         switch (requestCode) {
             case 1:
                 if (resultCode == RESULT_OK) {
@@ -562,7 +506,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         byte[] inputData = getBytes(iStream);
                         mDBHelper.addAdjuntoSolicitud(type, name, inputData);
                         //Agregar al tableView del UI
-                        Adjuntos nuevoAdjunto = new Adjuntos(Integer.toString(mDBHelper.getNextSolicitudId()), type, name, inputData);
+                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, inputData);
 
                         adjuntosSolicitud.add(nuevoAdjunto);
                         AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
@@ -614,13 +558,11 @@ public class SolicitudActivity extends AppCompatActivity {
     public static class ViewPagerAdapter extends FragmentPagerAdapter {
 
         private ArrayList<String> title = new ArrayList<>();
-        //private TabFragment[] fragments;
+
         private ViewPagerAdapter(FragmentManager manager) {
             super(manager);
-            //DataBaseHelper db = new DataBaseHelper(getBaseContext());
             List<String> pestanas = mDBHelper.getPestanasFormulario(tipoSolicitud);
             title.addAll(pestanas);
-            //fragments = new TabFragment[title.size()];
         }
 
         @Override
@@ -662,8 +604,7 @@ public class SolicitudActivity extends AppCompatActivity {
         }
 
         @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
+        public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             // Inflate the layout for this fragment
             View view = inflater.inflate(R.layout.pagina_formulario, container, false);
             LinearLayout ll = view.findViewById(R.id.miPagina);
@@ -671,6 +612,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
             if(nombre.equals("Datos Generales") || nombre.equals("Informacion General")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"D");
+
             }
             if(nombre.equals("Facturación")|| nombre.equals("Facturacion")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"F");
@@ -828,7 +770,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     label.setLayoutParams(lpl);
 
                     Spinner combo = new Spinner(getContext(), Spinner.MODE_DROPDOWN);
-
+                    combo.setTag(campos.get(i).get("descr"));
                     if(campos.get(i).get("sup").trim().length() > 0){
                         label.setVisibility(View.GONE);
                         combo.setVisibility(View.GONE);
@@ -853,7 +795,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         if(campos.get(i).get("dfaul").trim().length() > 0 && opciones.get(j).get("id").trim().equals(campos.get(i).get("dfaul").trim())){
                             selectedIndex = j;
                         }
-                        String valorDefectoxRuta = VariablesGlobales.getCampo(campos.get(i).get("campo").trim());
+                        String valorDefectoxRuta = PreferenceManager.getDefaultSharedPreferences(getContext()).getString(campos.get(i).get("campo").trim().replace("-","_"),"");
                         if(valorDefectoxRuta.trim().length() > 0 && opciones.get(j).get("id").trim().equals(valorDefectoxRuta.trim())){
                             selectedIndex = j;
                             combo.setEnabled(false);
@@ -910,9 +852,9 @@ public class SolicitudActivity extends AppCompatActivity {
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 tb_visitas.getLayoutParams().height = 50;
                                 final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-                                visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(VariablesGlobales.getOrgVta(), opcion.getId());
+                                visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG",""), opcion.getId());
                                 tb_visitas.setDataAdapter(new VisitasTableAdapter(view.getContext(), visitasSolicitud));
-                                tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+(alturaFilaTableView*visitasSolicitud.size());
+                                tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+((alturaFilaTableView+10)*visitasSolicitud.size());
                             }
 
                             @Override
@@ -1078,6 +1020,8 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     //final TextInputEditText et = new TextInputEditText(getContext());
                     final MaskedEditText et = new MaskedEditText(getContext(),null);
+
+                    et.setTag(campos.get(i).get("descr"));
                     //et.setTextColor(getResources().getColor(R.color.colorTextView,null));
                     //et.setBackgroundColor(getResources().getColor(R.color.black,null));
                     //et.setHint(campos.get(i).get("descr"));
@@ -1164,7 +1108,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 if(event.getAction() == MotionEvent.ACTION_UP) {
                                     if(event.getRawX() >= (et.getRight() - et.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
                                         Toasty.info(getContext(),"Refrescando ubicacion..").show();
-                                        LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (EditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (EditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
+                                        LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
                                         autoPineo.startLocationUpdates();
                                         return true;
                                     }
@@ -1183,6 +1127,12 @@ public class SolicitudActivity extends AppCompatActivity {
                         et.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
                         et.setGravity(INDICATOR_GRAVITY_TOP);
                     }
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-DATAB")){
+                        Date c = Calendar.getInstance().getTime();
+                        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                        String fechaSistema = df.format(c);
+                        et.setText(fechaSistema);
+                    }
 
                     listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                     mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), et);
@@ -1200,8 +1150,9 @@ public class SolicitudActivity extends AppCompatActivity {
             }
             //Si estan los campos de Latitud y Longitud, activar el pineo automatico (W_CTE-ZZCRMA_LAT,W_CTE-ZZCRMA_LONG)
             if(listaCamposDinamicos.contains("W_CTE-ZZCRMA_LAT") && listaCamposDinamicos.contains("W_CTE-ZZCRMA_LONG")){
-                LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (EditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (EditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
+                LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
                 autoPineo.startLocationUpdates();
+
             }
         }
 
@@ -1479,40 +1430,54 @@ public class SolicitudActivity extends AppCompatActivity {
                         Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
                         et.setBackground(d);
                         final int finalX = x;
+                        int indicePreventa = 0;
+                        int indiceReparto = 0;
+                        for(int i = 0 ; i < visitasSolicitud.size(); i++){
+                            if(visitasSolicitud.get(i).getVptyp().equals("ZPV")){
+                                indicePreventa = i;
+                            }
+                            if(visitasSolicitud.get(i).getVptyp().equals("ZPV")){
+                                indiceReparto = i;
+                            }
+                        }
+                        final int finalIndicePreventa = indicePreventa;
+                        final int finalIndiceReparto = indiceReparto;
                         et.setOnFocusChangeListener(new OnFocusChangeListener() {
                             @Override
                             public void onFocusChange(View v, boolean hasFocus) {
                                 if (!hasFocus) {
-                                    Visitas visita = visitasSolicitud.get(0);
+
+                                    Visitas visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
+                                    Visitas visitaReparto = visitasSolicitud.get(finalIndiceReparto);
                                     if(!((TextView)v).getText().toString().equals("") && Integer.valueOf(((TextView)v).getText().toString()) > 1440){
                                         switch(finalX) {
                                             case 0:
-                                                visita.setLun_a(getResources().getString(R.string.max_secuencia));
-                                                visita.setLun_de(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setLun_a(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setLun_de(getResources().getString(R.string.max_secuencia));
                                                 break;
                                             case 1:
-                                                visita.setMar_a(getResources().getString(R.string.max_secuencia));
-                                                visita.setMar_de(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setMar_a(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setMar_de(getResources().getString(R.string.max_secuencia));
                                                 break;
                                             case 2:
-                                                visita.setMier_a(getResources().getString(R.string.max_secuencia));
-                                                visita.setMier_de(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setMier_a(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setMier_de(getResources().getString(R.string.max_secuencia));
                                                 break;
                                             case 3:
-                                                visita.setJue_a(getResources().getString(R.string.max_secuencia));
-                                                visita.setJue_de(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setJue_a(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setJue_de(getResources().getString(R.string.max_secuencia));
                                                 break;
                                             case 4:
-                                                visita.setVie_a(getResources().getString(R.string.max_secuencia));
-                                                visita.setVie_de(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setVie_a(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setVie_de(getResources().getString(R.string.max_secuencia));
                                                 break;
                                             case 5:
-                                                visita.setSab_a(getResources().getString(R.string.max_secuencia));
-                                                visita.setSab_de(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setSab_a(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setSab_de(getResources().getString(R.string.max_secuencia));
                                                 break;
                                             case 6:
-                                                visita.setDom_a(getResources().getString(R.string.max_secuencia));
-                                                visita.setDom_de(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setDom_a(getResources().getString(R.string.max_secuencia));
+                                                visitaPreventa.setDom_de(getResources().getString(R.string.max_secuencia));
                                                 break;
                                         }
                                         ((TextView)v).setText(getResources().getString(R.string.max_secuencia));
@@ -1523,68 +1488,68 @@ public class SolicitudActivity extends AppCompatActivity {
                                     if(((TextView)v).getText().toString().trim().equals("")){
                                         switch(finalX) {
                                             case 0:
-                                                visita.setLun_a("");
-                                                visita.setLun_de("");
+                                                visitaPreventa.setLun_a("");
+                                                visitaPreventa.setLun_de("");
                                                 break;
                                             case 1:
-                                                visita.setMar_a("");
-                                                visita.setMar_de("");
+                                                visitaPreventa.setMar_a("");
+                                                visitaPreventa.setMar_de("");
                                                 break;
                                             case 2:
-                                                visita.setMier_a("");
-                                                visita.setMier_de("");
+                                                visitaPreventa.setMier_a("");
+                                                visitaPreventa.setMier_de("");
                                                 break;
                                             case 3:
-                                                visita.setJue_a("");
-                                                visita.setJue_de("");
+                                                visitaPreventa.setJue_a("");
+                                                visitaPreventa.setJue_de("");
                                                 break;
                                             case 4:
-                                                visita.setVie_a("");
-                                                visita.setVie_de("");
+                                                visitaPreventa.setVie_a("");
+                                                visitaPreventa.setVie_de("");
                                                 break;
                                             case 5:
-                                                visita.setSab_a("");
-                                                visita.setSab_de("");
+                                                visitaPreventa.setSab_a("");
+                                                visitaPreventa.setSab_de("");
                                                 break;
                                             case 6:
-                                                visita.setDom_a("");
-                                                visita.setDom_de("");
+                                                visitaPreventa.setDom_a("");
+                                                visitaPreventa.setDom_de("");
                                                 break;
                                         }
                                     }else{
-                                        int hours = Integer.valueOf(((TextView)v).getText().toString()) / 60; //since both are ints, you get an int
+                                        int hours = Integer.valueOf(((TextView)v).getText().toString()) / 60;
                                         int minutes = Integer.valueOf(((TextView)v).getText().toString()) % 60;
                                         String h = String.format(Locale.getDefault(),"%02d", hours);
                                         String m = String.format(Locale.getDefault(),"%02d", minutes);
                                         String secuenciaSAP = h+m;
                                         switch(finalX) {
                                             case 0:
-                                                visita.setLun_a(secuenciaSAP);
-                                                visita.setLun_de(secuenciaSAP);
+                                                visitaPreventa.setLun_a(secuenciaSAP);
+                                                visitaPreventa.setLun_de(secuenciaSAP);
                                                 break;
                                             case 1:
-                                                visita.setMar_a(secuenciaSAP);
-                                                visita.setMar_de(secuenciaSAP);
+                                                visitaPreventa.setMar_a(secuenciaSAP);
+                                                visitaPreventa.setMar_de(secuenciaSAP);
                                                 break;
                                             case 2:
-                                                visita.setMier_a(secuenciaSAP);
-                                                visita.setMier_de(secuenciaSAP);
+                                                visitaPreventa.setMier_a(secuenciaSAP);
+                                                visitaPreventa.setMier_de(secuenciaSAP);
                                                 break;
                                             case 3:
-                                                visita.setJue_a(secuenciaSAP);
-                                                visita.setJue_de(secuenciaSAP);
+                                                visitaPreventa.setJue_a(secuenciaSAP);
+                                                visitaPreventa.setJue_de(secuenciaSAP);
                                                 break;
                                             case 4:
-                                                visita.setVie_a(secuenciaSAP);
-                                                visita.setVie_de(secuenciaSAP);
+                                                visitaPreventa.setVie_a(secuenciaSAP);
+                                                visitaPreventa.setVie_de(secuenciaSAP);
                                                 break;
                                             case 5:
-                                                visita.setSab_a(secuenciaSAP);
-                                                visita.setSab_de(secuenciaSAP);
+                                                visitaPreventa.setSab_a(secuenciaSAP);
+                                                visitaPreventa.setSab_de(secuenciaSAP);
                                                 break;
                                             case 6:
-                                                visita.setDom_a(secuenciaSAP);
-                                                visita.setDom_de(secuenciaSAP);
+                                                visitaPreventa.setDom_a(secuenciaSAP);
+                                                visitaPreventa.setDom_de(secuenciaSAP);
                                                 break;
                                         }
                                     }
@@ -1644,16 +1609,15 @@ public class SolicitudActivity extends AppCompatActivity {
     }
 
     //Pruebas para seccion de bloques
-    public static void displayDialogContacto(Context context, final Contacto seleccionado)
-    {
+    public static void displayDialogContacto(Context context, final Contacto seleccionado) {
         final Dialog d=new Dialog(context);
         d.setContentView(R.layout.contacto_dialog_layout);
 
         //INITIALIZE VIEWS
         final TextView title = d.findViewById(R.id.title);
-        final EditText name1EditText = d.findViewById(R.id.name1EditTxt);
-        final EditText namevEditText = d.findViewById(R.id.namevEditTxt);
-        final EditText telf1EditText = d.findViewById(R.id.telf1EditTxt);
+        final TextInputEditText name1EditText = d.findViewById(R.id.name1EditTxt);
+        final TextInputEditText namevEditText = d.findViewById(R.id.namevEditTxt);
+        final TextInputEditText telf1EditText = d.findViewById(R.id.telf1EditTxt);
         final Spinner funcionSpinner = d.findViewById(R.id.funcionSpinner);
         Button saveBtn= d.findViewById(R.id.saveBtn);
         if(seleccionado != null){
@@ -1671,7 +1635,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 nuevoContacto.setNamev(namevEditText.getText().toString());
                 nuevoContacto.setTelf1(telf1EditText.getText().toString());
                 nuevoContacto.setPafkt(((OpcionSpinner)funcionSpinner.getSelectedItem()).getId());
-                nuevoContacto.setCountry(VariablesGlobales.getLand1());
+                nuevoContacto.setCountry(PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_LAND1",""));
                 try {
                     contactosSolicitud.add(nuevoContacto);
                     name1EditText.setText("");
@@ -1725,8 +1689,7 @@ public class SolicitudActivity extends AppCompatActivity {
         }
     }
 
-    public void displayDialogImpuesto(Context context, final Impuesto seleccionado)
-    {
+    public void displayDialogImpuesto(Context context, final Impuesto seleccionado) {
         final Dialog d=new Dialog(context);
         d.setContentView(R.layout.impuesto_dialog_layout);
 
@@ -1848,17 +1811,16 @@ public class SolicitudActivity extends AppCompatActivity {
         }
     }
 
-    public void displayDialogInterlocutor(Context context, final Interlocutor seleccionado)
-    {
+    public void displayDialogInterlocutor(Context context, final Interlocutor seleccionado) {
         final Dialog d=new Dialog(context);
         d.setContentView(R.layout.interlocutor_dialog_layout);
         d.setTitle("+ Nuevo Interlocutor");
 
         //INITIALIZE VIEWS
         final TextView title = d.findViewById(R.id.title);
-        final EditText nameEditText= d.findViewById(R.id.nameEditTxt);
-        final EditText propellantEditTxt= d.findViewById(R.id.propEditTxt);
-        final EditText destEditTxt= d.findViewById(R.id.destEditTxt);
+        final TextInputEditText nameEditText= d.findViewById(R.id.nameEditTxt);
+        final TextInputEditText propellantEditTxt= d.findViewById(R.id.propEditTxt);
+        final TextInputEditText destEditTxt= d.findViewById(R.id.destEditTxt);
         Button saveBtn= d.findViewById(R.id.saveBtn);
         if(seleccionado != null){
             saveBtn.setText(R.string.texto_modificar);
@@ -1896,8 +1858,7 @@ public class SolicitudActivity extends AppCompatActivity {
         }
     }
 
-    public static void displayDialogBancos(Context context, final Banco seleccionado)
-    {
+    public static void displayDialogBancos(Context context, final Banco seleccionado) {
         final Dialog d=new Dialog(context);
         d.setContentView(R.layout.banco_dialog_layout);
 
@@ -1905,11 +1866,11 @@ public class SolicitudActivity extends AppCompatActivity {
         final TextView title = d.findViewById(R.id.title);
         final Spinner bancoSpinner = d.findViewById(R.id.bancoSpinner);
         final Spinner paisSpinner= d.findViewById(R.id.paisSpinner);
-        final EditText cuentaEditTxt= d.findViewById(R.id.cuentaEditTxt);
-        final EditText claveEditTxt= d.findViewById(R.id.claveEditTxt);
-        final EditText titularEditTxt= d.findViewById(R.id.titularEditTxt);
-        final EditText tipoEditTxt= d.findViewById(R.id.tipoEditTxt);
-        final EditText montoMaximoEditTxt= d.findViewById(R.id.montoMaximoEditTxt);
+        final TextInputEditText cuentaEditTxt= d.findViewById(R.id.cuentaEditTxt);
+        final TextInputEditText claveEditTxt= d.findViewById(R.id.claveEditTxt);
+        final TextInputEditText titularEditTxt= d.findViewById(R.id.titularEditTxt);
+        final TextInputEditText tipoEditTxt= d.findViewById(R.id.tipoEditTxt);
+        final TextInputEditText montoMaximoEditTxt= d.findViewById(R.id.montoMaximoEditTxt);
         Button saveBtn= d.findViewById(R.id.saveBtn);
         if(seleccionado != null){
             saveBtn.setText(R.string.texto_modificar);
@@ -2004,8 +1965,7 @@ public class SolicitudActivity extends AppCompatActivity {
         }
     }
     @SuppressWarnings("unchecked")
-    public static void displayDialogEncuestaCanales(final Context context)
-    {
+    public static void displayDialogEncuestaCanales(final Context context) {
         final Dialog d=new Dialog(context);
         d.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -2079,11 +2039,11 @@ public class SolicitudActivity extends AppCompatActivity {
             public void onClick(View v) {
                 try {
                     //Si existe una encuesta realizada se borrara y se guardara la nueva generada (Solo 1 encuesta x cliente permitida)
-                    int del = mDb.delete(VariablesGlobales.getTablaEncuestaSolicitud(), "idform = ?", new String[]{String.valueOf(mDBHelper.getNextSolicitudId())});
+                    int del = mDb.delete(VariablesGlobales.getTablaEncuestaSolicitud(), "id_solicitud = ?", new String[]{GUID});
                     //Guardar la encuesta generada en la Base de datos
                     ContentValues encuestaValues = new ContentValues();
 
-                    encuestaValues.put("idform", mDBHelper.getNextSolicitudId());
+                    encuestaValues.put("id_solicitud", GUID);
                     Spinner s = d.findViewById(R.id.grupoIsscomSpinner);
                     String valorg = ((OpcionSpinner)s.getSelectedItem()).getId();
                     encuestaValues.put("id_Grupo", valorg);
@@ -2171,8 +2131,7 @@ public class SolicitudActivity extends AppCompatActivity {
         }
     }
 
-    public static void displayDialogEncuestaGec(final Context context)
-    {
+    public static void displayDialogEncuestaGec(final Context context) {
         final Dialog d=new Dialog(context);
         d.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -2190,10 +2149,10 @@ public class SolicitudActivity extends AppCompatActivity {
         RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         params1.setMargins(10,10,10,10);
         final ArrayList<HashMap<String, String>> preguntas = mDBHelper.getPreguntasGec();
-        final ArrayList<HashMap<String, String>> respuestas = mDBHelper.getEncuestaGec(mDBHelper.getNextSolicitudId());
+        final ArrayList<HashMap<String, String>> respuestas = mDBHelper.getEncuestaGec(GUID);
 
         for (int j = 0; j < preguntas.size(); j++){
-            EditText monto = new EditText(d.getContext());
+            TextInputEditText monto = new TextInputEditText(d.getContext());
             ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
 
             TextView label_pregunta = new TextView(d.getContext());
@@ -2219,14 +2178,14 @@ public class SolicitudActivity extends AppCompatActivity {
                 try{
                     //Si existe una encuesta realizada se borrara y se guardara la nueva generada (Solo 1 encuesta x cliente permitida)
                     //Guardar la encuesta generada en la Base de datos
-                    int del = mDb.delete(VariablesGlobales.getTablaEncuestaGecSolicitud(), "idform = ?", new String[]{String.valueOf(mDBHelper.getNextSolicitudId())});
+                    int del = mDb.delete(VariablesGlobales.getTablaEncuestaGecSolicitud(), "id_solicitud = ?", new String[]{GUID});
                     ContentValues encuestaValues = new ContentValues();
                     Integer suma_montos = 0;
                     for (int j = 0; j < preguntas.size(); j++){
-                        EditText monto = d.findViewById(j+1);
+                        TextInputEditText monto = d.findViewById(j+1);
                         encuestaValues.clear();
-                        encuestaValues.put("id_encuesta_gec", mDBHelper.getNextSolicitudId());
-                        encuestaValues.put("idform", mDBHelper.getNextSolicitudId());
+                        //encuestaValues.put("id_encuesta_gec", GUID);
+                        encuestaValues.put("id_solicitud", GUID);
                         encuestaValues.put("zid_grupo", (j+1));
                         encuestaValues.put("zid_quest", (j+1));
                         encuestaValues.put("monto", monto.getText().toString());
@@ -2272,8 +2231,7 @@ public class SolicitudActivity extends AppCompatActivity {
         }
     }
 
-    public void mostrarAdjunto(Context context, Bitmap imagen)
-    {
+    public void mostrarAdjunto(Context context, Bitmap imagen) {
         final Dialog d = new Dialog(context);
         d.setContentView(R.layout.adjunto_layout);
         ImageView adjunto = d.findViewById(R.id.imagen);
@@ -2365,14 +2323,14 @@ public class SolicitudActivity extends AppCompatActivity {
     private void DetallesVisitPlan(final Context context, final Visitas seleccionado) {
         final Dialog d = new Dialog(context);
         d.setContentView(R.layout.visita_dialog_layout);
-        boolean reparto = mDBHelper.EsTipodeReparto(VariablesGlobales.getBzirk(), seleccionado.getVptyp());
+        boolean reparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""), seleccionado.getVptyp());
         //INITIALIZE VIEWS
         final TextView title = d.findViewById(R.id.title);
         final Spinner kvgr4Spinner = d.findViewById(R.id.kvgr4Spinner);
-        final EditText f_icoEditText = d.findViewById(R.id.f_icoEditTxt);
-        final EditText f_fcoEditText = d.findViewById(R.id.f_fcoEditTxt);
-        final EditText f_iniEditText = d.findViewById(R.id.f_iniEditTxt);
-        final EditText f_finEditText = d.findViewById(R.id.f_finEditTxt);
+        final TextInputEditText f_icoEditText = d.findViewById(R.id.f_icoEditTxt);
+        final TextInputEditText f_fcoEditText = d.findViewById(R.id.f_fcoEditTxt);
+        final TextInputEditText f_iniEditText = d.findViewById(R.id.f_iniEditTxt);
+        final TextInputEditText f_finEditText = d.findViewById(R.id.f_finEditTxt);
         final Spinner fcalidSpinner = d.findViewById(R.id.fcalidSpinner);
         Button saveBtn= d.findViewById(R.id.saveBtn);
         title.setText(String.format(context.getString(R.string.palabras_2),context.getString(R.string.label_vp),seleccionado.getVptyp()));
@@ -2421,7 +2379,7 @@ public class SolicitudActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 seleccionado.setKvgr4(kvgr4Spinner.getSelectedItem().toString().trim());
-                seleccionado.setRuta(VariablesGlobales.getRutaPreventa());
+                seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
                 //TODO: setear ruta segun su tipo de visita
                 seleccionado.setF_ini(f_iniEditText.getText().toString());
                 seleccionado.setF_fin(f_finEditText.getText().toString());
@@ -2451,13 +2409,13 @@ public class SolicitudActivity extends AppCompatActivity {
         d.show();
     }
 
-    private static void RecalcularDiasDeReparto() {
+    private void RecalcularDiasDeReparto() {
         int numplanes = visitasSolicitud.size();
         //Iterrar sobre todos los planes de la modalida de venta seleccionada
         for (int y = 0 ; y < numplanes; y++) {
             Visitas vp = visitasSolicitud.get(y);
             //Revisar si el VP es una ruta de reparto para ser borrada y recalculada
-            if (mDBHelper.EsTipodeReparto(VariablesGlobales.getBzirk(), vp.getVptyp())) {
+            if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp())) {
                 vp.setLun_de("");
                 vp.setLun_a("");
                 vp.setMar_de("");
@@ -2479,7 +2437,7 @@ public class SolicitudActivity extends AppCompatActivity {
             Visitas vp = visitasSolicitud.get(y);
 
             //Si no es tipo de reparto debemos tomar en cuenta para calcular su reparto
-            boolean esReparto = mDBHelper.EsTipodeReparto(VariablesGlobales.getBzirk(), vp.getVptyp());
+            boolean esReparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp());
             //TODO cambiar el valor "PR" por el valor dinamico del comboBox de Modalidad de venta
             if(!esReparto){
                 String rutaReparto = mDBHelper.RutaRepartoAsociada("PR", vp.getVptyp());
@@ -2490,12 +2448,12 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                 }
                 int diasParaReparto = Integer.valueOf(vp.getKvgr4().replace("DA",""));
-                EditText vp_Lunes = ((EditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Lunes"));
-                EditText vp_Martes = ((EditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Martes"));
-                EditText vp_Miercoles = ((EditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Miercoles"));
-                EditText vp_Jueves = ((EditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Jueves"));
-                EditText vp_Viernes = ((EditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Viernes"));
-                EditText vp_Sabado = ((EditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Sabado"));
+                TextInputEditText vp_Lunes = ((TextInputEditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Lunes"));
+                TextInputEditText vp_Martes = ((TextInputEditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Martes"));
+                TextInputEditText vp_Miercoles = ((TextInputEditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Miercoles"));
+                TextInputEditText vp_Jueves = ((TextInputEditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Jueves"));
+                TextInputEditText vp_Viernes = ((TextInputEditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Viernes"));
+                TextInputEditText vp_Sabado = ((TextInputEditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_Sabado"));
 
                 String l = vp_Lunes.getText().toString().isEmpty()? null : vp_Lunes.getText().toString();
                 String m = vp_Martes.getText().toString().isEmpty()? null : vp_Martes.getText().toString();
@@ -2667,10 +2625,10 @@ public class SolicitudActivity extends AppCompatActivity {
         DireccionCorta();
     }
     private static void  DireccionCorta() {
-        EditText home = (EditText)mapeoCamposDinamicos.get("W_CTE-HOME_CITY");
+        MaskedEditText home = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-HOME_CITY");
 
-        EditText dir = (EditText)mapeoCamposDinamicos.get("W_CTE-STREET");
-        EditText dirF = (EditText)mapeoCamposDinamicos.get("W_CTE-LOCATION");
+        MaskedEditText dir = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-STREET");
+        MaskedEditText dirF = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-LOCATION");
         Spinner prov = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
         Spinner cant = (Spinner)mapeoCamposDinamicos.get("W_CTE-CITY1");
         Spinner dist = (Spinner)mapeoCamposDinamicos.get("W_CTE-STR_SUPPL3");
@@ -2718,12 +2676,11 @@ public class SolicitudActivity extends AppCompatActivity {
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
     }
-
     private static void CanalesKof(AdapterView<?> parent){
         Spinner grupo_canal = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTPOCANAL");
         final OpcionSpinner opciongrupocanal = (OpcionSpinner) grupo_canal.getSelectedItem();
         final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-        ArrayList<HashMap<String, String>> distritos = mDBHelper.CanalesKOF(VariablesGlobales.getOrgVta(),opciongrupocanal.getId(),opcion.getId());
+        ArrayList<HashMap<String, String>> distritos = mDBHelper.CanalesKOF(PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_VKORG",""),opciongrupocanal.getId(),opcion.getId());
 
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
         int selectedIndex = 0;
@@ -2740,9 +2697,8 @@ public class SolicitudActivity extends AppCompatActivity {
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
     }
-
     private static void  ImpuestoSegunUnidadNegocio(AdapterView<?> parent) {
-        if (VariablesGlobales.getSociedad().equals("F443")) {
+        if (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F443")) {
             int indice=-1;
             for (int x = 0; x < tb_impuestos.getDataAdapter().getCount(); x++) {
                 if (tb_impuestos.getDataAdapter().getData().get(x).getTatyp().equals("MWCR")) {
@@ -2794,4 +2750,72 @@ public class SolicitudActivity extends AppCompatActivity {
         Toasty.success(texto.getContext(),"Formato Regimen "+tipoCedula+" valido!").show();
         return true;
     }
+
+
+    /*CORRER EN NUEVO THREAD Para poder mostrar avance o loading image*/
+    private class MostrarFormulario extends AsyncTask<String, Integer, String> {
+
+        private WeakReference<Context> contextRef;
+
+        public MostrarFormulario(Context context) {
+            contextRef = new WeakReference<>(context);
+        }
+        @SuppressLint("ResourceType")
+        @Override
+        protected String doInBackground(String... params) {
+            publishProgress(0);
+            Context context = contextRef.get();
+            //Traer primero las pestanas
+            final TabLayout misTabs = new TabLayout(context);
+            publishProgress(2);
+            misTabs.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            misTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
+            final ViewPager viewPager = new ViewPager(context);
+            publishProgress(4);
+            viewPager.setId(1);
+            ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+            publishProgress(6);
+            viewPager.setOffscreenPageLimit(5);
+            viewPager.setAdapter(adapter);
+            viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(misTabs));
+            publishProgress(8);
+            misTabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                @Override
+                public void onTabSelected(TabLayout.Tab tab) {
+                    viewPager.setCurrentItem(tab.getPosition());
+                }
+                @Override
+                public void onTabUnselected(TabLayout.Tab tab) {
+
+                }
+                @Override
+                public void onTabReselected(TabLayout.Tab tab) {
+
+                }
+            });
+            misTabs.setupWithViewPager(viewPager);
+            publishProgress(9);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    LinearLayout ll = findViewById(R.id.LinearLayoutMain);
+                    ll.addView(misTabs);
+                    ll.addView(viewPager);
+                }
+            });
+            publishProgress(10);
+            return "0";
+        }
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            progressBar.setProgress(values[0]);
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            progressBar.setVisibility(View.GONE);
+        }
+
+    }
+
 }

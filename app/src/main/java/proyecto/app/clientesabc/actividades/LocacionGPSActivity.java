@@ -55,7 +55,8 @@ public class LocacionGPSActivity {
                 //Toast.makeText(getBaseContext(), msg, Toast.LENGTH_SHORT).show();
                 // You can now create a LatLng Object for use with maps
                 //LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                locationManager.removeUpdates(this);
+                if(!mLatitudeTextView.getText().equals("0") && !mLongitudeTextView.getText().equals("0"))
+                    locationManager.removeUpdates(this);
             }
 
             @Override

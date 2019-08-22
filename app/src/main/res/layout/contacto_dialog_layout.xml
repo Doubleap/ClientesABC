@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="5dp"
             android:paddingBottom="8dp"
-            android:background="@drawable/botella_coca_header_der"
+            android:background="@drawable/header_curved_cc1"
             android:text="+ Nuevo Contacto"
             android:textColor="@color/white"
             android:textSize="20dp"
@@ -25,7 +25,7 @@
             android:id="@+id/name1Layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <EditText
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/name1EditTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -36,7 +36,7 @@
             android:id="@+id/namevLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <EditText
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/namevEditTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -47,7 +47,7 @@
             android:id="@+id/telf1Layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <EditText
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/telf1EditTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

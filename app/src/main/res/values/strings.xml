@@ -55,6 +55,7 @@
     <string name="aceptar">Aceptar</string>
     <string name="limpiar">Limpiar</string>
     <string name="signo_mas">+</string>
+    <string name="no_activity">Ninguna aplicacion puede escoger archivos. Mostrando alternativas.</string>
 
 
     <!-- CATALOGOS PARA ALGUNOS SPINNERS -->
@@ -67,13 +68,13 @@
     </string-array>
     <string-array name="OpcionesFcalid">
         <item id="1">Cada Semana</item>
-        <item id="1">Cada 2 Semanas</item>
-        <item id="1">Cada 3 Semanas</item>
-        <item id="1">Cada 4 Semanas</item>
-        <item id="1">Cada 5 Semanas</item>
-        <item id="1">Cada 6 Semanas</item>
-        <item id="1">Cada 8 Semanas</item>
-        <item id="1">Cada 10 Semanas</item>
+        <item id="2">Cada 2 Semanas</item>
+        <item id="3">Cada 3 Semanas</item>
+        <item id="4">Cada 4 Semanas</item>
+        <item id="5">Cada 5 Semanas</item>
+        <item id="6">Cada 6 Semanas</item>
+        <item id="8">Cada 8 Semanas</item>
+        <item id="10">Cada 10 Semanas</item>
     </string-array>
 
 </resources>

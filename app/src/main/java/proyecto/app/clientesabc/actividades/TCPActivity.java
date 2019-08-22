@@ -5,12 +5,17 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.design.internal.BottomNavigationMenuView;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -64,7 +69,7 @@ public class TCPActivity extends AppCompatActivity
         puerto_text = (EditText)findViewById(R.id.txtPuerto);
         puerto_text.setText(String.valueOf(VariablesGlobales.getPuertocon()));
         ruta_text = findViewById(R.id.txtRuta);
-        ruta_text.setText(VariablesGlobales.getRutaPreventa());
+        ruta_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("W_CTE_RUTAHH",""));
 
         changeName.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,7 +89,8 @@ public class TCPActivity extends AppCompatActivity
                     WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
                     VariablesGlobales.setIpcon(ip_text.getText().toString());
                     VariablesGlobales.setPuertocon(Integer.valueOf(puerto_text.getText().toString()));
-                    VariablesGlobales.setRutaPreventa(ruta_text.getText().toString());
+
+                    PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
                     TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, filePath, wholePath);
                     f.execute();
                 }
@@ -102,10 +108,33 @@ public class TCPActivity extends AppCompatActivity
                     WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
                     VariablesGlobales.setIpcon(ip_text.getText().toString());
                     VariablesGlobales.setPuertocon(Integer.valueOf(puerto_text.getText().toString()));
-                    VariablesGlobales.setRutaPreventa(ruta_text.getText().toString());
+                    PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
                     SincronizacionServidor s = new SincronizacionServidor(weakRef, weakRefA);
                     s.execute();
                 }
+            }
+        });
+
+        BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation_tcp);
+
+        BottomNavigationMenuView navMenuView = (BottomNavigationMenuView) bottomNavigation.getChildAt(0);
+        navMenuView.setPadding(0,0,1,0);
+        //navMenuView.addItemDecoration(new DividerItemDecoration(TCPActivity.this,DividerItemDecoration.VERTICAL));
+        bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                Intent intent;
+                switch (item.getItemId()) {
+                    case R.id.action_camara:
+
+                        return true;
+                    case R.id.action_file:
+
+                        return true;
+                    case R.id.action_save:
+
+                }
+                return true;
             }
         });
     }
@@ -120,7 +149,7 @@ public class TCPActivity extends AppCompatActivity
             Toasty.warning(getBaseContext(),"Por favor digite un puerto válido.");
             retorno = false;
         }
-        if(VariablesGlobales.getRutaPreventa().trim().isEmpty()){
+        if(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("W_CTE_RUTAHH","").trim().isEmpty()){
             Toasty.warning(getBaseContext(),"Por favor digite una ruta de venta válida.");
             retorno = false;
         }

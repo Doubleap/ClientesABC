@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -29,6 +31,8 @@ public class PanelActivity extends AppCompatActivity {
     private Intent intent;
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
+    private TextView rutaPanel;
+    private TextView userPanel;
     Spinner spinner;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +40,10 @@ public class PanelActivity extends AppCompatActivity {
         setContentView(R.layout.activity_panel);
         principal = (LinearLayout)findViewById(R.id.principal);
         gridLayout = (GridLayout)findViewById(R.id.mainGrid);
+        rutaPanel = findViewById(R.id.rutaPanel);
+        rutaPanel.setText(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH",""));
+        userPanel = findViewById(R.id.userPanel);
+        userPanel.setText(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("user",""));
         mDBHelper = new DataBaseHelper(this);
         mDb = mDBHelper.getWritableDatabase();
 
@@ -50,7 +58,7 @@ public class PanelActivity extends AppCompatActivity {
         Drawable d1 = getResources().getDrawable(R.drawable.spinner_background, null);
         spinner.setBackground(d1);
         spinner.setAdapter(dataAdapter);
-        spinner.setVisibility(View.INVISIBLE);
+        spinner.setVisibility(View.GONE);
         principal.addView(spinner);
 
         BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation_panel);

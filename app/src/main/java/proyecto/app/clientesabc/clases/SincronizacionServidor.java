@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -20,8 +21,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import es.dmoral.toasty.Toasty;
-import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
     private WeakReference<Context> context;
@@ -62,7 +63,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
             dos.writeUTF("Sincronizacion");
             dos.flush();
             //Enviar Ruta que se quiere sincronizar
-            dos.writeUTF(VariablesGlobales.getRutaPreventa());
+            dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH",""));
             dos.flush();
 
             //TODO Puedo recibir cualquier cosa de respuesta en el stream de la conexion del socket??

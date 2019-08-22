@@ -2,7 +2,9 @@ package proyecto.app.clientesabc.clases;
 
 import android.app.Activity;
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -86,8 +88,8 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
         //System.out.println("file created..");
         try {
             //Validar si existen solicitudes para indicar que no ya todas las solicitudes sen transmitido con exito
-            int cantidad = mDBHelper.CantidadSolicitudesTransmision();
             mDBHelper.RestaurarEstadosSolicitudesTransmitidas();
+            int cantidad = mDBHelper.CantidadSolicitudesTransmision();
             //int cantidad = 1;
             if(cantidad <= 0){
                 xceptionFlag = true;
@@ -99,7 +101,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 //File myFile = new File("/data/user/0/proyecto.app.clientesabc/databases/", "FAWM_ANDROID_2");
                 //files.add(myFile);
 
-                /*SQLiteDatabase mDataBase = SQLiteDatabase.openDatabase("/data/user/0/proyecto.app.clientesabc/databases/FAWM_ANDROID_SOLICITUDES", null, SQLiteDatabase.CREATE_IF_NECESSARY);
+                SQLiteDatabase mDataBase = SQLiteDatabase.openDatabase("/data/user/0/proyecto.app.clientesabc/databases/TRANSMISION_"+ PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH",""), null, SQLiteDatabase.CREATE_IF_NECESSARY);
 
                 //Crear una base de datos solo para los datos que deben ser transmitidos
                 System.out.println("Opened database successfully");
@@ -111,27 +113,27 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 }
                 mDataBase.execSQL(sqlAttach);
                 //Comenzar a crear las tablas segun lo que existe actualmente en la base de datos
-                String sqlCreate = "CREATE TABLE FormHvKof_solicitud AS SELECT * FROM fromDB.FormHvKof_solicitud WHERE estado = 'Nuevo'";
+                String sqlCreate = "CREATE TABLE FormHvKof_solicitud AS SELECT * FROM fromDB.FormHvKof_solicitud WHERE trim(estado) IN ('Nuevo','Corregido')";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE encuesta_solicitud AS SELECT * FROM fromDB.encuesta_solicitud WHERE idform IN (Select idform FROM fromDB.FormHvKof_solicitud  WHERE estado = 'Nuevo')";
+                sqlCreate = "CREATE TABLE encuesta_solicitud AS SELECT * FROM fromDB.encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE encuesta_gec_solicitud AS SELECT * FROM fromDB.encuesta_gec_solicitud WHERE idform IN (Select idform FROM fromDB.FormHvKof_solicitud  WHERE estado = 'Nuevo')";
+                sqlCreate = "CREATE TABLE encuesta_gec_solicitud AS SELECT * FROM fromDB.encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_contacto_solicitud AS SELECT * FROM fromDB.grid_contacto_solicitud WHERE id_formulario IN (Select idform FROM fromDB.FormHvKof_solicitud  WHERE estado = 'Nuevo')";
+                sqlCreate = "CREATE TABLE grid_contacto_solicitud AS SELECT * FROM fromDB.grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_bancos_solicitud AS SELECT * FROM fromDB.grid_bancos_solicitud WHERE id_formulario IN (Select idform FROM fromDB.FormHvKof_solicitud  WHERE estado = 'Nuevo')";
+                sqlCreate = "CREATE TABLE grid_bancos_solicitud AS SELECT * FROM fromDB.grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_impuestos_solicitud AS SELECT * FROM fromDB.grid_impuestos_solicitud WHERE id_formulario IN (Select idform FROM fromDB.FormHvKof_solicitud  WHERE estado = 'Nuevo')";
+                sqlCreate = "CREATE TABLE grid_impuestos_solicitud AS SELECT * FROM fromDB.grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_visitas_solicitud AS SELECT * FROM fromDB.grid_visitas_solicitud WHERE id_formulario IN (Select idform FROM fromDB.FormHvKof_solicitud  WHERE estado = 'Nuevo')";
+                sqlCreate = "CREATE TABLE grid_visitas_solicitud AS SELECT * FROM fromDB.grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_interlocutor_solicitud AS SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_formulario IN (Select idform FROM fromDB.FormHvKof_solicitud  WHERE estado = 'Nuevo')";
+                sqlCreate = "CREATE TABLE grid_interlocutor_solicitud AS SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select idform FROM fromDB.FormHvKof_solicitud  WHERE estado = 'Nuevo')";
-                mDataBase.execSQL(sqlCreate);*/
+                sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select idform FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo'))";
+                mDataBase.execSQL(sqlCreate);
 
 
-                File myFile = new File(context.get().getApplicationInfo().dataDir + "/databases/", "FAWM_ANDROID_2");
+                File myFile = new File(context.get().getApplicationInfo().dataDir + "/databases/", "FAWM_ANDROID_SOLICITUDES");
                 //File externalStorage = Environment.getExternalStorageDirectory();
                 //String externalStoragePath = externalStorage.getAbsolutePath();
                 //File myFile = new File(externalStoragePath + File.separator + context.get().getPackageName()+ File.separator+"Transmision", "PRUEBA_COPIA");

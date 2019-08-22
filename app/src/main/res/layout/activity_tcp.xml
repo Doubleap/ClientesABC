@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
+    android:layout_height="fill_parent">
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/LinearLayoutMain"
@@ -53,6 +53,12 @@
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp" />
 
+        <Button android:id="@+id/button_probar_conexion"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:text="Probar Conexion" />
     <Button android:id="@+id/button_TCP_server"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -74,7 +80,7 @@
         android:layout_marginRight="20dp"
         android:layout_below="@+id/button_TCP_server"
         android:layout_height="wrap_content"
-        android:text="Sincronizar(Wait)" />
+        android:text="Sincronizar" />
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/change"
             android:layout_width="wrap_content"
@@ -84,5 +90,18 @@
             android:tint="@color/white"
             android:backgroundTint="@color/aprobados"
             android:layout_margin="16dp" />
+
     </LinearLayout>
+    <android.support.design.widget.BottomNavigationView
+        android:id="@+id/bottom_navigation_tcp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/colorPrimary"
+        app:itemIconTint="@color/white"
+        app:itemTextColor="@color/backColor"
+        app:layout_anchor="@id/container"
+        app:menu="@menu/bottom_menu_tcp"
+        app:itemBackground="@drawable/bottom_item_bg"
+        />
 </FrameLayout>
