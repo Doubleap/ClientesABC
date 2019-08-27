@@ -11,7 +11,7 @@
     tools:context=".actividades.PanelActivity">
 
 <RelativeLayout
-    android:layout_weight="2"
+    android:layout_weight="2.0"
     android:layout_width="match_parent"
     android:layout_height="0dp">
 <LinearLayout
@@ -31,7 +31,7 @@
         android:id="@+id/userPanel"
         android:text="Sin Usuario"
         android:textAlignment="center"
-        android:textSize="28dp"
+        android:textSize="20dp"
         android:textStyle="bold"
         android:textColor="@color/white"
         android:layout_width="match_parent"
@@ -49,9 +49,11 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:padding="16dp"
+        android:layout_marginTop="10dp"
         >
         <!-- Opcion 1-->
         <android.support.v7.widget.CardView
+            android:id="@+id/card_nuevos"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_columnWeight="1"
@@ -71,15 +73,24 @@
                 android:orientation="vertical"
                 android:background="@drawable/square_btn_bg_t1"
                 >
-                <ImageView
+                <!--<ImageView
                     android:src="@drawable/icon_config"
                     android:layout_gravity="center_horizontal"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content" />-->
                 <TextView
-                    android:text="Clientes"
+                    android:id="@+id/num_nuevos"
+                    android:text="8"
                     android:textAlignment="center"
-                    android:textColor="@color/black"
+                    android:textColor="@color/nuevo"
+                    android:textSize="48sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:text="Nuevos"
+                    android:textAlignment="center"
+                    android:textColor="@color/nuevo"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_width="wrap_content"
@@ -88,6 +99,7 @@
         </android.support.v7.widget.CardView>
         <!-- Opcion 2-->
         <android.support.v7.widget.CardView
+            android:id="@+id/card_pendientes"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_columnWeight="1"
@@ -106,17 +118,19 @@
                 android:orientation="vertical"
                 android:background="@drawable/square_btn_bg_t1"
                 >
-                <ImageView
-                    android:minWidth="50dp"
-                    android:minHeight="50dp"
-                    android:src="@drawable/icon_config"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
                 <TextView
-                    android:text="Solicitudes"
+                    android:id="@+id/num_pendientes"
+                    android:text="2"
                     android:textAlignment="center"
-                    android:textColor="@color/black"
+                    android:textColor="@color/pendientes"
+                    android:textSize="48sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:text="Pendientes"
+                    android:textAlignment="center"
+                    android:textColor="@color/pendientes"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_width="wrap_content"
@@ -125,6 +139,7 @@
         </android.support.v7.widget.CardView>
         <!-- Opcion 3-->
         <android.support.v7.widget.CardView
+            android:id="@+id/card_incidencias"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_columnWeight="1"
@@ -143,15 +158,19 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:background="@drawable/square_btn_bg_t1">
-                <ImageView
-                    android:src="@drawable/icon_config"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
                 <TextView
-                    android:text="Creditos"
+                    android:id="@+id/num_incidencias"
+                    android:text="4"
                     android:textAlignment="center"
-                    android:textColor="@color/black"
+                    android:textColor="@color/devuelto"
+                    android:textSize="48sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:text="Incidencias"
+                    android:textAlignment="center"
+                    android:textColor="@color/devuelto"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_width="wrap_content"
@@ -160,6 +179,7 @@
         </android.support.v7.widget.CardView>
         <!-- Opcion 4-->
         <android.support.v7.widget.CardView
+            android:id="@+id/card_aprobados"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_columnWeight="1"
@@ -177,15 +197,19 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:background="@drawable/square_btn_bg_t1">
-                <ImageView
-                    android:src="@drawable/icon_config"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
                 <TextView
-                    android:text="Equipo Frio"
+                    android:id="@+id/num_aprobados"
+                    android:text="3"
                     android:textAlignment="center"
-                    android:textColor="@color/black"
+                    android:textColor="@color/aprobados"
+                    android:textSize="48sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:text="Aprobados"
+                    android:textAlignment="center"
+                    android:textColor="@color/aprobados"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_width="wrap_content"
@@ -194,6 +218,7 @@
         </android.support.v7.widget.CardView>
         <!-- Opcion 5-->
         <android.support.v7.widget.CardView
+            android:id="@+id/card_rechazados"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_columnWeight="1"
@@ -211,15 +236,19 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:background="@drawable/square_btn_bg_t1">
-                <ImageView
-                    android:src="@drawable/icon_config"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
                 <TextView
-                    android:text="Conexion"
+                    android:id="@+id/num_rechazados"
+                    android:text="7"
                     android:textAlignment="center"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rechazado"
+                    android:textSize="48sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:text="Rechazados"
+                    android:textAlignment="center"
+                    android:textColor="@color/rechazado"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_width="wrap_content"
@@ -228,6 +257,7 @@
         </android.support.v7.widget.CardView>
         <!-- Opcion 6-->
         <android.support.v7.widget.CardView
+            android:id="@+id/card_transmitidos"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_columnWeight="1"
@@ -245,15 +275,19 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:background="@drawable/square_btn_bg_t1">
-                <ImageView
-                    android:src="@drawable/icon_config"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
                 <TextView
-                    android:text="Configurar"
+                    android:id="@+id/num_transmitidos"
+                    android:text="5"
                     android:textAlignment="center"
-                    android:textColor="@color/black"
+                    android:textColor="@color/transmitido"
+                    android:textSize="48sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:text="Transmitidos"
+                    android:textAlignment="center"
+                    android:textColor="@color/transmitido"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_width="wrap_content"

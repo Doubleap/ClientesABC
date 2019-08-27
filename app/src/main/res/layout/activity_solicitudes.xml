@@ -10,6 +10,16 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:dividerHeight="5dp" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/filterBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:src="@android:drawable/ic_menu_search"
+        android:tint="@color/white"
+        android:backgroundTint="@color/aprobados"
+        android:layout_margin="16dp" />
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/addBtn"
         android:layout_width="wrap_content"

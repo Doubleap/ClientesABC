@@ -14,7 +14,25 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
         android:src="@android:drawable/ic_menu_add"
+        android:tint="@color/colorPrimary"
+        android:backgroundTint="@color/sinFormularios"
+        android:layout_margin="16dp" />
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/filterBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:src="@drawable/filter"
+        android:tint="@color/colorPrimary"
+        android:backgroundTint="@color/sinFormularios"
+        android:layout_margin="16dp" />
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:src="@android:drawable/ic_input_add"
         android:tint="@color/white"
-        android:backgroundTint="@color/aprobados"
+        android:backgroundTint="@color/pendientes"
         android:layout_margin="16dp" />
 </FrameLayout>

@@ -1,6 +1,7 @@
 package proyecto.app.clientesabc.clases;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -21,6 +22,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
@@ -31,7 +33,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
     private String messageFlag = "";
     private ServerSocket ss;
     private Socket socket;
-
+    AlertDialog dialog;
     public SincronizacionServidor(WeakReference<Context> c, WeakReference<Activity> a){
         this.context = c;
         this.activity = a;
@@ -117,7 +119,15 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
         return null;
     }
 
-
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
+        builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion
+        builder.setView(R.layout.layout_loading_dialog);
+        dialog = builder.create();
+        dialog.show();
+    }
     @Override
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
@@ -127,6 +137,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
         else{
             Toasty.error(context.get(),"Sincronizacion Fallida."+messageFlag,Toast.LENGTH_LONG).show();
         }
-
+        if(dialog.isShowing())
+            dialog.hide();
     }
 }

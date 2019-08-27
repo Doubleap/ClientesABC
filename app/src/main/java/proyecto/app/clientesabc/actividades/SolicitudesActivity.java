@@ -16,29 +16,59 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.MyAdapter;
-import proyecto.app.clientesabc.R;
 
 
 public class SolicitudesActivity extends AppCompatActivity {
     private SearchView searchView;
     private MyAdapter mAdapter;
+    private FloatingActionButton fab;
+    private FloatingActionButton fab1;
+    private FloatingActionButton fab2;
+    boolean isFABOpen = false;
+    String estado;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detalle);
+        Bundle b = getIntent().getExtras();
+        if(b != null)
+            estado = b.getString("estado");
         DataBaseHelper db = new DataBaseHelper(this);
-        ArrayList<HashMap<String, String>> formList = db.getSolicitudes();
+        ArrayList<HashMap<String, String>> formList;
+        if(estado != null)
+            formList = db.getSolicitudes(estado);
+        else
+            formList = db.getSolicitudes();
         RecyclerView rv = findViewById(R.id.user_list);
 
         mAdapter = new MyAdapter(formList,this);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
-
-        FloatingActionButton fab = findViewById(R.id.addBtn);
+        fab = findViewById(R.id.fabBtn);
+        fab1 = findViewById(R.id.filterBtn);
+        fab2 = findViewById(R.id.addBtn);
         fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!isFABOpen){
+                    showFABMenu();
+                }else{
+                    closeFABMenu();
+                }
+                /*Bundle b = new Bundle();
+                //TODO seleccionar el tipo de solicitud por el UI
+                b.putString("tipoSolicitud", "1"); //id de solicitud
+
+                Intent intent = new Intent(view.getContext(),SolicitudActivity.class);
+                intent.putExtras(b); //Pase el parametro el Intent
+                startActivity(intent);*/
+            }
+        });
+        fab1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Bundle b = new Bundle();
@@ -50,8 +80,27 @@ public class SolicitudesActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //showDialogFilters();
+            }
+        });
     }
 
+    private void showFABMenu(){
+        isFABOpen=true;
+        fab1.animate().translationY((float)-120.0);
+        fab2.animate().translationY((float)-240.0);
+        //fab3.animate().translationY(-getResources().getDimension(R.dimen.standard_155));
+    }
+    private void closeFABMenu(){
+        isFABOpen=false;
+        fab.animate().translationY(0);
+        fab1.animate().translationY(0);
+        fab2.animate().translationY(0);
+        //fab3.animate().translationY(0);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_search, menu);

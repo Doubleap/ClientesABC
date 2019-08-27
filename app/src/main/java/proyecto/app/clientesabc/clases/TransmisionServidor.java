@@ -1,7 +1,9 @@
 package proyecto.app.clientesabc.clases;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
@@ -29,8 +31,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+
+import static android.support.v4.content.ContextCompat.startActivity;
 
 public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
 
@@ -47,7 +52,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
     private String hostName,canonicalHostname;
     private String givenName;
     private DataBaseHelper mDBHelper;
-
+    AlertDialog dialog;
     public TransmisionServidor(WeakReference<Context> context, WeakReference<Activity> act, String path, String fullPath){
         this.context = context;
         this.activity = act;
@@ -129,11 +134,11 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 mDataBase.execSQL(sqlCreate);
                 sqlCreate = "CREATE TABLE grid_interlocutor_solicitud AS SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select idform FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo'))";
-                mDataBase.execSQL(sqlCreate);
+                //sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select idform FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo'))";
+                //mDataBase.execSQL(sqlCreate);
 
 
-                File myFile = new File(context.get().getApplicationInfo().dataDir + "/databases/", "FAWM_ANDROID_SOLICITUDES");
+                File myFile = new File(context.get().getApplicationInfo().dataDir + "/databases/", "TRANSMISION_"+ PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH",""));
                 //File externalStorage = Environment.getExternalStorageDirectory();
                 //String externalStoragePath = externalStorage.getAbsolutePath();
                 //File myFile = new File(externalStoragePath + File.separator + context.get().getPackageName()+ File.separator+"Transmision", "PRUEBA_COPIA");
@@ -200,7 +205,15 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
 
         return null;
     }
-
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
+        builder.setCancelable(false); // Si quiere que el usuario espere por el proceso completo por obligacion
+        builder.setView(R.layout.layout_loading_dialog);
+        dialog = builder.create();
+        dialog.show();
+    }
     @Override
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
@@ -211,7 +224,14 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
             Toasty.success(context.get(),"Transmision Finalizada Correctamente!!",Toast.LENGTH_LONG).show();
             //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
             mDBHelper.ActualizarEstadosSolicitudesTransmitidas();
+
         }
+        if(dialog.isShowing())
+            dialog.hide();
+        Intent intent = activity.get().getIntent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        activity.get().finish();
+        startActivity(context.get(), intent, null);
     }
 
     public ArrayList<String> getClientList() {

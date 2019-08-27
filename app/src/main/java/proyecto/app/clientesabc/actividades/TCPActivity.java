@@ -27,6 +27,7 @@ import java.lang.ref.WeakReference;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.clases.PruebaConexionServidor;
 import proyecto.app.clientesabc.clases.SincronizacionServidor;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
 
@@ -36,9 +37,11 @@ public class TCPActivity extends AppCompatActivity
     private Button clientReceiveButton;
     private Button serverUDPButton;
     private Button clientUDPButton;
+    private Button probarConexionButton;
     private EditText ip_text;
     private EditText puerto_text;
     private EditText ruta_text;
+
     private int PICKFILE_REQUEST_CODE = 100;
     private String filePath="";
     private String wholePath="";
@@ -78,39 +81,19 @@ public class TCPActivity extends AppCompatActivity
             }
         });
 
-        // TCP
-        serverTransmitButton = findViewById(R.id.button_TCP_server);
-        serverTransmitButton.setOnClickListener(new View.OnClickListener() {
+        probarConexionButton = findViewById(R.id.button_probar_conexion);
+        probarConexionButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Log.i("Start Server Clicked", "yipee");
                 if(validarConexion()) {
-                    //Realizar la transmision de lo que se necesita (Db o txt)
+                    //Realizar una prueba de conexion para validar los datos ingresados
                     WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
                     WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
                     VariablesGlobales.setIpcon(ip_text.getText().toString());
                     VariablesGlobales.setPuertocon(Integer.valueOf(puerto_text.getText().toString()));
 
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
-                    TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, filePath, wholePath);
+                    PruebaConexionServidor f = new PruebaConexionServidor(weakRef, weakRefA);
                     f.execute();
-                }
-            }
-        });
-
-
-        clientReceiveButton = findViewById(R.id.button_TCP_client);
-        clientReceiveButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Log.i("Read Button Clicked", "yipee");
-                if(validarConexion()) {
-                    //startService(new Intent(TCPActivity.this, NameService.class));
-                    WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
-                    WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
-                    VariablesGlobales.setIpcon(ip_text.getText().toString());
-                    VariablesGlobales.setPuertocon(Integer.valueOf(puerto_text.getText().toString()));
-                    PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
-                    SincronizacionServidor s = new SincronizacionServidor(weakRef, weakRefA);
-                    s.execute();
                 }
             }
         });
@@ -125,14 +108,35 @@ public class TCPActivity extends AppCompatActivity
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Intent intent;
                 switch (item.getItemId()) {
-                    case R.id.action_camara:
-
+                    case R.id.action_cancelar:
+                        finish();
                         return true;
-                    case R.id.action_file:
-
+                    case R.id.action_sincronizar:
+                        Log.i("Read Button Clicked", "yipee");
+                        if(validarConexion()) {
+                            //startService(new Intent(TCPActivity.this, NameService.class));
+                            WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
+                            WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
+                            VariablesGlobales.setIpcon(ip_text.getText().toString());
+                            VariablesGlobales.setPuertocon(Integer.valueOf(puerto_text.getText().toString()));
+                            PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
+                            SincronizacionServidor s = new SincronizacionServidor(weakRef, weakRefA);
+                            s.execute();
+                        }
                         return true;
-                    case R.id.action_save:
+                    case R.id.action_transmitir:
+                        Log.i("Start Server Clicked", "yipee");
+                        if(validarConexion()) {
+                            //Realizar la transmision de lo que se necesita (Db o txt)
+                            WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
+                            WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
+                            VariablesGlobales.setIpcon(ip_text.getText().toString());
+                            VariablesGlobales.setPuertocon(Integer.valueOf(puerto_text.getText().toString()));
 
+                            PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
+                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, filePath, wholePath);
+                            f.execute();
+                        }
                 }
                 return true;
             }
@@ -149,7 +153,7 @@ public class TCPActivity extends AppCompatActivity
             Toasty.warning(getBaseContext(),"Por favor digite un puerto válido.");
             retorno = false;
         }
-        if(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("W_CTE_RUTAHH","").trim().isEmpty()){
+        if(ruta_text.getText().toString().trim().isEmpty()){
             Toasty.warning(getBaseContext(),"Por favor digite una ruta de venta válida.");
             retorno = false;
         }
@@ -194,5 +198,4 @@ public class TCPActivity extends AppCompatActivity
         builder.show();
 
     }
-
 }

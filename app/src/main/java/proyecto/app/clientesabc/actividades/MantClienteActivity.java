@@ -99,8 +99,6 @@ public class MantClienteActivity extends AppCompatActivity {
             ImageView estado = holder.listView.findViewById(R.id.estado);
             Drawable d = getResources().getDrawable(R.drawable.circulo_status_cliente, null);
 
-
-
             Drawable background = estado.getBackground();
             if (background instanceof ShapeDrawable) {
                 ShapeDrawable shapeDrawable = (ShapeDrawable) background;

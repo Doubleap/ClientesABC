@@ -33,4 +33,5 @@ dependencies {
     implementation 'com.evrencoskun.library:tableview:0.8.5.1'
     implementation 'com.github.GrenderG:Toasty:1.4.2'
     implementation 'com.github.VicMikhailau:MaskedEditText:2.0.2'
+    implementation 'com.github.wangjiegulu:rfab:2.0.0'
 }

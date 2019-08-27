@@ -59,28 +59,7 @@
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:text="Probar Conexion" />
-    <Button android:id="@+id/button_TCP_server"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:text="Transmitir" />
-    <TextView
-        android:id="@+id/divisor"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
 
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:text="O"
-        android:textAlignment="center"/>
-    <Button android:id="@+id/button_TCP_client"
-        android:layout_width="fill_parent"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_below="@+id/button_TCP_server"
-        android:layout_height="wrap_content"
-        android:text="Sincronizar" />
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/change"
             android:layout_width="wrap_content"

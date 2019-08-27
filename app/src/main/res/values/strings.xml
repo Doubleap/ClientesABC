@@ -32,7 +32,7 @@
     <string name="title_activity_mant_clientes">Mis Clientes</string>
     <string name="title_activity_solicitudes">Mis Solicitudes</string>
     <string name="title_activity_locacion_gps">Coordenadas GPS</string>
-    <string name="title_activity_panel">Monitor de Actividades</string>
+    <string name="title_activity_panel">Monitor de Solicitudes</string>
     <string name="promptKvgr4">promptKvgr4</string>
     <string name="label_vp">Plan de Visita</string>
     <string name="label_pregunta">%1$s) %2$s</string>

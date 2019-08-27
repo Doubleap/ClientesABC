@@ -11,7 +11,7 @@
         android:background="@color/colorPrimary"
         app:itemIconTint="@color/black"
         app:itemTextColor="@color/backColor"
-        app:menu="@menu/bottom_menu_solicitud"
+        app:menu="@menu/bottom_menu_panel"
         />
 
 </merge>

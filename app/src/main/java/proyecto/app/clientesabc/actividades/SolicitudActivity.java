@@ -1430,23 +1430,28 @@ public class SolicitudActivity extends AppCompatActivity {
                         Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
                         et.setBackground(d);
                         final int finalX = x;
-                        int indicePreventa = 0;
-                        int indiceReparto = 0;
-                        for(int i = 0 ; i < visitasSolicitud.size(); i++){
-                            if(visitasSolicitud.get(i).getVptyp().equals("ZPV")){
-                                indicePreventa = i;
-                            }
-                            if(visitasSolicitud.get(i).getVptyp().equals("ZPV")){
-                                indiceReparto = i;
-                            }
-                        }
-                        final int finalIndicePreventa = indicePreventa;
-                        final int finalIndiceReparto = indiceReparto;
                         et.setOnFocusChangeListener(new OnFocusChangeListener() {
                             @Override
                             public void onFocusChange(View v, boolean hasFocus) {
+                                int indicePreventa = 0;
+                                int indiceReparto = 0;
+                                for(int i = 0 ; i < visitasSolicitud.size(); i++){
+                                    if(visitasSolicitud.get(i).getVptyp().equals("ZPV")){
+                                        indicePreventa = i;
+                                    }
+                                    if(visitasSolicitud.get(i).getVptyp().equals("ZDD")){
+                                        indiceReparto = i;
+                                    }
+                                }
+                                final int finalIndicePreventa = indicePreventa;
+                                final int finalIndiceReparto = indiceReparto;
                                 if (!hasFocus) {
-
+                                    int diaReparto = 0;
+                                    if((finalX+1) > 6){
+                                        diaReparto = ((finalX+1)-6);
+                                    }else{
+                                        diaReparto = (finalX+1);
+                                    }
                                     Visitas visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
                                     Visitas visitaReparto = visitasSolicitud.get(finalIndiceReparto);
                                     if(!((TextView)v).getText().toString().equals("") && Integer.valueOf(((TextView)v).getText().toString()) > 1440){
@@ -1478,6 +1483,36 @@ public class SolicitudActivity extends AppCompatActivity {
                                             case 6:
                                                 visitaPreventa.setDom_a(getResources().getString(R.string.max_secuencia));
                                                 visitaPreventa.setDom_de(getResources().getString(R.string.max_secuencia));
+                                                break;
+                                        }
+                                        switch(diaReparto) {
+                                            case 0:
+                                                visitaReparto.setLun_a(getResources().getString(R.string.max_secuencia));
+                                                visitaReparto.setLun_de(getResources().getString(R.string.max_secuencia));
+                                                break;
+                                            case 1:
+                                                visitaReparto.setMar_a(getResources().getString(R.string.max_secuencia));
+                                                visitaReparto.setMar_de(getResources().getString(R.string.max_secuencia));
+                                                break;
+                                            case 2:
+                                                visitaReparto.setMier_a(getResources().getString(R.string.max_secuencia));
+                                                visitaReparto.setMier_de(getResources().getString(R.string.max_secuencia));
+                                                break;
+                                            case 3:
+                                                visitaReparto.setJue_a(getResources().getString(R.string.max_secuencia));
+                                                visitaReparto.setJue_de(getResources().getString(R.string.max_secuencia));
+                                                break;
+                                            case 4:
+                                                visitaReparto.setVie_a(getResources().getString(R.string.max_secuencia));
+                                                visitaReparto.setVie_de(getResources().getString(R.string.max_secuencia));
+                                                break;
+                                            case 5:
+                                                visitaReparto.setSab_a(getResources().getString(R.string.max_secuencia));
+                                                visitaReparto.setSab_de(getResources().getString(R.string.max_secuencia));
+                                                break;
+                                            case 6:
+                                                visitaReparto.setDom_a(getResources().getString(R.string.max_secuencia));
+                                                visitaReparto.setDom_de(getResources().getString(R.string.max_secuencia));
                                                 break;
                                         }
                                         ((TextView)v).setText(getResources().getString(R.string.max_secuencia));
@@ -1516,6 +1551,36 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 visitaPreventa.setDom_de("");
                                                 break;
                                         }
+                                        switch(diaReparto) {
+                                            case 0:
+                                                visitaReparto.setLun_a("");
+                                                visitaReparto.setLun_de("");
+                                                break;
+                                            case 1:
+                                                visitaReparto.setMar_a("");
+                                                visitaReparto.setMar_de("");
+                                                break;
+                                            case 2:
+                                                visitaReparto.setMier_a("");
+                                                visitaReparto.setMier_de("");
+                                                break;
+                                            case 3:
+                                                visitaReparto.setJue_a("");
+                                                visitaReparto.setJue_de("");
+                                                break;
+                                            case 4:
+                                                visitaReparto.setVie_a("");
+                                                visitaReparto.setVie_de("");
+                                                break;
+                                            case 5:
+                                                visitaReparto.setSab_a("");
+                                                visitaReparto.setSab_de("");
+                                                break;
+                                            case 6:
+                                                visitaReparto.setDom_a("");
+                                                visitaReparto.setDom_de("");
+                                                break;
+                                        }
                                     }else{
                                         int hours = Integer.valueOf(((TextView)v).getText().toString()) / 60;
                                         int minutes = Integer.valueOf(((TextView)v).getText().toString()) % 60;
@@ -1552,7 +1617,38 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 visitaPreventa.setDom_de(secuenciaSAP);
                                                 break;
                                         }
+                                        switch(diaReparto) {
+                                            case 0:
+                                                visitaReparto.setLun_a(secuenciaSAP);
+                                                visitaReparto.setLun_de(secuenciaSAP);
+                                                break;
+                                            case 1:
+                                                visitaReparto.setMar_a(secuenciaSAP);
+                                                visitaReparto.setMar_de(secuenciaSAP);
+                                                break;
+                                            case 2:
+                                                visitaReparto.setMier_a(secuenciaSAP);
+                                                visitaReparto.setMier_de(secuenciaSAP);
+                                                break;
+                                            case 3:
+                                                visitaReparto.setJue_a(secuenciaSAP);
+                                                visitaReparto.setJue_de(secuenciaSAP);
+                                                break;
+                                            case 4:
+                                                visitaReparto.setVie_a(secuenciaSAP);
+                                                visitaReparto.setVie_de(secuenciaSAP);
+                                                break;
+                                            case 5:
+                                                visitaReparto.setSab_a(secuenciaSAP);
+                                                visitaReparto.setSab_de(secuenciaSAP);
+                                                break;
+                                            case 6:
+                                                visitaReparto.setDom_a(secuenciaSAP);
+                                                visitaReparto.setDom_de(secuenciaSAP);
+                                                break;
+                                        }
                                     }
+
                                 }
                             }
                         });
@@ -2753,24 +2849,29 @@ public class SolicitudActivity extends AppCompatActivity {
 
 
     /*CORRER EN NUEVO THREAD Para poder mostrar avance o loading image*/
-    private class MostrarFormulario extends AsyncTask<String, Integer, String> {
+    private class MostrarFormulario extends AsyncTask<String, Integer, Void> {
 
         private WeakReference<Context> contextRef;
-
+        final ViewPager viewPager;
+        final TabLayout misTabs;
         public MostrarFormulario(Context context) {
             contextRef = new WeakReference<>(context);
+            viewPager = new ViewPager(context);
+            misTabs = new TabLayout(context);
         }
         @SuppressLint("ResourceType")
         @Override
-        protected String doInBackground(String... params) {
+        protected Void doInBackground(String... params) {
+            LinearLayout ll = findViewById(R.id.LinearLayoutMain);
+            ll.addView(misTabs);
+            ll.addView(viewPager);
             publishProgress(0);
             Context context = contextRef.get();
             //Traer primero las pestanas
-            final TabLayout misTabs = new TabLayout(context);
             publishProgress(2);
             misTabs.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             misTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
-            final ViewPager viewPager = new ViewPager(context);
+            //final ViewPager viewPager = new ViewPager(context);
             publishProgress(4);
             viewPager.setId(1);
             ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
@@ -2795,24 +2896,21 @@ public class SolicitudActivity extends AppCompatActivity {
             });
             misTabs.setupWithViewPager(viewPager);
             publishProgress(9);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    LinearLayout ll = findViewById(R.id.LinearLayoutMain);
-                    ll.addView(misTabs);
-                    ll.addView(viewPager);
-                }
-            });
+            //LinearLayout ll = findViewById(R.id.LinearLayoutMain);
             publishProgress(10);
-            return "0";
+            return null;
+            //return ll;
         }
         @Override
         protected void onProgressUpdate(Integer... values) {
             progressBar.setProgress(values[0]);
         }
         @Override
-        protected void onPostExecute(String result) {
+        protected void onPostExecute(Void result) {
             super.onPostExecute(result);
+            //LinearLayout ll = findViewById(R.id.LinearLayoutMain);
+            //ll.addView(misTabs);
+            //ll.addView(viewPager);
             progressBar.setVisibility(View.GONE);
         }
 

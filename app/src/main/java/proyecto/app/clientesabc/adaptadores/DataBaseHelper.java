@@ -218,13 +218,37 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return  clientList;
     }
-
     public ArrayList<HashMap<String, String>> getSolicitudes(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> formList = new ArrayList<>();
         String query = "SELECT idform as numero, [W_CTE-KUNNR] as codigo, [W_CTE-NAME1] as nombre, estado as estado, tipform " +
                 " FROM FormHVKOF_solicitud";
         Cursor cursor = mDataBase.rawQuery(query,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("numero",cursor.getString(0));
+            user.put("codigo",String.valueOf(cursor.getInt(1)));
+            user.put("nombre",cursor.getString(2));
+            user.put("estado",cursor.getString(3));
+            user.put("tipform",cursor.getString(4));
+            formList.add(user);
+        }
+        cursor.close();
+        return  formList;
+    }
+    public ArrayList<HashMap<String, String>> getSolicitudes(String... estados){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, String>> formList = new ArrayList<>();
+        String params = "(";
+        String coma = "";
+        for (int x=0;x < estados.length; x++){
+            params += coma+"?";
+            coma = ",";
+        }
+        params += ")";
+        String query = "SELECT idform as numero, [W_CTE-KUNNR] as codigo, [W_CTE-NAME1] as nombre, estado as estado, tipform " +
+                " FROM FormHVKOF_solicitud WHERE estado IN "+params;
+        Cursor cursor = mDataBase.rawQuery(query, estados);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
             user.put("numero",cursor.getString(0));
@@ -1007,6 +1031,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud where trim(estado) = 'Nuevo'";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            cantidad = cursor.getInt(0);
+        }
+        cursor.close();
+        return cantidad;
+    }
+    public int CantidadSolicitudes(String estado) {
+        int cantidad = 0;
+
+        String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud where trim(estado) = ?";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,new String[]{estado});
         while (cursor.moveToNext()){
             cantidad = cursor.getInt(0);
         }

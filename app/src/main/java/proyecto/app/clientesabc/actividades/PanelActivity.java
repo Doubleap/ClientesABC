@@ -1,5 +1,7 @@
 package proyecto.app.clientesabc.actividades;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
@@ -9,6 +11,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,11 +21,13 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Objects;
 
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.clases.TransmisionServidor;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 public class PanelActivity extends AppCompatActivity {
@@ -34,18 +39,36 @@ public class PanelActivity extends AppCompatActivity {
     private TextView rutaPanel;
     private TextView userPanel;
     Spinner spinner;
+    private TextView num_nuevos;
+    private TextView num_pendientes;
+    private TextView num_incidencias;
+    private TextView num_aprobados;
+    private TextView num_rechazados;
+    private TextView num_transmitidos;
+    private CardView card_nuevos;
+    private CardView card_pendientes;
+    private CardView card_incidencias;
+    private CardView card_aprobados;
+    private CardView card_rechazados;
+    private CardView card_transmitidos;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_panel);
+        mDBHelper = new DataBaseHelper(this);
+        mDb = mDBHelper.getWritableDatabase();
         principal = (LinearLayout)findViewById(R.id.principal);
         gridLayout = (GridLayout)findViewById(R.id.mainGrid);
         rutaPanel = findViewById(R.id.rutaPanel);
         rutaPanel.setText(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH",""));
         userPanel = findViewById(R.id.userPanel);
         userPanel.setText(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("user",""));
-        mDBHelper = new DataBaseHelper(this);
-        mDb = mDBHelper.getWritableDatabase();
+        num_nuevos = findViewById(R.id.num_nuevos);
+        num_pendientes = findViewById(R.id.num_pendientes);
+        num_incidencias = findViewById(R.id.num_incidencias);
+        num_aprobados = findViewById(R.id.num_aprobados);
+        num_rechazados = findViewById(R.id.num_rechazados);
+        num_transmitidos = findViewById(R.id.num_transmitidos);
 
         spinner = new Spinner(this, Spinner.MODE_DIALOG);
         ArrayList<OpcionSpinner> listaopciones = mDBHelper.getDatosCatalogoParaSpinner("cat_T171T");
@@ -67,14 +90,28 @@ public class PanelActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Intent intent;
                 switch (item.getItemId()) {
-                    case R.id.action_camara:
-
-                        return true;
-                    case R.id.action_file:
-
-                        return true;
-                    case R.id.action_save:
-
+                    case R.id.action_solicitudes:
+                        intent = new Intent(getBaseContext(),SolicitudesActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.action_nuevo_cliente:
+                        Bundle b = new Bundle();
+                        b.putString("tipoSolicitud", "1"); //id de solicitud
+                        intent = new Intent(getApplicationContext(),SolicitudActivity.class);
+                        intent.putExtras(b); //Pase el parametro el Intent
+                        startActivity(intent);
+                        break;
+                    case R.id.action_transmitir:
+                        Log.i("Start Server Clicked", "yipee");
+                        //if(validarConexion()) {
+                            //Realizar la transmision de lo que se necesita (Db o txt)
+                            WeakReference<Context> weakRef = new WeakReference<Context>(PanelActivity.this);
+                            WeakReference<Activity> weakRefA = new WeakReference<Activity>(PanelActivity.this);
+                            //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
+                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "");
+                            f.execute();
+                        //}
+                        break;
                 }
                 return true;
             }
@@ -83,6 +120,17 @@ public class PanelActivity extends AppCompatActivity {
         setSingleEvent(gridLayout);
         Drawable d = getResources().getDrawable(R.drawable.botella_coca_header_der,null);
         Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
+    }
+
+    @Override
+    protected  void onStart(){
+        super.onStart();
+        num_nuevos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Nuevo")));
+        num_pendientes.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Pendiente")));
+        num_incidencias.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Incidencia")));
+        num_aprobados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Aprobado")));
+        num_rechazados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Rechazado")));
+        num_transmitidos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Transmitido")));
     }
     // we are setting onClickListener for each element
     private void setSingleEvent(GridLayout gridLayout) {
@@ -94,27 +142,22 @@ public class PanelActivity extends AppCompatActivity {
                 public void onClick(View view) {
                     switch(finalI) {
                         case 0:
-                            intent = new Intent(getBaseContext(),MantClienteActivity.class);
-                            startActivity(intent);
+                            VerSolicitudes("Nuevo");
                             break;
                         case 1:
-                            spinner.performClick();
+                            VerSolicitudes("Pendiente");
                             break;
                         case 2:
-                            intent = new Intent(getBaseContext(),MantClienteActivity.class);
-                            startActivity(intent);
+                            VerSolicitudes("Incidencia");
                             break;
                         case 3:
-                            intent = new Intent(getBaseContext(),SolicitudesActivity.class);
-                            startActivity(intent);
+                            VerSolicitudes("Aprobado");
                             break;
                         case 4:
-                            intent = new Intent(getBaseContext(),TCPActivity.class);
-                            startActivity(intent);
+                            VerSolicitudes("Rechazado");
                             break;
                         case 5:
-                            intent = new Intent(getBaseContext(),FirmaActivity.class);
-                            startActivity(intent);
+                            VerSolicitudes("Transmitido");
                             break;
                     }
                 }
@@ -178,5 +221,13 @@ public class PanelActivity extends AppCompatActivity {
         }
 
         return true;
+    }
+
+    public void VerSolicitudes(String estado) {
+        Bundle b = new Bundle();
+        b.putString("estado", estado); //id de solicitud
+        intent = new Intent(this, SolicitudesActivity.class);
+        intent.putExtras(b); //Pase el parametro el Intent
+        startActivity(intent);
     }
 }
