@@ -33,7 +33,7 @@ public class Interlocutor {
         this.id_solicitud = id_solicitud;
     }
 
-    private String getParvw() {
+    public String getParvw() {
         return parvw;
     }
 
@@ -41,7 +41,7 @@ public class Interlocutor {
         this.parvw = parvw;
     }
 
-    private String getVtext() {
+    public String getVtext() {
         return vtext;
     }
 

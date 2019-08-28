@@ -1,8 +1,10 @@
 package proyecto.app.clientesabc.actividades;
 
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -13,15 +15,22 @@ import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.View;
 
+import com.androidbuts.multispinnerfilter.KeyPairBoolData;
+import com.androidbuts.multispinnerfilter.MultiSpinnerSearch;
+import com.androidbuts.multispinnerfilter.SpinnerListener;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
+import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.MyAdapter;
 
 
 public class SolicitudesActivity extends AppCompatActivity {
+    DataBaseHelper db;
     private SearchView searchView;
     private MyAdapter mAdapter;
     private FloatingActionButton fab;
@@ -36,7 +45,7 @@ public class SolicitudesActivity extends AppCompatActivity {
         Bundle b = getIntent().getExtras();
         if(b != null)
             estado = b.getString("estado");
-        DataBaseHelper db = new DataBaseHelper(this);
+        db = new DataBaseHelper(this);
         ArrayList<HashMap<String, String>> formList;
         if(estado != null)
             formList = db.getSolicitudes(estado);
@@ -59,13 +68,6 @@ public class SolicitudesActivity extends AppCompatActivity {
                 }else{
                     closeFABMenu();
                 }
-                /*Bundle b = new Bundle();
-                //TODO seleccionar el tipo de solicitud por el UI
-                b.putString("tipoSolicitud", "1"); //id de solicitud
-
-                Intent intent = new Intent(view.getContext(),SolicitudActivity.class);
-                intent.putExtras(b); //Pase el parametro el Intent
-                startActivity(intent);*/
             }
         });
         fab1.setOnClickListener(new View.OnClickListener() {
@@ -83,9 +85,47 @@ public class SolicitudesActivity extends AppCompatActivity {
         fab2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //showDialogFilters();
+                showDialogFilters(view);
             }
         });
+    }
+
+    private void showDialogFilters(View view) {
+        final Dialog dialog =new Dialog(view.getContext());
+        dialog.setContentView(R.layout.filtros_solicitudes_dialog_layout);
+        dialog.show();
+
+        MultiSpinnerSearch estadoSpinner = (MultiSpinnerSearch)dialog.findViewById(R.id.estadoSpinner);
+        MultiSpinnerSearch tipoSolicitudSpinner = (MultiSpinnerSearch)dialog.findViewById(R.id.tipoSolicitudSpinner);
+        //Spinner 1
+        final List<KeyPairBoolData> list = db.getEstadosCatalogoParaMultiSpinner();
+        estadoSpinner.setItems(list,-1,  new SpinnerListener() {
+            @Override
+            public void onItemsSelected(List<KeyPairBoolData> items) {
+                for(int i=0; i<items.size(); i++) {
+                    if(items.get(i).isSelected()) {
+                        Toasty.info(getApplicationContext(), i + " : "+ items.get(i).getName());
+                    }
+                }
+            }
+        });
+        Drawable d1 = getResources().getDrawable(R.drawable.spinner_background, null);
+        estadoSpinner.setBackground(d1);
+        estadoSpinner.setColorSeparation(true);
+        //Spinner 2
+        final List<KeyPairBoolData> list2 = db.getTiposFormularioParaMultiSpinner();
+        tipoSolicitudSpinner.setItems(list2,-1,  new SpinnerListener() {
+            @Override
+            public void onItemsSelected(List<KeyPairBoolData> items) {
+                for(int i=0; i<items.size(); i++) {
+                    if(items.get(i).isSelected()) {
+                        Toasty.info(getApplicationContext(), i + " : "+ items.get(i).getName());
+                    }
+                }
+            }
+        });
+        tipoSolicitudSpinner.setBackground(d1);
+        tipoSolicitudSpinner.setColorSeparation(true);
     }
 
     private void showFABMenu(){

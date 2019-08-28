@@ -231,11 +231,23 @@ public class SolicitudActivity extends AppCompatActivity {
                                 }
                             }
                         }
+                        //Validacion de bloques obligatorios
+                        //Al menos 1 dia de visita
+                        if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_Lunes")).getText().toString().isEmpty())
+                            if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_Martes")).getText().toString().isEmpty())
+                                if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_Miercoles")).getText().toString().isEmpty())
+                                    if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_Jueves")).getText().toString().isEmpty())
+                                        if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_Viernes")).getText().toString().isEmpty())
+                                            if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_Sabado")).getText().toString().isEmpty()) {
+                                                numErrores++;
+                                                mensajeError += "- El cliente debe tener al menos 1 día de visita!\n";
+                                            }
+
                         if(numErrores == 0) {
                             String NextId = GUID;
                             ContentValues insertValues = new ContentValues();
                             for (int i = 0; i < listaCamposDinamicos.size(); i++) {
-                                if(!listaCamposBloque.contains(listaCamposDinamicos.get(i)) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
+                                if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                                     try {
                                         MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
                                         String valor = tv.getText().toString();
@@ -302,7 +314,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             ContentValues interlocutorValues = new ContentValues();
                                             for (int c = 0; c < interlocutoresSolicitud.size(); c++) {
                                                 interlocutorValues.put("id_solicitud", NextId);
-                                                interlocutorValues.put("name1", interlocutoresSolicitud.get(c).getName1());
+                                                interlocutorValues.put("parvw", interlocutoresSolicitud.get(c).getParvw());
 
                                                 try {
                                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), null, interlocutorValues);
@@ -386,7 +398,22 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud", Toast.LENGTH_SHORT).show();
                                                 }
                                             }
-
+                                            break;
+                                        case "W_CTE-ADJUNTOS":
+                                            ContentValues adjuntoValues = new ContentValues();
+                                            try {
+                                                for (int c = 0; c < adjuntosSolicitud.size(); c++) {
+                                                    Adjuntos adjunto = adjuntosSolicitud.get(c);
+                                                    adjuntoValues.put("id_solicitud", NextId);
+                                                    adjuntoValues.put("tipo", adjunto.getType());
+                                                    adjuntoValues.put("nombre", adjunto.getName());
+                                                    adjuntoValues.put("imagen", adjunto.getImage());
+                                                    mDb.insert(VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(), null, adjuntoValues);
+                                                    adjuntoValues.clear();
+                                                }
+                                            } catch (Exception e) {
+                                                Toasty.error(getApplicationContext(), "Error Insertando Adjuntos de Solicitud. "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                                            }
                                             break;
                                     }
                                 }
@@ -409,8 +436,16 @@ public class SolicitudActivity extends AppCompatActivity {
                             } catch (Exception e) {
                                 Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_SHORT).show();
                             }
-
                             Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toast.LENGTH_SHORT).show();
+
+                            //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
+
+                            Intent sol = getIntent();
+                            sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                            getParent().finish();
+                            Bundle par = new Bundle();
+                            par.putString("tipo_solicitud",tipoSolicitud);
+                            getParent().startActivity(sol);
                         }else{
                             //Toasty.warning(getApplicationContext(), "Existen "+numErrores+" errores en los datos.", Toast.LENGTH_SHORT).show();
                             Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toast.LENGTH_LONG).show();
@@ -500,11 +535,9 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     try {
                         ContentResolver cR =  getContentResolver();
-                        MimeTypeMap mime = MimeTypeMap.getSingleton();
                         String type = cR.getType(uri);
                         String name = getFileName(cR, uri);
                         byte[] inputData = getBytes(iStream);
-                        mDBHelper.addAdjuntoSolicitud(type, name, inputData);
                         //Agregar al tableView del UI
                         Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, inputData);
 
@@ -672,6 +705,9 @@ public class SolicitudActivity extends AppCompatActivity {
                     //Tipo ADJUNTOS
                     DesplegarBloque(mDBHelper,ll,campos.get(i));
                     listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                    if(campos.get(i).get("tabla_local").trim().length() > 0){
+                        listaCamposBloque.add(campos.get(i).get("campo").trim());
+                    }
                 }else
                 if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("grid")) {
                     //Tipo GRID o BLOQUE de Datos (Estos Datos requieren una tabla de la BD adicional a FORMHVKOF)
@@ -1316,13 +1352,14 @@ public class SolicitudActivity extends AppCompatActivity {
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     bloque_interlocutor.setLayoutParams(hlp);
 
+                    ArrayList<Interlocutor> listaInterlocutores = db.getInterlocutoresPais();
+                    interlocutoresSolicitud.addAll(listaInterlocutores);
                     //Adaptadores
                     if(interlocutoresSolicitud != null) {
-                        ArrayList<Interlocutor> listaInterlocutores = db.getInterlocutoresPais();
-                        interlocutoresSolicitud.addAll(listaInterlocutores);
-                        tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height+(listaInterlocutores.size()*alturaFilaTableView);
-                        tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(getContext(), interlocutoresSolicitud));
-
+                        if(tipoSolicitud.equals("1")) {
+                            tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height + (listaInterlocutores.size() * alturaFilaTableView);
+                            tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(getContext(), interlocutoresSolicitud));
+                        }
                     }
                     headers = ((InterlocutorTableAdapter)bloque_interlocutor.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
@@ -1447,7 +1484,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 final int finalIndiceReparto = indiceReparto;
                                 if (!hasFocus) {
                                     int diaReparto = 0;
-                                    if((finalX+1) > 6){
+                                    if((finalX+1) > 5){
                                         diaReparto = ((finalX+1)-6);
                                     }else{
                                         diaReparto = (finalX+1);
@@ -1747,7 +1784,6 @@ public class SolicitudActivity extends AppCompatActivity {
                 }catch(Exception e){
                     Toasty.error(v.getContext(), "No se pudo salvar el contacto").show();
                 }
-
             }
         });
         //Para campos de seleccion para grid bancos

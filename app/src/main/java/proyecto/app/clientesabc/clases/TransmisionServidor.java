@@ -3,6 +3,7 @@ package proyecto.app.clientesabc.clases;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
@@ -134,8 +135,8 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 mDataBase.execSQL(sqlCreate);
                 sqlCreate = "CREATE TABLE grid_interlocutor_solicitud AS SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
                 mDataBase.execSQL(sqlCreate);
-                //sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select idform FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo'))";
-                //mDataBase.execSQL(sqlCreate);
+                sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo'))";
+                mDataBase.execSQL(sqlCreate);
 
 
                 File myFile = new File(context.get().getApplicationInfo().dataDir + "/databases/", "TRANSMISION_"+ PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH",""));
@@ -209,8 +210,15 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
     protected void onPreExecute() {
         super.onPreExecute();
         AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
-        builder.setCancelable(false); // Si quiere que el usuario espere por el proceso completo por obligacion
+        builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion
         builder.setView(R.layout.layout_loading_dialog);
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                errorFlag = "Proceso cancelado por el usuario.";
+                cancel(true);
+            }
+        });
         dialog = builder.create();
         dialog.show();
     }

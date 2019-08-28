@@ -15,20 +15,17 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Objects;
 
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
-import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 public class PanelActivity extends AppCompatActivity {
     LinearLayout principal;
@@ -70,7 +67,7 @@ public class PanelActivity extends AppCompatActivity {
         num_rechazados = findViewById(R.id.num_rechazados);
         num_transmitidos = findViewById(R.id.num_transmitidos);
 
-        spinner = new Spinner(this, Spinner.MODE_DIALOG);
+        /*spinner = new Spinner(this, Spinner.MODE_DIALOG);
         ArrayList<OpcionSpinner> listaopciones = mDBHelper.getDatosCatalogoParaSpinner("cat_T171T");
 
         // Creando el adaptador(opciones) para el comboBox deseado
@@ -82,7 +79,7 @@ public class PanelActivity extends AppCompatActivity {
         spinner.setBackground(d1);
         spinner.setAdapter(dataAdapter);
         spinner.setVisibility(View.GONE);
-        principal.addView(spinner);
+        principal.addView(spinner);*/
 
         BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation_panel);
         bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {

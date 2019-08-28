@@ -13,6 +13,8 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.androidbuts.multispinnerfilter.KeyPairBoolData;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -503,6 +505,107 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         return listaopciones;
     }
+
+    public ArrayList<OpcionSpinner> getEstadosCatalogoParaSpinner(){
+        ArrayList<HashMap<String, String>> listaCatalogo = new ArrayList<>();
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        // Select All Query
+        try {
+            //SQLiteDatabase db = this.getReadableDatabase();
+            Cursor cursor = mDataBase.rawQuery("Select estado as id, estado as descripcion from formHvKof_solicitud group by estado", null);//selectQuery,selectedArguments
+            HashMap<String,String> seleccione = new HashMap<>();
+            seleccione.put("id","");
+            seleccione.put("descripcion","Seleccione...");
+            listaCatalogo.add(seleccione);
+            // looping through all rows and adding to list
+            if (cursor.moveToFirst()) {
+                do {
+                    HashMap<String,String> lista = new HashMap<>();
+                    lista.put("id",cursor.getString(0).trim());//1era columna del query
+                    lista.put("descripcion",cursor.getString(1).trim());//1era y 2da columna del query
+                    listaCatalogo.add(lista);
+                } while (cursor.moveToNext());
+            }
+            // closing connection
+            cursor.close();
+
+            int selectedIndex = 0;
+            for (int j = 0; j < listaCatalogo.size(); j++){
+                listaopciones.add(new OpcionSpinner(listaCatalogo.get(j).get("id"), listaCatalogo.get(j).get("descripcion")));
+            }
+
+            //db.close();
+            // returning lables
+        }catch (Exception e){
+            e.getMessage();
+            e.printStackTrace();
+            HashMap<String,String> seleccione = new HashMap<>();
+            seleccione.put("id","");
+            seleccione.put("descripcion","Seleccione...");
+            listaCatalogo.add(seleccione);
+        }
+        return listaopciones;
+    }
+    public List<KeyPairBoolData> getEstadosCatalogoParaMultiSpinner(){
+        List<KeyPairBoolData> listaCatalogo = new ArrayList<KeyPairBoolData>();
+        //List<String> listaopciones = new ArrayList<>();
+        // Select All Query
+        try {
+            //SQLiteDatabase db = this.getReadableDatabase();
+            Cursor cursor = mDataBase.rawQuery("Select estado as id, estado as descripcion from formHvKof_solicitud group by estado", null);//selectQuery,selectedArguments
+            //listaCatalogo.put("Seleccione..",true);
+            // looping through all rows and adding to list
+            int indice = 0;
+            if (cursor.moveToFirst()) {
+                do {
+                    KeyPairBoolData lista = new KeyPairBoolData();
+                    lista.setId(indice);
+                    lista.setName(cursor.getString(0).trim());
+                    lista.setSelected(false);
+                    listaCatalogo.add(lista);
+                    indice++;
+                } while (cursor.moveToNext());
+            }
+            // closing connection
+            cursor.close();
+
+            /*int selectedIndex = 0;
+            for (int j = 0; j < listaCatalogo.size(); j++){
+                listaopciones.add(new OpcionSpinner(listaCatalogo.get(j).get("id"), listaCatalogo.get(j).get("descripcion")));
+            }*/
+
+            //db.close();
+            // returning lables
+        }catch (Exception e){
+            e.getMessage();
+            e.printStackTrace();
+            //listaCatalogo.put("Seleccione...",true);
+        }
+        return listaCatalogo;
+    }
+
+    public List<KeyPairBoolData> getTiposFormularioParaMultiSpinner(){
+        List<KeyPairBoolData> listaCatalogo = new ArrayList<KeyPairBoolData>();
+        try {
+            Cursor cursor = mDataBase.rawQuery("Select id_form as id, descripcion as descripcion from flujo", null);//selectQuery,selectedArguments
+            // iterar sobre todas las filas recibidas
+            if (cursor.moveToFirst()) {
+                do {
+                    KeyPairBoolData lista = new KeyPairBoolData();
+                    lista.setId(cursor.getInt(0));
+                    lista.setName(cursor.getString(1).trim());
+                    lista.setSelected(false);
+                    listaCatalogo.add(lista);
+                } while (cursor.moveToNext());
+            }
+            // closing connection
+            cursor.close();
+        }catch (Exception e){
+            e.getMessage();
+            e.printStackTrace();
+        }
+        return listaCatalogo;
+    }
     /**
      *
      * @param tabla : nombre de la tabla de base de datos del catálogo
@@ -749,7 +852,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<Interlocutor> interlocutorList = new ArrayList<>();
         String grupoCuentasDefault = "RCMA";
-        //Buscar el grupo de ceuntas adecuado por pais
+        //Buscar el grupo de cuentas adecuado por pais
         switch(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")){
             case "CR":
                 grupoCuentasDefault = "RCMA";
