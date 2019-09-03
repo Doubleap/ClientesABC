@@ -2,6 +2,7 @@ package proyecto.app.clientesabc.modelos;
 
 public class Impuesto {
     private String id_impuestos;
+    private String id_solicitud;
     private String id_formulario;
     private String tatyp;
     private String vtext;
@@ -79,5 +80,13 @@ public class Impuesto {
                 break;
         }
         return valorCelda;
+    }
+
+    public String getId_solicitud() {
+        return id_solicitud;
+    }
+
+    public void setId_solicitud(String id_solicitud) {
+        this.id_solicitud = id_solicitud;
     }
 }

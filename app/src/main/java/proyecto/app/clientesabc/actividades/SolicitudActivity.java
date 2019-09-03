@@ -114,8 +114,9 @@ import static android.support.design.widget.TabLayout.TEXT_ALIGNMENT_CENTER;
 
 public class SolicitudActivity extends AppCompatActivity {
 
-    final static int alturaFilaTableView = 61;
+    final static int alturaFilaTableView = 65;
     static String tipoSolicitud ="";
+    static String idSolicitud = "";
     @SuppressLint("StaticFieldLeak")
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
@@ -123,6 +124,7 @@ public class SolicitudActivity extends AppCompatActivity {
     static ArrayList<String> listaCamposObligatorios = new ArrayList<>();
     static ArrayList<String> listaCamposBloque = new ArrayList<>();
     static Map<String, View> mapeoCamposDinamicos = new HashMap<>();
+    static  ArrayList<HashMap<String, String>> solicitudSeleccionada = new ArrayList<>();
     private static String GUID;
     private ProgressBar progressBar;
 
@@ -152,17 +154,31 @@ public class SolicitudActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_solicitud);
-        Bundle b = getIntent().getExtras();
-        if(b != null)
-            tipoSolicitud = b.getString("tipoSolicitud");
 
+        Bundle b = getIntent().getExtras();
+        if(b != null) {
+            tipoSolicitud = b.getString("tipoSolicitud");
+            idSolicitud = b.getString("idSolicitud");
+            //accion = b.getString("accion");
+        }
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setMax(10);
 
         BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation);
         mDBHelper = new DataBaseHelper(this);
         mDb = mDBHelper.getWritableDatabase();
-        GUID = mDBHelper.getGuiId();
+
+        if(idSolicitud != null){
+            setTitle("Solicitud");
+            solicitudSeleccionada = mDBHelper.getSolicitud(idSolicitud);
+            tipoSolicitud = solicitudSeleccionada.get(0).get("TIPFORM");
+            GUID = solicitudSeleccionada.get(0).get("id_solicitud");
+            setTitle(GUID);
+        }else{
+            GUID = mDBHelper.getGuiId();
+            solicitudSeleccionada.clear();
+        }
+
         listaCamposDinamicos.clear();
         listaCamposBloque.clear();
         listaCamposObligatorios.clear();
@@ -277,6 +293,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                     switch(listaCamposDinamicos.get(i)){
                                         case "W_CTE-CONTACTOS":
                                             ContentValues contactoValues = new ContentValues();
+                                            if (solicitudSeleccionada.size() > 0) {
+                                                mDb.delete(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), "id_solicitud=?", new String[]{GUID});
+                                            }
                                             for (int c = 0; c < contactosSolicitud.size(); c++) {
                                                 contactoValues.put("id_solicitud", NextId);
                                                 contactoValues.put("name1", contactosSolicitud.get(c).getName1());
@@ -286,8 +305,10 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 contactoValues.put("street", contactosSolicitud.get(c).getStreet());
                                                 contactoValues.put("gbdat", contactosSolicitud.get(c).getGbdat());
                                                 contactoValues.put("country", contactosSolicitud.get(c).getCountry());
+                                                contactoValues.put("pafkt", contactosSolicitud.get(c).getPafkt());
                                                 try {
                                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), null, contactoValues);
+                                                    contactoValues.clear();
                                                 } catch (Exception e) {
                                                     Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud", Toast.LENGTH_SHORT).show();
                                                 }
@@ -296,6 +317,10 @@ public class SolicitudActivity extends AppCompatActivity {
                                             break;
                                         case "W_CTE-IMPUESTOS":
                                             ContentValues impuestoValues = new ContentValues();
+                                            int del;
+                                            if (solicitudSeleccionada.size() > 0) {
+                                                del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), "id_solicitud=?", new String[]{GUID});
+                                            }
                                             for (int c = 0; c < impuestosSolicitud.size(); c++) {
                                                 impuestoValues.put("id_solicitud", NextId);
                                                 impuestoValues.put("vtext", impuestosSolicitud.get(c).getVtext());
@@ -304,6 +329,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 impuestoValues.put("taxkd", impuestosSolicitud.get(c).getTaxkd());
                                                 try {
                                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), null, impuestoValues);
+                                                    impuestoValues.clear();
                                                 } catch (Exception e) {
                                                     Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud", Toast.LENGTH_SHORT).show();
                                                 }
@@ -312,12 +338,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                             break;
                                         case "W_CTE-INTERLOCUTORES":
                                             ContentValues interlocutorValues = new ContentValues();
+                                            if (solicitudSeleccionada.size() > 0) {
+                                                mDb.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), "id_solicitud=?", new String[]{GUID});
+                                            }
                                             for (int c = 0; c < interlocutoresSolicitud.size(); c++) {
                                                 interlocutorValues.put("id_solicitud", NextId);
                                                 interlocutorValues.put("parvw", interlocutoresSolicitud.get(c).getParvw());
 
                                                 try {
                                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), null, interlocutorValues);
+                                                    interlocutorValues.clear();
                                                 } catch (Exception e) {
                                                     Toasty.error(getApplicationContext(), "Error Insertando Interlocutor de Solicitud", Toast.LENGTH_SHORT).show();
                                                 }
@@ -326,82 +356,92 @@ public class SolicitudActivity extends AppCompatActivity {
                                             break;
                                         case "W_CTE-BANCOS":
                                             ContentValues bancoValues = new ContentValues();
-                                            for (int c = 0; c < bancosSolicitud.size(); c++) {
-                                                bancoValues.put("id_solicitud", NextId);
-                                                bancoValues.put("bankl", bancosSolicitud.get(c).getBankl());
-                                                bancoValues.put("bankn", bancosSolicitud.get(c).getBankn());
-                                                bancoValues.put("banks", bancosSolicitud.get(c).getBanks());
-                                                bancoValues.put("bkont", bancosSolicitud.get(c).getBkont());
-                                                bancoValues.put("bkref", bancosSolicitud.get(c).getBkref());
-                                                bancoValues.put("bvtyp", bancosSolicitud.get(c).getBvtyp());
-                                                bancoValues.put("koinh", bancosSolicitud.get(c).getKoinh());
-                                                bancoValues.put("task", bancosSolicitud.get(c).getTask());
-                                                try {
-                                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), null, bancoValues);
-                                                } catch (Exception e) {
-                                                    Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud", Toast.LENGTH_SHORT).show();
+                                            try {
+                                                if (solicitudSeleccionada.size() > 0) {
+                                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), "id_solicitud=?", new String[]{GUID});
                                                 }
+                                                for (int c = 0; c < bancosSolicitud.size(); c++) {
+                                                    bancoValues.put("id_solicitud", NextId);
+                                                    bancoValues.put("bankl", bancosSolicitud.get(c).getBankl());
+                                                    bancoValues.put("bankn", bancosSolicitud.get(c).getBankn());
+                                                    bancoValues.put("banks", bancosSolicitud.get(c).getBanks());
+                                                    bancoValues.put("bkont", bancosSolicitud.get(c).getBkont());
+                                                    bancoValues.put("bkref", bancosSolicitud.get(c).getBkref());
+                                                    bancoValues.put("bvtyp", bancosSolicitud.get(c).getBvtyp());
+                                                    bancoValues.put("koinh", bancosSolicitud.get(c).getKoinh());
+                                                    bancoValues.put("task", bancosSolicitud.get(c).getTask());
+                                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), null, bancoValues);
+                                                    bancoValues.clear();
+                                                }
+                                            } catch (Exception e) {
+                                                Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud", Toast.LENGTH_SHORT).show();
                                             }
-
                                             break;
                                         case "W_CTE-VISITAS":
                                             ContentValues visitaValues = new ContentValues();
-                                            for (int c = 0; c < visitasSolicitud.size(); c++) {
-                                                visitaValues.put("id_solicitud", NextId);
-                                                if(mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""),visitasSolicitud.get(c).getVptyp())){
-                                                    //Tipo visita de Reparto
-                                                    visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
-                                                    visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
-                                                    visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
-                                                    visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
-                                                    visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
-                                                    visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
-                                                    visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                                    visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
-                                                    visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
-                                                    visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
-                                                    visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
-                                                    visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
-                                                    visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
-                                                    visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
-                                                    visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
-                                                    visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
-                                                    visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
-                                                    visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
-                                                    visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
-                                                    visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
-                                                }else {//Tipo Visita de Preventa
-                                                    visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
-                                                    visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
-                                                    visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
-                                                    visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
-                                                    visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
-                                                    visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
-                                                    visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                                    visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
-                                                    visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
-                                                    visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
-                                                    visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
-                                                    visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
-                                                    visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
-                                                    visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
-                                                    visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
-                                                    visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
-                                                    visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
-                                                    visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
-                                                    visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
-                                                    visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
+                                            try {
+                                                if (solicitudSeleccionada.size() > 0) {
+                                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), "id_solicitud=?", new String[]{GUID});
                                                 }
-                                                try {
+                                                for (int c = 0; c < visitasSolicitud.size(); c++) {
+                                                    visitaValues.put("id_solicitud", NextId);
+                                                    if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK", ""), visitasSolicitud.get(c).getVptyp())) {
+                                                        //Tipo visita de Reparto
+                                                        visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
+                                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
+                                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
+                                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
+                                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
+                                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
+                                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
+                                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
+                                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
+                                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
+                                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
+                                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
+                                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
+                                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
+                                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
+                                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
+                                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
+                                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
+                                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
+                                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
+                                                    } else {//Tipo Visita de Preventa
+                                                        visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
+                                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
+                                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
+                                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
+                                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
+                                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
+                                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
+                                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
+                                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
+                                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
+                                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
+                                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
+                                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
+                                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
+                                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
+                                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
+                                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
+                                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
+                                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
+                                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
+                                                    }
                                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
-                                                } catch (Exception e) {
-                                                    Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud", Toast.LENGTH_SHORT).show();
+                                                    visitaValues.clear();
                                                 }
+                                            } catch (Exception e) {
+                                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud", Toast.LENGTH_SHORT).show();
                                             }
                                             break;
                                         case "W_CTE-ADJUNTOS":
                                             ContentValues adjuntoValues = new ContentValues();
                                             try {
+                                                if(solicitudSeleccionada.size() > 0){
+                                                    mDb.delete(VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(),"id_solicitud=?",new String[]{GUID});
+                                                }
                                                 for (int c = 0; c < adjuntosSolicitud.size(); c++) {
                                                     Adjuntos adjunto = adjuntosSolicitud.get(c);
                                                     adjuntoValues.put("id_solicitud", NextId);
@@ -421,7 +461,6 @@ public class SolicitudActivity extends AppCompatActivity {
                             try {
                                 //Datos que siemrpe deben ir cuando se crea por primera vez.
                                 //TODO Se debe enviar el usuairo loqgueado al sistema (Nunca debe permitir un usuario default, este debe existir en KOF y el maestro de clientes WEB)
-                                insertValues.put("[estado]", "Nuevo");
                                 insertValues.put("[id_solicitud]", NextId);
                                 insertValues.put("[tipform]", tipoSolicitud);
                                 insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("user",""));
@@ -431,21 +470,26 @@ public class SolicitudActivity extends AppCompatActivity {
                                 insertValues.put("[feccre]", dateFormat.format(date));
 
                                 //mDBHelper.getWritableDatabase().insert("FormHvKof_solicitud", null, insertValues);
-                                long inserto = mDb.insertOrThrow("FormHvKof_solicitud",null,insertValues);
-
+                                if(solicitudSeleccionada.size() > 0){
+                                    insertValues.put("[estado]", "Modificado");
+                                    long modifico = mDb.update("FormHvKof_solicitud",  insertValues,"id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});
+                                    Toasty.success(getApplicationContext(), "Registro modificado con éxito", Toast.LENGTH_SHORT).show();
+                                }else {
+                                    insertValues.put("[estado]", "Nuevo");
+                                    long inserto = mDb.insertOrThrow("FormHvKof_solicitud", null, insertValues);
+                                    //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
+                                    Intent sol = getIntent();
+                                    sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                                    SolicitudActivity.this.finish();
+                                    Bundle par = new Bundle();
+                                    par.putString("tipo_solicitud",tipoSolicitud);
+                                    SolicitudActivity.this.startActivity(sol);
+                                    Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toast.LENGTH_SHORT).show();
+                                }
                             } catch (Exception e) {
                                 Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_SHORT).show();
                             }
-                            Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toast.LENGTH_SHORT).show();
 
-                            //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
-
-                            Intent sol = getIntent();
-                            sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                            getParent().finish();
-                            Bundle par = new Bundle();
-                            par.putString("tipo_solicitud",tipoSolicitud);
-                            getParent().startActivity(sol);
                         }else{
                             //Toasty.warning(getApplicationContext(), "Existen "+numErrores+" errores en los datos.", Toast.LENGTH_SHORT).show();
                             Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toast.LENGTH_LONG).show();
@@ -579,7 +623,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         mDBHelper.addAdjuntoSolicitud(type, name, inputData);
                         Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
                     } catch (IOException e) {
-                        Toasty.error(getBaseContext(),"Error al documento el adjunto a la solicitud").show();
+                        Toasty.error(getBaseContext(),"Error al adjuntar el documento a la solicitud").show();
                         e.printStackTrace();
                     }
 
@@ -733,6 +777,9 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(campos.get(i).get("dfaul").trim().length() > 0){
                         checkbox.setChecked(true);
                     }
+                    if(solicitudSeleccionada.size() > 0){
+                        checkbox.setChecked(true);
+                    }
                     ll.addView(checkbox);
                     checkbox.setOnClickListener(new OnClickListener() {
                         @Override
@@ -760,6 +807,9 @@ public class SolicitudActivity extends AppCompatActivity {
                         //checkbox.setVisibility(View.GONE);
                     }
                     if(campos.get(i).get("dfaul").trim().length() > 0){
+                        checkbox.setChecked(true);
+                    }
+                    if(solicitudSeleccionada.size() > 0){
                         checkbox.setChecked(true);
                     }
                     ll.addView(checkbox);
@@ -790,6 +840,10 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     if(campos.get(i).get("dfaul").trim().length() > 0){
                         checkbox.setChecked(true);
+                    }
+                    if(solicitudSeleccionada.size() > 0){
+                        if(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
+                            checkbox.setChecked(true);
                     }
                     ll.addView(checkbox);
                     listaCamposDinamicos.add(campos.get(i).get("campo").trim());
@@ -826,16 +880,24 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
                     int selectedIndex = 0;
+                    String valorDefectoxRuta = PreferenceManager.getDefaultSharedPreferences(getContext()).getString(campos.get(i).get("campo").trim().replace("-","_"),"");
                     for (int j = 0; j < opciones.size(); j++){
                         listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
-                        if(campos.get(i).get("dfaul").trim().length() > 0 && opciones.get(j).get("id").trim().equals(campos.get(i).get("dfaul").trim())){
-                            selectedIndex = j;
+                        if(solicitudSeleccionada.size() > 0){
+                            //valor de la solicitud seleccionada
+                            if(opciones.get(j).get("id").trim().equals(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim())){
+                                selectedIndex = j;
+                            }
+                        }else {
+                            if (campos.get(i).get("dfaul").trim().length() > 0 && opciones.get(j).get("id").trim().equals(campos.get(i).get("dfaul").trim())) {
+                                selectedIndex = j;
+                            }
                         }
-                        String valorDefectoxRuta = PreferenceManager.getDefaultSharedPreferences(getContext()).getString(campos.get(i).get("campo").trim().replace("-","_"),"");
                         if(valorDefectoxRuta.trim().length() > 0 && opciones.get(j).get("id").trim().equals(valorDefectoxRuta.trim())){
                             selectedIndex = j;
                             combo.setEnabled(false);
                         }
+
                     }
                     // Creando el adaptador(opciones) para el comboBox deseado
                     ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, listaopciones);
@@ -1106,6 +1168,10 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(campos.get(i).get("dfaul").trim().length() > 0){
                         et.setText(campos.get(i).get("dfaul").trim());
                     }
+                    //Le cae encima al valor default por el de la solicitud seleccionada
+                    if(solicitudSeleccionada.size() > 0){
+                        et.setText(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()));
+                    }
                     //metodos configurados en tabla
                     if(campos.get(i).get("llamado1").trim().contains("ReplicarValor")){
                         String[] split = campos.get(i).get("llamado1").trim().split("'");
@@ -1185,10 +1251,9 @@ public class SolicitudActivity extends AppCompatActivity {
 
             }
             //Si estan los campos de Latitud y Longitud, activar el pineo automatico (W_CTE-ZZCRMA_LAT,W_CTE-ZZCRMA_LONG)
-            if(listaCamposDinamicos.contains("W_CTE-ZZCRMA_LAT") && listaCamposDinamicos.contains("W_CTE-ZZCRMA_LONG")){
+            if(listaCamposDinamicos.contains("W_CTE-ZZCRMA_LAT") && listaCamposDinamicos.contains("W_CTE-ZZCRMA_LONG") && solicitudSeleccionada.size() == 0){
                 LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
                 autoPineo.startLocationUpdates();
-
             }
         }
 
@@ -1243,7 +1308,6 @@ public class SolicitudActivity extends AppCompatActivity {
 
             switch(campo.get("campo").trim()){
                 case "W_CTE-CONTACTOS":
-
                     //bloque_contacto = tb_contactos;
                     seccion_header.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -1263,6 +1327,9 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     tb_contactos.setLayoutParams(hlp);
 
+                    if(solicitudSeleccionada.size() > 0){
+                        contactosSolicitud = mDBHelper.getContactosDB(idSolicitud);
+                    }
                     //Adaptadores
                     if(contactosSolicitud != null) {
                         ContactoTableAdapter stda = new ContactoTableAdapter(getContext(), contactosSolicitud);
@@ -1270,7 +1337,9 @@ public class SolicitudActivity extends AppCompatActivity {
                         stda.setTextSize(10);
                         stda.setGravity(GRAVITY_CENTER);
                         tb_contactos.setDataAdapter(stda);
+                        tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height+(contactosSolicitud.size()*(alturaFilaTableView));
                     }
+
                     headers = ((ContactoTableAdapter)tb_contactos.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
                     sta.setPaddings(10,5,10,5);
@@ -1309,12 +1378,17 @@ public class SolicitudActivity extends AppCompatActivity {
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     bloque_impuesto.setLayoutParams(hlp);
 
+                    ArrayList<Impuesto> listaImpuestos = db.getImpuestosPais();
+                    impuestosSolicitud.addAll(listaImpuestos);
+                    if(solicitudSeleccionada.size() > 0){
+                        impuestosSolicitud.clear();
+                        impuestosSolicitud = mDBHelper.getImpuestosDB(idSolicitud);
+                    }
                     //Adaptadores
                     if(impuestosSolicitud != null) {
-                        ArrayList<Impuesto> listaImpuestos = db.getImpuestosPais();
-                        impuestosSolicitud.addAll(listaImpuestos);
                         tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height+(listaImpuestos.size()*alturaFilaTableView);
                         tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(getContext(), impuestosSolicitud));
+                        tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height+(impuestosSolicitud.size()*(alturaFilaTableView));
                     }
                     headers = ((ImpuestoTableAdapter)bloque_impuesto.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
@@ -1352,12 +1426,17 @@ public class SolicitudActivity extends AppCompatActivity {
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     bloque_interlocutor.setLayoutParams(hlp);
 
+
                     ArrayList<Interlocutor> listaInterlocutores = db.getInterlocutoresPais();
                     interlocutoresSolicitud.addAll(listaInterlocutores);
+                    if(solicitudSeleccionada.size() > 0){
+                        interlocutoresSolicitud.clear();
+                        interlocutoresSolicitud = mDBHelper.getInterlocutoresDB(idSolicitud);
+                    }
                     //Adaptadores
                     if(interlocutoresSolicitud != null) {
-                        if(tipoSolicitud.equals("1")) {
-                            tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height + (listaInterlocutores.size() * alturaFilaTableView);
+                        if(tipoSolicitud.equals("1") || tipoSolicitud.equals("6")) {
+                            tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height + (interlocutoresSolicitud.size() * alturaFilaTableView);
                             tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(getContext(), interlocutoresSolicitud));
                         }
                     }
@@ -1396,6 +1475,9 @@ public class SolicitudActivity extends AppCompatActivity {
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     bloque_banco.setLayoutParams(hlp);
 
+                    if(solicitudSeleccionada.size() > 0){
+                        bancosSolicitud = mDBHelper.getBancosDB(idSolicitud);
+                    }
                     //Adaptadores
                     if(bancosSolicitud != null) {
                         BancoTableAdapter stda = new BancoTableAdapter(getContext(), bancosSolicitud);
@@ -1403,6 +1485,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         stda.setTextSize(10);
                         stda.setGravity(GRAVITY_CENTER);
                         bloque_banco.setDataAdapter(stda);
+                        tb_bancos.getLayoutParams().height = tb_bancos.getLayoutParams().height + (bancosSolicitud.size() * alturaFilaTableView);
                     }
                     headers = ((BancoTableAdapter)bloque_banco.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
@@ -1425,6 +1508,9 @@ public class SolicitudActivity extends AppCompatActivity {
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     tb_visitas.setLayoutParams(hlp);
 
+                    if(solicitudSeleccionada.size() > 0){
+                        visitasSolicitud = mDBHelper.getVisitasDB(idSolicitud);
+                    }
                     //Adaptadores
                     if(visitasSolicitud != null) {
                         VisitasTableAdapter stda = new VisitasTableAdapter(getContext(), visitasSolicitud);
@@ -1450,6 +1536,8 @@ public class SolicitudActivity extends AppCompatActivity {
                     //Desplegar textos para las secuencias de los dias de visita de la preventa.
                     //TODO Generar segun la Modalidad de venta seleccionada para usuarios tipo jefe de ventas y no preventas
                     final String[] diaLabel = {"Lunes","Martes","Miercoles","Jueves","Viernes","Sabado","Domingo"};
+                    int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
+                    int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
                     for(int x = 0; x < 6; x++){
                         TextInputLayout label = new TextInputLayout(getContext());
                         label.setHint("Secuencia dia "+diaLabel[x]);
@@ -1463,6 +1551,31 @@ public class SolicitudActivity extends AppCompatActivity {
                         TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5f);
                         lp.setMargins(0, 15, 0, 15);
                         et.setLayoutParams(lp);
+                        if(solicitudSeleccionada.size() > 0){
+                            switch(x) {
+                                case 0:
+                                    et.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud.get(indicePreventa).getLun_de()));
+                                    break;
+                                case 1:
+                                    et.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud.get(indicePreventa).getMar_de()));
+                                    break;
+                                case 2:
+                                    et.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud.get(indicePreventa).getMier_de()));
+                                    break;
+                                case 3:
+                                    et.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud.get(indicePreventa).getJue_de()));
+                                    break;
+                                case 4:
+                                    et.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud.get(indicePreventa).getVie_de()));
+                                    break;
+                                case 5:
+                                    et.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud.get(indicePreventa).getSab_de()));
+                                    break;
+                                case 6:
+                                    et.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud.get(indicePreventa).getDom_de()));
+                                    break;
+                            }
+                        }
                         //et.setPadding(20, 5, 20, 5);
                         Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
                         et.setBackground(d);
@@ -1470,7 +1583,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         et.setOnFocusChangeListener(new OnFocusChangeListener() {
                             @Override
                             public void onFocusChange(View v, boolean hasFocus) {
-                                int indicePreventa = 0;
+                                /*int indicePreventa = 0;
                                 int indiceReparto = 0;
                                 for(int i = 0 ; i < visitasSolicitud.size(); i++){
                                     if(visitasSolicitud.get(i).getVptyp().equals("ZPV")){
@@ -1479,7 +1592,10 @@ public class SolicitudActivity extends AppCompatActivity {
                                     if(visitasSolicitud.get(i).getVptyp().equals("ZDD")){
                                         indiceReparto = i;
                                     }
-                                }
+                                }*/
+                                int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
+                                int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
+
                                 final int finalIndicePreventa = indicePreventa;
                                 final int finalIndiceReparto = indiceReparto;
                                 if (!hasFocus) {
@@ -1619,11 +1735,12 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 break;
                                         }
                                     }else{
-                                        int hours = Integer.valueOf(((TextView)v).getText().toString()) / 60;
+                                        String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView)v).getText().toString());
+                                        /*int hours = Integer.valueOf(((TextView)v).getText().toString()) / 60;
                                         int minutes = Integer.valueOf(((TextView)v).getText().toString()) % 60;
                                         String h = String.format(Locale.getDefault(),"%02d", hours);
                                         String m = String.format(Locale.getDefault(),"%02d", minutes);
-                                        String secuenciaSAP = h+m;
+                                        String secuenciaSAP = h+m;*/
                                         switch(finalX) {
                                             case 0:
                                                 visitaPreventa.setLun_a(secuenciaSAP);
@@ -2122,7 +2239,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                 params1.setMargins(10,10,10,10);
                 ArrayList<HashMap<String, String>> preguntas = mDBHelper.getPreguntasSegunGrupo(opcion.getId());
-                ArrayList<HashMap<String, String>> respuestas = mDBHelper.getRespuestasEncuesta();
+                ArrayList<HashMap<String, String>> respuestas = mDBHelper.getRespuestasEncuesta(GUID);
 
                 for (int j = 0; j < preguntas.size(); j++){
                     int selected = 0;
@@ -2250,7 +2367,7 @@ public class SolicitudActivity extends AppCompatActivity {
         Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
         grupoIsscomSpinner.setBackground(spinner_back);
         grupoIsscomSpinner.setAdapter(dataAdapter);
-        ArrayList<HashMap<String, String>> respuestas = mDBHelper.getRespuestasEncuesta();
+        ArrayList<HashMap<String, String>> respuestas = mDBHelper.getRespuestasEncuesta(GUID);
         if(respuestas.size() > 0){
             grupoIsscomSpinner.setSelection(VariablesGlobales.getIndex(grupoIsscomSpinner,respuestas.get(0).get("id_grupo").trim()));
         }
@@ -2386,7 +2503,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private class ContactoLongClickListener implements TableDataLongClickListener<Contacto> {
         @Override
         public boolean onDataLongClicked(int rowIndex, Contacto seleccionado) {
-            String salida = seleccionado.getName1() + " " + seleccionado.getNamev();
+            String salida = seleccionado.getName1() + " " + seleccionado.getNamev()+" ha sido eliminado.";
             contactosSolicitud.remove(rowIndex);
             tb_contactos.setDataAdapter(new ContactoTableAdapter(getBaseContext(), contactosSolicitud));
             tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height-alturaFilaTableView;
@@ -2694,12 +2811,16 @@ public class SolicitudActivity extends AppCompatActivity {
 
     private static void Provincias(AdapterView<?> parent){
         final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+
         ArrayList<HashMap<String, String>> provincias = mDBHelper.Provincias(opcion.getId());
 
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
         int selectedIndex = 0;
         for (int j = 0; j < provincias.size(); j++){
             listaopciones.add(new OpcionSpinner(provincias.get(j).get("id"), provincias.get(j).get("descripcion")));
+            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-REGION").trim().equals(provincias.get(j).get("id"))){
+                selectedIndex = j;
+            }
         }
         Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
         // Creando el adaptador(opciones) para el comboBox deseado
@@ -2710,6 +2831,7 @@ public class SolicitudActivity extends AppCompatActivity {
         Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
+        combo.setSelection(selectedIndex);
         DireccionCorta();
     }
     private static void Cantones(AdapterView<?> parent){
@@ -2722,8 +2844,12 @@ public class SolicitudActivity extends AppCompatActivity {
         int selectedIndex = 0;
         for (int j = 0; j < cantones.size(); j++){
             listaopciones.add(new OpcionSpinner(cantones.get(j).get("id"), cantones.get(j).get("descripcion")));
+            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-CITY1").trim().equals(cantones.get(j).get("id"))){
+                selectedIndex = j;
+            }
         }
         Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-CITY1");
+
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
         // Drop down layout style - list view with radio button
@@ -2732,6 +2858,7 @@ public class SolicitudActivity extends AppCompatActivity {
         Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
+        combo.setSelection(selectedIndex);
         DireccionCorta();
     }
     private static void Distritos(AdapterView<?> parent){
@@ -2744,8 +2871,12 @@ public class SolicitudActivity extends AppCompatActivity {
         int selectedIndex = 0;
         for (int j = 0; j < distritos.size(); j++){
             listaopciones.add(new OpcionSpinner(distritos.get(j).get("id"), distritos.get(j).get("descripcion")));
+            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-STR_SUPPL3").trim().equals(distritos.get(j).get("id"))){
+                selectedIndex = j;
+            }
         }
         Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-STR_SUPPL3");
+
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
         // Drop down layout style - list view with radio button
@@ -2754,6 +2885,7 @@ public class SolicitudActivity extends AppCompatActivity {
         Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
+        combo.setSelection(selectedIndex);
         DireccionCorta();
     }
     private static void  DireccionCorta() {
@@ -2890,10 +3022,12 @@ public class SolicitudActivity extends AppCompatActivity {
         private WeakReference<Context> contextRef;
         final ViewPager viewPager;
         final TabLayout misTabs;
+        final ViewPagerAdapter adapter;
         public MostrarFormulario(Context context) {
             contextRef = new WeakReference<>(context);
             viewPager = new ViewPager(context);
             misTabs = new TabLayout(context);
+            adapter = new ViewPagerAdapter(getSupportFragmentManager());
         }
         @SuppressLint("ResourceType")
         @Override
@@ -2910,7 +3044,7 @@ public class SolicitudActivity extends AppCompatActivity {
             //final ViewPager viewPager = new ViewPager(context);
             publishProgress(4);
             viewPager.setId(1);
-            ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+            //ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
             publishProgress(6);
             viewPager.setOffscreenPageLimit(5);
             viewPager.setAdapter(adapter);

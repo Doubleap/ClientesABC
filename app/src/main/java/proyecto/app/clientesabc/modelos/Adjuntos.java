@@ -7,6 +7,8 @@ public class Adjuntos {
     private String name;
     private byte[]  image;
 
+    public Adjuntos(){
+    }
     public Adjuntos(String sol, String tip, String nam, byte[] img){
         id_solicitud = sol;
         type = tip;

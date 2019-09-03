@@ -2,51 +2,78 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
-        android:elevation="4dp">
-
+        android:elevation="8dp"
+        app:cardCornerRadius="5dp">
+        <LinearLayout
+            android:id="@+id/estado"
+            android:layout_width="10dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorPrimary"
+            android:orientation="horizontal"></LinearLayout>
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/activity_horizontal_margin">
-            <ImageView
-                android:id="@+id/estado"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/circulo_status_cliente"/>
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/margin_small"
+            android:paddingBottom="@dimen/margin_medium">
             <TextView
                 android:id="@+id/textViewHead"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="40dp"
-                android:text="Codigo"
+                android:layout_marginLeft="10dp"
+                android:text="Inclusion MA"
                 android:textAppearance="?android:textAppearanceLarge" />
+            <TextView
+                android:id="@+id/codigo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="0"
+                android:layout_below="@+id/textViewHead"
+                android:textAppearance="?android:textAppearanceSmall" />
 
             <TextView
                 android:id="@+id/textViewDesc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="40dp"
-                android:layout_below="@id/textViewHead"
-                android:text="Nombre Cliente"
-                android:textAppearance="?android:textAppearanceMedium" />
-
+                android:layout_marginLeft="10dp"
+                android:layout_toRightOf="@id/codigo"
+                android:layout_alignBaseline="@+id/codigo"
+                android:text="- Abastecedor Tio Andres"
+                android:textAppearance="?android:textAppearanceSmall" />
             <TextView
-                android:id="@+id/textViewOptions"
+                android:id="@+id/estado_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_toLeftOf="@id/estado_circulo"
+                android:text="Nuevo"
+                android:textAppearance="?android:textAppearanceMedium" />
+            <ImageView
+                android:id="@+id/estado_circulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_margin="6dp"
+                android:background="@drawable/circulo_status_cliente"/>
+            <ImageView
+                android:id="@+id/textViewOptions"
+                android:layout_width="wrap_content"
+                android:layout_height="25dp"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:text="Cancelar"
+                android:textAlignment="center"
+                android:layout_below="@+id/estado_text"
                 android:layout_alignParentRight="true"
-                android:layout_alignParentTop="true"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:text="&#8942;"
-                android:textAppearance="?android:textAppearanceLarge" />
-
+                android:background="@drawable/icon_menu"/>
         </RelativeLayout>
 
     </android.support.v7.widget.CardView>

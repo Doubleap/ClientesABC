@@ -14,7 +14,6 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -26,7 +25,6 @@ import java.lang.ref.WeakReference;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.clases.PruebaConexionServidor;
 import proyecto.app.clientesabc.clases.SincronizacionServidor;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
@@ -68,9 +66,9 @@ public class TCPActivity extends AppCompatActivity
 
         changeName = findViewById(R.id.change);
         ip_text = findViewById(R.id.txtservidor);
-        ip_text.setText(VariablesGlobales.getIpcon());
+        ip_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("Ip",""));
         puerto_text = (EditText)findViewById(R.id.txtPuerto);
-        puerto_text.setText(String.valueOf(VariablesGlobales.getPuertocon()));
+        puerto_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("Puerto",""));
         ruta_text = findViewById(R.id.txtRuta);
         ruta_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("W_CTE_RUTAHH",""));
 
@@ -88,8 +86,8 @@ public class TCPActivity extends AppCompatActivity
                     //Realizar una prueba de conexion para validar los datos ingresados
                     WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
                     WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
-                    VariablesGlobales.setIpcon(ip_text.getText().toString());
-                    VariablesGlobales.setPuertocon(Integer.valueOf(puerto_text.getText().toString()));
+                    PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
+                    PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
 
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
                     PruebaConexionServidor f = new PruebaConexionServidor(weakRef, weakRefA);
@@ -112,26 +110,24 @@ public class TCPActivity extends AppCompatActivity
                         finish();
                         return true;
                     case R.id.action_sincronizar:
-                        Log.i("Read Button Clicked", "yipee");
                         if(validarConexion()) {
                             //startService(new Intent(TCPActivity.this, NameService.class));
                             WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
-                            VariablesGlobales.setIpcon(ip_text.getText().toString());
-                            VariablesGlobales.setPuertocon(Integer.valueOf(puerto_text.getText().toString()));
+                            PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
+                            PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
                             SincronizacionServidor s = new SincronizacionServidor(weakRef, weakRefA);
                             s.execute();
                         }
                         return true;
                     case R.id.action_transmitir:
-                        Log.i("Start Server Clicked", "yipee");
                         if(validarConexion()) {
                             //Realizar la transmision de lo que se necesita (Db o txt)
                             WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
-                            VariablesGlobales.setIpcon(ip_text.getText().toString());
-                            VariablesGlobales.setPuertocon(Integer.valueOf(puerto_text.getText().toString()));
+                            PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
+                            PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
 
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
                             TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, filePath, wholePath);
@@ -145,11 +141,11 @@ public class TCPActivity extends AppCompatActivity
 
     private boolean validarConexion(){
         boolean retorno = true;
-        if(VariablesGlobales.getIpcon().trim().isEmpty()){
+        if(ip_text.getText().toString().trim().isEmpty()){
             Toasty.warning(getBaseContext(),"Por favor digite una direccion IP válida.");
             retorno = false;
         }
-        if(String.valueOf(VariablesGlobales.getPuertocon()).isEmpty()){
+        if(puerto_text.getText().toString().trim().isEmpty()){
             Toasty.warning(getBaseContext(),"Por favor digite un puerto válido.");
             retorno = false;
         }

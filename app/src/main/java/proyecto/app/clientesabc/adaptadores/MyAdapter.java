@@ -1,10 +1,9 @@
 package proyecto.app.clientesabc.adaptadores;
 
 import android.content.Context;
-import android.graphics.drawable.ColorDrawable;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.ShapeDrawable;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.PopupMenu;
@@ -18,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.actividades.SolicitudActivity;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> implements Filterable {
     private ArrayList<HashMap<String, String>> mDataset;
@@ -41,14 +42,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
             listView = v;
         }
     }
-
     // Constructor de Adaptador HashMap
     public MyAdapter(ArrayList<HashMap<String, String>> myDataset,Context c) {
         mDataset = myDataset;
         formListFiltered = mDataset;
         context = c;
     }
-
     // Crear nuevas Views. Puedo crear diferentes layouts para diferentes adaptadores desde la misma clase
     @NonNull
     @Override
@@ -57,22 +56,24 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.solicitudes_item, parent, false);
         return new MyViewHolder(v);
     }
-
     // Reemplazar el contenido del View. Para ListView se llama solo, pero para RecyclerView hay que llamar al setLayoutManager
     @Override
-    public void onBindViewHolder(@NonNull final MyAdapter.MyViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final MyAdapter.MyViewHolder holder, final int position) {
         // - Obtener Elemento del data set en esta position
         // - Reemplazar aqui cualquier contenido dinamico dependiendo de algun valor de l dataset creado y o el contenido del dataset
         TextView codigo = holder.listView.findViewById(R.id.textViewHead);
         codigo.setText(formListFiltered.get(position).get("codigo"));
         TextView nombre = holder.listView.findViewById(R.id.textViewDesc);
         nombre.setText(formListFiltered.get(position).get("nombre"));
-        TextView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
-        ImageView estado = holder.listView.findViewById(R.id.estado);
-        Drawable d = context.getResources().getDrawable(R.drawable.circulo_status_cliente, null);
+        LinearLayout estado = (LinearLayout) holder.listView.findViewById(R.id.estado);
+        TextView estado_text = (TextView) holder.listView.findViewById(R.id.estado_text);
+        ImageView estado_circulo = holder.listView.findViewById(R.id.estado_circulo);
+        ImageView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
 
         Drawable background = estado.getBackground();
+        Drawable background_circulo = estado_circulo.getBackground();
         int color = R.color.sinFormularios;
+
         if(formListFiltered.get(position).get("estado").trim().equals("Pendiente")){
             color = R.color.pendientes;
         }
@@ -97,22 +98,29 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         if(formListFiltered.get(position).get("estado").trim().equals("Cancelado")){
             color = R.color.black;
         }
-        if (background instanceof ShapeDrawable) {
-            ShapeDrawable shapeDrawable = (ShapeDrawable) background;
-            shapeDrawable.getPaint().setColor(ContextCompat.getColor(context, color));
-        } else if (background instanceof GradientDrawable) {
-            GradientDrawable gradientDrawable = (GradientDrawable) background;
-            gradientDrawable.setColor(ContextCompat.getColor(context, color));
-        } else if (background instanceof ColorDrawable) {
-            ColorDrawable colorDrawable = (ColorDrawable) background;
-            colorDrawable.setColor(ContextCompat.getColor(context, color));
-        }
+        estado_text.setText(formListFiltered.get(position).get("estado").trim());
+        estado_text.setTextColor(ContextCompat.getColor(context, color));
+        estado.setBackground(ContextCompat.getDrawable(context, color));
+        estado_circulo.getBackground().setTint(ContextCompat.getColor(context, color));
 
+        holder.listView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Bundle b = new Bundle();
+                //TODO seleccionar el tipo de solicitud por el UI
+                //b.putString("tipoSolicitud", "1"); //id de solicitud
+                b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
+
+                Intent intent = new Intent(view.getContext(),SolicitudActivity.class);
+                intent.putExtras(b); //Pase el parametro el Intent
+                view.getContext().startActivity(intent);
+            }
+        });
         codigo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //TODO Pantalla de visualizacion de datos del cliente, la informacion debe ser mapeada desde la tabla de clientes de HH (Dependiente de los datos que existan ahi para mostrar)
-                Toast.makeText(context, "Cliente codigo clickeado:"+((TextView)v).getText(),Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Ver Cliente codigo clickeado:"+((TextView)v).getText(),Toast.LENGTH_SHORT).show();
             }
         });
         textViewOptions.setOnClickListener(new View.OnClickListener() {

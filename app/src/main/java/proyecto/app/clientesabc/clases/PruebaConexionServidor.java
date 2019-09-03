@@ -5,9 +5,12 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
@@ -15,7 +18,6 @@ import java.net.Socket;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
 
 public class PruebaConexionServidor extends AsyncTask<Void,Void,Void> {
     private WeakReference<Context> context;
@@ -35,7 +37,12 @@ public class PruebaConexionServidor extends AsyncTask<Void,Void,Void> {
         //Solo enviamos los datos necesarios para que la sincronizacion sepa que traer
         try {
             System.out.println("Estableciendo comunicación");
-            socket = new Socket(VariablesGlobales.getIpcon(),VariablesGlobales.getPuertocon());
+            socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip",""),Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto","")));
+
+            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            dos.writeUTF("Prueba");
+            dos.flush();
+
             socket.close();
         } catch (IOException e) {
             // TODO Auto-generated catch block

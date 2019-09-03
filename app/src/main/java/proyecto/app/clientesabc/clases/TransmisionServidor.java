@@ -33,7 +33,6 @@ import java.util.ArrayList;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 import static android.support.v4.content.ContextCompat.startActivity;
@@ -102,7 +101,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 errorFlag = "Hay "+cantidad+" solicitudes nuevas para transmitir.";
             }else {
                 System.out.println("Estableciendo comunicación para enviar archivos...");
-                socket = new Socket(VariablesGlobales.getIpcon(),VariablesGlobales.getPuertocon());
+                socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip",""),Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto","")));
                 // Enviar archivo en socket
                 //File myFile = new File("/data/user/0/proyecto.app.clientesabc/databases/", "FAWM_ANDROID_2");
                 //files.add(myFile);
@@ -209,9 +208,8 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
+
         AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
-        builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion
-        builder.setView(R.layout.layout_loading_dialog);
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
@@ -219,8 +217,10 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 cancel(true);
             }
         });
+        builder.setView(R.layout.layout_loading_dialog);
         dialog = builder.create();
         dialog.show();
+
     }
     @Override
     protected void onPostExecute(Void aVoid) {
@@ -234,6 +234,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
             mDBHelper.ActualizarEstadosSolicitudesTransmitidas();
 
         }
+        dialog.dismiss();
         if(dialog.isShowing())
             dialog.hide();
         Intent intent = activity.get().getIntent();

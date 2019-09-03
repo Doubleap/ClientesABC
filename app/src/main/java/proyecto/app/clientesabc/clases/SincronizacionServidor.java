@@ -3,6 +3,7 @@ package proyecto.app.clientesabc.clases;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -23,7 +24,6 @@ import java.net.Socket;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
@@ -45,7 +45,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
 
         try {
             System.out.println("Estableciendo comunicación para enviar archivos...");
-            socket = new Socket(VariablesGlobales.getIpcon(),VariablesGlobales.getPuertocon());
+            socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip",""),Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto","")));
             //socket.setReuseAddress(true);
 
             // Enviar archivo en socket
@@ -70,32 +70,41 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
 
             //TODO Puedo recibir cualquier cosa de respuesta en el stream de la conexion del socket??
             long s = dis.readLong();
-            byte[] respuesta = new byte[(int)s];
+            if(s < 0){
+                s = dis.readLong();
+                byte[] e = new byte[124];
+                dis.readFully(e);
+                String error = new String(e);
+                xceptionFlag = true;
+                messageFlag = error;
+            }else {
+                byte[] r = new byte[(int) s];
+                dis.readFully(r);
 
-            dis.readFully(respuesta);
-            //dis.read(respuesta,0,(int)s);
+                File tranFileDir;
+                File externalStorage = Environment.getExternalStorageDirectory();
+                if (externalStorage != null) {
+                    String externalStoragePath = externalStorage.getAbsolutePath();
+                    tranFileDir = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision");
+                    boolean ex = tranFileDir.mkdirs();
+                    File transferFile = new File(tranFileDir, "FAWM_ANDROID_2");
+                    OutputStream stream = new FileOutputStream(transferFile);
+                    stream.write(r);
+                    stream.flush();
+                    stream.close();
+                }
+                //O cerrarlo aqui estara bien?
+                dos.close();
 
-            File tranFileDir;
-            File externalStorage = Environment.getExternalStorageDirectory();
-            if (externalStorage != null) {
-                String externalStoragePath = externalStorage.getAbsolutePath();
-                tranFileDir = new File(externalStoragePath + File.separator + context.get().getPackageName()+ File.separator+"Transmision");
-                boolean ex = tranFileDir.mkdirs();
-                File transferFile = new File(tranFileDir,"FAWM_ANDROID_2");
-                OutputStream stream = new FileOutputStream(transferFile);
-                stream.write(respuesta);
-                stream.flush();
-                stream.close();
-            }
-            //O cerrarlo aqui estara bien?
-            dos.close();
-
-            //Pasar de la sincronizacion a caerle encima a la base de datos actual
-            DataBaseHelper mDBHelper = new DataBaseHelper(context.get());
-            try {
-                mDBHelper.updateDataBase();
-            } catch (IOException e) {
-                e.printStackTrace();
+                //Pasar de la sincronizacion a caerle encima a la base de datos actual
+                DataBaseHelper mDBHelper = new DataBaseHelper(context.get());
+                try {
+                    mDBHelper.updateDataBase();
+                } catch (IOException e) {
+                    xceptionFlag = true;
+                    messageFlag = "Error al actualizar la Base de Datos.";
+                    e.printStackTrace();
+                }
             }
 
         } catch (IOException e) {
@@ -125,6 +134,13 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
         AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
         builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion
         builder.setView(R.layout.layout_loading_dialog);
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                messageFlag = "Proceso cancelado por el usuario.";
+                cancel(true);
+            }
+        });
         dialog = builder.create();
         dialog.show();
     }
@@ -137,7 +153,9 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
         else{
             Toasty.error(context.get(),"Sincronizacion Fallida."+messageFlag,Toast.LENGTH_LONG).show();
         }
-        if(dialog.isShowing())
+        dialog.dismiss();
+        if(dialog.isShowing()) {
             dialog.hide();
+        }
     }
 }

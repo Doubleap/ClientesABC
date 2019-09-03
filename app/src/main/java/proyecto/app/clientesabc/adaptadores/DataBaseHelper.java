@@ -31,6 +31,8 @@ import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.modelos.Adjuntos;
+import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Contacto;
 import proyecto.app.clientesabc.modelos.Impuesto;
 import proyecto.app.clientesabc.modelos.Interlocutor;
@@ -220,10 +222,176 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return  clientList;
     }
+    public ArrayList<HashMap<String, String>> getSolicitud(String id_solicitud){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, String>> formList = new ArrayList<>();
+        String query = "SELECT * FROM FormHVKOF_solicitud WHERE id_solicitud = ?";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_solicitud});
+        while (cursor.moveToNext()){
+            HashMap<String,String> solicitud = new HashMap<>();
+            solicitud.put("id_solicitud",cursor.getString(cursor.getColumnIndex("id_solicitud")));
+            solicitud.put("IDFORM",cursor.getString(cursor.getColumnIndex("IDFORM")));
+            solicitud.put("TIPFORM",cursor.getString(cursor.getColumnIndex("TIPFORM")));
+            solicitud.put("FECCRE",cursor.getString(cursor.getColumnIndex("FECCRE")));
+            solicitud.put("USUSOL",cursor.getString(cursor.getColumnIndex("USUSOL")));
+            solicitud.put("ESTADO",cursor.getString(cursor.getColumnIndex("ESTADO")));
+            solicitud.put("W_CTE-AKONT",cursor.getString(cursor.getColumnIndex("W_CTE-AKONT")));
+            solicitud.put("W_CTE-ALTKN",cursor.getString(cursor.getColumnIndex("W_CTE-ALTKN")));
+            solicitud.put("W_CTE-ANTLF",cursor.getString(cursor.getColumnIndex("W_CTE-ANTLF")));
+            solicitud.put("W_CTE-BUKRS",cursor.getString(cursor.getColumnIndex("W_CTE-BUKRS")));
+            solicitud.put("W_CTE-BZIRK",cursor.getString(cursor.getColumnIndex("W_CTE-BZIRK")));
+            solicitud.put("W_CTE-CITY1",cursor.getString(cursor.getColumnIndex("W_CTE-CITY1")));
+            solicitud.put("W_CTE-CITY2",cursor.getString(cursor.getColumnIndex("W_CTE-CITY2")));
+            solicitud.put("W_CTE-CTLPC",cursor.getString(cursor.getColumnIndex("W_CTE-CTLPC")));
+            solicitud.put("W_CTE-DATAB",cursor.getString(cursor.getColumnIndex("W_CTE-DATAB")));
+            solicitud.put("W_CTE-DATBI",cursor.getString(cursor.getColumnIndex("W_CTE-DATBI")));
+            solicitud.put("W_CTE-DBRTG",cursor.getString(cursor.getColumnIndex("W_CTE-DBRTG")));
+            solicitud.put("W_CTE-DMBTR1",cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR1")));
+            solicitud.put("W_CTE-DMBTR2",cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR2")));
+            solicitud.put("W_CTE-DMBTR3",cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR3")));
+            solicitud.put("W_CTE-FAX_EXTENS",cursor.getString(cursor.getColumnIndex("W_CTE-FAX_EXTENS")));
+            solicitud.put("W_CTE-FAX_NUMBER",cursor.getString(cursor.getColumnIndex("W_CTE-FAX_NUMBER")));
+            solicitud.put("W_CTE-FDGRV",cursor.getString(cursor.getColumnIndex("W_CTE-FDGRV")));
+            solicitud.put("W_CTE-FLAG_FACT",cursor.getString(cursor.getColumnIndex("W_CTE-FLAG_FACT")));
+            solicitud.put("W_CTE-FLAG_NTEN",cursor.getString(cursor.getColumnIndex("W_CTE-FLAG_NTEN")));
+            solicitud.put("W_CTE-HITYP",cursor.getString(cursor.getColumnIndex("W_CTE-HITYP")));
+            solicitud.put("W_CTE-HKUNNR",cursor.getString(cursor.getColumnIndex("W_CTE-HKUNNR")));
+            solicitud.put("W_CTE-HOME_CITY",cursor.getString(cursor.getColumnIndex("W_CTE-HOME_CITY")));
+            solicitud.put("W_CTE-HOUSE_NUM1",cursor.getString(cursor.getColumnIndex("W_CTE-HOUSE_NUM1")));
+            solicitud.put("W_CTE-HOUSE_NUM2",cursor.getString(cursor.getColumnIndex("W_CTE-HOUSE_NUM2")));
+            solicitud.put("W_CTE-INCO1",cursor.getString(cursor.getColumnIndex("W_CTE-INCO1")));
+            solicitud.put("W_CTE-INCO2",cursor.getString(cursor.getColumnIndex("W_CTE-INCO2")));
+            solicitud.put("W_CTE-KALKS",cursor.getString(cursor.getColumnIndex("W_CTE-KALKS")));
+            solicitud.put("W_CTE-KATR3",cursor.getString(cursor.getColumnIndex("W_CTE-KATR3")));
+            solicitud.put("W_CTE-KATR4",cursor.getString(cursor.getColumnIndex("W_CTE-KATR4")));
+            solicitud.put("W_CTE-KATR5",cursor.getString(cursor.getColumnIndex("W_CTE-KATR5")));
+            solicitud.put("W_CTE-KATR8",cursor.getString(cursor.getColumnIndex("W_CTE-KATR8")));
+            solicitud.put("W_CTE-KDGRP",cursor.getString(cursor.getColumnIndex("W_CTE-KDGRP")));
+            solicitud.put("W_CTE-KKBER",cursor.getString(cursor.getColumnIndex("W_CTE-KKBER")));
+            solicitud.put("W_CTE-KLABC",cursor.getString(cursor.getColumnIndex("W_CTE-KLABC")));
+            solicitud.put("W_CTE-KLIMK",cursor.getString(cursor.getColumnIndex("W_CTE-KLIMK")));
+            solicitud.put("W_CTE-KNKLI",cursor.getString(cursor.getColumnIndex("W_CTE-KNKLI")));
+            solicitud.put("W_CTE-KTGRD",cursor.getString(cursor.getColumnIndex("W_CTE-KTGRD")));
+            solicitud.put("W_CTE-KTOKD",cursor.getString(cursor.getColumnIndex("W_CTE-KTOKD")));
+            solicitud.put("W_CTE-KUKLA",cursor.getString(cursor.getColumnIndex("W_CTE-KUKLA")));
+            solicitud.put("W_CTE-KUNNR",cursor.getString(cursor.getColumnIndex("W_CTE-KUNNR")));
+            solicitud.put("W_CTE-KVGR1",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR1")));
+            solicitud.put("W_CTE-KVGR2",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR2")));
+            solicitud.put("W_CTE-KVGR3",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR3")));
+            solicitud.put("W_CTE-KVGR5",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR5")));
+            solicitud.put("W_CTE-LAND1",cursor.getString(cursor.getColumnIndex("W_CTE-LAND1")));
+            solicitud.put("W_CTE-LIFNR",cursor.getString(cursor.getColumnIndex("W_CTE-LIFNR")));
+            solicitud.put("W_CTE-LIMSUG",cursor.getString(cursor.getColumnIndex("W_CTE-LIMSUG")));
+            solicitud.put("W_CTE-LOCATION",cursor.getString(cursor.getColumnIndex("W_CTE-LOCATION")));
+            solicitud.put("W_CTE-LPRIO",cursor.getString(cursor.getColumnIndex("W_CTE-LPRIO")));
+            solicitud.put("W_CTE-LZONE",cursor.getString(cursor.getColumnIndex("W_CTE-LZONE")));
+            solicitud.put("W_CTE-NAME_CO",cursor.getString(cursor.getColumnIndex("W_CTE-NAME_CO")));
+            solicitud.put("W_CTE-NAME1",cursor.getString(cursor.getColumnIndex("W_CTE-NAME1")));
+            solicitud.put("W_CTE-NAME2",cursor.getString(cursor.getColumnIndex("W_CTE-NAME2")));
+            solicitud.put("W_CTE-NAME3",cursor.getString(cursor.getColumnIndex("W_CTE-NAME3")));
+            solicitud.put("W_CTE-NAME4",cursor.getString(cursor.getColumnIndex("W_CTE-NAME4")));
+            solicitud.put("W_CTE-PERNR",cursor.getString(cursor.getColumnIndex("W_CTE-PERNR")));
+            solicitud.put("W_CTE-PO_BOX",cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX")));
+            solicitud.put("W_CTE-PO_BOX_LOC",cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX_LOC")));
+            solicitud.put("W_CTE-PO_BOX_REG",cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX_REG")));
+            solicitud.put("W_CTE-POST_CODE2",cursor.getString(cursor.getColumnIndex("W_CTE-POST_CODE2")));
+            solicitud.put("W_CTE-PRFRE",cursor.getString(cursor.getColumnIndex("W_CTE-PRFRE")));
+            solicitud.put("W_CTE-PSON1",cursor.getString(cursor.getColumnIndex("W_CTE-PSON1")));
+            solicitud.put("W_CTE-PSON2",cursor.getString(cursor.getColumnIndex("W_CTE-PSON2")));
+            solicitud.put("W_CTE-PSON3",cursor.getString(cursor.getColumnIndex("W_CTE-PSON3")));
+            solicitud.put("W_CTE-PSTLZ",cursor.getString(cursor.getColumnIndex("W_CTE-PSTLZ")));
+            solicitud.put("W_CTE-PVKSM",cursor.getString(cursor.getColumnIndex("W_CTE-PVKSM")));
+            solicitud.put("W_CTE-REGION",cursor.getString(cursor.getColumnIndex("W_CTE-REGION")));
+            solicitud.put("W_CTE-ROOMNUMBER",cursor.getString(cursor.getColumnIndex("W_CTE-ROOMNUMBER")));
+            solicitud.put("W_CTE-SMTP_ADDR",cursor.getString(cursor.getColumnIndex("W_CTE-SMTP_ADDR")));
+            solicitud.put("W_CTE-STCD1",cursor.getString(cursor.getColumnIndex("W_CTE-STCD1")));
+            solicitud.put("W_CTE-STCD3",cursor.getString(cursor.getColumnIndex("W_CTE-STCD3")));
+            solicitud.put("W_CTE-STR_SUPPL1",cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL1")));
+            solicitud.put("W_CTE-STR_SUPPL2",cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL2")));
+            solicitud.put("W_CTE-STR_SUPPL3",cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL3")));
+            solicitud.put("W_CTE-STREET",cursor.getString(cursor.getColumnIndex("W_CTE-STREET")));
+            solicitud.put("W_CTE-TEL_EXTENS",cursor.getString(cursor.getColumnIndex("W_CTE-TEL_EXTENS")));
+            solicitud.put("W_CTE-TEL_NUMBER",cursor.getString(cursor.getColumnIndex("W_CTE-TEL_NUMBER")));
+            solicitud.put("W_CTE-TEL_NUMBER2",cursor.getString(cursor.getColumnIndex("W_CTE-TEL_NUMBER2")));
+            solicitud.put("W_CTE-TELNUMBER2",cursor.getString(cursor.getColumnIndex("W_CTE-TELNUMBER2")));
+            solicitud.put("W_CTE-TELNUMBER3",cursor.getString(cursor.getColumnIndex("W_CTE-TELNUMBER3")));
+            solicitud.put("W_CTE-TOGRU",cursor.getString(cursor.getColumnIndex("W_CTE-TOGRU")));
+            solicitud.put("W_CTE-UPDAT",cursor.getString(cursor.getColumnIndex("W_CTE-UPDAT")));
+            solicitud.put("W_CTE-VKBUR",cursor.getString(cursor.getColumnIndex("W_CTE-VKBUR")));
+            solicitud.put("W_CTE-VKGRP",cursor.getString(cursor.getColumnIndex("W_CTE-VKGRP")));
+            solicitud.put("W_CTE-VKORG",cursor.getString(cursor.getColumnIndex("W_CTE-VKORG")));
+            solicitud.put("W_CTE-VSBED",cursor.getString(cursor.getColumnIndex("W_CTE-VSBED")));
+            solicitud.put("W_CTE-VWERK",cursor.getString(cursor.getColumnIndex("W_CTE-VWERK")));
+            solicitud.put("W_CTE-WAERS",cursor.getString(cursor.getColumnIndex("W_CTE-WAERS")));
+            solicitud.put("W_CTE-XZVER",cursor.getString(cursor.getColumnIndex("W_CTE-XZVER")));
+            solicitud.put("W_CTE-ZGPOCANAL",cursor.getString(cursor.getColumnIndex("W_CTE-ZGPOCANAL")));
+            solicitud.put("W_CTE-ZTERM",cursor.getString(cursor.getColumnIndex("W_CTE-ZTERM")));
+            solicitud.put("W_CTE-ZTPOCANAL",cursor.getString(cursor.getColumnIndex("W_CTE-ZTPOCANAL")));
+            solicitud.put("W_CTE-ZSEGPRE",cursor.getString(cursor.getColumnIndex("W_CTE-ZSEGPRE")));
+            solicitud.put("W_CTE-ZWELS",cursor.getString(cursor.getColumnIndex("W_CTE-ZWELS")));
+            solicitud.put("W_CTE-ZZAUART",cursor.getString(cursor.getColumnIndex("W_CTE-ZZAUART")));
+            solicitud.put("W_CTE-ZZBLOQU",cursor.getString(cursor.getColumnIndex("W_CTE-ZZBLOQU")));
+            solicitud.put("W_CTE-ZZCANAL",cursor.getString(cursor.getColumnIndex("W_CTE-ZZCANAL")));
+            solicitud.put("W_CTE-ZZCATFOCO",cursor.getString(cursor.getColumnIndex("W_CTE-ZZCATFOCO")));
+            solicitud.put("W_CTE-ZZCRMA_LAT",cursor.getString(cursor.getColumnIndex("W_CTE-ZZCRMA_LAT")));
+            solicitud.put("W_CTE-ZZCRMA_LONG",cursor.getString(cursor.getColumnIndex("W_CTE-ZZCRMA_LONG")));
+            solicitud.put("W_CTE-ZZENT1",cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT1")));
+            solicitud.put("W_CTE-ZZENT2",cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT2")));
+            solicitud.put("W_CTE-ZZENT3",cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT3")));
+            solicitud.put("W_CTE-ZZENT4",cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT4")));
+            solicitud.put("W_CTE-ZZENT5",cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT5")));
+            solicitud.put("W_CTE-ZZERDAT",cursor.getString(cursor.getColumnIndex("W_CTE-ZZERDAT")));
+            solicitud.put("W_CTE-ZZGERENTE",cursor.getString(cursor.getColumnIndex("W_CTE-ZZGERENTE")));
+            solicitud.put("W_CTE-ZZINTCO",cursor.getString(cursor.getColumnIndex("W_CTE-ZZINTCO")));
+            solicitud.put("W_CTE-ZZINTTACT",cursor.getString(cursor.getColumnIndex("W_CTE-ZZINTTACT")));
+            solicitud.put("W_CTE-ZZJEFATURA",cursor.getString(cursor.getColumnIndex("W_CTE-ZZJEFATURA")));
+            solicitud.put("W_CTE-ZZOCCONS",cursor.getString(cursor.getColumnIndex("W_CTE-ZZOCCONS")));
+            solicitud.put("W_CTE-ZZREJA",cursor.getString(cursor.getColumnIndex("W_CTE-ZZREJA")));
+            solicitud.put("W_CTE-ZZSEGCOM",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGCOM")));
+            solicitud.put("W_CTE-ZZSEGDESC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGDESC")));
+            solicitud.put("W_CTE-ZZSEGEXH",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGEXH")));
+            solicitud.put("W_CTE-ZZSEGPDE",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPDE")));
+            solicitud.put("W_CTE-ZZSEGPDV",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPDV")));
+            solicitud.put("W_CTE-ZZSEGPORT",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPORT")));
+            solicitud.put("W_CTE-ZZSEGPRE",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPRE")));
+            solicitud.put("W_CTE-ZZSHARE",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSHARE")));
+            solicitud.put("W_CTE-ZZSTAT",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSTAT")));
+            solicitud.put("W_CTE-ZZSUBUNNEG",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSUBUNNEG")));
+            solicitud.put("W_CTE-ZZTIPSERV",cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPSERV")));
+            solicitud.put("W_CTE-ZZTFISI",cursor.getString(cursor.getColumnIndex("W_CTE-ZZTFISI")));
+            solicitud.put("W_CTE-ZZUNNEG",cursor.getString(cursor.getColumnIndex("W_CTE-ZZUNNEG")));
+            solicitud.put("W_CTE-ZZZONACOST",cursor.getString(cursor.getColumnIndex("W_CTE-ZZZONACOST")));
+            solicitud.put("W_CTE-COMENTARIOS",cursor.getString(cursor.getColumnIndex("W_CTE-COMENTARIOS")));
+            solicitud.put("fuera_politica_plazo",cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")));
+            solicitud.put("fuera_politica_monto",cursor.getString(cursor.getColumnIndex("fuera_politica_monto")));
+            solicitud.put("W_CTE-NOTIFICANTES",cursor.getString(cursor.getColumnIndex("W_CTE-NOTIFICANTES")));
+            solicitud.put("FECFIN",cursor.getString(cursor.getColumnIndex("FECFIN")));
+            solicitud.put("W_CTE-ZZKEYACC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZKEYACC")));
+            solicitud.put("W_CTE-ZIBASE",cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE")));
+            solicitud.put("W_CTE-ZADICI",cursor.getString(cursor.getColumnIndex("W_CTE-ZADICI")));
+            solicitud.put("W_CTE-ZZUDATE",cursor.getString(cursor.getColumnIndex("W_CTE-ZZUDATE")));
+            solicitud.put("W_CTE-AUFSD",cursor.getString(cursor.getColumnIndex("W_CTE-AUFSD")));
+            solicitud.put("W_CTE-LIFSD",cursor.getString(cursor.getColumnIndex("W_CTE-LIFSD")));
+            solicitud.put("W_CTE-FAKSD",cursor.getString(cursor.getColumnIndex("W_CTE-FAKSD")));
+            solicitud.put("W_CTE-CASSD",cursor.getString(cursor.getColumnIndex("W_CTE-CASSD")));
+            solicitud.put("W_CTE-LOEVM",cursor.getString(cursor.getColumnIndex("W_CTE-LOEVM")));
+            solicitud.put("W_CTE-TELF2",cursor.getString(cursor.getColumnIndex("W_CTE-TELF2")));
+            solicitud.put("W_CTE-VTWEG",cursor.getString(cursor.getColumnIndex("W_CTE-VTWEG")));
+            solicitud.put("W_CTE-SPART",cursor.getString(cursor.getColumnIndex("W_CTE-SPART")));
+            solicitud.put("W_CTE-PERFK",cursor.getString(cursor.getColumnIndex("W_CTE-PERFK")));
+            solicitud.put("W_CTE-KVGR4",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")));
+            solicitud.put("W_CTE-KONDA",cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")));
+            solicitud.put("W_CTE-RUTAHH",cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")));
+
+            formList.add(solicitud);
+        }
+        cursor.close();
+        return  formList;
+    }
     public ArrayList<HashMap<String, String>> getSolicitudes(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> formList = new ArrayList<>();
-        String query = "SELECT idform as numero, [W_CTE-KUNNR] as codigo, [W_CTE-NAME1] as nombre, estado as estado, tipform " +
+        String query = "SELECT idform as numero, [W_CTE-KUNNR] as codigo, [W_CTE-NAME1] as nombre, estado as estado, tipform, id_solicitud " +
                 " FROM FormHVKOF_solicitud";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
@@ -233,6 +401,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("nombre",cursor.getString(2));
             user.put("estado",cursor.getString(3));
             user.put("tipform",cursor.getString(4));
+            user.put("id_solicitud",cursor.getString(5));
             formList.add(user);
         }
         cursor.close();
@@ -248,7 +417,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             coma = ",";
         }
         params += ")";
-        String query = "SELECT idform as numero, [W_CTE-KUNNR] as codigo, [W_CTE-NAME1] as nombre, estado as estado, tipform " +
+        String query = "SELECT idform as numero, [W_CTE-KUNNR] as codigo, [W_CTE-NAME1] as nombre, estado as estado, tipform, id_solicitud " +
                 " FROM FormHVKOF_solicitud WHERE estado IN "+params;
         Cursor cursor = mDataBase.rawQuery(query, estados);
         while (cursor.moveToNext()){
@@ -258,6 +427,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("nombre",cursor.getString(2));
             user.put("estado",cursor.getString(3));
             user.put("tipform",cursor.getString(4));
+            user.put("id_solicitud",cursor.getString(5));
             formList.add(user);
         }
         cursor.close();
@@ -751,7 +921,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BZIRK", cursor.getString(cursor.getColumnIndex("bzirk"))).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKBUR", cursor.getString(cursor.getColumnIndex("vkbur"))).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKGRP", cursor.getString(cursor.getColumnIndex("vkgrp"))).apply();
-
         }
         cursor.close();
         return ret;
@@ -761,20 +930,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //Informacion de BLOQUES DE DATOS
 
     //CONTACTOS
-    private ArrayList<Contacto> getContactosDB(){
+    public ArrayList<Contacto> getContactosDB(String id_solicitud){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<Contacto> contactList = new ArrayList<>();
-        String query = "SELECT * FROM "+VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH();
-        Cursor cursor = mDataBase.rawQuery(query,null);
+        String query = "SELECT * FROM "+VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH()+" WHERE id_solicitud = ?";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_solicitud});
         while (cursor.moveToNext()){
             Contacto contacto = new Contacto();
-            contacto.setId_solicitud(cursor.getString(0));
-            contacto.setId_formulario(cursor.getString(1));
-            contacto.setName1(cursor.getString(2));
-            /*contacto.setNamev(cursor.getString(3));
-            contacto.setTelf1(cursor.getString(4));
-            contacto.setPafkt(cursor.getString(5));
-            contacto.setGbdat(cursor.getString(6));
+            contacto.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")));
+            contacto.setId_formulario(cursor.getString(cursor.getColumnIndex("id_formulario")));
+            contacto.setName1(cursor.getString(cursor.getColumnIndex("name1")));
+            contacto.setNamev(cursor.getString(cursor.getColumnIndex("namev")));
+            contacto.setTelf1(cursor.getString(cursor.getColumnIndex("telf1")));
+            contacto.setPafkt(cursor.getString(cursor.getColumnIndex("pafkt")));
+            /*contacto.setGbdat(cursor.getString(6));
             contacto.setStreet(cursor.getString(7));
             contacto.setHouse_num1(cursor.getString(8));
             contacto.setCountry(cursor.getString(9));*/
@@ -783,36 +952,125 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return  contactList;
     }
-    public  String[][] getContactos()
-    {
-        ArrayList<Contacto> contactos = getContactosDB();
-        String[][] losContactos;
-        Contacto c;
-        losContactos = new String[contactos.size()][10];
-        for (int i=0;i<contactos.size();i++) {
-            c=contactos.get(i);
-            losContactos[i][0]=c.getId_solicitud();
-            losContactos[i][1]=c.getId_formulario();
-            losContactos[i][2]=c.getName1();
+
+    public ArrayList<Banco> getBancosDB(String id_solicitud){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<Banco> bancosList = new ArrayList<>();
+        String query = "SELECT * FROM "+VariablesGlobales.getTABLA_BLOQUE_BANCO_HH()+" WHERE id_solicitud = ?";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_solicitud});
+        while (cursor.moveToNext()){
+            Banco banco = new Banco();
+            banco.setId_bancos(cursor.getString(cursor.getColumnIndex("id_bancos")));
+            banco.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")));
+            banco.setId_formulario(cursor.getString(cursor.getColumnIndex("id_formulario")));
+            banco.setBankl(cursor.getString(cursor.getColumnIndex("bankl")));
+            banco.setBankn(cursor.getString(cursor.getColumnIndex("bankn")));
+            banco.setBanks(cursor.getString(cursor.getColumnIndex("banks")));
+            banco.setBkont(cursor.getString(cursor.getColumnIndex("bkont")));
+            banco.setKoinh(cursor.getString(cursor.getColumnIndex("koinh")));
+            banco.setBvtyp(cursor.getString(cursor.getColumnIndex("bvtyp")));
+            banco.setBkref(cursor.getString(cursor.getColumnIndex("bkref")));
+            banco.setTask(cursor.getString(cursor.getColumnIndex("task")));
+            bancosList.add(banco);
         }
-        return losContactos;
+        cursor.close();
+        return  bancosList;
     }
 
-    public boolean guardarContacto(Contacto contacto){
-        try {
-            SQLiteDatabase db = this.getReadableDatabase();
-            ContentValues cv = new ContentValues();
-            cv.put("name1", contacto.getName1());
-            cv.put("namev", contacto.getNamev());
-            cv.put("country", contacto.getCountry());
-            long result = db.insert(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), null, cv);
-            if (result > 0) {
-                return true;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public ArrayList<Adjuntos> getAdjuntosDB(String id_solicitud){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<Adjuntos> adjuntosList = new ArrayList<>();
+        String query = "SELECT * FROM "+VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD()+" WHERE id_solicitud = ?";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_solicitud});
+        while (cursor.moveToNext()){
+            Adjuntos adjunto = new Adjuntos();
+            adjunto.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")));
+            adjunto.setType(cursor.getString(cursor.getColumnIndex("tipo")));
+            adjunto.setName(cursor.getString(cursor.getColumnIndex("nombre")));
+            adjunto.setImage(cursor.getBlob(cursor.getColumnIndex("imagen")));
+
+            adjuntosList.add(adjunto);
         }
-        return false;
+        cursor.close();
+        return  adjuntosList;
+    }
+
+    public ArrayList<Interlocutor> getInterlocutoresDB(String id_solicitud){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<Interlocutor> interlocutoresList = new ArrayList<>();
+        String query = "SELECT * FROM "+VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH()+" WHERE id_solicitud = ?";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_solicitud});
+        while (cursor.moveToNext()){
+            Interlocutor interlocutor = new Interlocutor();
+            interlocutor.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")));
+            interlocutor.setId_formulario(cursor.getString(cursor.getColumnIndex("id_formulario")));
+            interlocutor.setKunn2(cursor.getString(cursor.getColumnIndex("kunn2")));
+            interlocutor.setName1(cursor.getString(cursor.getColumnIndex("name1")));
+            interlocutor.setParvw(cursor.getString(cursor.getColumnIndex("parvw")));
+            interlocutor.setVtext(cursor.getString(cursor.getColumnIndex("vtext")));
+
+            interlocutoresList.add(interlocutor);
+        }
+        cursor.close();
+        return  interlocutoresList;
+    }
+
+    public ArrayList<Impuesto> getImpuestosDB(String id_solicitud){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<Impuesto> impuestoList = new ArrayList<>();
+        String query = "SELECT * FROM "+VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH()+" WHERE id_solicitud = ?";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_solicitud});
+        while (cursor.moveToNext()){
+            Impuesto impuesto = new Impuesto();
+            impuesto.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")));
+            impuesto.setId_formulario(cursor.getString(cursor.getColumnIndex("id_formulario")));
+            impuesto.setTatyp(cursor.getString(cursor.getColumnIndex("tatyp")));
+            impuesto.setVtext(cursor.getString(cursor.getColumnIndex("vtext")));
+            impuesto.setTaxkd(cursor.getString(cursor.getColumnIndex("taxkd")));
+            impuesto.setVtext2(cursor.getString(cursor.getColumnIndex("vtext2")));;
+            impuestoList.add(impuesto);
+        }
+        cursor.close();
+        return  impuestoList;
+    }
+
+    public ArrayList<Visitas> getVisitasDB(String id_solicitud){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<Visitas> visitasList = new ArrayList<>();
+        String query = "SELECT * FROM "+VariablesGlobales.getTABLA_BLOQUE_VISITA_HH()+" WHERE id_solicitud = ?";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_solicitud});
+        while (cursor.moveToNext()){
+            Visitas visita = new Visitas();
+            visita.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")));
+            visita.setId_formulario(cursor.getString(cursor.getColumnIndex("id_formulario")));
+            visita.setVptyp(cursor.getString(cursor.getColumnIndex("vptyp")));
+            visita.setKvgr4(cursor.getString(cursor.getColumnIndex("kvgr4")));
+            visita.setRuta(cursor.getString(cursor.getColumnIndex("ruta")));
+            visita.setLun_de(cursor.getString(cursor.getColumnIndex("lun_de")));
+            visita.setMar_de(cursor.getString(cursor.getColumnIndex("mar_de")));
+            visita.setMier_de(cursor.getString(cursor.getColumnIndex("mier_de")));
+            visita.setJue_de(cursor.getString(cursor.getColumnIndex("jue_de")));
+            visita.setVie_de(cursor.getString(cursor.getColumnIndex("vie_de")));
+            visita.setSab_de(cursor.getString(cursor.getColumnIndex("sab_de")));
+            visita.setDom_de(cursor.getString(cursor.getColumnIndex("dom_de")));
+            visita.setLun_a(cursor.getString(cursor.getColumnIndex("lun_a")));
+            visita.setMar_a(cursor.getString(cursor.getColumnIndex("mar_a")));
+            visita.setMier_a(cursor.getString(cursor.getColumnIndex("mier_a")));
+            visita.setJue_a(cursor.getString(cursor.getColumnIndex("jue_a")));
+            visita.setVie_a(cursor.getString(cursor.getColumnIndex("vie_a")));
+            visita.setSab_a(cursor.getString(cursor.getColumnIndex("sab_a")));
+            visita.setDom_a(cursor.getString(cursor.getColumnIndex("dom_a")));
+            visita.setF_ini(cursor.getString(cursor.getColumnIndex("f_ini")));
+            visita.setF_fin(cursor.getString(cursor.getColumnIndex("f_fin")));
+            visita.setF_ico(cursor.getString(cursor.getColumnIndex("f_ico")));
+            visita.setF_fco(cursor.getString(cursor.getColumnIndex("f_fco")));
+            visita.setF_frec(cursor.getString(cursor.getColumnIndex("f_frec")));
+            visita.setFcalid(cursor.getString(cursor.getColumnIndex("fcalid")));
+
+            visitasList.add(visita);
+        }
+        cursor.close();
+        return  visitasList;
     }
 
     public void EliminarContacto(int contactoid){
@@ -1047,11 +1305,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return registro_canales;
     }
 
-    public ArrayList<HashMap<String, String>> getRespuestasEncuesta(){
+    public ArrayList<HashMap<String, String>> getRespuestasEncuesta(String id_solicitud){
         ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
         //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
-        String sql_encuesta = "select id_Grupo as id_grupo,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10 from encuesta_solicitud where idform = '" + getNextSolicitudId() + "'";
-        Cursor micursor = mDataBase.rawQuery(sql_encuesta,null);
+        String sql_encuesta = "select id_Grupo as id_grupo,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10 from encuesta_solicitud where id_solicitud = ?";
+        Cursor micursor = mDataBase.rawQuery(sql_encuesta,new String[]{id_solicitud});
         while (micursor.moveToNext()){
             HashMap<String, String> user = new HashMap<>();
             user.put("id_grupo", micursor.getString(0).trim());

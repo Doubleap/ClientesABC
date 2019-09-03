@@ -7,9 +7,13 @@
     <item
         android:id="@+id/action_nuevo_cliente"
         android:icon="@android:drawable/ic_input_add"
-        android:title="Nuevo cliente" />
+        android:title="Nuevo" />
+    <item
+        android:id="@+id/action_clientes"
+        android:icon="@drawable/icon_user"
+        android:title="Clientes" />
     <item
         android:id="@+id/action_transmitir"
-        android:icon="@drawable/arrow_right"
-        android:title="Transmitir"/>
+        android:icon="@drawable/icon_send"
+        android:title="Enviar"/>
 </menu>

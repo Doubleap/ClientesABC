@@ -98,6 +98,10 @@ public class PanelActivity extends AppCompatActivity {
                         intent.putExtras(b); //Pase el parametro el Intent
                         startActivity(intent);
                         break;
+                    case R.id.action_clientes:
+                        intent = new Intent(getBaseContext(),MantClienteActivity.class);
+                        startActivity(intent);
+                        break;
                     case R.id.action_transmitir:
                         Log.i("Start Server Clicked", "yipee");
                         //if(validarConexion()) {

@@ -57,6 +57,7 @@ public class SolicitudesActivity extends AppCompatActivity {
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
+
         fab = findViewById(R.id.fabBtn);
         fab1 = findViewById(R.id.filterBtn);
         fab2 = findViewById(R.id.addBtn);

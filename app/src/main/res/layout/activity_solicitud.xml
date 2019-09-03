@@ -19,7 +19,7 @@
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="20dp"
+            android:minHeight="5dp"
             android:background="@color/colorPrimary"/>
     </LinearLayout>
 
