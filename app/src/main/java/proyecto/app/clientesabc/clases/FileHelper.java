@@ -45,7 +45,7 @@ public class FileHelper {
             else
                 parentPath=sourcePath;
 
-            zipFile(zipOutputStream, sourcePath);
+            zipFile(zipOutputStream, sourcePath, destinationFileName.replace(".zip",""));
 
         }
         catch (IOException ioe){
@@ -64,7 +64,7 @@ public class FileHelper {
 
     }
 
-    private static void zipFile(ZipOutputStream zipOutputStream, String sourcePath) throws  IOException{
+    private static void zipFile(ZipOutputStream zipOutputStream, String sourcePath, String fileName ) throws  IOException{
 
         java.io.File files = new java.io.File(sourcePath);
         java.io.File[] fileList = files.listFiles();
@@ -73,21 +73,37 @@ public class FileHelper {
         BufferedInputStream input;
         for (java.io.File file : fileList) {
             if (file.isDirectory()) {
-                zipFile(zipOutputStream, file.getPath());
+                zipFile(zipOutputStream, file.getPath(), file.getName());
             } else {
-                byte data[] = new byte[BUFFER_SIZE];
-                FileInputStream fileInputStream = new FileInputStream(file.getPath());
-                input = new BufferedInputStream(fileInputStream, BUFFER_SIZE);
-                entryPath=file.getAbsolutePath().replace( parentPath,"");
+                if(fileName != null && fileName.equals(file.getName())) {
+                    byte data[] = new byte[BUFFER_SIZE];
+                    FileInputStream fileInputStream = new FileInputStream(file.getPath());
+                    input = new BufferedInputStream(fileInputStream, BUFFER_SIZE);
+                    entryPath = file.getAbsolutePath().replace(parentPath, "");
 
-                ZipEntry entry = new ZipEntry(entryPath);
-                zipOutputStream.putNextEntry(entry);
+                    ZipEntry entry = new ZipEntry(entryPath);
+                    zipOutputStream.putNextEntry(entry);
 
-                int count;
-                while ((count = input.read(data, 0, BUFFER_SIZE)) != -1) {
-                    zipOutputStream.write(data, 0, count);
+                    int count;
+                    while ((count = input.read(data, 0, BUFFER_SIZE)) != -1) {
+                        zipOutputStream.write(data, 0, count);
+                    }
+                    input.close();
+                }else if(fileName == null){
+                    byte data[] = new byte[BUFFER_SIZE];
+                    FileInputStream fileInputStream = new FileInputStream(file.getPath());
+                    input = new BufferedInputStream(fileInputStream, BUFFER_SIZE);
+                    entryPath = file.getAbsolutePath().replace(parentPath, "");
+
+                    ZipEntry entry = new ZipEntry(entryPath);
+                    zipOutputStream.putNextEntry(entry);
+
+                    int count;
+                    while ((count = input.read(data, 0, BUFFER_SIZE)) != -1) {
+                        zipOutputStream.write(data, 0, count);
+                    }
+                    input.close();
                 }
-                input.close();
             }
         }
 

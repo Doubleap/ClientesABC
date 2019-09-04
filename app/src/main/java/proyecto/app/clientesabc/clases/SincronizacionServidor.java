@@ -49,19 +49,13 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
             //socket.setReuseAddress(true);
 
             // Enviar archivo en socket
-
-            //File myFile = new File("/data/user/0/proyecto.app.clientesabc/databases/", "FAWM_ANDROID_2");
             File myFile = new File(context.get().getDatabasePath("FAWM_ANDROID_2").getPath() );
-
-            //files.add(myFile);
-            //files.add(myFile);
 
             System.out.println("Creando Streams de datos...");
             DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-            //System.out.println(files.size());
 
-            //Comando String que indicara que se queire realizar Sincronizacion/Transmision
+            //Comando String que indicara que se quire realizar una Sincronizacion
             dos.writeUTF("Sincronizacion");
             dos.flush();
             //Enviar Ruta que se quiere sincronizar
@@ -92,18 +86,39 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
                     stream.write(r);
                     stream.flush();
                     stream.close();
-                }
-                //O cerrarlo aqui estara bien?
-                dos.close();
 
-                //Pasar de la sincronizacion a caerle encima a la base de datos actual
-                DataBaseHelper mDBHelper = new DataBaseHelper(context.get());
-                try {
-                    mDBHelper.updateDataBase();
-                } catch (IOException e) {
-                    xceptionFlag = true;
-                    messageFlag = "Error al actualizar la Base de Datos.";
-                    e.printStackTrace();
+                    dos.close();
+                    //UNZIP informacion recibida
+                    boolean unzip = FileHelper.unzip(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision/FAWM_ANDROID_2",externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision");
+                    File file = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision/"+PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH","")+".db");
+                    // File (or directory) with new name
+                    File file2 = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision/FAWM_ANDROID_2");
+
+                    if (file2.exists()) {
+                        file2.delete();
+                    }
+
+                    // Rename file (or directory)
+                    boolean success = file.renameTo(file2);
+
+                    if (!success) {
+                        xceptionFlag = true;
+                        messageFlag = "No se pudo renombrar el archivo.";
+                    }
+                    if(unzip) {
+                        //Pasar de la sincronizacion a caerle encima a la base de datos actual con la informacion recibida.
+                        DataBaseHelper mDBHelper = new DataBaseHelper(context.get());
+                        try {
+                            mDBHelper.updateDataBase();
+                        } catch (IOException e) {
+                            xceptionFlag = true;
+                            messageFlag = "Error al actualizar la Base de Datos.";
+                            e.printStackTrace();
+                        }
+                    }else{
+                        xceptionFlag = true;
+                        messageFlag = "Problemas al desempaquetar la informacion.";
+                    }
                 }
             }
 

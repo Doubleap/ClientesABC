@@ -454,10 +454,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
         String currentDateandTime = sdf.format(new Date());
-        String id =PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH","")+currentDateandTime;
+        String id = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH","")+currentDateandTime;
 
         if (cursor.moveToNext()){
-            id += String.format("%10s", String.valueOf(cursor.getInt(0)+1)).replace(' ', '0');
+            id += String.format("%4s", String.valueOf(cursor.getInt(0)+1)).replace(' ', '0');
+        }else{
+            id += String.format("%4s", "1".replace(' ', '0'));
         }
         cursor.close();
         return id;

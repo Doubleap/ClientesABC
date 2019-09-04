@@ -100,6 +100,7 @@ public class PruebaConexionServidor extends AsyncTask<Void,Void,Void> {
     protected void onCancelled() {
         super.onCancelled();
         Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
+        dialog.dismiss();
         if(dialog.isShowing())
             dialog.hide();
     }

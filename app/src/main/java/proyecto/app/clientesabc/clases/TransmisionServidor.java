@@ -137,11 +137,15 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo'))";
                 mDataBase.execSQL(sqlCreate);
 
+                String pathFileToZip = context.get().getApplicationInfo().dataDir + "/databases/";
+                FileHelper.zip(pathFileToZip,context.get().getApplicationInfo().dataDir + "/databases/","TRANSMISION_"+ PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH","")+".zip",false);
+                File myFile = new File(context.get().getApplicationInfo().dataDir + "/databases/", "TRANSMISION_"+ PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH","")+".zip");
+                //File myFile = new File(context.get().getApplicationInfo().dataDir + "/databases/", "TRANSMISION_"+ PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH",""));
 
-                File myFile = new File(context.get().getApplicationInfo().dataDir + "/databases/", "TRANSMISION_"+ PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH",""));
                 //File externalStorage = Environment.getExternalStorageDirectory();
                 //String externalStoragePath = externalStorage.getAbsolutePath();
                 //File myFile = new File(externalStoragePath + File.separator + context.get().getPackageName()+ File.separator+"Transmision", "PRUEBA_COPIA");
+
                 files.add(myFile);
 
                 System.out.println("Creando Streams de datos...");
