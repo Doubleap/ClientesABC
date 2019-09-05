@@ -93,6 +93,7 @@ public class PruebaConexionServidor extends AsyncTask<Void,Void,Void> {
         else{
             Toasty.error(context.get(),"No se pudo conectar a servidor."+messageFlag,Toast.LENGTH_LONG).show();
         }
+        dialog.dismiss();
         if(dialog.isShowing())
             dialog.hide();
     }

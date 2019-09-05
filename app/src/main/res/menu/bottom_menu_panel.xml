@@ -7,7 +7,7 @@
     <item
         android:id="@+id/action_nuevo_cliente"
         android:icon="@android:drawable/ic_input_add"
-        android:title="Nuevo" />
+        android:title="Inclusión" />
     <item
         android:id="@+id/action_clientes"
         android:icon="@drawable/icon_user"
@@ -15,5 +15,5 @@
     <item
         android:id="@+id/action_transmitir"
         android:icon="@drawable/icon_send"
-        android:title="Enviar"/>
+        android:title="Transmitir"/>
 </menu>

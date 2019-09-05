@@ -9,7 +9,8 @@
         android:id="@+id/LinearLayoutMain"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:focusableInTouchMode="true">
 
         <TextView
             android:id="@+id/servidor"
@@ -59,17 +60,39 @@
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:text="Probar Conexion" />
+        <android.support.v7.widget.CardView
+            android:id="@+id/barra_tv_conexiones"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:background="@color/colorPrimary"
+            >
+            <com.rey.material.widget.TextView
+                android:textSize="18dp"
+                android:text="Servidores Disponibles"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textAlignment="center"
+                android:background="@color/colorPrimary"
+                android:textColor="@color/white"/>
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/add_conexion"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:background="@drawable/icon_solicitud"/>
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/change"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end|bottom"
-            android:src="@android:drawable/ic_menu_preferences"
-            android:tint="@color/white"
-            android:backgroundTint="@color/aprobados"
-            android:layout_margin="16dp" />
+        </android.support.v7.widget.CardView>
+        <de.codecrafters.tableview.TableView
+            android:id="@+id/tv_conexiones"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
 
+            ></de.codecrafters.tableview.TableView>
     </LinearLayout>
     <android.support.design.widget.BottomNavigationView
         android:id="@+id/bottom_navigation_tcp"

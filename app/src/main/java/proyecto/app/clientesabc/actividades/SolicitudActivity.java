@@ -1158,7 +1158,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         label.setLayoutParams(textolp);
                         btnAyuda = new ImageView(getContext());
                         btnAyuda.setBackground(getResources().getDrawable(R.drawable.icon_ayuda,null));
-                        btnlp.setMargins(0,55,75,0);
+                        btnlp.setMargins(0,35,75,0);
                         btnAyuda.setLayoutParams(btnlp);
                         btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                         btnAyuda.setForegroundGravity(GRAVITY_CENTER);

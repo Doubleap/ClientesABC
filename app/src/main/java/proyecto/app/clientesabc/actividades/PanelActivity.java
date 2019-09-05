@@ -23,6 +23,7 @@ import android.widget.TextView;
 import java.lang.ref.WeakReference;
 import java.util.Objects;
 
+import pl.pawelkleczkowski.customgauge.CustomGauge;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
@@ -48,6 +49,8 @@ public class PanelActivity extends AppCompatActivity {
     private CardView card_aprobados;
     private CardView card_rechazados;
     private CardView card_transmitidos;
+    private CustomGauge gauge_nuevos;
+    private CustomGauge gauge_pendientes;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +69,10 @@ public class PanelActivity extends AppCompatActivity {
         num_aprobados = findViewById(R.id.num_aprobados);
         num_rechazados = findViewById(R.id.num_rechazados);
         num_transmitidos = findViewById(R.id.num_transmitidos);
+
+        gauge_nuevos = findViewById(R.id.gauge_nuevos);
+        gauge_pendientes = findViewById(R.id.gauge_pendientes);
+
 
         /*spinner = new Spinner(this, Spinner.MODE_DIALOG);
         ArrayList<OpcionSpinner> listaopciones = mDBHelper.getDatosCatalogoParaSpinner("cat_T171T");
@@ -127,7 +134,9 @@ public class PanelActivity extends AppCompatActivity {
     protected  void onStart(){
         super.onStart();
         num_nuevos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Nuevo")));
+        gauge_nuevos.setValue(50);
         num_pendientes.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Pendiente")));
+        gauge_pendientes.setValue(50);
         num_incidencias.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Incidencia")));
         num_aprobados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Aprobado")));
         num_rechazados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Rechazado")));
