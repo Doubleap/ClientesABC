@@ -191,8 +191,8 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 dos.close();
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             xceptionFlag = true;
+            errorFlag = e.getMessage();
             e.printStackTrace();
         }
 
@@ -204,6 +204,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
         }
         catch (Exception e){
             xceptionFlag = true;
+            errorFlag = e.getMessage();
             e.printStackTrace();
         }
 

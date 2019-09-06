@@ -150,7 +150,6 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
     }
     @Override
     public void onNothingSelected(AdapterView<?> arg0) {
-        // TODO Auto-generated method stub
 
     }
 

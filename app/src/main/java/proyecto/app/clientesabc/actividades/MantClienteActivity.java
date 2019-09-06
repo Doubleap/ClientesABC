@@ -161,11 +161,17 @@ public class MantClienteActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     Toast.makeText(getApplicationContext(), "Cliente codigo clickeado:"+((TextView)v).getText(),Toast.LENGTH_SHORT).show();
+                    Bundle b = new Bundle();
+
+                    b.putString("idCliente", ((TextView)v).getText().toString()); //id de solicitud
+                    Intent intent = new Intent(v.getContext(),ClienteActivity.class);
+                    intent.putExtras(b); //Pase el parametro el Intent
+                    startActivity(intent);
                 }
             });
             textViewOptions.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View view) {
+                public void onClick(final View view) {
 
                     Context wrapper = new ContextThemeWrapper(getApplication(), R.style.MyPopupMenu);
 
@@ -181,7 +187,7 @@ public class MantClienteActivity extends AppCompatActivity {
                         public boolean onMenuItemClick(MenuItem item) {
                             switch (item.getItemId()) {
                                 case R.id.menu1:
-                                    //handle menu1 click
+
                                     break;
                                 case R.id.menu2:
                                     //handle menu2 click

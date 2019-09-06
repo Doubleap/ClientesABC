@@ -10,10 +10,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -44,7 +46,6 @@ import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -109,14 +110,13 @@ import static android.support.design.widget.TabLayout.INDICATOR_GRAVITY_TOP;
 import static android.support.design.widget.TabLayout.INVISIBLE;
 import static android.support.design.widget.TabLayout.OnClickListener;
 import static android.support.design.widget.TabLayout.OnFocusChangeListener;
-import static android.support.design.widget.TabLayout.OnTouchListener;
 import static android.support.design.widget.TabLayout.TEXT_ALIGNMENT_CENTER;
 
-public class SolicitudActivity extends AppCompatActivity {
+public class ClienteActivity extends AppCompatActivity {
 
     final static int alturaFilaTableView = 65;
     static String tipoSolicitud ="";
-    static String idSolicitud = "";
+    static String idCliente = "";
     @SuppressLint("StaticFieldLeak")
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
@@ -124,7 +124,7 @@ public class SolicitudActivity extends AppCompatActivity {
     static ArrayList<String> listaCamposObligatorios = new ArrayList<>();
     static ArrayList<String> listaCamposBloque = new ArrayList<>();
     static Map<String, View> mapeoCamposDinamicos = new HashMap<>();
-    static  ArrayList<HashMap<String, String>> solicitudSeleccionada = new ArrayList<>();
+    static  ArrayList<HashMap<String, String>> clienteSeleccionado = new ArrayList<>();
     private static String GUID;
     private ProgressBar progressBar;
 
@@ -157,8 +157,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
         Bundle b = getIntent().getExtras();
         if(b != null) {
-            tipoSolicitud = b.getString("tipoSolicitud");
-            idSolicitud = b.getString("idSolicitud");
+            idCliente = b.getString("idCliente");
             //accion = b.getString("accion");
         }
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -168,15 +167,15 @@ public class SolicitudActivity extends AppCompatActivity {
         mDBHelper = new DataBaseHelper(this);
         mDb = mDBHelper.getWritableDatabase();
 
-        if(idSolicitud != null){
-            setTitle("Solicitud");
-            solicitudSeleccionada = mDBHelper.getSolicitud(idSolicitud);
-            tipoSolicitud = solicitudSeleccionada.get(0).get("TIPFORM");
-            GUID = solicitudSeleccionada.get(0).get("id_solicitud");
-            setTitle(GUID);
+        if(idCliente != null){
+            clienteSeleccionado = mDBHelper.getCliente(idCliente);
+            tipoSolicitud = "35";
+            GUID = clienteSeleccionado.get(0).get("id_solicitud");
+            setTitle(clienteSeleccionado.get(0).get("W_CTE-KUNNR")+ " - " +clienteSeleccionado.get(0).get("W_CTE-NAME1"));
+
         }else{
             GUID = mDBHelper.getGuiId();
-            solicitudSeleccionada.clear();
+            clienteSeleccionado.clear();
         }
 
         listaCamposDinamicos.clear();
@@ -293,7 +292,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     switch(listaCamposDinamicos.get(i)){
                                         case "W_CTE-CONTACTOS":
                                             ContentValues contactoValues = new ContentValues();
-                                            if (solicitudSeleccionada.size() > 0) {
+                                            if (clienteSeleccionado.size() > 0) {
                                                 mDb.delete(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), "id_solicitud=?", new String[]{GUID});
                                             }
                                             for (int c = 0; c < contactosSolicitud.size(); c++) {
@@ -318,7 +317,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-IMPUESTOS":
                                             ContentValues impuestoValues = new ContentValues();
                                             int del;
-                                            if (solicitudSeleccionada.size() > 0) {
+                                            if (clienteSeleccionado.size() > 0) {
                                                 del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), "id_solicitud=?", new String[]{GUID});
                                             }
                                             for (int c = 0; c < impuestosSolicitud.size(); c++) {
@@ -338,7 +337,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             break;
                                         case "W_CTE-INTERLOCUTORES":
                                             ContentValues interlocutorValues = new ContentValues();
-                                            if (solicitudSeleccionada.size() > 0) {
+                                            if (clienteSeleccionado.size() > 0) {
                                                 mDb.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), "id_solicitud=?", new String[]{GUID});
                                             }
                                             for (int c = 0; c < interlocutoresSolicitud.size(); c++) {
@@ -357,7 +356,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-BANCOS":
                                             ContentValues bancoValues = new ContentValues();
                                             try {
-                                                if (solicitudSeleccionada.size() > 0) {
+                                                if (clienteSeleccionado.size() > 0) {
                                                     mDb.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), "id_solicitud=?", new String[]{GUID});
                                                 }
                                                 for (int c = 0; c < bancosSolicitud.size(); c++) {
@@ -380,12 +379,12 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-VISITAS":
                                             ContentValues visitaValues = new ContentValues();
                                             try {
-                                                if (solicitudSeleccionada.size() > 0) {
+                                                if (clienteSeleccionado.size() > 0) {
                                                     mDb.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), "id_solicitud=?", new String[]{GUID});
                                                 }
                                                 for (int c = 0; c < visitasSolicitud.size(); c++) {
                                                     visitaValues.put("id_solicitud", NextId);
-                                                    if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK", ""), visitasSolicitud.get(c).getVptyp())) {
+                                                    if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(ClienteActivity.this).getString("W_CTE_BZIRK", ""), visitasSolicitud.get(c).getVptyp())) {
                                                         //Tipo visita de Reparto
                                                         visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
                                                         visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
@@ -439,7 +438,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         case "W_CTE-ADJUNTOS":
                                             ContentValues adjuntoValues = new ContentValues();
                                             try {
-                                                if(solicitudSeleccionada.size() > 0){
+                                                if(clienteSeleccionado.size() > 0){
                                                     mDb.delete(VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(),"id_solicitud=?",new String[]{GUID});
                                                 }
                                                 for (int c = 0; c < adjuntosSolicitud.size(); c++) {
@@ -462,16 +461,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                 //Datos que siemrpe deben ir cuando se crea por primera vez.
                                 insertValues.put("[id_solicitud]", NextId);
                                 insertValues.put("[tipform]", tipoSolicitud);
-                                insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("user",""));
+                                insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(ClienteActivity.this).getString("user",""));
                                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
                                 Date date = new Date();
                                 //ContentValues initialValues = new ContentValues();
                                 insertValues.put("[feccre]", dateFormat.format(date));
 
                                 //mDBHelper.getWritableDatabase().insert("FormHvKof_solicitud", null, insertValues);
-                                if(solicitudSeleccionada.size() > 0){
+                                if(clienteSeleccionado.size() > 0){
                                     insertValues.put("[estado]", "Modificado");
-                                    long modifico = mDb.update("FormHvKof_solicitud",  insertValues,"id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});
+                                    long modifico = mDb.update("FormHvKof_solicitud",  insertValues,"id_solicitud = ?", new String[]{clienteSeleccionado.get(0).get("id_solicitud")});
                                     Toasty.success(getApplicationContext(), "Registro modificado con éxito", Toast.LENGTH_SHORT).show();
                                 }else {
                                     insertValues.put("[estado]", "Nuevo");
@@ -479,10 +478,10 @@ public class SolicitudActivity extends AppCompatActivity {
                                     //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
                                     Intent sol = getIntent();
                                     sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                                    SolicitudActivity.this.finish();
+                                    ClienteActivity.this.finish();
                                     Bundle par = new Bundle();
                                     par.putString("tipo_solicitud",tipoSolicitud);
-                                    SolicitudActivity.this.startActivity(sol);
+                                    ClienteActivity.this.startActivity(sol);
                                     Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toast.LENGTH_SHORT).show();
                                 }
                             } catch (Exception e) {
@@ -756,7 +755,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(campos.get(i).get("dfaul").trim().length() > 0){
                         checkbox.setChecked(true);
                     }
-                    if(solicitudSeleccionada.size() > 0){
+                    if(clienteSeleccionado.size() > 0){
                         checkbox.setChecked(true);
                     }
                     ll.addView(checkbox);
@@ -788,7 +787,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(campos.get(i).get("dfaul").trim().length() > 0){
                         checkbox.setChecked(true);
                     }
-                    if(solicitudSeleccionada.size() > 0){
+                    if(clienteSeleccionado.size() > 0){
                         checkbox.setChecked(true);
                     }
                     ll.addView(checkbox);
@@ -820,8 +819,8 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(campos.get(i).get("dfaul").trim().length() > 0){
                         checkbox.setChecked(true);
                     }
-                    if(solicitudSeleccionada.size() > 0){
-                        if(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
+                    if(clienteSeleccionado.size() > 0){
+                        if(clienteSeleccionado.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
                             checkbox.setChecked(true);
                     }
                     ll.addView(checkbox);
@@ -832,9 +831,9 @@ public class SolicitudActivity extends AppCompatActivity {
                     //Tipo ComboBox/SelectBox/Spinner
                     TextView label = new TextView(getContext());
                     label.setText(campos.get(i).get("descr"));
-                    label.setTextAppearance(R.style.AppTheme_TextFloatLabelAppearance);
+                    //label.setTextAppearance(R.style.AppTheme_TextFloatLabelAppearance);
                     LinearLayout.LayoutParams lpl = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                    lpl.setMargins(35, 5, 0, 0);
+                    lpl.setMargins(15, 0, 0, 0);
                     label.setPadding(0,0,0,0);
                     label.setLayoutParams(lpl);
 
@@ -844,16 +843,14 @@ public class SolicitudActivity extends AppCompatActivity {
                         label.setVisibility(View.GONE);
                         combo.setVisibility(View.GONE);
                     }
-                    if(campos.get(i).get("vis").trim().length() > 0){
-                        if(!campos.get(i).get("campo").trim().equals("W_CTE-LZONE"))
-                            combo.setEnabled(false);
-                    }
+                    combo.setEnabled(false);
 
                     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                    lp.setMargins(0, -10, 0, 25);
+                    lp.setMargins(0, 0, 0, 25);
                     combo.setPadding(0,0,0,0);
+
                     combo.setLayoutParams(lp);
-                    combo.setPopupBackgroundResource(R.drawable.menu_item);
+                    //combo.setPopupBackgroundResource(R.drawable.menu_item);
 
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim());
 
@@ -862,16 +859,12 @@ public class SolicitudActivity extends AppCompatActivity {
                     String valorDefectoxRuta = PreferenceManager.getDefaultSharedPreferences(getContext()).getString(campos.get(i).get("campo").trim().replace("-","_"),"");
                     for (int j = 0; j < opciones.size(); j++){
                         listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
-                        if(solicitudSeleccionada.size() > 0){
+                        if(clienteSeleccionado.size() > 0){
                             //valor de la solicitud seleccionada
-                            if(opciones.get(j).get("id").trim().equals(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim())){
+                            if(opciones.get(j).get("id").trim().equals(clienteSeleccionado.get(0).get(campos.get(i).get("campo").trim()).trim())){
                                 selectedIndex = j;
                             }
-                        }else {
-                            if (campos.get(i).get("dfaul").trim().length() > 0 && opciones.get(j).get("id").trim().equals(campos.get(i).get("dfaul").trim())) {
-                                selectedIndex = j;
-                            }
-                        }
+                        }else
                         if(valorDefectoxRuta.trim().length() > 0 && opciones.get(j).get("id").trim().equals(valorDefectoxRuta.trim())){
                             selectedIndex = j;
                             combo.setEnabled(false);
@@ -881,14 +874,61 @@ public class SolicitudActivity extends AppCompatActivity {
                     // Creando el adaptador(opciones) para el comboBox deseado
                     ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, listaopciones);
                     // Drop down layout style - list view with radio button
+
                     dataAdapter.setDropDownViewResource(R.layout.spinner_item);
                     // attaching data adapter to spinner
-                    Drawable d = getResources().getDrawable(R.drawable.spinner_background, null);
-                    combo.setBackground(d);
+                    //Drawable d = getResources().getDrawable(R.drawable.spinner_background, null);
+                    combo.setBackground(getResources().getDrawable(R.color.white,null));
                     combo.setAdapter(dataAdapter);
+
+                    int[][] states = new int[][] {
+                            new int[] { android.R.attr.state_enabled}, // enabled
+                            new int[] {-android.R.attr.state_enabled}, // disabled
+                            new int[] {-android.R.attr.state_checked}, // unchecked
+                            new int[] { android.R.attr.state_pressed}  // pressed
+                    };
+
+                    int[] colors = new int[] {
+                            Color.BLACK,
+                            Color.BLACK,
+                            Color.BLACK,
+                            Color.BLACK
+                    };
+                    ColorStateList colorStateList = new ColorStateList(states,colors);
+                    ((TextView)combo.getAdapter().getView(selectedIndex,null,null)).setTextColor(colorStateList);
+
+                    combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                            int[][] states = new int[][] {
+                                    new int[] { android.R.attr.state_enabled}, // enabled
+                                    new int[] {-android.R.attr.state_enabled}, // disabled
+                                    new int[] {-android.R.attr.state_checked}, // unchecked
+                                    new int[] { android.R.attr.state_pressed}  // pressed
+                            };
+
+                            int[] colors = new int[] {
+                                    Color.BLACK,
+                                    Color.BLACK,
+                                    Color.BLACK,
+                                    Color.BLACK
+                            };
+                            ColorStateList colorStateList = new ColorStateList(states,colors);
+
+                            if(((TextView)adapterView.getSelectedView()) != null)
+                                ((TextView)adapterView.getSelectedView()).setTextColor(colorStateList);
+                            //if(((TextView) adapterView.getChildAt(position-1)) != null)
+                                //((TextView) adapterView.getChildAt(position-1)).setTextColor(colorStateList);
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {
+
+                        }
+                    });
                     combo.setSelection(selectedIndex);
 
-                    //Campo de regimen fiscal, se debe cambiar el formato de cedula segun el tipo de cedula
+                        //Campo de regimen fiscal, se debe cambiar el formato de cedula segun el tipo de cedula
                     if(campos.get(i).get("campo").trim().equals("W_CTE-KATR3")){
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
@@ -915,49 +955,23 @@ public class SolicitudActivity extends AppCompatActivity {
                                         }
                                     });
                                 }
-                            }
+                                int[][] states = new int[][] {
+                                        new int[] { android.R.attr.state_enabled}, // enabled
+                                        new int[] {-android.R.attr.state_enabled}, // disabled
+                                        new int[] {-android.R.attr.state_checked}, // unchecked
+                                        new int[] { android.R.attr.state_pressed}  // pressed
+                                };
 
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                int[] colors = new int[] {
+                                        Color.BLACK,
+                                        Color.BLACK,
+                                        Color.BLACK,
+                                        Color.BLACK
+                                };
+                                ColorStateList colorStateList = new ColorStateList(states,colors);
 
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-KVGR5")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                tb_visitas.getLayoutParams().height = 50;
-                                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-                                visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG",""), opcion.getId());
-                                tb_visitas.setDataAdapter(new VisitasTableAdapter(view.getContext(), visitasSolicitud));
-                                tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+((alturaFilaTableView+10)*visitasSolicitud.size());
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("Provincia")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Provincias(parent);
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("Cantones")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Cantones(parent);
+                                if(((TextView)parent.getSelectedView()) != null)
+                                    ((TextView)parent.getSelectedView()).setTextColor(colorStateList);
                             }
 
                             @Override
@@ -967,67 +981,6 @@ public class SolicitudActivity extends AppCompatActivity {
                         });
                     }
 
-                    if(campos.get(i).get("llamado1").trim().contains("Distritos")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Distritos(parent);
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("DireccionCorta")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                DireccionCorta();
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("Canales(")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Canales(parent);
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("CanalesKof")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                CanalesKof(parent);
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("ImpuestoSegunUnidadNegocio")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                ImpuestoSegunUnidadNegocio(parent);
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
                     //label.addView(combo);
                     ll.addView(label);
                     ll.addView(combo);
@@ -1053,6 +1006,23 @@ public class SolicitudActivity extends AppCompatActivity {
                                 if(campos.get(indice).get("llamado1").contains("Distritos"))
                                     Distritos(parent);
                                 ReplicarValorSpinner(parent,nombreCampo+"1",position);
+                                int[][] states = new int[][] {
+                                        new int[] { android.R.attr.state_enabled}, // enabled
+                                        new int[] {-android.R.attr.state_enabled}, // disabled
+                                        new int[] {-android.R.attr.state_checked}, // unchecked
+                                        new int[] { android.R.attr.state_pressed}  // pressed
+                                };
+
+                                int[] colors = new int[] {
+                                        Color.BLACK,
+                                        Color.BLACK,
+                                        Color.BLACK,
+                                        Color.BLACK
+                                };
+                                ColorStateList colorStateList = new ColorStateList(states,colors);
+
+                                if(((TextView)parent.getSelectedView()) != null)
+                                    ((TextView)parent.getSelectedView()).setTextColor(colorStateList);
                             }
 
                             @Override
@@ -1070,6 +1040,23 @@ public class SolicitudActivity extends AppCompatActivity {
                                 if(campos.get(indice).get("llamado1").contains("Distritos"))
                                     Distritos(parent);
                                 ReplicarValorSpinner(parent,nombreCampo,position);
+                                int[][] states = new int[][] {
+                                        new int[] { android.R.attr.state_enabled}, // enabled
+                                        new int[] {-android.R.attr.state_enabled}, // disabled
+                                        new int[] {-android.R.attr.state_checked}, // unchecked
+                                        new int[] { android.R.attr.state_pressed}  // pressed
+                                };
+
+                                int[] colors = new int[] {
+                                        Color.BLACK,
+                                        Color.BLACK,
+                                        Color.BLACK,
+                                        Color.BLACK
+                                };
+                                ColorStateList colorStateList = new ColorStateList(states,colors);
+
+                                if(((TextView)parent.getSelectedView()) != null)
+                                    ((TextView)parent.getSelectedView()).setTextColor(colorStateList);
                             }
 
                             @Override
@@ -1106,10 +1093,8 @@ public class SolicitudActivity extends AppCompatActivity {
                         et.setVisibility(View.GONE);
                         label.setVisibility(View.GONE);
                     }
-                    if(campos.get(i).get("vis").trim().length() > 0){
-                        et.setEnabled(false);
-                        //et.setVisibility(View.GONE);
-                    }
+                    et.setEnabled(false);
+                    et.setTextColor(getResources().getColor(R.color.black, null));
                     et.setMaxLines(1);
 
                     et.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -1120,9 +1105,10 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     et.setLayoutParams(lp);
                     et.setPadding(20, 5, 20, 5);
-                    Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
-                    et.setBackground(d);
+                    //Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
+                    //et.setBackground(d);
 
+                    //Realizacion de convertir a mayuscula
                     InputFilter[] editFilters = et.getFilters();
                     InputFilter[] newFilters = new InputFilter[editFilters.length + 1];
                     System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
@@ -1144,60 +1130,17 @@ public class SolicitudActivity extends AppCompatActivity {
                         TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
 
                     }
-                    if(campos.get(i).get("dfaul").trim().length() > 0){
-                        et.setText(campos.get(i).get("dfaul").trim());
-                    }
-                    //Le cae encima al valor default por el de la solicitud seleccionada
-                    if(solicitudSeleccionada.size() > 0){
-                        et.setText(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()));
-                    }
-                    //metodos configurados en tabla
-                    if(campos.get(i).get("llamado1").trim().contains("ReplicarValor")){
-                        String[] split = campos.get(i).get("llamado1").trim().split("'");
-                        if(split.length < 3)
-                            split = campos.get(i).get("llamado1").trim().split("`");
-                        if(split.length < 3)
-                            split = campos.get(i).get("llamado1").trim().split("\"");
-                        final String campoAReplicar = split[1];
-                        et.setOnFocusChangeListener(new OnFocusChangeListener() {
-                            @Override
-                            public void onFocusChange(View v, boolean hasFocus) {
-                                if (!hasFocus) {
-                                    ReplicarValor(v,campoAReplicar);
-                                }
-                            }
-                        });
-                    }
 
+                    //Le cae encima al valor default por el de la solicitud seleccionada
+                    if(clienteSeleccionado.size() > 0){
+                        et.setText(clienteSeleccionado.get(0).get(campos.get(i).get("campo").trim()));
+                    }
                     label.addView(et);
                     fila.addView(label);
                     if(btnAyuda != null)
                         fila.addView(btnAyuda);
                     ll.addView(fila);
 
-
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LAT") || campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LONG")){
-                        et.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_location,null), null);
-                        et.setOnTouchListener(new OnTouchListener() {
-                            @Override
-                            public boolean onTouch(View v, MotionEvent event) {
-                                final int DRAWABLE_LEFT = 0;
-                                final int DRAWABLE_TOP = 1;
-                                final int DRAWABLE_RIGHT = 2;
-                                final int DRAWABLE_BOTTOM = 3;
-
-                                if(event.getAction() == MotionEvent.ACTION_UP) {
-                                    if(event.getRawX() >= (et.getRight() - et.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
-                                        Toasty.info(getContext(),"Refrescando ubicacion..").show();
-                                        LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
-                                        autoPineo.startLocationUpdates();
-                                        return true;
-                                    }
-                                }
-                                return false;
-                            }
-                        });
-                    }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")){
                         et.setSingleLine(false);
                         et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
@@ -1230,7 +1173,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
             }
             //Si estan los campos de Latitud y Longitud, activar el pineo automatico (W_CTE-ZZCRMA_LAT,W_CTE-ZZCRMA_LONG)
-            if(listaCamposDinamicos.contains("W_CTE-ZZCRMA_LAT") && listaCamposDinamicos.contains("W_CTE-ZZCRMA_LONG") && solicitudSeleccionada.size() == 0){
+            if(listaCamposDinamicos.contains("W_CTE-ZZCRMA_LAT") && listaCamposDinamicos.contains("W_CTE-ZZCRMA_LONG") && clienteSeleccionado.size() == 0){
                 LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
                 autoPineo.startLocationUpdates();
             }
@@ -1288,13 +1231,13 @@ public class SolicitudActivity extends AppCompatActivity {
             switch(campo.get("campo").trim()){
                 case "W_CTE-CONTACTOS":
                     //bloque_contacto = tb_contactos;
-                    seccion_header.setOnClickListener(new View.OnClickListener() {
+                    seccion_header.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             displayDialogContacto(getContext(),null);
                         }
                     });
-                    btnAddBloque.setOnClickListener(new View.OnClickListener() {
+                    btnAddBloque.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             displayDialogContacto(getContext(),null);
@@ -1306,8 +1249,8 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     tb_contactos.setLayoutParams(hlp);
 
-                    if(solicitudSeleccionada.size() > 0){
-                        contactosSolicitud = mDBHelper.getContactosDB(idSolicitud);
+                    if(clienteSeleccionado.size() > 0){
+                        contactosSolicitud = mDBHelper.getContactosDB(idCliente);
                     }
                     //Adaptadores
                     if(contactosSolicitud != null) {
@@ -1359,9 +1302,9 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     ArrayList<Impuesto> listaImpuestos = db.getImpuestosPais();
                     impuestosSolicitud.addAll(listaImpuestos);
-                    if(solicitudSeleccionada.size() > 0){
+                    if(clienteSeleccionado.size() > 0){
                         impuestosSolicitud.clear();
-                        impuestosSolicitud = mDBHelper.getImpuestosDB(idSolicitud);
+                        impuestosSolicitud = mDBHelper.getImpuestosDB(idCliente);
                     }
                     //Adaptadores
                     if(impuestosSolicitud != null) {
@@ -1408,16 +1351,14 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     ArrayList<Interlocutor> listaInterlocutores = db.getInterlocutoresPais();
                     interlocutoresSolicitud.addAll(listaInterlocutores);
-                    if(solicitudSeleccionada.size() > 0){
+                    if(clienteSeleccionado.size() > 0){
                         interlocutoresSolicitud.clear();
-                        interlocutoresSolicitud = mDBHelper.getInterlocutoresDB(idSolicitud);
+                        interlocutoresSolicitud = mDBHelper.getInterlocutoresPais();
                     }
                     //Adaptadores
                     if(interlocutoresSolicitud != null) {
-                        if(tipoSolicitud.equals("1") || tipoSolicitud.equals("6")) {
                             tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height + (interlocutoresSolicitud.size() * alturaFilaTableView);
                             tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(getContext(), interlocutoresSolicitud));
-                        }
                     }
                     headers = ((InterlocutorTableAdapter)bloque_interlocutor.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
@@ -1436,13 +1377,13 @@ public class SolicitudActivity extends AppCompatActivity {
                 case "W_CTE-BANCOS":
                     de.codecrafters.tableview.TableView<Banco> bloque_banco;
                     bloque_banco = tb_bancos;
-                    btnAddBloque.setOnClickListener(new View.OnClickListener() {
+                    btnAddBloque.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             displayDialogBancos(getContext(),null);
                         }
                     });
-                    seccion_header.setOnClickListener(new View.OnClickListener() {
+                    seccion_header.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             displayDialogBancos(getContext(),null);
@@ -1454,8 +1395,8 @@ public class SolicitudActivity extends AppCompatActivity {
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     bloque_banco.setLayoutParams(hlp);
 
-                    if(solicitudSeleccionada.size() > 0){
-                        bancosSolicitud = mDBHelper.getBancosDB(idSolicitud);
+                    if(clienteSeleccionado.size() > 0){
+                        bancosSolicitud = mDBHelper.getBancosDB(idCliente);
                     }
                     //Adaptadores
                     if(bancosSolicitud != null) {
@@ -1487,8 +1428,8 @@ public class SolicitudActivity extends AppCompatActivity {
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     tb_visitas.setLayoutParams(hlp);
 
-                    if(solicitudSeleccionada.size() > 0){
-                        visitasSolicitud = mDBHelper.getVisitasDB(idSolicitud);
+                    if(clienteSeleccionado.size() > 0){
+                        visitasSolicitud = mDBHelper.getVisitasCliente(idCliente);
                     }
                     //Adaptadores
                     if(visitasSolicitud != null) {
@@ -1530,7 +1471,8 @@ public class SolicitudActivity extends AppCompatActivity {
                         TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5f);
                         lp.setMargins(0, 15, 0, 15);
                         et.setLayoutParams(lp);
-                        if(solicitudSeleccionada.size() > 0){
+                        et.setTextColor(getResources().getColor(R.color.black,null));
+                        if(clienteSeleccionado.size() > 0){
                             switch(x) {
                                 case 0:
                                     et.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud.get(indicePreventa).getLun_de()));
@@ -1556,235 +1498,9 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         }
                         //et.setPadding(20, 5, 20, 5);
-                        Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
-                        et.setBackground(d);
-                        final int finalX = x;
-                        et.setOnFocusChangeListener(new OnFocusChangeListener() {
-                            @Override
-                            public void onFocusChange(View v, boolean hasFocus) {
-                                /*int indicePreventa = 0;
-                                int indiceReparto = 0;
-                                for(int i = 0 ; i < visitasSolicitud.size(); i++){
-                                    if(visitasSolicitud.get(i).getVptyp().equals("ZPV")){
-                                        indicePreventa = i;
-                                    }
-                                    if(visitasSolicitud.get(i).getVptyp().equals("ZDD")){
-                                        indiceReparto = i;
-                                    }
-                                }*/
-                                int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
-                                int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
+                        //Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
+                        //et.setBackground(d);
 
-                                final int finalIndicePreventa = indicePreventa;
-                                final int finalIndiceReparto = indiceReparto;
-                                if (!hasFocus) {
-                                    int diaReparto = 0;
-                                    if((finalX+1) > 5){
-                                        diaReparto = ((finalX+1)-6);
-                                    }else{
-                                        diaReparto = (finalX+1);
-                                    }
-                                    Visitas visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
-                                    Visitas visitaReparto = visitasSolicitud.get(finalIndiceReparto);
-                                    if(!((TextView)v).getText().toString().equals("") && Integer.valueOf(((TextView)v).getText().toString()) > 1440){
-                                        switch(finalX) {
-                                            case 0:
-                                                visitaPreventa.setLun_a(getResources().getString(R.string.max_secuencia));
-                                                visitaPreventa.setLun_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 1:
-                                                visitaPreventa.setMar_a(getResources().getString(R.string.max_secuencia));
-                                                visitaPreventa.setMar_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 2:
-                                                visitaPreventa.setMier_a(getResources().getString(R.string.max_secuencia));
-                                                visitaPreventa.setMier_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 3:
-                                                visitaPreventa.setJue_a(getResources().getString(R.string.max_secuencia));
-                                                visitaPreventa.setJue_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 4:
-                                                visitaPreventa.setVie_a(getResources().getString(R.string.max_secuencia));
-                                                visitaPreventa.setVie_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 5:
-                                                visitaPreventa.setSab_a(getResources().getString(R.string.max_secuencia));
-                                                visitaPreventa.setSab_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 6:
-                                                visitaPreventa.setDom_a(getResources().getString(R.string.max_secuencia));
-                                                visitaPreventa.setDom_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                        }
-                                        switch(diaReparto) {
-                                            case 0:
-                                                visitaReparto.setLun_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setLun_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 1:
-                                                visitaReparto.setMar_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setMar_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 2:
-                                                visitaReparto.setMier_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setMier_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 3:
-                                                visitaReparto.setJue_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setJue_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 4:
-                                                visitaReparto.setVie_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setVie_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 5:
-                                                visitaReparto.setSab_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setSab_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 6:
-                                                visitaReparto.setDom_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setDom_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                        }
-                                        ((TextView)v).setText(getResources().getString(R.string.max_secuencia));
-                                        Toasty.warning(getContext(), R.string.error_max_secuencia).show();
-                                    }
-
-                                    //Si el valor es vacio, borrar si existe el dia
-                                    if(((TextView)v).getText().toString().trim().equals("")){
-                                        switch(finalX) {
-                                            case 0:
-                                                visitaPreventa.setLun_a("");
-                                                visitaPreventa.setLun_de("");
-                                                break;
-                                            case 1:
-                                                visitaPreventa.setMar_a("");
-                                                visitaPreventa.setMar_de("");
-                                                break;
-                                            case 2:
-                                                visitaPreventa.setMier_a("");
-                                                visitaPreventa.setMier_de("");
-                                                break;
-                                            case 3:
-                                                visitaPreventa.setJue_a("");
-                                                visitaPreventa.setJue_de("");
-                                                break;
-                                            case 4:
-                                                visitaPreventa.setVie_a("");
-                                                visitaPreventa.setVie_de("");
-                                                break;
-                                            case 5:
-                                                visitaPreventa.setSab_a("");
-                                                visitaPreventa.setSab_de("");
-                                                break;
-                                            case 6:
-                                                visitaPreventa.setDom_a("");
-                                                visitaPreventa.setDom_de("");
-                                                break;
-                                        }
-                                        switch(diaReparto) {
-                                            case 0:
-                                                visitaReparto.setLun_a("");
-                                                visitaReparto.setLun_de("");
-                                                break;
-                                            case 1:
-                                                visitaReparto.setMar_a("");
-                                                visitaReparto.setMar_de("");
-                                                break;
-                                            case 2:
-                                                visitaReparto.setMier_a("");
-                                                visitaReparto.setMier_de("");
-                                                break;
-                                            case 3:
-                                                visitaReparto.setJue_a("");
-                                                visitaReparto.setJue_de("");
-                                                break;
-                                            case 4:
-                                                visitaReparto.setVie_a("");
-                                                visitaReparto.setVie_de("");
-                                                break;
-                                            case 5:
-                                                visitaReparto.setSab_a("");
-                                                visitaReparto.setSab_de("");
-                                                break;
-                                            case 6:
-                                                visitaReparto.setDom_a("");
-                                                visitaReparto.setDom_de("");
-                                                break;
-                                        }
-                                    }else{
-                                        String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView)v).getText().toString());
-                                        /*int hours = Integer.valueOf(((TextView)v).getText().toString()) / 60;
-                                        int minutes = Integer.valueOf(((TextView)v).getText().toString()) % 60;
-                                        String h = String.format(Locale.getDefault(),"%02d", hours);
-                                        String m = String.format(Locale.getDefault(),"%02d", minutes);
-                                        String secuenciaSAP = h+m;*/
-                                        switch(finalX) {
-                                            case 0:
-                                                visitaPreventa.setLun_a(secuenciaSAP);
-                                                visitaPreventa.setLun_de(secuenciaSAP);
-                                                break;
-                                            case 1:
-                                                visitaPreventa.setMar_a(secuenciaSAP);
-                                                visitaPreventa.setMar_de(secuenciaSAP);
-                                                break;
-                                            case 2:
-                                                visitaPreventa.setMier_a(secuenciaSAP);
-                                                visitaPreventa.setMier_de(secuenciaSAP);
-                                                break;
-                                            case 3:
-                                                visitaPreventa.setJue_a(secuenciaSAP);
-                                                visitaPreventa.setJue_de(secuenciaSAP);
-                                                break;
-                                            case 4:
-                                                visitaPreventa.setVie_a(secuenciaSAP);
-                                                visitaPreventa.setVie_de(secuenciaSAP);
-                                                break;
-                                            case 5:
-                                                visitaPreventa.setSab_a(secuenciaSAP);
-                                                visitaPreventa.setSab_de(secuenciaSAP);
-                                                break;
-                                            case 6:
-                                                visitaPreventa.setDom_a(secuenciaSAP);
-                                                visitaPreventa.setDom_de(secuenciaSAP);
-                                                break;
-                                        }
-                                        switch(diaReparto) {
-                                            case 0:
-                                                visitaReparto.setLun_a(secuenciaSAP);
-                                                visitaReparto.setLun_de(secuenciaSAP);
-                                                break;
-                                            case 1:
-                                                visitaReparto.setMar_a(secuenciaSAP);
-                                                visitaReparto.setMar_de(secuenciaSAP);
-                                                break;
-                                            case 2:
-                                                visitaReparto.setMier_a(secuenciaSAP);
-                                                visitaReparto.setMier_de(secuenciaSAP);
-                                                break;
-                                            case 3:
-                                                visitaReparto.setJue_a(secuenciaSAP);
-                                                visitaReparto.setJue_de(secuenciaSAP);
-                                                break;
-                                            case 4:
-                                                visitaReparto.setVie_a(secuenciaSAP);
-                                                visitaReparto.setVie_de(secuenciaSAP);
-                                                break;
-                                            case 5:
-                                                visitaReparto.setSab_a(secuenciaSAP);
-                                                visitaReparto.setSab_de(secuenciaSAP);
-                                                break;
-                                            case 6:
-                                                visitaReparto.setDom_a(secuenciaSAP);
-                                                visitaReparto.setDom_de(secuenciaSAP);
-                                                break;
-                                        }
-                                    }
-
-                                }
-                            }
-                        });
                         label.addView(et);
                         ll.addView(label);
                     }
@@ -1854,7 +1570,7 @@ public class SolicitudActivity extends AppCompatActivity {
             title.setText(String.format(context.getResources().getString(R.string.palabras_2), context.getResources().getString(R.string.texto_modificar), context.getResources().getString(R.string.texto_contacto)));
         }
         //SAVE
-        saveBtn.setOnClickListener(new View.OnClickListener() {
+        saveBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(seleccionado != null)
@@ -1931,7 +1647,7 @@ public class SolicitudActivity extends AppCompatActivity {
             title.setText(String.format(context.getResources().getString(R.string.palabras_2), context.getResources().getString(R.string.texto_modificar), context.getResources().getString(R.string.texto_impuesto)));
         }
         //SAVE
-        saveBtn.setOnClickListener(new View.OnClickListener() {
+        saveBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(seleccionado != null)
@@ -2055,7 +1771,7 @@ public class SolicitudActivity extends AppCompatActivity {
             title.setText(String.format(context.getResources().getString(R.string.palabras_2), context.getResources().getString(R.string.texto_modificar), context.getResources().getString(R.string.texto_interlocutor)));
         }
         //SAVE
-        saveBtn.setOnClickListener(new View.OnClickListener() {
+        saveBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 Interlocutor nuevoInterlocutor = new Interlocutor();
@@ -2105,7 +1821,7 @@ public class SolicitudActivity extends AppCompatActivity {
             title.setText(String.format(context.getString(R.string.palabras_2),context.getString(R.string.texto_modificar),context.getString(R.string.texto_cuenta_bancaria)));
         }
         //SAVE
-        saveBtn.setOnClickListener(new View.OnClickListener() {
+        saveBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(seleccionado != null)
@@ -2261,7 +1977,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
         Button saveBtn= d.findViewById(R.id.saveBtn);
         //SAVE
-        saveBtn.setOnClickListener(new View.OnClickListener() {
+        saveBtn.setOnClickListener(new OnClickListener() {
             @SuppressLint("ResourceType")
             @Override
             public void onClick(View v) {
@@ -2397,7 +2113,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
         Button saveBtn= d.findViewById(R.id.saveBtn);
         //SAVE
-        saveBtn.setOnClickListener(new View.OnClickListener() {
+        saveBtn.setOnClickListener(new OnClickListener() {
             @SuppressLint("ResourceType")
             @Override
             public void onClick(View v) {
@@ -2473,7 +2189,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private class ContactoClickListener implements TableDataClickListener<Contacto> {
         @Override
         public void onDataClicked(int rowIndex, Contacto seleccionado) {
-            displayDialogContacto(SolicitudActivity.this,seleccionado);
+            displayDialogContacto(ClienteActivity.this,seleccionado);
         }
     }
     //Listeners de Bloques de datos
@@ -2491,7 +2207,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private class ImpuestoClickListener implements TableDataClickListener<Impuesto> {
         @Override
         public void onDataClicked(int rowIndex, Impuesto seleccionado) {
-            displayDialogImpuesto(SolicitudActivity.this,seleccionado);
+            displayDialogImpuesto(ClienteActivity.this,seleccionado);
         }
     }
     private class ImpuestoLongClickListener implements TableDataLongClickListener<Impuesto> {
@@ -2508,7 +2224,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private class BancoClickListener implements TableDataClickListener<Banco> {
         @Override
         public void onDataClicked(int rowIndex, Banco seleccionado) {
-            displayDialogBancos(SolicitudActivity.this,seleccionado);
+            displayDialogBancos(ClienteActivity.this,seleccionado);
         }
     }
     private class BancoLongClickListener implements TableDataLongClickListener<Banco> {
@@ -2525,7 +2241,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private class InterlocutorClickListener implements TableDataClickListener<Interlocutor> {
         @Override
         public void onDataClicked(int rowIndex, Interlocutor seleccionado) {
-            displayDialogInterlocutor(SolicitudActivity.this,seleccionado);
+            displayDialogInterlocutor(ClienteActivity.this,seleccionado);
         }
     }
     private class InterlocutorLongClickListener implements TableDataLongClickListener<Interlocutor> {
@@ -2542,14 +2258,14 @@ public class SolicitudActivity extends AppCompatActivity {
     private class VisitasClickListener implements TableDataClickListener<Visitas> {
         @Override
         public void onDataClicked(int rowIndex, Visitas seleccionado) {
-            DetallesVisitPlan(SolicitudActivity.this, seleccionado);
+            DetallesVisitPlan(ClienteActivity.this, seleccionado);
         }
     }
     @SuppressWarnings("unchecked")
     private void DetallesVisitPlan(final Context context, final Visitas seleccionado) {
         final Dialog d = new Dialog(context);
         d.setContentView(R.layout.visita_dialog_layout);
-        boolean reparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""), seleccionado.getVptyp());
+        boolean reparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(ClienteActivity.this).getString("W_CTE_BZIRK",""), seleccionado.getVptyp());
         //INITIALIZE VIEWS
         final TextView title = d.findViewById(R.id.title);
         final Spinner kvgr4Spinner = d.findViewById(R.id.kvgr4Spinner);
@@ -2595,17 +2311,17 @@ public class SolicitudActivity extends AppCompatActivity {
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones);
         dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_background, null);
-        fcalidSpinner.setBackground(spinner_back);
+        //Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_background, null);
+        //fcalidSpinner.setBackground(spinner_back);
         fcalidSpinner.setAdapter(dataAdapter);
         fcalidSpinner.setSelection(selectedIndex);
 
         //SAVE
-        saveBtn.setOnClickListener(new View.OnClickListener() {
+        saveBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 seleccionado.setKvgr4(kvgr4Spinner.getSelectedItem().toString().trim());
-                seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
+                seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(ClienteActivity.this).getString("W_CTE_RUTAHH",""));
                 //TODO: setear ruta segun su tipo de visita
                 seleccionado.setF_ini(f_iniEditText.getText().toString());
                 seleccionado.setF_fin(f_finEditText.getText().toString());
@@ -2641,7 +2357,7 @@ public class SolicitudActivity extends AppCompatActivity {
         for (int y = 0 ; y < numplanes; y++) {
             Visitas vp = visitasSolicitud.get(y);
             //Revisar si el VP es una ruta de reparto para ser borrada y recalculada
-            if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp())) {
+            if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(ClienteActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp())) {
                 vp.setLun_de("");
                 vp.setLun_a("");
                 vp.setMar_de("");
@@ -2663,7 +2379,7 @@ public class SolicitudActivity extends AppCompatActivity {
             Visitas vp = visitasSolicitud.get(y);
 
             //Si no es tipo de reparto debemos tomar en cuenta para calcular su reparto
-            boolean esReparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp());
+            boolean esReparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(ClienteActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp());
             //TODO cambiar el valor "PR" por el valor dinamico del comboBox de Modalidad de venta
             if(!esReparto){
                 String rutaReparto = mDBHelper.RutaRepartoAsociada("PR", vp.getVptyp());
@@ -2760,7 +2476,7 @@ public class SolicitudActivity extends AppCompatActivity {
             //displayDialogVisitas(SolicitudActivity.this,seleccionado);
             byte[] image = seleccionado.getImage();
             Bitmap bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
-            mostrarAdjunto(SolicitudActivity.this, bitmap);
+            mostrarAdjunto(ClienteActivity.this, bitmap);
         }
     }
     private class AdjuntosLongClickListener implements TableDataLongClickListener<Adjuntos> {
@@ -2795,7 +2511,7 @@ public class SolicitudActivity extends AppCompatActivity {
         int selectedIndex = 0;
         for (int j = 0; j < provincias.size(); j++){
             listaopciones.add(new OpcionSpinner(provincias.get(j).get("id"), provincias.get(j).get("descripcion")));
-            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-REGION").trim().equals(provincias.get(j).get("id"))){
+            if(clienteSeleccionado.size() > 0 && clienteSeleccionado.get(0).get("W_CTE-REGION").trim().equals(provincias.get(j).get("id"))){
                 selectedIndex = j;
             }
         }
@@ -2805,8 +2521,8 @@ public class SolicitudActivity extends AppCompatActivity {
         // Drop down layout style - list view with radio button
         dataAdapter.setDropDownViewResource(R.layout.spinner_item);
         // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
+        //Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        //combo.setBackground(d);
         combo.setAdapter(dataAdapter);
         combo.setSelection(selectedIndex);
         DireccionCorta();
@@ -2821,7 +2537,7 @@ public class SolicitudActivity extends AppCompatActivity {
         int selectedIndex = 0;
         for (int j = 0; j < cantones.size(); j++){
             listaopciones.add(new OpcionSpinner(cantones.get(j).get("id"), cantones.get(j).get("descripcion")));
-            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-CITY1").trim().equals(cantones.get(j).get("id"))){
+            if(clienteSeleccionado.size() > 0 && clienteSeleccionado.get(0).get("W_CTE-CITY1").trim().equals(cantones.get(j).get("id"))){
                 selectedIndex = j;
             }
         }
@@ -2832,8 +2548,8 @@ public class SolicitudActivity extends AppCompatActivity {
         // Drop down layout style - list view with radio button
         dataAdapter.setDropDownViewResource(R.layout.spinner_item);
         // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
+        //Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        //combo.setBackground(d);
         combo.setAdapter(dataAdapter);
         combo.setSelection(selectedIndex);
         DireccionCorta();
@@ -2848,7 +2564,7 @@ public class SolicitudActivity extends AppCompatActivity {
         int selectedIndex = 0;
         for (int j = 0; j < distritos.size(); j++){
             listaopciones.add(new OpcionSpinner(distritos.get(j).get("id"), distritos.get(j).get("descripcion")));
-            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-STR_SUPPL3").trim().equals(distritos.get(j).get("id"))){
+            if(clienteSeleccionado.size() > 0 && clienteSeleccionado.get(0).get("W_CTE-STR_SUPPL3").trim().equals(distritos.get(j).get("id"))){
                 selectedIndex = j;
             }
         }
@@ -2859,8 +2575,8 @@ public class SolicitudActivity extends AppCompatActivity {
         // Drop down layout style - list view with radio button
         dataAdapter.setDropDownViewResource(R.layout.spinner_item);
         // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
+        //Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        //combo.setBackground(d);
         combo.setAdapter(dataAdapter);
         combo.setSelection(selectedIndex);
         DireccionCorta();
@@ -2913,8 +2629,8 @@ public class SolicitudActivity extends AppCompatActivity {
         // Drop down layout style - list view with radio button
         dataAdapter.setDropDownViewResource(R.layout.spinner_item);
         // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
+        //Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        //combo.setBackground(d);
         combo.setAdapter(dataAdapter);
     }
     private static void CanalesKof(AdapterView<?> parent){
@@ -2934,8 +2650,8 @@ public class SolicitudActivity extends AppCompatActivity {
         // Drop down layout style - list view with radio button
         dataAdapter.setDropDownViewResource(R.layout.spinner_item);
         // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
+        //Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        //combo.setBackground(d);
         combo.setAdapter(dataAdapter);
     }
     private static void  ImpuestoSegunUnidadNegocio(AdapterView<?> parent) {

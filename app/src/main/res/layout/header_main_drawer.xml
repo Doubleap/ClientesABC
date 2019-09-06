@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="200dp"
+    android:background="@drawable/header_menu"
+    android:gravity="bottom"
+    android:orientation="vertical"
+    android:paddingBottom="0dp"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="100dp"
+        android:layout_height="70dp"
+        android:contentDescription="Coca Cola Femsa"
+        android:layout_marginBottom="65dp"
+        app:srcCompat="@drawable/femsa_logo" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:layout_marginBottom="10dp"
+        android:layout_gravity="bottom"
+        android:gravity="bottom"
+        android:text="Menu Principal"
+        android:textSize="18sp"
+        android:textColor="@color/android_text_color"
+        android:background="@null"/>
+
+
+</LinearLayout>

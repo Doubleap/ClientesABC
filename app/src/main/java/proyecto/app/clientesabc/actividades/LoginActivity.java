@@ -40,13 +40,6 @@ public class LoginActivity extends AppCompatActivity {
     private TextView bookITextView;
     private ProgressBar loadingProgressBar;
     private RelativeLayout rootView, afterAnimationView;
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "1:1", "9999:9999"
-    };
 
     // UI references.
     private AutoCompleteTextView mUserView;
@@ -176,13 +169,13 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private boolean isUserValid(String user) {
-        //TODO: Cualquier validacion al usuario
+        //Validacion del usuario
         DataBaseHelper db = new DataBaseHelper(getBaseContext());
         return db.validarUsuario(user);
     }
 
     private boolean isPasswordValid(String password) {
-        //TODO: Cualquier validacion al password
+        //Validacion del password
         return true;
     }
 

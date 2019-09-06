@@ -9,10 +9,12 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
-import android.util.Log;
-import android.view.Menu;
+import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridLayout;
@@ -21,7 +23,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
-import java.util.Objects;
 
 import pl.pawelkleczkowski.customgauge.CustomGauge;
 import proyecto.app.clientesabc.R;
@@ -55,9 +56,10 @@ public class PanelActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_panel);
+
         mDBHelper = new DataBaseHelper(this);
         mDb = mDBHelper.getWritableDatabase();
-        principal = (LinearLayout)findViewById(R.id.principal);
+        //principal = (LinearLayout)findViewById(R.id.principal);
         gridLayout = (GridLayout)findViewById(R.id.mainGrid);
         rutaPanel = findViewById(R.id.rutaPanel);
         rutaPanel.setText(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH",""));
@@ -110,7 +112,6 @@ public class PanelActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.action_transmitir:
-                        Log.i("Start Server Clicked", "yipee");
                         //if(validarConexion()) {
                             //Realizar la transmision de lo que se necesita (Db o txt)
                             WeakReference<Context> weakRef = new WeakReference<Context>(PanelActivity.this);
@@ -127,7 +128,35 @@ public class PanelActivity extends AppCompatActivity {
 
         setSingleEvent(gridLayout);
         Drawable d = getResources().getDrawable(R.drawable.botella_coca_header_der,null);
-        Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
+        //Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("Monitor de Solicitudes");
+        toolbar.setBackground(d);
+
+        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        toggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.white,null));
+        drawer.addDrawerListener(toggle);
+
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                drawer.closeDrawers();
+                Bundle b = new Bundle();
+                //TODO seleccionar el tipo de solicitud por el UI
+                b.putString("tipoSolicitud", "1"); //id de solicitud
+
+                intent = new Intent(getBaseContext(),SolicitudActivity.class);
+                intent.putExtras(b); //Pase el parametro el Intent
+                startActivity(intent);
+                return false;
+            }
+        });
     }
 
     @Override
@@ -179,15 +208,6 @@ public class PanelActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the main_menu; this adds items to the action bar if it is present.
-        /*MenuItem item = menu.add(Menu.NONE, 1, 1, "Texto");
-        item.setIcon(R.drawable.icon_solicitud);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_WITH_TEXT);*/
-        getMenuInflater().inflate(R.menu.menu_min, menu);
-        return true;
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

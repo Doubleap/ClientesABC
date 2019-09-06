@@ -45,7 +45,6 @@ public class PruebaConexionServidor extends AsyncTask<Void,Void,Void> {
 
             socket.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             xceptionFlag = true;
             messageFlag = e.getMessage();
             e.printStackTrace();

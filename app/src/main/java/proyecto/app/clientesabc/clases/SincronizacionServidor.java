@@ -62,7 +62,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
             dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH",""));
             dos.flush();
 
-            //TODO Puedo recibir cualquier cosa de respuesta en el stream de la conexion del socket??
+            //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
             long s = dis.readLong();
             if(s < 0){
                 s = dis.readLong();
@@ -123,8 +123,8 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
             }
 
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             xceptionFlag = true;
+            messageFlag = e.getMessage();
             e.printStackTrace();
         }
 
@@ -137,6 +137,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
         }
         catch (Exception e){
             xceptionFlag = true;
+            messageFlag = e.getMessage();
             e.printStackTrace();
         }
 
@@ -166,7 +167,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
             Toasty.success(context.get(),"Sincronizacion Exitosa!!",Toast.LENGTH_LONG).show();
         }
         else{
-            Toasty.error(context.get(),"Sincronizacion Fallida."+messageFlag,Toast.LENGTH_LONG).show();
+            Toasty.error(context.get(),"Sincronizacion Fallida. "+messageFlag,Toast.LENGTH_LONG).show();
         }
         dialog.dismiss();
         if(dialog.isShowing()) {

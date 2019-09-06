@@ -51,7 +51,7 @@
     <style name="mySpinnerStyle" parent="android:Widget.ListView.DropDown">
         <item name="android:divider">#ffffff</item>
         <item name="android:dividerHeight">1dp</item>
-        <item name="android:background">#eeeeee</item>
+        <item name="android:background">#ee0000</item>
     </style>
 
     <style name="BottomNavigationView" parent="@style/TextAppearance.AppCompat.Caption">
