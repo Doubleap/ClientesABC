@@ -63,7 +63,6 @@
             <meta-data
                 android:name="android.app.searchable"
                 android:resource="@layout/searchable" />
-
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
@@ -78,6 +77,9 @@
             android:name=".actividades.PanelActivity"
             android:label="@string/title_activity_panel"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+        <activity
+            android:name=".actividades.ClienteActivity"
+            android:label="@string/title_activity_cliente"></activity>
     </application>
 
 </manifest>

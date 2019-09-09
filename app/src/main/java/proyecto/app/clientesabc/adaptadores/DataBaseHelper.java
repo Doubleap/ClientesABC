@@ -1601,7 +1601,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
     public int CantidadSolicitudes(String estado) {
         int cantidad = 0;
-
         String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud where trim(estado) = ?";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,new String[]{estado});
         while (cursor.moveToNext()){

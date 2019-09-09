@@ -24,7 +24,6 @@ import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 
-import pl.pawelkleczkowski.customgauge.CustomGauge;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
@@ -44,14 +43,9 @@ public class PanelActivity extends AppCompatActivity {
     private TextView num_aprobados;
     private TextView num_rechazados;
     private TextView num_transmitidos;
-    private CardView card_nuevos;
-    private CardView card_pendientes;
-    private CardView card_incidencias;
-    private CardView card_aprobados;
-    private CardView card_rechazados;
-    private CardView card_transmitidos;
-    private CustomGauge gauge_nuevos;
-    private CustomGauge gauge_pendientes;
+    private TextView num_cancelados;
+    private TextView num_modificados;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,10 +65,8 @@ public class PanelActivity extends AppCompatActivity {
         num_aprobados = findViewById(R.id.num_aprobados);
         num_rechazados = findViewById(R.id.num_rechazados);
         num_transmitidos = findViewById(R.id.num_transmitidos);
-
-        gauge_nuevos = findViewById(R.id.gauge_nuevos);
-        gauge_pendientes = findViewById(R.id.gauge_pendientes);
-
+        num_cancelados = findViewById(R.id.num_cancelados);
+        num_modificados = findViewById(R.id.num_modificados);
 
         /*spinner = new Spinner(this, Spinner.MODE_DIALOG);
         ArrayList<OpcionSpinner> listaopciones = mDBHelper.getDatosCatalogoParaSpinner("cat_T171T");
@@ -163,13 +155,13 @@ public class PanelActivity extends AppCompatActivity {
     protected  void onStart(){
         super.onStart();
         num_nuevos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Nuevo")));
-        gauge_nuevos.setValue(50);
         num_pendientes.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Pendiente")));
-        gauge_pendientes.setValue(50);
         num_incidencias.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Incidencia")));
         num_aprobados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Aprobado")));
         num_rechazados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Rechazado")));
-        num_transmitidos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Transmitido")));
+        num_transmitidos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Transmitidos")));
+        num_cancelados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Cancelado")));
+        num_modificados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Modificado")));
     }
     // we are setting onClickListener for each element
     private void setSingleEvent(GridLayout gridLayout) {

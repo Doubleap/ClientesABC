@@ -88,7 +88,9 @@ public class VariablesGlobales extends Application {
 
     public static String HoraToSecuencia(String hora) {
         String secuencia = "";
-        if(hora != null && hora.length() == 4) {
+        hora = String.format("%1$" + 4 + "s", hora).replace(' ', '0');
+
+        if(hora != null && !hora.equals("0999") && hora.length() == 4) {
             String h = hora.substring(0, 2);
             String m = hora.substring(2, 4);
             secuencia = String.valueOf(Integer.valueOf(h) * 60 + Integer.valueOf(m));

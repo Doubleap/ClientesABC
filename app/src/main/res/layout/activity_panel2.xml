@@ -60,42 +60,34 @@
                 android:layout_height="wrap_content"
                 android:alignmentMode="alignMargins"
                 android:columnCount="2"
-                android:rowCount="5"
+                android:rowCount="4"
                 android:columnOrderPreserved="false"
                 android:padding="16dp"
                 >
-                <!-- Opcion 1-->
                 <android.support.v7.widget.CardView
-                    android:id="@+id/card_nuevos"
+                    android:id="@+id/card_gauge_nuevos"
                     android:layout_width="0dp"
                     android:layout_height="100dp"
                     android:layout_columnWeight="1"
-                    android:layout_marginBottom="16dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginLeft="0dp"
+                    android:layout_marginRight="0dp"
                     android:layout_rowWeight="1"
-                    android:background="@null"
-                    app:cardCornerRadius="25dp"
+                    app:cardCornerRadius="5dp"
                     app:cardElevation="5dp">
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_margin="0dp"
-                        android:background="@drawable/square_btn_bg_t1"
                         android:gravity="center_horizontal|center_vertical"
                         android:orientation="vertical">
-                        <!--<ImageView
-                            android:src="@drawable/icon_config"
-                            android:layout_gravity="center_horizontal"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />-->
+
                         <TextView
                             android:id="@+id/num_nuevos"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="-10dp"
-                            android:text="8"
+                            android:layout_marginTop="15dp"
+                            android:text="5"
                             android:textAlignment="center"
                             android:textColor="@color/nuevo"
                             android:textSize="48sp"
@@ -104,31 +96,50 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Nuevos"
+                            android:text="Pendientes"
                             android:textAlignment="center"
                             android:textColor="@color/nuevo"
-                            android:textSize="18sp"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
                     </LinearLayout>
-                </android.support.v7.widget.CardView>
-                <!-- Opcion 2-->
-                <android.support.v7.widget.CardView
-                    android:id="@+id/card_pendientes"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_columnWeight="1"
-                    android:layout_marginBottom="16dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
-                    android:layout_rowWeight="1"
-                    app:cardCornerRadius="25dp"
-                    app:cardElevation="5dp">
+                <pl.pawelkleczkowski.customgauge.CustomGauge
+                    android:id="@+id/gauge_nuevos"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/gauge1"
+                    android:layout_centerHorizontal="true"
+                    android:paddingBottom="0dp"
+                    android:paddingLeft="0dp"
+                    android:paddingRight="0dp"
+                    android:paddingTop="0dp"
+                    app:gaugeEndValue="100"
+                    app:gaugePointEndColor="@color/nuevo"
+                    app:gaugePointStartColor="@color/nuevo"
+                    app:gaugeStartAngle="135"
+                    app:gaugeStartValue="0"
+                    app:gaugeStrokeCap="ROUND"
+                    app:gaugeStrokeColor="@color/nuevo"
+                    app:gaugeStrokeWidth="10dp"
+                    app:gaugeSweepAngle="270" />
 
+                </android.support.v7.widget.CardView>
+
+                <android.support.v7.widget.CardView
+                    android:id="@+id/card_gauge_pendientes"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_columnWeight="1"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginLeft="0dp"
+                    android:layout_marginRight="0dp"
+                    android:layout_rowWeight="1"
+                    app:cardCornerRadius="5dp"
+                    app:cardElevation="5dp"
+                    android:background="@drawable/square_btn_bg_t1">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_margin="0dp"
-                        android:background="@drawable/square_btn_bg_t1"
                         android:gravity="center_horizontal|center_vertical"
                         android:orientation="vertical">
 
@@ -136,8 +147,8 @@
                             android:id="@+id/num_pendientes"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="-10dp"
-                            android:text="2"
+                            android:layout_marginTop="15dp"
+                            android:text="26"
                             android:textAlignment="center"
                             android:textColor="@color/pendientes"
                             android:textSize="48sp"
@@ -149,28 +160,47 @@
                             android:text="Pendientes"
                             android:textAlignment="center"
                             android:textColor="@color/pendientes"
-                            android:textSize="18sp"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
                     </LinearLayout>
+                    <pl.pawelkleczkowski.customgauge.CustomGauge
+                        android:id="@+id/gauge_pendientes"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_below="@+id/gauge1"
+                        android:layout_centerHorizontal="true"
+                        android:paddingBottom="0dp"
+                        android:paddingLeft="0dp"
+                        android:paddingRight="0dp"
+                        android:paddingTop="0dp"
+                        app:gaugeEndValue="100"
+                        app:gaugePointEndColor="@color/pendientes"
+                        app:gaugePointStartColor="@color/pendientes"
+                        app:gaugeStartAngle="135"
+                        app:gaugeStartValue="0"
+                        app:gaugeStrokeCap="ROUND"
+                        app:gaugeStrokeColor="@color/pendientes"
+                        app:gaugeStrokeWidth="10dp"
+                        app:gaugeSweepAngle="270" />
+
                 </android.support.v7.widget.CardView>
-                <!-- Opcion 3-->
+
                 <android.support.v7.widget.CardView
-                    android:id="@+id/card_incidencias"
+                    android:id="@+id/card_gauge_incidencias"
                     android:layout_width="0dp"
                     android:layout_height="100dp"
                     android:layout_columnWeight="1"
-                    android:layout_marginBottom="16dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginLeft="0dp"
+                    android:layout_marginRight="0dp"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="25dp"
-                    app:cardElevation="5dp">
-
+                    app:cardCornerRadius="5dp"
+                    app:cardElevation="5dp"
+                    android:background="@drawable/square_btn_bg_t1">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_margin="0dp"
-                        android:background="@drawable/square_btn_bg_t1"
                         android:gravity="center_horizontal|center_vertical"
                         android:orientation="vertical">
 
@@ -178,7 +208,8 @@
                             android:id="@+id/num_incidencias"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="4"
+                            android:layout_marginTop="15dp"
+                            android:text="5"
                             android:textAlignment="center"
                             android:textColor="@color/devuelto"
                             android:textSize="48sp"
@@ -187,32 +218,50 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="-10dp"
-                            android:text="Incidencias"
+                            android:text="Pendientes"
                             android:textAlignment="center"
                             android:textColor="@color/devuelto"
-                            android:textSize="18sp"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
                     </LinearLayout>
-                </android.support.v7.widget.CardView>
-                <!-- Opcion 4-->
-                <android.support.v7.widget.CardView
-                    android:id="@+id/card_aprobados"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_columnWeight="1"
-                    android:layout_marginBottom="16dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
-                    android:layout_rowWeight="1"
-                    app:cardCornerRadius="25dp"
-                    app:cardElevation="5dp">
+                    <pl.pawelkleczkowski.customgauge.CustomGauge
+                        android:id="@+id/gauge_incidencias"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_below="@+id/gauge1"
+                        android:layout_centerHorizontal="true"
+                        android:paddingBottom="10dp"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:paddingTop="10dp"
+                        app:gaugeEndValue="100"
+                        app:gaugePointEndColor="@color/devuelto"
+                        app:gaugePointStartColor="@color/devuelto"
+                        app:gaugeStartAngle="135"
+                        app:gaugeStartValue="0"
+                        app:gaugeStrokeCap="ROUND"
+                        app:gaugeStrokeColor="@color/devuelto"
+                        app:gaugeStrokeWidth="10dp"
+                        app:gaugeSweepAngle="270" />
 
+                </android.support.v7.widget.CardView>
+
+                <android.support.v7.widget.CardView
+                    android:id="@+id/card_gauge_aprobados"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_columnWeight="1"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginLeft="0dp"
+                    android:layout_marginRight="0dp"
+                    android:layout_rowWeight="1"
+                    app:cardCornerRadius="5dp"
+                    app:cardElevation="5dp"
+                    android:background="@drawable/square_btn_bg_t1">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_margin="0dp"
-                        android:background="@drawable/square_btn_bg_t1"
                         android:gravity="center_horizontal|center_vertical"
                         android:orientation="vertical">
 
@@ -220,8 +269,8 @@
                             android:id="@+id/num_aprobados"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="-10dp"
-                            android:text="3"
+                            android:layout_marginTop="15dp"
+                            android:text="5"
                             android:textAlignment="center"
                             android:textColor="@color/aprobados"
                             android:textSize="48sp"
@@ -233,28 +282,47 @@
                             android:text="Aprobados"
                             android:textAlignment="center"
                             android:textColor="@color/aprobados"
-                            android:textSize="18sp"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
                     </LinearLayout>
+                    <pl.pawelkleczkowski.customgauge.CustomGauge
+                        android:id="@+id/gauge_aprobados"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_below="@+id/gauge1"
+                        android:layout_centerHorizontal="true"
+                        android:paddingBottom="10dp"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:paddingTop="10dp"
+                        app:gaugeEndValue="100"
+                        app:gaugePointEndColor="@color/aprobados"
+                        app:gaugePointStartColor="@color/aprobados"
+                        app:gaugeStartAngle="135"
+                        app:gaugeStartValue="0"
+                        app:gaugeStrokeCap="ROUND"
+                        app:gaugeStrokeColor="@color/aprobados"
+                        app:gaugeStrokeWidth="10dp"
+                        app:gaugeSweepAngle="270" />
+
                 </android.support.v7.widget.CardView>
-                <!-- Opcion 5-->
+
                 <android.support.v7.widget.CardView
-                    android:id="@+id/card_rechazados"
+                    android:id="@+id/card_gauge_rechazados"
                     android:layout_width="0dp"
                     android:layout_height="100dp"
                     android:layout_columnWeight="1"
-                    android:layout_marginBottom="16dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
+                    android:layout_marginBottom="0dp"
+                    android:layout_marginLeft="0dp"
+                    android:layout_marginRight="0dp"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="25dp"
-                    app:cardElevation="5dp">
-
+                    app:cardCornerRadius="5dp"
+                    app:cardElevation="5dp"
+                    android:background="@drawable/square_btn_bg_t1">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_margin="0dp"
-                        android:background="@drawable/square_btn_bg_t1"
                         android:gravity="center_horizontal|center_vertical"
                         android:orientation="vertical">
 
@@ -262,8 +330,8 @@
                             android:id="@+id/num_rechazados"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="-10dp"
-                            android:text="7"
+                            android:layout_marginTop="15dp"
+                            android:text="5"
                             android:textAlignment="center"
                             android:textColor="@color/rechazado"
                             android:textSize="48sp"
@@ -274,29 +342,48 @@
                             android:layout_height="wrap_content"
                             android:text="Rechazados"
                             android:textAlignment="center"
-                            android:textColor="@color/rechazado"
-                            android:textSize="18sp"
+                            android:textColor="@color/nuevo"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
                     </LinearLayout>
-                </android.support.v7.widget.CardView>
-                <!-- Opcion 6-->
-                <android.support.v7.widget.CardView
-                    android:id="@+id/card_transmitidos"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_columnWeight="1"
-                    android:layout_marginBottom="16dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
-                    android:layout_rowWeight="1"
-                    app:cardCornerRadius="25dp"
-                    app:cardElevation="5dp">
+                    <pl.pawelkleczkowski.customgauge.CustomGauge
+                        android:id="@+id/gauge_rechazado"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_below="@+id/gauge1"
+                        android:layout_centerHorizontal="true"
+                        android:paddingBottom="10dp"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:paddingTop="10dp"
+                        app:gaugeEndValue="100"
+                        app:gaugePointEndColor="@color/rechazado"
+                        app:gaugePointStartColor="@color/rechazado"
+                        app:gaugeStartAngle="135"
+                        app:gaugeStartValue="0"
+                        app:gaugeStrokeCap="ROUND"
+                        app:gaugeStrokeColor="@color/rechazado"
+                        app:gaugeStrokeWidth="10dp"
+                        app:gaugeSweepAngle="270" />
 
+                </android.support.v7.widget.CardView>
+
+                <android.support.v7.widget.CardView
+                    android:id="@+id/card_gauge_transmitidos"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_columnWeight="1"
+                    android:layout_marginBottom="0dp"
+                    android:layout_marginLeft="0dp"
+                    android:layout_marginRight="0dp"
+                    android:layout_rowWeight="1"
+                    app:cardCornerRadius="5dp"
+                    app:cardElevation="5dp"
+                    android:background="@drawable/square_btn_bg_t1">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_margin="0dp"
-                        android:background="@drawable/square_btn_bg_t1"
                         android:gravity="center_horizontal|center_vertical"
                         android:orientation="vertical">
 
@@ -304,8 +391,8 @@
                             android:id="@+id/num_transmitidos"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="-10dp"
-                            android:text="5"
+                            android:layout_marginTop="15dp"
+                            android:text="18"
                             android:textAlignment="center"
                             android:textColor="@color/transmitido"
                             android:textSize="48sp"
@@ -314,98 +401,33 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Transmitidos"
+                            android:text="Pendientes"
                             android:textAlignment="center"
                             android:textColor="@color/transmitido"
-                            android:textSize="18sp"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
                     </LinearLayout>
-                </android.support.v7.widget.CardView>
-                <!-- Opcion 7-->
-                <android.support.v7.widget.CardView
-                    android:id="@+id/card_cancelados"
-                    android:layout_width="0dp"
-                    android:layout_height="100dp"
-                    android:layout_columnWeight="1"
-                    android:layout_marginBottom="16dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
-                    android:layout_rowWeight="1"
-                    app:cardCornerRadius="25dp"
-                    app:cardElevation="5dp">
-
-                    <LinearLayout
+                    <pl.pawelkleczkowski.customgauge.CustomGauge
+                        android:id="@+id/gauge_transmitidos"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_margin="0dp"
-                        android:background="@drawable/square_btn_bg_t1"
-                        android:gravity="center_horizontal|center_vertical"
-                        android:orientation="vertical">
+                        android:layout_below="@+id/gauge1"
+                        android:layout_centerHorizontal="true"
+                        android:paddingBottom="10dp"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:paddingTop="10dp"
+                        app:gaugeEndValue="100"
+                        app:gaugePointEndColor="@color/transmitido"
+                        app:gaugePointStartColor="@color/transmitido"
+                        app:gaugeStartAngle="135"
+                        app:gaugeStartValue="0"
+                        app:gaugeStrokeCap="ROUND"
+                        app:gaugeStrokeColor="@color/transmitido"
+                        app:gaugeStrokeWidth="10dp"
+                        app:gaugeSweepAngle="270" />
 
-                        <TextView
-                            android:id="@+id/num_cancelados"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="-10dp"
-                            android:text="5"
-                            android:textAlignment="center"
-                            android:textColor="@color/black"
-                            android:textSize="48sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Cancelados"
-                            android:textAlignment="center"
-                            android:textColor="@color/black"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
                 </android.support.v7.widget.CardView>
-                <!-- Opcion 8-->
-                <android.support.v7.widget.CardView
-                    android:id="@+id/card_modificados"
-                    android:layout_width="0dp"
-                    android:layout_height="100dp"
-                    android:layout_columnWeight="1"
-                    android:layout_marginBottom="16dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
-                    android:layout_rowWeight="1"
-                    app:cardCornerRadius="25dp"
-                    app:cardElevation="5dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_margin="0dp"
-                        android:background="@drawable/square_btn_bg_t1"
-                        android:gravity="center_horizontal|center_vertical"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/num_modificados"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="-10dp"
-                            android:text="5"
-                            android:textAlignment="center"
-                            android:textColor="@color/modificado"
-                            android:textSize="48sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Modificados"
-                            android:textAlignment="center"
-                            android:textColor="@color/modificado"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </android.support.v7.widget.CardView>
-
             </GridLayout>
     </ScrollView>
     </LinearLayout>
