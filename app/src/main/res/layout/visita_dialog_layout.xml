@@ -48,6 +48,7 @@
                 android:hint= "Fecha Inicio Contacto"
                 android:background="@drawable/textbackground"
                 android:layout_margin="5dp"
+                android:maxLength="16"
                 android:inputType="date"
                 android:focusable="false"
                 android:clickable="true"
@@ -113,6 +114,19 @@
             android:paddingLeft="5dp"/>
         <android.widget.Spinner
             android:id="@+id/fcalidSpinner"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_margin="5dp"
+            android:background="@drawable/spinner_background"
+            >
+        </android.widget.Spinner>
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ruta de Reparto"
+            android:paddingLeft="5dp"/>
+        <android.widget.Spinner
+            android:id="@+id/ruta_reparto"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:layout_margin="5dp"

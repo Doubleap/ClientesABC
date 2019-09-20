@@ -11,7 +11,6 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -29,6 +28,7 @@ import java.lang.ref.WeakReference;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 import es.dmoral.toasty.Toasty;
@@ -39,7 +39,7 @@ import static android.support.v4.content.ContextCompat.startActivity;
 
 public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
 
-    private ArrayList<String> a;
+    private String solicitudes_procesadas;
     private WeakReference<ListView> listView;
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
@@ -53,6 +53,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
     private String givenName;
     private DataBaseHelper mDBHelper;
     AlertDialog dialog;
+
     public TransmisionServidor(WeakReference<Context> context, WeakReference<Activity> act, String path, String fullPath){
         this.context = context;
         this.activity = act;
@@ -66,9 +67,9 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
         super.onProgressUpdate(values);
         //Seteando listView para desplegar IPs disponibles
         //listView = new WeakReference<>((ListView)activity.get().findViewById(R.id.listView));
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context.get(), android.R.layout.simple_list_item_1, a );
+        //ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context.get(), android.R.layout.simple_list_item_1, a );
 
-        listView.get().setAdapter(arrayAdapter);
+        //listView.get().setAdapter(arrayAdapter);
         listView.get().setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
@@ -83,14 +84,8 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
 
         System.out.println("ArrayList de Archivos");
         ArrayList<File> files = new ArrayList<>();
-        System.out.println("A punto de crearse.");
         errorFlag = "Transmision NO pudo realizarse.";
-        //Add files
-        //files.add(new File("mnt/sdcard/Download/loquesea.mp3"));
-        // filePath = filePath.replace("%20"," ");
-        ///files.add(new File(wholePath));
 
-        //System.out.println("file created..");
         try {
             //Validar si existen solicitudes para indicar que no ya todas las solicitudes sen transmitido con exito
             mDBHelper.RestaurarEstadosSolicitudesTransmitidas();
@@ -187,6 +182,22 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                     //deberia cerrar el dataoutputstream aqui y hacer una nueva cada vez???
                     System.out.println("Termino Iteracion : " + i + ".");
                 }
+
+                //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
+                long s = dis.readLong();
+                if(s < 0){
+                    s = dis.readLong();
+                    byte[] e = new byte[124];
+                    dis.readFully(e);
+                    String error = new String(e);
+                    xceptionFlag = true;
+                    errorFlag = "Error: "+error;
+                }else {
+                    byte[] r = new byte[(int) s];
+                    dis.readFully(r);
+                    solicitudes_procesadas = new String(r, Charset.defaultCharset());
+                }
+
                 //O cerrarlo aqui estara bien?
                 dos.close();
             }
@@ -236,8 +247,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
         else{
             Toasty.success(context.get(),"Transmision Finalizada Correctamente!!",Toast.LENGTH_LONG).show();
             //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
-            mDBHelper.ActualizarEstadosSolicitudesTransmitidas();
-
+            mDBHelper.ActualizarEstadosSolicitudesTransmitidas(solicitudes_procesadas);
         }
         dialog.dismiss();
         if(dialog.isShowing())

@@ -70,7 +70,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
                 dis.readFully(e);
                 String error = new String(e);
                 xceptionFlag = true;
-                messageFlag = error;
+                messageFlag = "Error: "+error;
             }else {
                 byte[] r = new byte[(int) s];
                 dis.readFully(r);

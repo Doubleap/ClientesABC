@@ -1,23 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_camera"
-            android:icon="@drawable/icon_user"
-            android:iconTint="#000"
-            android:title="Home" />
+            android:id="@+id/solicitud"
+            android:icon="@android:drawable/ic_menu_add"
+            android:title="@string/solicitud"
+            app:showAsAction="never|withText">
+            >
+        </item>
         <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/icon_config"
-            android:iconTint="#000"
-            android:title="Gallery" />
+            android:id="@+id/comunicacion"
+            android:title="@string/comunicacion"
+            android:icon="@android:drawable/ic_menu_preferences"
+            app:showAsAction="never|withText">
+        </item>
         <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@drawable/icon_plus"
-            android:iconTint="#000"
-            android:title="Slideshow" />
+            android:id="@+id/clientes"
+            android:title="Clientes"
+            android:icon="@android:drawable/ic_menu_crop"
+            app:showAsAction="never|withText">
+
+        </item>
+        <item
+            android:id="@+id/solicitudes"
+            android:title="Mis Solicitudes"
+            android:icon="@android:drawable/ic_menu_agenda"
+            app:showAsAction="never|withText">
+        </item>
+        <item
+            android:id="@+id/coordenadas"
+            android:title="Coordenadas"
+            android:icon="@android:drawable/star_off"
+            app:showAsAction="never|withText">
+        </item>
+        <item
+            android:id="@+id/firma"
+            android:title="Firma"
+            android:icon="@android:drawable/star_off"
+            app:showAsAction="never|withText">
+        </item>
+        <item
+            android:id="@+id/detalles"
+            android:title="Detalles"
+            android:icon="@android:drawable/star_off"
+            app:showAsAction="never|withText">
+        </item>
     </group>
 
 </menu>

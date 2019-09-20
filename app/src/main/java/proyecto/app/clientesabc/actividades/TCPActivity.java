@@ -105,8 +105,6 @@ public class TCPActivity extends AppCompatActivity
         list_conexiones = getConexionesFromSharedPreferences();
 
         if(list_conexiones != null) {
-            //ip_text.setText(list_conexiones.get(0).getIp());
-
             ConexionTableAdapter stda = new ConexionTableAdapter(this, list_conexiones);
             stda.setPaddings(5, 20, 5, 20);
             stda.setGravity(GRAVITY_CENTER);
@@ -125,6 +123,8 @@ public class TCPActivity extends AppCompatActivity
             tv_conexiones.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(getResources().getColor(R.color.white,null), getResources().getColor(R.color.backColor,null)));
             tv_conexiones.addDataClickListener(new TCPActivity.ConexionClickListener());
             tv_conexiones.addDataLongClickListener(new TCPActivity.ConexionLongClickListener());
+        }else{
+            list_conexiones = new ArrayList<Conexion>();
         }
         addConexion.setOnClickListener(new View.OnClickListener() {
             @Override

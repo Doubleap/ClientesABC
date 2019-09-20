@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="5dp"
             android:paddingBottom="8dp"
-            android:background="@drawable/header_curved_cc1"
+            android:background="@drawable/header_curved_cc3"
             android:text="+ Nuevo Contacto"
             android:textColor="@color/white"
             android:textSize="20dp"
@@ -30,6 +30,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:singleLine="true"
+                android:maxLength="35"
+                android:inputType="text"
                 android:hint= "Nombre" />
         </android.support.design.widget.TextInputLayout>
         <android.support.design.widget.TextInputLayout
@@ -41,6 +43,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:singleLine="true"
+                android:maxLength="35"
+                android:inputType="text"
                 android:hint= "Apellido" />
         </android.support.design.widget.TextInputLayout>
         <android.support.design.widget.TextInputLayout
@@ -52,6 +56,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:singleLine="true"
+                android:maxLength="16"
+                android:inputType="text"
                 android:hint= "Telefono" />
         </android.support.design.widget.TextInputLayout>
         <android.support.v7.widget.AppCompatTextView

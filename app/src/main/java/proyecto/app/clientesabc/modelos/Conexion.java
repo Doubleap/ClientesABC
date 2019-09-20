@@ -1,6 +1,7 @@
 package proyecto.app.clientesabc.modelos;
 
 public class Conexion {
+    private String sociedad;
     private String ip;
     private String puerto;
     private String tipo;
@@ -64,5 +65,13 @@ public class Conexion {
 
     public void setDefecto(boolean defecto) {
         this.defecto = defecto;
+    }
+
+    public String getSociedad() {
+        return sociedad;
+    }
+
+    public void setSociedad(String sociedad) {
+        this.sociedad = sociedad;
     }
 }

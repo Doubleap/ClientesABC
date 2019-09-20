@@ -13,8 +13,7 @@ import proyecto.app.clientesabc.modelos.Visitas;
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
 
-    //private static String ipcon = "192.168.0.13";
-    //private static int puertocon = 3345;
+    private static String sociedad = "F443";
     private static String TABLA_BLOQUE_CONTACTO_HH = "grid_contacto_solicitud";
     private static String TABLA_BLOQUE_BANCO_HH = "grid_bancos_solicitud";
     private static String TABLA_BLOQUE_IMPUESTO_HH = "grid_impuestos_solicitud";
@@ -90,12 +89,20 @@ public class VariablesGlobales extends Application {
         String secuencia = "";
         hora = String.format("%1$" + 4 + "s", hora).replace(' ', '0');
 
-        if(hora != null && !hora.equals("0999") && hora.length() == 4) {
+        if((hora != null && !hora.equals("null")) && !hora.equals("0999") && hora.length() == 4) {
             String h = hora.substring(0, 2);
             String m = hora.substring(2, 4);
             secuencia = String.valueOf(Integer.valueOf(h) * 60 + Integer.valueOf(m));
         }
 
         return secuencia;
+    }
+
+    public static String getSociedad() {
+        return sociedad;
+    }
+
+    public static void setSociedad(String sociedad) {
+        VariablesGlobales.sociedad = sociedad;
     }
 }

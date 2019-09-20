@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 
+import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
@@ -49,7 +50,7 @@ public class PanelActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_panel);
+        setContentView(R.layout.activity_panel2);
 
         mDBHelper = new DataBaseHelper(this);
         mDb = mDBHelper.getWritableDatabase();
@@ -139,13 +140,51 @@ public class PanelActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 drawer.closeDrawers();
-                Bundle b = new Bundle();
+
+                switch(menuItem.getItemId()) {
+                    case R.id.solicitud:
+                        Bundle b = new Bundle();
+                        //TODO seleccionar el tipo de solicitud por el UI
+                        b.putString("tipoSolicitud", "1"); //id de solicitud
+                        intent = new Intent(getBaseContext(),SolicitudActivity.class);
+                        intent.putExtras(b); //Pase el parametro el Intent
+                        startActivity(intent);
+                        break;
+                    case R.id.comunicacion:
+                        intent = new Intent(getBaseContext(),TCPActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.clientes:
+                        intent = new Intent(getBaseContext(),MantClienteActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.solicitudes:
+                        intent = new Intent(getBaseContext(),SolicitudesActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.coordenadas:
+                        intent = new Intent(getBaseContext(),LocacionGPSActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.firma:
+                        intent = new Intent(getBaseContext(),FirmaActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.detalles:
+                        intent = new Intent(getBaseContext(),MainActivity.class);
+                        startActivity(intent);
+                        break;
+                    default:
+                        Toasty.info(getBaseContext(),"Opcion no encontrada!").show();
+                }
+
+                /*Bundle b = new Bundle();
                 //TODO seleccionar el tipo de solicitud por el UI
                 b.putString("tipoSolicitud", "1"); //id de solicitud
 
                 intent = new Intent(getBaseContext(),SolicitudActivity.class);
                 intent.putExtras(b); //Pase el parametro el Intent
-                startActivity(intent);
+                startActivity(intent);*/
                 return false;
             }
         });
@@ -159,7 +198,7 @@ public class PanelActivity extends AppCompatActivity {
         num_incidencias.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Incidencia")));
         num_aprobados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Aprobado")));
         num_rechazados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Rechazado")));
-        num_transmitidos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Transmitidos")));
+        num_transmitidos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Transmitido")));
         num_cancelados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Cancelado")));
         num_modificados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Modificado")));
     }
@@ -190,6 +229,12 @@ public class PanelActivity extends AppCompatActivity {
                         case 5:
                             VerSolicitudes("Transmitido");
                             break;
+                        case 6:
+                            VerSolicitudes("Cancelado");
+                            break;
+                        case 7:
+                            VerSolicitudes("Modificado");
+                            break;
                     }
                 }
             });
@@ -209,7 +254,6 @@ public class PanelActivity extends AppCompatActivity {
                 Bundle b = new Bundle();
                 //TODO seleccionar el tipo de solicitud por el UI
                 b.putString("tipoSolicitud", "1"); //id de solicitud
-
                 intent = new Intent(this,SolicitudActivity.class);
                 intent.putExtras(b); //Pase el parametro el Intent
                 startActivity(intent);
@@ -247,7 +291,7 @@ public class PanelActivity extends AppCompatActivity {
 
     public void VerSolicitudes(String estado) {
         Bundle b = new Bundle();
-        b.putString("estado", estado); //id de solicitud
+        b.putString("estado", estado.trim()); //id de solicitud
         intent = new Intent(this, SolicitudesActivity.class);
         intent.putExtras(b); //Pase el parametro el Intent
         startActivity(intent);

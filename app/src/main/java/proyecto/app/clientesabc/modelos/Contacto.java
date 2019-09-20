@@ -12,6 +12,9 @@ public class Contacto {
    private String street;
    private String house_num1;
    private String country;
+   private String datatype;
+   private String numeric_precision;
+   private String maxlength;
 
     public String getId_solicitud() {
         return id_solicitud;
@@ -130,4 +133,27 @@ public class Contacto {
         return valorCelda;
     }
 
+    public String getDatatype() {
+        return datatype;
+    }
+
+    public void setDatatype(String datatype) {
+        this.datatype = datatype;
+    }
+
+    public String getNumeric_precision() {
+        return numeric_precision;
+    }
+
+    public void setNumeric_precision(String numeric_precision) {
+        this.numeric_precision = numeric_precision;
+    }
+
+    public String getMaxlength() {
+        return maxlength;
+    }
+
+    public void setMaxlength(String maxlength) {
+        this.maxlength = maxlength;
+    }
 }

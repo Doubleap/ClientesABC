@@ -43,6 +43,7 @@ import android.text.InputFilter;
 import android.text.InputType;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -54,6 +55,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -115,6 +117,8 @@ import static android.support.design.widget.TabLayout.OnClickListener;
 import static android.support.design.widget.TabLayout.OnFocusChangeListener;
 import static android.support.design.widget.TabLayout.OnTouchListener;
 import static android.support.design.widget.TabLayout.TEXT_ALIGNMENT_CENTER;
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class SolicitudActivity extends AppCompatActivity {
 
@@ -391,6 +395,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     visitaValues.put("id_solicitud", NextId);
                                                     if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK", ""), visitasSolicitud.get(c).getVptyp())) {
                                                         //Tipo visita de Reparto
+
                                                         visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
                                                         visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
                                                         visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
@@ -464,6 +469,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                             try {
                                 //Datos que siemrpe deben ir cuando se crea por primera vez.
+                                insertValues.put("[W_CTE-BUKRS]", VariablesGlobales.getSociedad());
                                 insertValues.put("[id_solicitud]", NextId);
                                 insertValues.put("[tipform]", tipoSolicitud);
                                 insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("user",""));
@@ -494,7 +500,6 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
 
                         }else{
-                            //Toasty.warning(getApplicationContext(), "Existen "+numErrores+" errores en los datos.", Toast.LENGTH_SHORT).show();
                             Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toast.LENGTH_LONG).show();
                         }
                 }
@@ -570,14 +575,15 @@ public class SolicitudActivity extends AppCompatActivity {
                             if (!file.exists()) {
                                 file.createNewFile();
                             }
-                            FileOutputStream fos = new FileOutputStream(file+"\\"+name);
+                            FileOutputStream fos = new FileOutputStream(file+"//"+name);
                             fos.write(inputData);
                             fos.close();
                         } catch (Exception e) {
                             Log.e("thumbnail", e.getMessage());
                         }
-                        File file = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"\\"+name);
-                        saveBitmapToFile(file);
+                        File file = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
+
+                        file = saveBitmapToFile(file);
 
                         byte[] bytesArray = new byte[(int) file.length()];
 
@@ -593,8 +599,11 @@ public class SolicitudActivity extends AppCompatActivity {
                         stda.setPaddings(10, 5, 10, 5);
                         stda.setTextSize(10);
                         stda.setGravity(GRAVITY_CENTER);
-                        tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
+                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
                         tb_adjuntos.setDataAdapter(stda);
+
+                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
+                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext());
 
                         Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
                     } catch (IOException e) {
@@ -862,7 +871,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     label.setPadding(0,0,0,0);
                     label.setLayoutParams(lpl);
 
-                    Spinner combo = new Spinner(getContext(), Spinner.MODE_DROPDOWN);
+                    final Spinner combo = new Spinner(getContext(), Spinner.MODE_DROPDOWN);
                     combo.setTag(campos.get(i).get("descr"));
                     if(campos.get(i).get("sup").trim().length() > 0){
                         label.setVisibility(View.GONE);
@@ -898,7 +907,8 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         if(valorDefectoxRuta.trim().length() > 0 && opciones.get(j).get("id").trim().equals(valorDefectoxRuta.trim())){
                             selectedIndex = j;
-                            combo.setEnabled(false);
+                            if(!campos.get(i).get("campo").trim().equals("W_CTE-VWERK"))
+                                combo.setEnabled(false);
                         }
 
                     }
@@ -947,15 +957,41 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         });
                     }
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-KVGR5")){
+
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-BZIRK")){
+
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                tb_visitas.getLayoutParams().height = 50;
+                                ArrayList<HashMap<String, String>> valores = mDBHelper.getValoresKOFSegunZonaVentas(((OpcionSpinner)combo.getSelectedItem()).getId());
+                                ((Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK")),valores.get(0).get("VWERK")));
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-KVGR5")){
+                        //TODO aqui se debe cambiar si se quiere trabajar con diferentes tipos de 'PR'
+                        if(solicitudSeleccionada.size() == 0) {
+                            combo.setSelection(VariablesGlobales.getIndex(combo, "PR"));
+                            combo.setEnabled(false);
+                        }
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-                                visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG",""), opcion.getId());
-                                tb_visitas.setDataAdapter(new VisitasTableAdapter(view.getContext(), visitasSolicitud));
-                                tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+((alturaFilaTableView+10)*visitasSolicitud.size());
+                                if (solicitudSeleccionada.size() == 0) {
+                                    visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG", ""), opcion.getId());
+
+                                    tb_visitas.setDataAdapter(new VisitasTableAdapter(view.getContext(), visitasSolicitud));
+                                    if (tb_visitas.getLayoutParams() != null) {
+                                        tb_visitas.getLayoutParams().height = 50;
+                                        tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView + 10) * visitasSolicitud.size());
+                                    }
+                                }
                             }
 
                             @Override
@@ -1136,7 +1172,13 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     et.setMaxLines(1);
 
-                    et.setInputType(InputType.TYPE_CLASS_TEXT);
+                    if(campos.get(i).get("datatype").equals("char")) {
+                        et.setInputType(InputType.TYPE_CLASS_TEXT);
+                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("maxlength")) ) });
+                    }else if(campos.get(i).get("datatype").equals("decimal")) {
+                        et.setInputType(InputType.TYPE_CLASS_NUMBER);
+                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("numeric_precision")) ) });
+                    }
                     // Atributos del Texto a crear
                     //TableLayout.LayoutParams lp =  new TableLayout.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT,0.5f);
                     TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5f);
@@ -1173,7 +1215,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     //Le cae encima al valor default por el de la solicitud seleccionada
                     if(solicitudSeleccionada.size() > 0){
-                        et.setText(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()));
+                        et.setText(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim());
                     }
                     //metodos configurados en tabla
                     if(campos.get(i).get("llamado1").trim().contains("ReplicarValor")){
@@ -1258,6 +1300,44 @@ public class SolicitudActivity extends AppCompatActivity {
                 LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
                 autoPineo.startLocationUpdates();
             }
+
+            //Si es la pestana de adicionales ("Z") le agregamos el combo de seleccion de Aprobador de la siguiente etapa en el flujo.
+            if(pestana.equals("Z")){
+                TextView label = new TextView(getContext());
+                label.setText("Enviar al Aprobador");
+                label.setTextAppearance(R.style.AppTheme_TextFloatLabelAppearance);
+                LinearLayout.LayoutParams lpl = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                lpl.setMargins(35, 5, 0, 0);
+                label.setPadding(0,0,0,0);
+                label.setLayoutParams(lpl);
+
+                final Spinner combo = new Spinner(getContext(), Spinner.MODE_DROPDOWN);
+                combo.setTag("Aprobador");
+
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                lp.setMargins(0, -10, 0, 25);
+                combo.setPadding(0,0,0,0);
+                combo.setLayoutParams(lp);
+                combo.setPopupBackgroundResource(R.drawable.menu_item);
+
+                ArrayList<OpcionSpinner> opciones = db.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_Flujo = "+tipoSolicitud);
+
+                // Creando el adaptador(opciones) para el comboBox deseado
+                ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, opciones);
+                // Drop down layout style - list view with radio button
+                dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+                // attaching data adapter to spinner
+                Drawable d = getResources().getDrawable(R.drawable.spinner_background, null);
+                combo.setBackground(d);
+                combo.setAdapter(dataAdapter);
+                if(solicitudSeleccionada.size() == 0) {
+                    combo.setSelection(1);
+                }else{
+                    combo.setSelection(VariablesGlobales.getIndex(combo,solicitudSeleccionada.get(0).get("SIGUIENTE_APROBADOR")));
+                }
+                ll.addView(label);
+                ll.addView(combo);
+            }
         }
 
         public void DesplegarBloque(DataBaseHelper db, View _ll, HashMap<String, String> campo) {
@@ -1285,7 +1365,7 @@ public class SolicitudActivity extends AppCompatActivity {
             seccion_header.setTextAlignment(TEXT_ALIGNMENT_CENTER);
 
             Button btnAddBloque = new Button(getContext());
-            RelativeLayout.LayoutParams tam_btn = new RelativeLayout.LayoutParams(60,60);
+            LinearLayout.LayoutParams tam_btn = new LinearLayout.LayoutParams(60,60);
 
             btnAddBloque.setLayoutParams(tam_btn);
             btnAddBloque.setBackground(getResources().getDrawable(R.drawable.icon_solicitud,null));
@@ -1304,7 +1384,7 @@ public class SolicitudActivity extends AppCompatActivity {
             ll.addView(seccion_layout);
 
             RelativeLayout rl = new RelativeLayout(getContext());
-            CoordinatorLayout.LayoutParams rlp = new CoordinatorLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+            CoordinatorLayout.LayoutParams rlp = new CoordinatorLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
             rl.setLayoutParams(rlp);
             CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) rl.getLayoutParams();
             params.setBehavior(new AppBarLayout.ScrollingViewBehavior(getContext(), null));
@@ -1389,7 +1469,6 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     //Adaptadores
                     if(impuestosSolicitud != null) {
-                        tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height+(listaImpuestos.size()*alturaFilaTableView);
                         tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(getContext(), impuestosSolicitud));
                         tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height+(impuestosSolicitud.size()*(alturaFilaTableView));
                     }
@@ -1551,6 +1630,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         mapeoCamposDinamicos.put("ZPV_"+diaLabel[x],et);
                         et.setMaxLines(1);
                         et.setInputType(InputType.TYPE_CLASS_NUMBER);
+                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( 4 ) });
                         TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5f);
                         lp.setMargins(0, 15, 0, 15);
                         et.setLayoutParams(lp);
@@ -1586,16 +1666,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         et.setOnFocusChangeListener(new OnFocusChangeListener() {
                             @Override
                             public void onFocusChange(View v, boolean hasFocus) {
-                                /*int indicePreventa = 0;
-                                int indiceReparto = 0;
-                                for(int i = 0 ; i < visitasSolicitud.size(); i++){
-                                    if(visitasSolicitud.get(i).getVptyp().equals("ZPV")){
-                                        indicePreventa = i;
-                                    }
-                                    if(visitasSolicitud.get(i).getVptyp().equals("ZDD")){
-                                        indiceReparto = i;
-                                    }
-                                }*/
+
                                 int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
                                 int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
 
@@ -1739,11 +1810,6 @@ public class SolicitudActivity extends AppCompatActivity {
                                         }
                                     }else{
                                         String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView)v).getText().toString());
-                                        /*int hours = Integer.valueOf(((TextView)v).getText().toString()) / 60;
-                                        int minutes = Integer.valueOf(((TextView)v).getText().toString()) % 60;
-                                        String h = String.format(Locale.getDefault(),"%02d", hours);
-                                        String m = String.format(Locale.getDefault(),"%02d", minutes);
-                                        String secuenciaSAP = h+m;*/
                                         switch(finalX) {
                                             case 0:
                                                 visitaPreventa.setLun_a(secuenciaSAP);
@@ -1820,13 +1886,17 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     tb_adjuntos.setLayoutParams(hlp);
 
+                    if(solicitudSeleccionada.size() > 0){
+                        adjuntosSolicitud = mDBHelper.getAdjuntosDB(idSolicitud);
+                    }
+
                     //Adaptadores
                     if(adjuntosSolicitud != null) {
                         AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getContext(), adjuntosSolicitud);
                         stda.setPaddings(10, 5, 10, 5);
                         stda.setTextSize(10);
                         stda.setGravity(GRAVITY_CENTER);
-                        tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*alturaFilaTableView);
+                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*alturaFilaTableView);
                         tb_adjuntos.setDataAdapter(stda);
                     }
                     headers = ((AdjuntoTableAdapter)tb_adjuntos.getDataAdapter()).getHeaders();
@@ -1841,14 +1911,69 @@ public class SolicitudActivity extends AppCompatActivity {
                     tb_adjuntos.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
 
                     rl.addView(tb_adjuntos);
+
+                    //Horizontal View de adjuntos
+                    HorizontalScrollView hsv = new HorizontalScrollView(getContext());
+                    MostrarGaleriaAdjuntosHorizontal(hsv, getContext());
+
+                    rl.addView(hsv);
                     ll.addView(rl);
+                    mapeoCamposDinamicos.put("GaleriaAdjuntos", hsv);
                     break;
                 case "W_CTE-NOTIFICANTES":
                     break;
             }
         }
+
     }
 
+    public static void MostrarGaleriaAdjuntosHorizontal(HorizontalScrollView hsv, Context context) {
+        hsv.removeAllViews();
+        hsv.setBackground(context.getResources().getDrawable(R.drawable.squared_textbackground,null));
+        hsv.setLayoutParams(new RelativeLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
+        LinearLayout myGallery = new LinearLayout(context);
+        myGallery.setLayoutParams(new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
+        myGallery.setPadding(10,10,10,10);
+        for(int x=0; x < adjuntosSolicitud.size(); x++){
+            LinearLayout layout = new LinearLayout(context);
+            layout.setLayoutParams(new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+            layout.setGravity(Gravity.CENTER);
+            //layout.setPadding(5,0,5,0);
+            final ImageView adjunto_image = new ImageView(context);
+            adjunto_image.setLayoutParams(new LinearLayout.LayoutParams(150, 150));
+            adjunto_image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            adjunto_image.setPadding(5,5,5,5);
+
+            final String nombre_adjunto = adjuntosSolicitud.get(x).getName();
+            byte[] image = adjuntosSolicitud.get(x).getImage();
+            Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length);
+            adjunto_image.setImageBitmap(imagen);
+
+            final int finalX = x;
+            adjunto_image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
+                }
+            });
+            adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    String salida = adjuntosSolicitud.get(finalX).getType() + " " + adjuntosSolicitud.get(finalX).getName();
+                    adjuntosSolicitud.remove(finalX);
+                    tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(v.getContext(), adjuntosSolicitud));
+                    MostrarGaleriaAdjuntosHorizontal((HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos"), v.getContext());
+                    //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height-(alturaFilaTableView-20);
+                    Toasty.info(v.getContext(), salida, Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            });
+
+            layout.addView(adjunto_image);
+            myGallery.addView(layout);
+        }
+        hsv.addView(myGallery);
+    }
     public byte[] getBytes(InputStream inputStream) throws IOException {
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
         int bufferSize = 1024;
@@ -1865,7 +1990,7 @@ public class SolicitudActivity extends AppCompatActivity {
     public static void displayDialogContacto(Context context, final Contacto seleccionado) {
         final Dialog d=new Dialog(context);
         d.setContentView(R.layout.contacto_dialog_layout);
-
+        //ArrayList<HashMap<String, String>> columnMeta =  mDBHelper.getMetaData(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH());
         //INITIALIZE VIEWS
         final TextView title = d.findViewById(R.id.title);
         final TextInputEditText name1EditText = d.findViewById(R.id.name1EditTxt);
@@ -2239,7 +2364,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 LinearLayout layout = d.findViewById(R.id.layoutDinamico);
                 layout.removeAllViews();
 
-                RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                 params1.setMargins(10,10,10,10);
                 ArrayList<HashMap<String, String>> preguntas = mDBHelper.getPreguntasSegunGrupo(opcion.getId());
                 ArrayList<HashMap<String, String>> respuestas = mDBHelper.getRespuestasEncuesta(GUID);
@@ -2397,7 +2522,7 @@ public class SolicitudActivity extends AppCompatActivity {
         LinearLayout layout = d.findViewById(R.id.layoutDinamico);
         layout.removeAllViews();
 
-        RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         params1.setMargins(10,10,10,10);
         final ArrayList<HashMap<String, String>> preguntas = mDBHelper.getPreguntasGec();
         final ArrayList<HashMap<String, String>> respuestas = mDBHelper.getEncuestaGec(GUID);
@@ -2481,11 +2606,16 @@ public class SolicitudActivity extends AppCompatActivity {
         }
     }
 
-    public void mostrarAdjunto(Context context, Bitmap imagen) {
+    public static void mostrarAdjunto(Context context, Adjuntos adjunto) {
         final Dialog d = new Dialog(context);
         d.setContentView(R.layout.adjunto_layout);
-        ImageView adjunto = d.findViewById(R.id.imagen);
-        adjunto.setImageBitmap(imagen);
+        ImageView adjunto_img = d.findViewById(R.id.imagen);
+        TextView adjunto_txt = d.findViewById(R.id.nombre);
+        final String nombre_adjunto = adjunto.getName();
+        byte[] image = adjunto.getImage();
+        Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length);
+        adjunto_img.setImageBitmap(imagen);
+        adjunto_txt.setText(adjunto.getName());
         //SHOW DIALOG
         d.show();
         Window window = d.getWindow();
@@ -2573,7 +2703,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private void DetallesVisitPlan(final Context context, final Visitas seleccionado) {
         final Dialog d = new Dialog(context);
         d.setContentView(R.layout.visita_dialog_layout);
-        boolean reparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""), seleccionado.getVptyp());
+        final boolean reparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""), seleccionado.getVptyp());
         //INITIALIZE VIEWS
         final TextView title = d.findViewById(R.id.title);
         final Spinner kvgr4Spinner = d.findViewById(R.id.kvgr4Spinner);
@@ -2582,6 +2712,7 @@ public class SolicitudActivity extends AppCompatActivity {
         final TextInputEditText f_iniEditText = d.findViewById(R.id.f_iniEditTxt);
         final TextInputEditText f_finEditText = d.findViewById(R.id.f_finEditTxt);
         final Spinner fcalidSpinner = d.findViewById(R.id.fcalidSpinner);
+        final Spinner ruta_reparto = d.findViewById(R.id.ruta_reparto);
         Button saveBtn= d.findViewById(R.id.saveBtn);
         title.setText(String.format(context.getString(R.string.palabras_2),context.getString(R.string.label_vp),seleccionado.getVptyp()));
 
@@ -2591,6 +2722,15 @@ public class SolicitudActivity extends AppCompatActivity {
         f_iniEditText.setText(seleccionado.getF_ini());
         f_finEditText.setText(seleccionado.getF_fin());
 
+        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont");
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(Objects.requireNonNull(context), R.layout.simple_spinner_item, rutas_reparto);
+        // Drop down layout style - list view with radio button
+        dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
+        ruta_reparto.setAdapter(dataAdapterRuta);
+        if(!reparto){
+            ruta_reparto.setVisibility(INVISIBLE);
+        }
         /*if(reparto){
             kvgr4Spinner.setVisibility(GONE);
             f_icoEditText.setVisibility(GONE);
@@ -2628,9 +2768,15 @@ public class SolicitudActivity extends AppCompatActivity {
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //Setear ruta segun el tipo de visita ZPV, ZDD, etc
+                if( reparto ){
+                    seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
+                    ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
+                }else{
+                    seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
+                }
+                //seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
                 seleccionado.setKvgr4(kvgr4Spinner.getSelectedItem().toString().trim());
-                seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
-                //TODO: setear ruta segun su tipo de visita
                 seleccionado.setF_ini(f_iniEditText.getText().toString());
                 seleccionado.setF_fin(f_finEditText.getText().toString());
                 seleccionado.setF_ico(f_icoEditText.getText().toString());
@@ -2648,7 +2794,6 @@ public class SolicitudActivity extends AppCompatActivity {
                 RecalcularDiasDeReparto();
 
                 tb_visitas.setDataAdapter(new VisitasTableAdapter(v.getContext(), visitasSolicitud));
-                tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+alturaFilaTableView;
                 try {
                     d.dismiss();
                 }catch(Exception e){
@@ -2781,10 +2926,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private class AdjuntosClickListener implements TableDataClickListener<Adjuntos> {
         @Override
         public void onDataClicked(int rowIndex, Adjuntos seleccionado) {
-            //displayDialogVisitas(SolicitudActivity.this,seleccionado);
-            byte[] image = seleccionado.getImage();
-            Bitmap bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
-            mostrarAdjunto(SolicitudActivity.this, bitmap);
+            mostrarAdjunto(SolicitudActivity.this, seleccionado);
         }
     }
     private class AdjuntosLongClickListener implements TableDataLongClickListener<Adjuntos> {
@@ -2793,7 +2935,8 @@ public class SolicitudActivity extends AppCompatActivity {
             String salida = seleccionado.getType() + " " + seleccionado.getName();
             adjuntosSolicitud.remove(rowIndex);
             tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud));
-            tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height-(alturaFilaTableView-20);
+            MostrarGaleriaAdjuntosHorizontal((HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos"),getBaseContext());
+            //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height-(alturaFilaTableView-20);
             Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
             return true;
         }
@@ -3093,7 +3236,7 @@ public class SolicitudActivity extends AppCompatActivity {
             // BitmapFactory options to downsize the image
             BitmapFactory.Options o = new BitmapFactory.Options();
             o.inJustDecodeBounds = true;
-            o.inSampleSize = 6;
+            o.inSampleSize = 1;
             // factor of downsizing the image
 
             FileInputStream inputStream = new FileInputStream(file);
