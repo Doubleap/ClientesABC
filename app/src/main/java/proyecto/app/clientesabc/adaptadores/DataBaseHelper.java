@@ -1638,7 +1638,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
     public void ActualizarEstadosSolicitudesTransmitidas(String lista_id_solicitudes){
         //SQLiteDatabase db = this.getWritableDatabase();
-        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Transmitido' WHERE id_solicitud IN ("+lista_id_solicitudes+");";
+        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Pendiente' WHERE id_solicitud IN ("+lista_id_solicitudes+");";
         mDataBase.execSQL(sqlUpdate);
     }
     //Solo para debugging

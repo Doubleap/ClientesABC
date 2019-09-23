@@ -4,7 +4,12 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -20,8 +25,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import java.util.Objects;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
@@ -84,10 +87,77 @@ public class LoginActivity extends AppCompatActivity {
         mProgressView = findViewById(R.id.login_progress);
 
         Drawable d = getResources().getDrawable(R.drawable.botella_coca_header_der,null);
-        Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
+        //Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
         //getSupportActionBar().setDisplayShowHomeEnabled(true);
         //getSupportActionBar().setLogo(R.mipmap.ic_launcher);
         //getSupportActionBar().setDisplayUseLogoEnabled(true);
+
+        /**/
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("Maestro Clientes Femsa CR");
+        toolbar.setBackground(d);
+        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        toggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.white,null));
+        drawer.addDrawerListener(toggle);
+
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                drawer.closeDrawers();
+
+                switch(menuItem.getItemId()) {
+                    case R.id.solicitud:
+                        Bundle b = new Bundle();
+                        //TODO seleccionar el tipo de solicitud por el UI
+                        b.putString("tipoSolicitud", "1"); //id de solicitud
+                        intent = new Intent(getBaseContext(),SolicitudActivity.class);
+                        intent.putExtras(b); //Pase el parametro el Intent
+                        startActivity(intent);
+                        break;
+                    case R.id.comunicacion:
+                        intent = new Intent(getBaseContext(),TCPActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.clientes:
+                        intent = new Intent(getBaseContext(),MantClienteActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.solicitudes:
+                        intent = new Intent(getBaseContext(),SolicitudesActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.coordenadas:
+                        intent = new Intent(getBaseContext(),LocacionGPSActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.firma:
+                        intent = new Intent(getBaseContext(),FirmaActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.detalles:
+                        intent = new Intent(getBaseContext(),MainActivity.class);
+                        startActivity(intent);
+                        break;
+                    default:
+                        Toasty.info(getBaseContext(),"Opcion no encontrada!").show();
+                }
+
+                /*Bundle b = new Bundle();
+                //TODO seleccionar el tipo de solicitud por el UI
+                b.putString("tipoSolicitud", "1"); //id de solicitud
+
+                intent = new Intent(getBaseContext(),SolicitudActivity.class);
+                intent.putExtras(b); //Pase el parametro el Intent
+                startActivity(intent);*/
+                return false;
+            }
+        });
+        /**/
     }
     /**
      * Intenta iniciar sesión con el formulario de inicio de sesión.

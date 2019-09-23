@@ -1,9 +1,6 @@
 package proyecto.app.clientesabc.actividades;
 
 import android.annotation.SuppressLint;
-import android.graphics.drawable.Drawable;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -11,15 +8,20 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.os.Environment;
+import android.support.v7.app.AppCompatActivity;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
@@ -32,6 +34,7 @@ public class FirmaActivity extends AppCompatActivity {
 
     private Button btnClear, btnSave, btnZoomIn, btnZoomOut;
     private File file;
+    private FrameLayout documento;
     private LinearLayout canvasLL;
     private View view;
     private signature mSignature;
@@ -47,12 +50,13 @@ public class FirmaActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_firma);
 
+        documento = findViewById(R.id.documento);
         canvasLL = findViewById(R.id.canvasLL);
         mSignature = new signature(getApplicationContext(), null);
-        mSignature.setBackgroundColor(Color.WHITE);
+        //mSignature.setBackgroundColor(Color.WHITE);
 
         Drawable d = getResources().getDrawable(R.drawable.femsa_logo,null);
-        mSignature.setBackground(d);
+        documento.setBackground(d);
         // Dynamically generating Layout through java code
         canvasLL.addView(mSignature, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         btnClear = findViewById(R.id.btnclear);
@@ -60,7 +64,7 @@ public class FirmaActivity extends AppCompatActivity {
         btnZoomIn = findViewById(R.id.btnzoomin);
         btnZoomOut = findViewById(R.id.btnzoomout);
 
-        view = canvasLL;
+        view = documento;
 
         btnClear.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,8 +97,8 @@ public class FirmaActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //mSignature.clear();
-                mSignature.setScaleX(mSignature.getScaleX()+1);
-                mSignature.setScaleY(mSignature.getScaleY()+1);
+                mSignature.setScaleX(mSignature.getScaleX()-1);
+                mSignature.setScaleY(mSignature.getScaleY()-1);
             }
         });
 
@@ -129,7 +133,7 @@ public class FirmaActivity extends AppCompatActivity {
             Log.v("log_tag", "Width: " + v.getWidth());
             Log.v("log_tag", "Height: " + v.getHeight());
             if (bitmap == null) {
-                bitmap = Bitmap.createBitmap(canvasLL.getWidth(), canvasLL.getHeight(), Bitmap.Config.RGB_565);
+                bitmap = Bitmap.createBitmap(documento.getWidth(), documento.getHeight(), Bitmap.Config.RGB_565);
             }
             Canvas canvas = new Canvas(bitmap);
             try {

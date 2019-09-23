@@ -501,7 +501,7 @@ public class ClienteActivity extends AppCompatActivity {
         //View titleBar = (View) title.getParent();
         //titleBar.setBackground(gd);
         Drawable d=getResources().getDrawable(R.drawable.botella_coca_header_der,null);
-        Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
+        //Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 0);
             //return;

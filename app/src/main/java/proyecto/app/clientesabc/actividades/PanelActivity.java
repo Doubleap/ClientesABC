@@ -245,50 +245,6 @@ public class PanelActivity extends AppCompatActivity {
 
     }
 
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        switch(item.getItemId()) {
-            case R.id.solicitud:
-                Bundle b = new Bundle();
-                //TODO seleccionar el tipo de solicitud por el UI
-                b.putString("tipoSolicitud", "1"); //id de solicitud
-                intent = new Intent(this,SolicitudActivity.class);
-                intent.putExtras(b); //Pase el parametro el Intent
-                startActivity(intent);
-                break;
-            case R.id.comunicacion:
-                intent = new Intent(this,TCPActivity.class);
-                startActivity(intent);
-                break;
-            case R.id.clientes:
-                intent = new Intent(this,MantClienteActivity.class);
-                startActivity(intent);
-                break;
-            case R.id.solicitudes:
-                intent = new Intent(this,SolicitudesActivity.class);
-                startActivity(intent);
-                break;
-            case R.id.coordenadas:
-                intent = new Intent(this,LocacionGPSActivity.class);
-                startActivity(intent);
-                break;
-            case R.id.firma:
-                intent = new Intent(this,FirmaActivity.class);
-                startActivity(intent);
-                break;
-            case R.id.detalles:
-                intent = new Intent(this,MainActivity.class);
-                startActivity(intent);
-                break;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-
-        return true;
-    }
-
     public void VerSolicitudes(String estado) {
         Bundle b = new Bundle();
         b.putString("estado", estado.trim()); //id de solicitud

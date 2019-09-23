@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/drawer_layout"
     android:focusable="true"
     android:focusableInTouchMode="true"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -12,11 +13,18 @@
     android:paddingLeft="0dp"
     android:paddingRight="0dp"
     android:background="@drawable/curved_background_inverse">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
 
     <ScrollView
         android:id="@+id/login_form"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_marginTop="50dp"
+        >
         <LinearLayout
             android:id="@+id/main"
             android:layout_width="match_parent"
@@ -134,7 +142,7 @@
 
         </LinearLayout>
     </ScrollView>
-
+    </LinearLayout>
     <!-- Login progress -->
     <ProgressBar
         android:id="@+id/login_progress"
@@ -142,7 +150,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:visibility="visible" />
+        android:visibility="invisible" />
 
+    <include
+        layout="@layout/app_bar_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-</LinearLayout>
+    <android.support.design.widget.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/header_main_drawer"
+        app:menu="@menu/main_drawer" />
+</android.support.v4.widget.DrawerLayout>

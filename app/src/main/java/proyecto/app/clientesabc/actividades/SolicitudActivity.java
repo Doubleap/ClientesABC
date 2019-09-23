@@ -136,7 +136,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private static String GUID;
     private ProgressBar progressBar;
 
-    Uri mPhotoUri;
+    static Uri mPhotoUri;
 
     @SuppressLint("StaticFieldLeak")
     private static de.codecrafters.tableview.TableView<Contacto> tb_contactos;
@@ -469,6 +469,9 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                             try {
                                 //Datos que siemrpe deben ir cuando se crea por primera vez.
+                                Spinner sp = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
+                                String id_aprobador = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
+                                insertValues.put("[SIGUIENTE_APROBADOR]", id_aprobador);
                                 insertValues.put("[W_CTE-BUKRS]", VariablesGlobales.getSociedad());
                                 insertValues.put("[id_solicitud]", NextId);
                                 insertValues.put("[tipform]", tipoSolicitud);
@@ -511,7 +514,7 @@ public class SolicitudActivity extends AppCompatActivity {
         //View titleBar = (View) title.getParent();
         //titleBar.setBackground(gd);
         Drawable d=getResources().getDrawable(R.drawable.botella_coca_header_der,null);
-        Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
+        //Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 0);
             //return;
@@ -548,7 +551,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }
 
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case 1:
                 if (resultCode == RESULT_OK) {
@@ -590,7 +593,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         FileInputStream fis = new FileInputStream(file);
                         fis.read(bytesArray); //read file into bytes[]
                         fis.close();
-
+                        file.delete();
                         //Agregar al tableView del UI
                         Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
 
@@ -1334,7 +1337,11 @@ public class SolicitudActivity extends AppCompatActivity {
                     combo.setSelection(1);
                 }else{
                     combo.setSelection(VariablesGlobales.getIndex(combo,solicitudSeleccionada.get(0).get("SIGUIENTE_APROBADOR")));
+                    if(!solicitudSeleccionada.get(0).get("estado").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("estado").trim().equals("Incidencia")){
+                        combo.setEnabled(false);
+                    }
                 }
+                mapeoCamposDinamicos.put("SIGUIENTE_APROBADOR",combo);
                 ll.addView(label);
                 ll.addView(combo);
             }
@@ -1889,7 +1896,22 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(solicitudSeleccionada.size() > 0){
                         adjuntosSolicitud = mDBHelper.getAdjuntosDB(idSolicitud);
                     }
+                    btnAddBloque.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
 
+                            mPhotoUri = getContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                    new ContentValues());
+                            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                            intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
+                            try {
+                                getActivity().startActivityForResult(intent, 1);
+
+                            } catch (ActivityNotFoundException e) {
+                                Log.e("tag", getResources().getString(R.string.no_activity));
+                            }
+                        }
+                    });
                     //Adaptadores
                     if(adjuntosSolicitud != null) {
                         AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getContext(), adjuntosSolicitud);

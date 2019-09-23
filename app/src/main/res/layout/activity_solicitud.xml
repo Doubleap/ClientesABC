@@ -6,6 +6,9 @@
     android:layout_height="match_parent" android:background="@color/white"
     android:focusable="true"
     android:focusableInTouchMode="true">
+    <android.support.v4.widget.DrawerLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/LinearLayoutMain"
@@ -22,7 +25,7 @@
             android:minHeight="5dp"
             android:background="@color/colorPrimary"/>
     </LinearLayout>
-
+    </android.support.v4.widget.DrawerLayout>
     <android.support.design.widget.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
@@ -30,6 +33,6 @@
         android:layout_gravity="bottom"
         android:background="@color/colorPrimary"
         app:itemIconTint="@color/white"
-        app:itemTextColor="@color/backColor"
+        app:itemTextColor="@color/white"
         app:menu="@menu/bottom_menu_solicitud" />
 </FrameLayout>
