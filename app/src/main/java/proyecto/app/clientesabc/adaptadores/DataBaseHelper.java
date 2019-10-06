@@ -41,8 +41,8 @@ import proyecto.app.clientesabc.modelos.Visitas;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
     private static String DB_NAME = "FAWM_ANDROID_2";
-    private static String DB_PATH = "";
-    private static String BK_PATH = "";
+    public static String DB_PATH = "";
+    public static String BK_PATH = "";
     private static final int DB_VERSION = 1;
 
     private SQLiteDatabase mDataBase;
@@ -76,7 +76,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(bandera)
             Log.d("MI TAG","Se ha borrado el archivo "+dbFile.getName());
         copyDataBase();
-
         mNeedUpdate = false;
     }
 
@@ -208,7 +207,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getClientes(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
-        String query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME_CO as direccion, 'Estado' as estado " +
+        String query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc " +
                 " FROM SAPDClientes";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
@@ -217,6 +216,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("nombre",cursor.getString(1));
             user.put("direccion",cursor.getString(2));
             user.put("estado",cursor.getString(3));
+            user.put("klabc",cursor.getString(cursor.getColumnIndex("klabc")));
             clientList.add(user);
         }
         cursor.close();
@@ -660,7 +660,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if (cursor.moveToNext()){
             id += String.format("%4s", String.valueOf(cursor.getInt(0)+1)).replace(' ', '0');
         }else{
-            id += String.format("%4s", "1".replace(' ', '0'));
+            id += String.format("%4s", String.valueOf(1).replace(' ', '0'));
         }
         cursor.close();
         return id;
@@ -693,7 +693,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo))" +
                 " WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"'" +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO')"+
-                " ORDER BY c.panta,c.id_seccion, c.orden";
+                " ORDER BY c.panta, s.orden_hh, c.orden_hh";
         Cursor cursor = mDataBase.rawQuery(query,null);
 
         while (cursor.moveToNext()){
@@ -859,7 +859,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     "        LEFT JOIN mant_usuarios m ON (upper(trim(m.id_usuario)) = upper(trim(a.id_aprobador)))" +
                     "        where id_pais = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' and fxp.orden = 1 and id_agencia = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK","")+"' and Estado = 1";
         }
-
 
         //Crear Filtros Automaticos segun el pais
 
@@ -1102,7 +1101,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     //LOGIN DE USUAIRO EN SISTEMA
     public boolean validarUsuario(String usuario){
-        String selectQuery = "SELECT count(*) as existe FROM t_i_users WHERE UserName = '" + usuario.trim() +"' ";
+        String selectQuery = "SELECT count(*) as existe FROM t_i_users WHERE upper(trim(UserName)) = '" + usuario.trim().toUpperCase() +"' ";
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
             Cursor cursor = mDataBase.rawQuery(selectQuery, null);//selectQuery,selectedArguments
@@ -1120,7 +1119,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return true;
     }
     public boolean LoginUsuario(String usuario,String contrasena){
-        String selectQuery = "SELECT count(*) as existe FROM t_i_users WHERE UserName = '" + usuario.trim() +"' AND Password = '" + contrasena.trim()+"'";
+        String selectQuery = "SELECT count(*) as existe FROM t_i_users WHERE upper(trim(UserName)) = '" + usuario.trim().toUpperCase() +"' AND Password = '" + contrasena.trim()+"'";
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
             Cursor cursor = mDataBase.rawQuery(selectQuery, null);//selectQuery,selectedArguments
@@ -1141,8 +1140,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public boolean setPropiedadesDeUsuario(){
         boolean ret = false;
         PreferenceManager.getDefaultSharedPreferences(mContext).getString("user","");
-        String query = "SELECT RouteID FROM t_i_users WHERE UserName = ?";
-        Cursor cursor = mDataBase.rawQuery(query, new String [] {PreferenceManager.getDefaultSharedPreferences(mContext).getString("user","")});
+        String query = "SELECT RouteID FROM t_i_users WHERE upper(trim(UserName)) = ?";
+        Cursor cursor = mDataBase.rawQuery(query, new String [] {PreferenceManager.getDefaultSharedPreferences(mContext).getString("user","").trim().toUpperCase()});
         String rutaAsignada = "";
         while (cursor.moveToNext()){
             rutaAsignada = cursor.getString(0);

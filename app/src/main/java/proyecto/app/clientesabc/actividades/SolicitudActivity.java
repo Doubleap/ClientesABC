@@ -10,10 +10,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -36,6 +38,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.CompoundButtonCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.TooltipCompat;
@@ -101,6 +104,7 @@ import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
 import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
+import proyecto.app.clientesabc.clases.FileHelper;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Contacto;
@@ -135,6 +139,7 @@ public class SolicitudActivity extends AppCompatActivity {
     static  ArrayList<HashMap<String, String>> solicitudSeleccionada = new ArrayList<>();
     private static String GUID;
     private ProgressBar progressBar;
+    static boolean firma;
 
     static Uri mPhotoUri;
 
@@ -162,7 +167,7 @@ public class SolicitudActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_solicitud);
-
+        firma = false;
         Bundle b = getIntent().getExtras();
         if(b != null) {
             tipoSolicitud = b.getString("tipoSolicitud");
@@ -266,6 +271,11 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 numErrores++;
                                                 mensajeError += "- El cliente debe tener al menos 1 día de visita!\n";
                                             }
+                        //Validacion de politica de privacidad firmada por el cliente.
+                        if(!firma){
+                            numErrores++;
+                            mensajeError += "- El cliente debe firmar las politicas de privacidad!\n";
+                        }
 
                         if(numErrores == 0) {
                             String NextId = GUID;
@@ -469,10 +479,18 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                             try {
                                 //Datos que siemrpe deben ir cuando se crea por primera vez.
+                                //TODO seccionar par pais el grupo de cuentas, talvez sacar de una tabla
+                                if(tipoSolicitud.equals("1"))
+                                    insertValues.put("[W_CTE-KTOKD]", "RCMA");
+                                else{
+                                    insertValues.put("[W_CTE-KTOKD]", "RCMA");
+                                }
                                 Spinner sp = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
                                 String id_aprobador = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
                                 insertValues.put("[SIGUIENTE_APROBADOR]", id_aprobador);
-                                insertValues.put("[W_CTE-BUKRS]", VariablesGlobales.getSociedad());
+                                insertValues.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BUKRS",""));
+                                insertValues.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
+                                insertValues.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_VKORG",""));
                                 insertValues.put("[id_solicitud]", NextId);
                                 insertValues.put("[tipform]", tipoSolicitud);
                                 insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("user",""));
@@ -586,7 +604,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         File file = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
 
-                        file = saveBitmapToFile(file);
+                        file = FileHelper.saveBitmapToFile(file);
 
                         byte[] bytesArray = new byte[(int) file.length()];
 
@@ -642,6 +660,48 @@ public class SolicitudActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
+                }
+                break;
+            case 100:
+                if (resultCode == RESULT_OK) {
+                    Uri uri = null;
+                    if (data != null)
+                        uri = data.getData();
+                    if (uri == null) {
+                        uri = mPhotoUri;
+                    }
+                    InputStream iStream = null;
+                    try {
+                        iStream = getContentResolver().openInputStream(uri);
+                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    //Agregar al tableView del UI
+                    try {
+                        byte[] inputData = getBytes(iStream);
+                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, data.getType(), data.getDataString(), inputData);
+
+                        adjuntosSolicitud.add(nuevoAdjunto);
+                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
+                        stda.setPaddings(10, 5, 10, 5);
+                        stda.setTextSize(10);
+                        stda.setGravity(GRAVITY_CENTER);
+                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
+                        tb_adjuntos.setDataAdapter(stda);
+
+
+
+                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
+                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    CheckBox politica = (CheckBox) mapeoCamposDinamicos.get("politica");
+                    politica.setChecked(true);
+                    firma = true;
+                    politica.setEnabled(false);
+                    Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
                 }
                 break;
         }
@@ -795,6 +855,10 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(solicitudSeleccionada.size() > 0){
                         checkbox.setChecked(true);
                     }
+                    LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+                    checkbox.setLayoutParams(clp);
+                    checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_survey,null), null);
+
                     ll.addView(checkbox);
                     checkbox.setOnClickListener(new OnClickListener() {
                         @Override
@@ -806,6 +870,20 @@ public class SolicitudActivity extends AppCompatActivity {
                                 ((CheckBox) v).setChecked(true);
                         }
                     });
+
+                    ColorStateList colorStateList = new ColorStateList(
+                            new int[][]{
+                                    new int[]{-android.R.attr.state_checked}, // unchecked
+                                    new int[]{android.R.attr.state_checked} , // checked
+                            },
+                            new int[]{
+                                    Color.parseColor("#110000"),
+                                    Color.parseColor("#00aa00"),
+                            }
+                    );
+
+                    CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
+
                     listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                     mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
                 }else
@@ -827,6 +905,9 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(solicitudSeleccionada.size() > 0){
                         checkbox.setChecked(true);
                     }
+                    LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+                    checkbox.setLayoutParams(clp);
+                    checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_survey,null), null);
                     ll.addView(checkbox);
                     checkbox.setOnClickListener(new OnClickListener() {
                         @Override
@@ -838,6 +919,19 @@ public class SolicitudActivity extends AppCompatActivity {
                                 ((CheckBox) v).setChecked(true);
                         }
                     });
+
+                    ColorStateList colorStateList = new ColorStateList(
+                            new int[][]{
+                                    new int[]{-android.R.attr.state_checked}, // unchecked
+                                    new int[]{android.R.attr.state_checked} , // checked
+                            },
+                            new int[]{
+                                    Color.parseColor("#110000"),
+                                    Color.parseColor("#00aa00"),
+                            }
+                    );
+
+                    CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
 
                     listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                     mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
@@ -876,20 +970,23 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     final Spinner combo = new Spinner(getContext(), Spinner.MODE_DROPDOWN);
                     combo.setTag(campos.get(i).get("descr"));
-                    if(campos.get(i).get("sup").trim().length() > 0){
-                        label.setVisibility(View.GONE);
-                        combo.setVisibility(View.GONE);
-                    }
-                    if(campos.get(i).get("vis").trim().length() > 0){
-                        if(!campos.get(i).get("campo").trim().equals("W_CTE-LZONE"))
-                            combo.setEnabled(false);
-                    }
-
                     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                     lp.setMargins(0, -10, 0, 25);
                     combo.setPadding(0,0,0,0);
                     combo.setLayoutParams(lp);
                     combo.setPopupBackgroundResource(R.drawable.menu_item);
+                    if(campos.get(i).get("sup").trim().length() > 0){
+                        label.setVisibility(View.GONE);
+                        combo.setVisibility(View.GONE);
+                    }
+                    Drawable d = getResources().getDrawable(R.drawable.spinner_background, null);
+                    combo.setBackground(d);
+                    if(campos.get(i).get("vis").trim().length() > 0){
+                        if(!campos.get(i).get("campo").trim().equals("W_CTE-LZONE")) {
+                            combo.setEnabled(false);
+                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                        }
+                    }
 
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim());
 
@@ -910,8 +1007,10 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         if(valorDefectoxRuta.trim().length() > 0 && opciones.get(j).get("id").trim().equals(valorDefectoxRuta.trim())){
                             selectedIndex = j;
-                            if(!campos.get(i).get("campo").trim().equals("W_CTE-VWERK"))
+                            if(!campos.get(i).get("campo").trim().equals("W_CTE-VWERK")) {
                                 combo.setEnabled(false);
+                                combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                            }
                         }
 
                     }
@@ -920,8 +1019,6 @@ public class SolicitudActivity extends AppCompatActivity {
                     // Drop down layout style - list view with radio button
                     dataAdapter.setDropDownViewResource(R.layout.spinner_item);
                     // attaching data adapter to spinner
-                    Drawable d = getResources().getDrawable(R.drawable.spinner_background, null);
-                    combo.setBackground(d);
                     combo.setAdapter(dataAdapter);
                     combo.setSelection(selectedIndex);
 
@@ -981,6 +1078,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         if(solicitudSeleccionada.size() == 0) {
                             combo.setSelection(VariablesGlobales.getIndex(combo, "PR"));
                             combo.setEnabled(false);
+                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
                         }
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
@@ -1169,19 +1267,6 @@ public class SolicitudActivity extends AppCompatActivity {
                         et.setVisibility(View.GONE);
                         label.setVisibility(View.GONE);
                     }
-                    if(campos.get(i).get("vis").trim().length() > 0){
-                        et.setEnabled(false);
-                        //et.setVisibility(View.GONE);
-                    }
-                    et.setMaxLines(1);
-
-                    if(campos.get(i).get("datatype").equals("char")) {
-                        et.setInputType(InputType.TYPE_CLASS_TEXT);
-                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("maxlength")) ) });
-                    }else if(campos.get(i).get("datatype").equals("decimal")) {
-                        et.setInputType(InputType.TYPE_CLASS_NUMBER);
-                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("numeric_precision")) ) });
-                    }
                     // Atributos del Texto a crear
                     //TableLayout.LayoutParams lp =  new TableLayout.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT,0.5f);
                     TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5f);
@@ -1191,6 +1276,25 @@ public class SolicitudActivity extends AppCompatActivity {
                     et.setPadding(20, 5, 20, 5);
                     Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
                     et.setBackground(d);
+                    if(campos.get(i).get("vis").trim().length() > 0){
+                        et.setEnabled(false);
+                        et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled,null));
+                        //et.setVisibility(View.GONE);
+                    }
+                    et.setMaxLines(1);
+
+                    if(campos.get(i).get("datatype").equals("char")) {
+                        et.setInputType(InputType.TYPE_CLASS_TEXT);
+                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("maxlength")) ) });
+                        if(campos.get(i).get("campo").equals("W_CTE-STCD3")){
+                            et.setInputType(InputType.TYPE_CLASS_NUMBER);
+                            et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( 18 ) });
+                        }
+                    }else if(campos.get(i).get("datatype").equals("decimal")) {
+                        et.setInputType(InputType.TYPE_CLASS_NUMBER);
+                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("numeric_precision")) ) });
+                    }
+
 
                     InputFilter[] editFilters = et.getFilters();
                     InputFilter[] newFilters = new InputFilter[editFilters.length + 1];
@@ -1228,14 +1332,16 @@ public class SolicitudActivity extends AppCompatActivity {
                         if(split.length < 3)
                             split = campos.get(i).get("llamado1").trim().split("\"");
                         final String campoAReplicar = split[1];
-                        et.setOnFocusChangeListener(new OnFocusChangeListener() {
-                            @Override
-                            public void onFocusChange(View v, boolean hasFocus) {
-                                if (!hasFocus) {
-                                    ReplicarValor(v,campoAReplicar);
+                        if(!campos.get(i).get("campo").trim().equals("W_CTE-NAME1") && !campos.get(i).get("campo").trim().equals("W_CTE-NAME2") && !campos.get(i).get("campo").trim().equals("W_CTE-HOUSE_NUM1")) {
+                            et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                                @Override
+                                public void onFocusChange(View v, boolean hasFocus) {
+                                    if (!hasFocus) {
+                                        ReplicarValor(v, campoAReplicar);
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
 
                     label.addView(et);
@@ -1299,10 +1405,11 @@ public class SolicitudActivity extends AppCompatActivity {
 
             }
             //Si estan los campos de Latitud y Longitud, activar el pineo automatico (W_CTE-ZZCRMA_LAT,W_CTE-ZZCRMA_LONG)
-            if(listaCamposDinamicos.contains("W_CTE-ZZCRMA_LAT") && listaCamposDinamicos.contains("W_CTE-ZZCRMA_LONG") && solicitudSeleccionada.size() == 0){
+            //Descomentar si se quiere PINEO Automatico de coordenadas al entrar a una solicitud de Inclusion
+            /*if(listaCamposDinamicos.contains("W_CTE-ZZCRMA_LAT") && listaCamposDinamicos.contains("W_CTE-ZZCRMA_LONG") && solicitudSeleccionada.size() == 0){
                 LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
                 autoPineo.startLocationUpdates();
-            }
+            }*/
 
             //Si es la pestana de adicionales ("Z") le agregamos el combo de seleccion de Aprobador de la siguiente etapa en el flujo.
             if(pestana.equals("Z")){
@@ -1337,14 +1444,55 @@ public class SolicitudActivity extends AppCompatActivity {
                     combo.setSelection(1);
                 }else{
                     combo.setSelection(VariablesGlobales.getIndex(combo,solicitudSeleccionada.get(0).get("SIGUIENTE_APROBADOR")));
-                    if(!solicitudSeleccionada.get(0).get("estado").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("estado").trim().equals("Incidencia")){
+                    if(!solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")){
                         combo.setEnabled(false);
                     }
                 }
                 mapeoCamposDinamicos.put("SIGUIENTE_APROBADOR",combo);
                 ll.addView(label);
                 ll.addView(combo);
+
+                //Check Box para la aceptacion de las politicas de privacidad
+                final CheckBox checkbox = new CheckBox(getContext());
+                checkbox.setText("Aceptar Politicas de Privacidad");
+                if(solicitudSeleccionada.size() > 0){
+                    checkbox.setChecked(true);
+                }
+
+                LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+                checkbox.setLayoutParams(clp);
+                checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_privacy,null), null);
+                ll.addView(checkbox);
+                checkbox.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Aceptacion(v);
+                        if(((CheckBox) v).isChecked())
+                            ((CheckBox) v).setChecked(false);
+                        else
+                            ((CheckBox) v).setChecked(true);
+                    }
+                });
+
+                ColorStateList colorStateList = new ColorStateList(
+                        new int[][]{
+                                new int[]{-android.R.attr.state_checked}, // unchecked
+                                new int[]{android.R.attr.state_checked} , // checked
+                        },
+                        new int[]{
+                                Color.parseColor("#110000"),
+                                Color.parseColor("#00aa00"),
+                        }
+                );
+
+                CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
+                mapeoCamposDinamicos.put("politica",checkbox);
             }
+        }
+
+        private void Aceptacion(View v) {
+            Intent intent = new Intent(getContext(),FirmaActivity.class);
+            getActivity().startActivityForResult(intent,100);
         }
 
         public void DesplegarBloque(DataBaseHelper db, View _ll, HashMap<String, String> campo) {
@@ -1629,7 +1777,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
                     for(int x = 0; x < 6; x++){
                         TextInputLayout label = new TextInputLayout(getContext());
-                        label.setHint("Secuencia dia "+diaLabel[x]);
+                        label.setHint("Secuencia Preventa "+diaLabel[x]);
                         label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
                         label.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
 
@@ -1641,7 +1789,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5f);
                         lp.setMargins(0, 15, 0, 15);
                         et.setLayoutParams(lp);
-                        if(solicitudSeleccionada.size() > 0){
+                        if(solicitudSeleccionada.size() > 0 && visitasSolicitud.size() > 0 ){
                             switch(x) {
                                 case 0:
                                     et.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud.get(indicePreventa).getLun_de()));
@@ -1981,11 +2129,17 @@ public class SolicitudActivity extends AppCompatActivity {
             adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
+                    if(adjuntosSolicitud.get(finalX).getName().contains("PoliticaPrivacidad")) {
+                        CheckBox politica = (CheckBox) mapeoCamposDinamicos.get("politica");
+                        politica.setChecked(false);
+                        politica.setEnabled(true);
+                        firma = false;
+                    }
                     String salida = adjuntosSolicitud.get(finalX).getType() + " " + adjuntosSolicitud.get(finalX).getName();
                     adjuntosSolicitud.remove(finalX);
                     tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(v.getContext(), adjuntosSolicitud));
                     MostrarGaleriaAdjuntosHorizontal((HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos"), v.getContext());
-                    //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height-(alturaFilaTableView-20);
+
                     Toasty.info(v.getContext(), salida, Toast.LENGTH_SHORT).show();
                     return false;
                 }
@@ -2008,6 +2162,38 @@ public class SolicitudActivity extends AppCompatActivity {
         return byteBuffer.toByteArray();
     }
 
+    //Pruebas para seccion de bloques
+    public static void displayDialogMessage(Context context, String mensaje) {
+        final Dialog d=new Dialog(context);
+        d.setContentView(R.layout.message_dialog_layout);
+        //INITIALIZE VIEWS
+        final TextView title = d.findViewById(R.id.title);
+        final TextView message = d.findViewById(R.id.message);
+        Button saveBtn= d.findViewById(R.id.saveBtn);
+        Button cancelBtn= d.findViewById(R.id.cancelBtn);
+        title.setText("Mensaje de sistema");
+        message.setText(mensaje);
+        //SAVE
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                d.dismiss();
+            }
+        });
+        cancelBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                d.dismiss();
+            }
+        });
+
+        //SHOW DIALOG
+        d.show();
+        Window window = d.getWindow();
+        if (window != null) {
+            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        }
+    }
     //Pruebas para seccion de bloques
     public static void displayDialogContacto(Context context, final Contacto seleccionado) {
         final Dialog d=new Dialog(context);
@@ -2958,6 +3144,12 @@ public class SolicitudActivity extends AppCompatActivity {
             adjuntosSolicitud.remove(rowIndex);
             tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud));
             MostrarGaleriaAdjuntosHorizontal((HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos"),getBaseContext());
+            if(seleccionado.getName().contains("PoliticaPrivacidad")) {
+                CheckBox politica = (CheckBox) mapeoCamposDinamicos.get("politica");
+                politica.setChecked(false);
+                politica.setEnabled(true);
+                firma = false;
+            }
             //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height-(alturaFilaTableView-20);
             Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
             return true;
@@ -3251,49 +3443,4 @@ public class SolicitudActivity extends AppCompatActivity {
         }
 
     }
-
-    public File saveBitmapToFile(File file){
-        try {
-
-            // BitmapFactory options to downsize the image
-            BitmapFactory.Options o = new BitmapFactory.Options();
-            o.inJustDecodeBounds = true;
-            o.inSampleSize = 1;
-            // factor of downsizing the image
-
-            FileInputStream inputStream = new FileInputStream(file);
-            //Bitmap selectedBitmap = null;
-            BitmapFactory.decodeStream(inputStream, null, o);
-            inputStream.close();
-
-            // The new size we want to scale to
-            final int REQUIRED_SIZE=500;
-
-            // Find the correct scale value. It should be the power of 2.
-            int scale = 1;
-            while(o.outWidth / scale / 2 >= REQUIRED_SIZE &&
-                    o.outHeight / scale / 2 >= REQUIRED_SIZE) {
-                scale *= 2;
-            }
-
-            BitmapFactory.Options o2 = new BitmapFactory.Options();
-            o2.inSampleSize = scale;
-            inputStream = new FileInputStream(file);
-
-            Bitmap selectedBitmap = BitmapFactory.decodeStream(inputStream, null, o2);
-            inputStream.close();
-
-            // here i override the original image file
-            file.createNewFile();
-            FileOutputStream outputStream = new FileOutputStream(file);
-
-            selectedBitmap.compress(Bitmap.CompressFormat.JPEG, 100 , outputStream);
-
-            return file;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-
 }

@@ -56,9 +56,11 @@
             android:label="@string/title_activity_solicitud" />
         <activity
             android:name=".actividades.MantClienteActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
             android:label="@string/title_activity_mant_clientes" />
         <activity
             android:name=".actividades.SolicitudesActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
             android:label="@string/title_activity_solicitudes">
             <meta-data
                 android:name="android.app.searchable"

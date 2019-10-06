@@ -187,7 +187,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                 } else {
                     ArrayList<HashMap<String, String>> filteredList = new ArrayList<>();
                     for (HashMap<String, String> row : mDataset) {
-                        if (row.get("codigo").trim().contains(charString) || row.get("nombre").toUpperCase().trim().contains(charString.toUpperCase()) || row.get("numero").trim().contains(charString)) {
+                        if (row.get("codigo") != null && row.get("codigo").trim().contains(charString)  )
+                            filteredList.add(row);
+                        else if (row.get("nombre") != null && row.get("nombre").toUpperCase().trim().contains(charString.toUpperCase()))
+                            filteredList.add(row);
+                        else if (row.get("numero") != null && row.get("numero").trim().contains(charString) ){
                             filteredList.add(row);
                         }
                     }

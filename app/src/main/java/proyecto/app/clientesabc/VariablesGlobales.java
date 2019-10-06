@@ -14,6 +14,7 @@ import proyecto.app.clientesabc.modelos.Visitas;
 public class VariablesGlobales extends Application {
 
     private static String sociedad = "F443";
+    private static String orgvta = "0443";
     private static String TABLA_BLOQUE_CONTACTO_HH = "grid_contacto_solicitud";
     private static String TABLA_BLOQUE_BANCO_HH = "grid_bancos_solicitud";
     private static String TABLA_BLOQUE_IMPUESTO_HH = "grid_impuestos_solicitud";
@@ -104,5 +105,13 @@ public class VariablesGlobales extends Application {
 
     public static void setSociedad(String sociedad) {
         VariablesGlobales.sociedad = sociedad;
+    }
+
+    public static String getOrgvta() {
+        return orgvta;
+    }
+
+    public static void setOrgvta(String orgvta) {
+        VariablesGlobales.orgvta = orgvta;
     }
 }

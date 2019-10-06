@@ -53,7 +53,7 @@ public class LoginActivity extends AppCompatActivity {
     private Intent intent;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme);
+        //setTheme(R.style.NoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         // Set up the login form.
@@ -86,14 +86,10 @@ public class LoginActivity extends AppCompatActivity {
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        Drawable d = getResources().getDrawable(R.drawable.botella_coca_header_der,null);
-        //Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
-        //getSupportActionBar().setDisplayShowHomeEnabled(true);
-        //getSupportActionBar().setLogo(R.mipmap.ic_launcher);
-        //getSupportActionBar().setDisplayUseLogoEnabled(true);
-
         /**/
+        Drawable d = getResources().getDrawable(R.drawable.botella_coca_header_der,null);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
         toolbar.setTitle("Maestro Clientes Femsa CR");
         toolbar.setBackground(d);
         final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -140,7 +136,7 @@ public class LoginActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.detalles:
-                        intent = new Intent(getBaseContext(),MainActivity.class);
+                        intent = new Intent(getBaseContext(), PanelActivity.class);
                         startActivity(intent);
                         break;
                     default:
@@ -158,6 +154,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
         /**/
+
     }
     /**
      * Intenta iniciar sesión con el formulario de inicio de sesión.

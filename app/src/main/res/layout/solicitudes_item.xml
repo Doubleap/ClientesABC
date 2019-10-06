@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
         android:elevation="8dp"
-        app:cardCornerRadius="5dp">
+        app:cardCornerRadius="1dp">
         <LinearLayout
             android:id="@+id/estado"
             android:layout_width="10dp"

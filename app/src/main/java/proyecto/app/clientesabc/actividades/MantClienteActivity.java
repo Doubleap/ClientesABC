@@ -7,17 +7,22 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.ShapeDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.view.ContextThemeWrapper;
+import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,12 +32,13 @@ import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
@@ -66,6 +72,82 @@ public class MantClienteActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        /**/
+        Drawable d = getResources().getDrawable(R.drawable.header_curved_cc1,null);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("Mis Clientes");
+        //toolbar.setSubtitle("");
+        toolbar.setBackground(d);
+        toolbar.setSubtitleTextColor(getResources().getColor(R.color.white,null));
+        if (Build.VERSION.SDK_INT >= 28) {
+            toolbar.setOutlineAmbientShadowColor(getResources().getColor(R.color.aprobados,null));
+        }
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        toggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.white,null));
+        drawer.addDrawerListener(toggle);
+
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                drawer.closeDrawers();
+
+                switch(menuItem.getItemId()) {
+                    case R.id.solicitud:
+                        Bundle b = new Bundle();
+                        //TODO seleccionar el tipo de solicitud por el UI
+                        b.putString("tipoSolicitud", "1"); //id de solicitud
+                        intent = new Intent(getBaseContext(),SolicitudActivity.class);
+                        intent.putExtras(b); //Pase el parametro el Intent
+                        startActivity(intent);
+                        break;
+                    case R.id.comunicacion:
+                        intent = new Intent(getBaseContext(),TCPActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.clientes:
+                        intent = new Intent(getBaseContext(),MantClienteActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.solicitudes:
+                        intent = new Intent(getBaseContext(),SolicitudesActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.coordenadas:
+                        intent = new Intent(getBaseContext(),LocacionGPSActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.firma:
+                        intent = new Intent(getBaseContext(),FirmaActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.detalles:
+                        intent = new Intent(getBaseContext(), PanelActivity.class);
+                        startActivity(intent);
+                        break;
+                    default:
+                        Toasty.info(getBaseContext(),"Opcion no encontrada!").show();
+                }
+
+                /*Bundle b = new Bundle();
+                //TODO seleccionar el tipo de solicitud por el UI
+                b.putString("tipoSolicitud", "1"); //id de solicitud
+
+                intent = new Intent(getBaseContext(),SolicitudActivity.class);
+                intent.putExtras(b); //Pase el parametro el Intent
+                startActivity(intent);*/
+                return false;
+            }
+        });
+        /**/
+
     }
 
     @Override
@@ -75,6 +157,7 @@ public class MantClienteActivity extends AppCompatActivity {
         // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+
         if (searchView != null) {
             if (searchManager != null) {
                 searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
@@ -98,6 +181,13 @@ public class MantClienteActivity extends AppCompatActivity {
                     return false;
                 }
             });
+            searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+            TextView textView = searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+            ImageView searchBtn = searchView.findViewById(android.support.v7.appcompat.R.id.search_button);
+            ImageView searchCloseBtn = searchView.findViewById(android.support.v7.appcompat.R.id.search_close_btn);
+            textView.setTextColor(getResources().getColor(R.color.white,null));
+            searchBtn.setColorFilter(getResources().getColor(R.color.white,null));
+            searchCloseBtn.setColorFilter(getResources().getColor(R.color.white,null));
         }
         return true;
     }
@@ -142,27 +232,57 @@ public class MantClienteActivity extends AppCompatActivity {
             TextView nombre = holder.listView.findViewById(R.id.textViewDesc);
             nombre.setText(formListFiltered.get(position).get("nombre"));
             TextView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
-            ImageView estado = holder.listView.findViewById(R.id.estado);
+            LinearLayout color_gec = holder.listView.findViewById(R.id.color_gec);
             Drawable d = getResources().getDrawable(R.drawable.circulo_status_cliente, null);
 
-            Drawable background = estado.getBackground();
+            Drawable background = color_gec.getBackground();
+            int color = R.color.sinFormularios;
+            String klabc = formListFiltered.get(position).get("klabc").toString();
+
+            switch(klabc) {
+                case "00":
+                    color = R.color.baja;break;
+                case "50":
+                    color = R.color.diamante;break;
+                case "51":
+                    color = R.color.oro;break;
+                case "52":
+                    color = R.color.plata;break;
+                case "53":
+                    color = R.color.bronce;break;
+                case "54":
+                    color = R.color.indirectos;break;
+                case "55":
+                    color = R.color.orovending;break;
+                case "56":
+                    color = R.color.platavending;break;
+                case "57":
+                    color = R.color.broncevending;break;
+                case "58":
+                    color = R.color.laton;break;
+                case "59":
+                    color = R.color.plataplus;break;
+                case "99":
+                    color = R.color.customizado;break;
+                case "SA":
+                    color = R.color.sinasignar;break;
+            }
+
             if (background instanceof ShapeDrawable) {
                 ShapeDrawable shapeDrawable = (ShapeDrawable) background;
-                shapeDrawable.getPaint().setColor(ContextCompat.getColor(getBaseContext(), R.color.black));
+                shapeDrawable.getPaint().setColor(ContextCompat.getColor(getBaseContext(), color));
             } else if (background instanceof GradientDrawable) {
                 GradientDrawable gradientDrawable = (GradientDrawable) background;
-                gradientDrawable.setColor(ContextCompat.getColor(getBaseContext(), R.color.colorAccent));
+                gradientDrawable.setColor(ContextCompat.getColor(getBaseContext(), color));
             } else if (background instanceof ColorDrawable) {
                 ColorDrawable colorDrawable = (ColorDrawable) background;
-                colorDrawable.setColor(ContextCompat.getColor(getBaseContext(), R.color.colorPrimary));
+                colorDrawable.setColor(ContextCompat.getColor(getBaseContext(), color));
             }
 
             codigo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(getApplicationContext(), "Cliente codigo clickeado:"+((TextView)v).getText(),Toast.LENGTH_SHORT).show();
                     Bundle b = new Bundle();
-
                     b.putString("idCliente", ((TextView)v).getText().toString()); //id de solicitud
                     Intent intent = new Intent(v.getContext(),ClienteActivity.class);
                     intent.putExtras(b); //Pase el parametro el Intent

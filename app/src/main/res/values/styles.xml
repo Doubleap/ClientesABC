@@ -1,6 +1,6 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -14,6 +14,8 @@
     </style>
     <style name="SplashTheme" parent="AppTheme">
         <item name="android:windowBackground">@drawable/splash</item>
+    </style>
+    <style name="NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
     </style>
     <style name="MyPopupMenu" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:popupBackground">#0F213F</item>
@@ -51,7 +53,7 @@
     <style name="mySpinnerStyle" parent="android:Widget.ListView.DropDown">
         <item name="android:divider">#ffffff</item>
         <item name="android:dividerHeight">1dp</item>
-        <item name="android:background">#ee0000</item>
+        <item name="android:background">#aaaaaa</item>
     </style>
 
     <style name="BottomNavigationView" parent="@style/TextAppearance.AppCompat.Caption">

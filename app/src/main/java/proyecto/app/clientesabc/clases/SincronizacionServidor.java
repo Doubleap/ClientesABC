@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -110,6 +111,30 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
                         DataBaseHelper mDBHelper = new DataBaseHelper(context.get());
                         try {
                             mDBHelper.updateDataBase();
+                            SQLiteDatabase mDataBase = SQLiteDatabase.openDatabase(mDBHelper.DB_PATH+"FAWM_ANDROID_2", null, SQLiteDatabase.OPEN_READWRITE);
+                            //Copiar nuevamente los formularios que tenga nuevos
+                            String sqlAttach = "ATTACH DATABASE '"+externalStoragePath + File.separator + context.get().getPackageName()+ File.separator+"FAWM_ANDROID_2_BACKUP' AS fromDB";
+                            mDataBase.execSQL(sqlAttach);
+                            String sqlInsert = "INSERT INTO FormHVKOF_solicitud SELECT * FROM fromDB.FormHVKOF_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                            mDataBase.execSQL(sqlInsert);
+
+                            sqlInsert = "INSERT INTO encuesta_solicitud SELECT * FROM fromDB.encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                            mDataBase.execSQL(sqlInsert);
+                            sqlInsert = "INSERT INTO encuesta_gec_solicitud SELECT * FROM fromDB.encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                            mDataBase.execSQL(sqlInsert);
+                            sqlInsert = "INSERT INTO grid_contacto_solicitud SELECT * FROM fromDB.grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                            mDataBase.execSQL(sqlInsert);
+                            sqlInsert = "INSERT INTO grid_bancos_solicitud SELECT * FROM fromDB.grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                            mDataBase.execSQL(sqlInsert);
+                            sqlInsert = "INSERT INTO grid_impuestos_solicitud SELECT * FROM fromDB.grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                            mDataBase.execSQL(sqlInsert);
+                            sqlInsert = "INSERT INTO grid_visitas_solicitud SELECT * FROM fromDB.grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                            mDataBase.execSQL(sqlInsert);
+                            sqlInsert = "INSERT INTO grid_interlocutor_solicitud SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                            mDataBase.execSQL(sqlInsert);
+                            sqlInsert = "INSERT INTO adjuntos_solicitud SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo'))";
+                            mDataBase.execSQL(sqlInsert);
+
                         } catch (IOException e) {
                             xceptionFlag = true;
                             messageFlag = "Error al actualizar la Base de Datos.";

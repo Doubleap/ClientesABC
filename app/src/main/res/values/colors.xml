@@ -24,6 +24,20 @@
     <color name="nuevo">#b09c0a</color>
     <color name="modificado">#779b0d</color>
     <color name="transmitido">#970d9a</color>
+    //Colores GEC
+    <color name="baja">#650c0c</color>
+    <color name="diamante">#cbe3f0</color>
+    <color name="oro">#d4af37</color>
+    <color name="plata">#d8d8d8</color>
+    <color name="bronce">#89531a</color>
+    <color name="indirectos">#0a28b0</color>
+    <color name="orovending">#779b0d</color>
+    <color name="platavending">#d4af37</color>
+    <color name="broncevending">#89531a</color>
+    <color name="laton">#b5a642</color>
+    <color name="plataplus">#9a9a9a</color>
+    <color name="customizado">#970d9a</color>
+    <color name="sinasignar">#c0101c</color>
     //SuperLogin
     <color name="colorBackground">#333C46</color>
     <color name="colorSplashText">#8a0101</color>

@@ -311,7 +311,7 @@ public class TCPActivity extends AppCompatActivity
             String salida = seleccionado.getIp() + ":" + seleccionado.getPuerto()+" ha sido seleccionado.";
             ip_text.setText(seleccionado.getIp());
             puerto_text.setText(seleccionado.getPuerto());
-            Toasty.success(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
+            Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
         }
     }
     //Borrar el registro en el longClick

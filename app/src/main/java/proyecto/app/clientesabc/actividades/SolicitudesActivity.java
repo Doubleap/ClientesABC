@@ -5,6 +5,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -12,8 +13,11 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.androidbuts.multispinnerfilter.KeyPairBoolData;
 import com.androidbuts.multispinnerfilter.MultiSpinnerSearch;
@@ -89,6 +93,19 @@ public class SolicitudesActivity extends AppCompatActivity {
                 showDialogFilters(view);
             }
         });
+
+        Drawable d = getResources().getDrawable(R.drawable.botella_coca_header_right,null);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("Mis Solicitudes");
+        //toolbar.setSubtitle("");
+        toolbar.setBackground(d);
+        toolbar.setSubtitleTextColor(getResources().getColor(R.color.white,null));
+
+        if (Build.VERSION.SDK_INT >= 28) {
+            toolbar.setOutlineAmbientShadowColor(getResources().getColor(R.color.aprobados,null));
+        }
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
     private void showDialogFilters(View view) {
@@ -149,12 +166,13 @@ public class SolicitudesActivity extends AppCompatActivity {
         // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+
         if (searchView != null) {
             if (searchManager != null) {
                 searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
             }
             searchView.setMaxWidth(Integer.MAX_VALUE);
-            searchView.setQueryHint("Buscar...");
+            searchView.setQueryHint("Busqueda");
 
             // listener de buscar query text change
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -172,6 +190,13 @@ public class SolicitudesActivity extends AppCompatActivity {
                     return false;
                 }
             });
+            searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+            TextView textView = searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+            ImageView searchBtn = searchView.findViewById(android.support.v7.appcompat.R.id.search_button);
+            ImageView searchCloseBtn = searchView.findViewById(android.support.v7.appcompat.R.id.search_close_btn);
+            textView.setTextColor(getResources().getColor(R.color.white,null));
+            searchBtn.setColorFilter(getResources().getColor(R.color.white,null));
+            searchCloseBtn.setColorFilter(getResources().getColor(R.color.white,null));
         }
         return true;
     }
