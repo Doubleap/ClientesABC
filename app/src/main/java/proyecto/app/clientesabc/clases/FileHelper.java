@@ -181,7 +181,7 @@ public class FileHelper {
             // BitmapFactory options to downsize the image
             BitmapFactory.Options o = new BitmapFactory.Options();
             o.inJustDecodeBounds = true;
-            o.inSampleSize = 1;
+            o.inSampleSize = 4;
             // factor of downsizing the image
 
             FileInputStream inputStream = new FileInputStream(file);
@@ -210,7 +210,7 @@ public class FileHelper {
             file.createNewFile();
             FileOutputStream outputStream = new FileOutputStream(file);
 
-            selectedBitmap.compress(Bitmap.CompressFormat.JPEG, 100 , outputStream);
+            selectedBitmap.compress(Bitmap.CompressFormat.JPEG, 35 , outputStream);
 
             return file;
         } catch (Exception e) {

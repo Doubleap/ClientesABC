@@ -169,8 +169,8 @@ public class ClienteActivity extends AppCompatActivity {
 
         if(idCliente != null){
             clienteSeleccionado = mDBHelper.getCliente(idCliente);
-            tipoSolicitud = "35";
-            GUID = clienteSeleccionado.get(0).get("id_solicitud");
+            tipoSolicitud = getString(R.string.ID_FORM_CONSULTA_CLIENTE);
+            //GUID = clienteSeleccionado.get(0).get("id_solicitud");
             setTitle(clienteSeleccionado.get(0).get("W_CTE-KUNNR")+ " - " +clienteSeleccionado.get(0).get("W_CTE-NAME1"));
 
         }else{

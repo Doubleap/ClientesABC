@@ -28,6 +28,7 @@ import android.widget.TextView;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 /**
@@ -153,8 +154,9 @@ public class LoginActivity extends AppCompatActivity {
                 return false;
             }
         });
-        /**/
-
+        /*Si quiere reversar algun estado al realizar debugging de la aplicacion*/
+        //DataBaseHelper db = new DataBaseHelper(getBaseContext());
+        //db.RestaurarEstadosSolicitudesTransmitidas();
     }
     /**
      * Intenta iniciar sesión con el formulario de inicio de sesión.
@@ -184,8 +186,12 @@ public class LoginActivity extends AppCompatActivity {
             mUserView.setError(getString(R.string.error_field_required));
             focusView = mUserView;
             cancel = true;
-        } else if (!isUserValid(user)) {
+        } else if (!isUserHHValid(user)) {
             mUserView.setError(getString(R.string.error_invalid_email));
+            focusView = mUserView;
+            cancel = true;
+        }else if (!isUserMCValid(user)) {
+            mUserView.setError(getString(R.string.error_invalid_user_mc));
             focusView = mUserView;
             cancel = true;
         }
@@ -207,8 +213,10 @@ public class LoginActivity extends AppCompatActivity {
                 //startActivity(intent);
             }
             if(intentovalido){
-
+                String id_usuarioMC = VariablesGlobales.UsuarioHH2UsuarioMC(LoginActivity.this, mUserView.getText().toString());
                 PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", mUserView.getText().toString()).apply();
+                String userName = db.getUserName(id_usuarioMC);
+                PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("userName", userName).apply();
                 if(mCheckbox.isChecked()) {
                     PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("password", mPasswordView.getText().toString()).apply();
                 }else{
@@ -222,7 +230,7 @@ public class LoginActivity extends AppCompatActivity {
                     intent = new Intent(getBaseContext(), PanelActivity.class);
                     startActivity(intent);
                 }else{
-                    Toasty.warning(LoginActivity.this,"Debe Sincronizar los datos primero. La informacion existente no pertenece al usuario!").show();
+                    Toasty.warning(LoginActivity.this,"Debe Sincronizar los datos antes de continuar. La informacion existente no pertenece al usuario!").show();
                 }
             }else{
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
@@ -235,10 +243,16 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private boolean isUserValid(String user) {
+    private boolean isUserHHValid(String user) {
         //Validacion del usuario
         DataBaseHelper db = new DataBaseHelper(getBaseContext());
-        return db.validarUsuario(user);
+        return db.validarUsuarioHH(user);
+    }
+
+    private boolean isUserMCValid(String user) {
+        //Validacion del usuario
+        DataBaseHelper db = new DataBaseHelper(getBaseContext());
+        return db.validarUsuarioMC(user);
     }
 
     private boolean isPasswordValid(String password) {

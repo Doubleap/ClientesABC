@@ -3,10 +3,7 @@ package proyecto.app.clientesabc.actividades;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.ShapeDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -74,7 +71,7 @@ public class MantClienteActivity extends AppCompatActivity {
         });
 
         /**/
-        Drawable d = getResources().getDrawable(R.drawable.header_curved_cc1,null);
+        Drawable d = getResources().getDrawable(R.drawable.header_curved_cc5,null);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Mis Clientes");
         //toolbar.setSubtitle("");
@@ -228,10 +225,18 @@ public class MantClienteActivity extends AppCompatActivity {
             // - Obtener Elemento del data set en esta position
             // - Reemplazar aqui cualquier contenido dinamico dependiendo de algun valor de l dataset creado y o el contenido del dataset
             TextView codigo = holder.listView.findViewById(R.id.textViewHead);
-            codigo.setText(formListFiltered.get(position).get("codigo"));
+            codigo.setText(formListFiltered.get(position).get("codigo") == null?"":formListFiltered.get(position).get("codigo").trim());
             TextView nombre = holder.listView.findViewById(R.id.textViewDesc);
-            nombre.setText(formListFiltered.get(position).get("nombre"));
+            nombre.setText(formListFiltered.get(position).get("nombre") == null?"":formListFiltered.get(position).get("nombre").trim());
             TextView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
+            TextView idfiscal = holder.listView.findViewById(R.id.idfiscal);
+            idfiscal.setText(formListFiltered.get(position).get("idfiscal") == null?"":formListFiltered.get(position).get("idfiscal").trim());
+            TextView correo = holder.listView.findViewById(R.id.correo);
+            correo.setText(formListFiltered.get(position).get("correo") == null?"":formListFiltered.get(position).get("correo").trim());
+            /*TextView ubicacion = holder.listView.findViewById(R.id.ubicacion);
+            ubicacion.setText(formListFiltered.get(position).get("ubicacion"));
+            TextView direccion = holder.listView.findViewById(R.id.direccion);
+            direccion.setText(formListFiltered.get(position).get("direccion"));*/
             LinearLayout color_gec = holder.listView.findViewById(R.id.color_gec);
             Drawable d = getResources().getDrawable(R.drawable.circulo_status_cliente, null);
 
@@ -267,17 +272,8 @@ public class MantClienteActivity extends AppCompatActivity {
                 case "SA":
                     color = R.color.sinasignar;break;
             }
+            color_gec.setBackground(ContextCompat.getDrawable(getBaseContext(), color));
 
-            if (background instanceof ShapeDrawable) {
-                ShapeDrawable shapeDrawable = (ShapeDrawable) background;
-                shapeDrawable.getPaint().setColor(ContextCompat.getColor(getBaseContext(), color));
-            } else if (background instanceof GradientDrawable) {
-                GradientDrawable gradientDrawable = (GradientDrawable) background;
-                gradientDrawable.setColor(ContextCompat.getColor(getBaseContext(), color));
-            } else if (background instanceof ColorDrawable) {
-                ColorDrawable colorDrawable = (ColorDrawable) background;
-                colorDrawable.setColor(ContextCompat.getColor(getBaseContext(), color));
-            }
 
             codigo.setOnClickListener(new View.OnClickListener() {
                 @Override

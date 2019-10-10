@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -26,7 +27,9 @@ import java.lang.ref.WeakReference;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.clases.SincronizacionServidor;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
 
 public class PanelActivity extends AppCompatActivity {
@@ -37,6 +40,7 @@ public class PanelActivity extends AppCompatActivity {
     private static SQLiteDatabase mDb;
     private TextView rutaPanel;
     private TextView userPanel;
+    private TextView userName;
     Spinner spinner;
     private TextView num_nuevos;
     private TextView num_pendientes;
@@ -54,34 +58,26 @@ public class PanelActivity extends AppCompatActivity {
 
         mDBHelper = new DataBaseHelper(this);
         mDb = mDBHelper.getWritableDatabase();
-        //principal = (LinearLayout)findViewById(R.id.principal);
+        principal = (LinearLayout)findViewById(R.id.principal);
         gridLayout = (GridLayout)findViewById(R.id.mainGrid);
         rutaPanel = findViewById(R.id.rutaPanel);
-        rutaPanel.setText(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH",""));
+        rutaPanel.setText(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","").trim().toUpperCase());
         userPanel = findViewById(R.id.userPanel);
-        userPanel.setText(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("user",""));
+        userPanel.setText(VariablesGlobales.UsuarioHH2UsuarioMC(PanelActivity.this, PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("user","")).trim().toUpperCase() );
+        userName = findViewById(R.id.userName);
+        userName.setText(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("userName",""));
         num_nuevos = findViewById(R.id.num_nuevos);
         num_pendientes = findViewById(R.id.num_pendientes);
         num_incidencias = findViewById(R.id.num_incidencias);
         num_aprobados = findViewById(R.id.num_aprobados);
         num_rechazados = findViewById(R.id.num_rechazados);
-        num_transmitidos = findViewById(R.id.num_transmitidos);
+        //num_transmitidos = findViewById(R.id.num_transmitidos);
         num_cancelados = findViewById(R.id.num_cancelados);
         num_modificados = findViewById(R.id.num_modificados);
+        DrawerLayout.LayoutParams lp = (DrawerLayout.LayoutParams) principal.getLayoutParams();
+        lp.setMargins(0,0,0,0);
+        principal.setLayoutParams(lp);
 
-        /*spinner = new Spinner(this, Spinner.MODE_DIALOG);
-        ArrayList<OpcionSpinner> listaopciones = mDBHelper.getDatosCatalogoParaSpinner("cat_T171T");
-
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<OpcionSpinner>(Objects.requireNonNull(getBaseContext()), R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable d1 = getResources().getDrawable(R.drawable.spinner_background, null);
-        spinner.setBackground(d1);
-        spinner.setAdapter(dataAdapter);
-        spinner.setVisibility(View.GONE);
-        principal.addView(spinner);*/
 
         BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation_panel);
         bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -104,6 +100,14 @@ public class PanelActivity extends AppCompatActivity {
                         intent = new Intent(getBaseContext(),MantClienteActivity.class);
                         startActivity(intent);
                         break;
+                    case R.id.action_sincronizar:
+                        //Realizar la transmision de lo que se necesita (Db o txt)
+                        WeakReference<Context> weakRefs = new WeakReference<Context>(PanelActivity.this);
+                        WeakReference<Activity> weakRefAs = new WeakReference<Activity>(PanelActivity.this);
+                        //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
+                        SincronizacionServidor s = new SincronizacionServidor(weakRefs, weakRefAs);
+                        s.execute();
+                        break;
                     case R.id.action_transmitir:
                         //if(validarConexion()) {
                             //Realizar la transmision de lo que se necesita (Db o txt)
@@ -124,10 +128,13 @@ public class PanelActivity extends AppCompatActivity {
         //Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("Monitor de Solicitudes");
+        toolbar.setTitle(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","")+" - "+PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("user",""));
+        toolbar.setSubtitle(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("userName","Dato No encontrado"));
         toolbar.setBackground(d);
-
+        toolbar.setVisibility(View.GONE);
+        toolbar.setLayoutParams(new AppBarLayout.LayoutParams(0,0));
         final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
         final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         toggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.white,null));
@@ -177,14 +184,6 @@ public class PanelActivity extends AppCompatActivity {
                     default:
                         Toasty.info(getBaseContext(),"Opcion no encontrada!").show();
                 }
-
-                /*Bundle b = new Bundle();
-                //TODO seleccionar el tipo de solicitud por el UI
-                b.putString("tipoSolicitud", "1"); //id de solicitud
-
-                intent = new Intent(getBaseContext(),SolicitudActivity.class);
-                intent.putExtras(b); //Pase el parametro el Intent
-                startActivity(intent);*/
                 return false;
             }
         });
@@ -198,7 +197,7 @@ public class PanelActivity extends AppCompatActivity {
         num_incidencias.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Incidencia")));
         num_aprobados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Aprobado")));
         num_rechazados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Rechazado")));
-        num_transmitidos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Transmitido")));
+        //num_transmitidos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Transmitido")));
         num_cancelados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Cancelado")));
         num_modificados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Modificado")));
     }

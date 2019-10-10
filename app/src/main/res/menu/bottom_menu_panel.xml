@@ -13,6 +13,10 @@
         android:icon="@drawable/icon_user"
         android:title="Clientes" />
     <item
+        android:id="@+id/action_sincronizar"
+        android:icon="@drawable/icon_sync"
+        android:title="Sincronizar"/>
+    <item
         android:id="@+id/action_transmitir"
         android:icon="@drawable/icon_send"
         android:title="Transmitir"/>

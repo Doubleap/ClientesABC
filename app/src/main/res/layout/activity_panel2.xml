@@ -16,11 +16,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/curved_background"
+
         android:weightSum="10">
 <RelativeLayout
     android:layout_weight="2.0"
     android:layout_width="match_parent"
+    android:background="@drawable/header_menu"
     android:layout_height="0dp">
 <LinearLayout
     android:orientation="vertical"
@@ -29,19 +30,33 @@
     <TextView
         android:id="@+id/rutaPanel"
         android:text="SIN RUTA"
-        android:textSize="56dp"
+        android:textSize="24dp"
         android:textColor="@color/white"
         android:textStyle="bold"
-        android:textAlignment="center"
+        android:textAlignment="textStart"
+        android:paddingLeft="25dp"
+        android:paddingTop="6dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
     <TextView
         android:id="@+id/userPanel"
         android:text="Sin Usuario"
-        android:textAlignment="center"
+        android:textAlignment="textStart"
+        android:paddingLeft="25dp"
         android:textSize="20dp"
         android:textStyle="bold"
         android:textColor="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/userName"
+        android:text="Alvaro Saborio Miranda"
+        android:textAlignment="textStart"
+        android:paddingLeft="25dp"
+        android:paddingTop="20dp"
+        android:textSize="16dp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 </LinearLayout>
@@ -50,7 +65,7 @@
         android:layout_weight="8.0"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="0dp"
         android:orientation="vertical">
     <ScrollView
         android:layout_width="match_parent"
@@ -73,7 +88,7 @@
                     android:layout_margin="@dimen/margin_medium"
                     android:padding="0dp"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="60dp"
+                    app:cardCornerRadius="10dp"
                     app:cardElevation="5dp">
 
                     <LinearLayout
@@ -141,7 +156,7 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/margin_medium"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="60dp"
+                    app:cardCornerRadius="10dp"
                     app:cardElevation="5dp"
                     android:background="@drawable/square_btn_bg_t1">
                     <LinearLayout
@@ -207,7 +222,7 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/margin_medium"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="60dp"
+                    app:cardCornerRadius="10dp"
                     app:cardElevation="5dp"
                     android:background="@drawable/square_btn_bg_t1">
                     <LinearLayout
@@ -273,7 +288,7 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/margin_medium"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="60dp"
+                    app:cardCornerRadius="10dp"
                     app:cardElevation="5dp"
                     android:background="@drawable/square_btn_bg_t1">
                     <LinearLayout
@@ -339,7 +354,7 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/margin_medium"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="60dp"
+                    app:cardCornerRadius="10dp"
                     app:cardElevation="5dp"
                     android:background="@drawable/square_btn_bg_t1">
                     <LinearLayout
@@ -398,14 +413,14 @@
                         android:background="@color/rechazado"></LinearLayout>
                 </android.support.v7.widget.CardView>
 
-                <android.support.v7.widget.CardView
+                <!--<android.support.v7.widget.CardView
                     android:id="@+id/card_gauge_transmitidos"
                     android:layout_width="0dp"
                     android:layout_height="125dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/margin_medium"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="60dp"
+                    app:cardCornerRadius="10dp"
                     app:cardElevation="5dp"
                     android:background="@drawable/square_btn_bg_t1">
                     <LinearLayout
@@ -462,72 +477,8 @@
                         android:gravity="bottom"
                         android:orientation="vertical"
                         android:background="@color/transmitido"></LinearLayout>
-                </android.support.v7.widget.CardView>
-                <android.support.v7.widget.CardView
-                    android:id="@+id/card_gauge_cancelados"
-                    android:layout_width="0dp"
-                    android:layout_height="125dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="@dimen/margin_medium"
-                    android:layout_rowWeight="1"
-                    app:cardCornerRadius="60dp"
-                    app:cardElevation="5dp"
-                    android:background="@drawable/square_btn_bg_t1">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_margin="0dp"
-                        android:gravity="center_horizontal|center_vertical"
-                        android:orientation="vertical">
+                </android.support.v7.widget.CardView>-->
 
-                        <TextView
-                            android:id="@+id/num_cancelados"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="25dp"
-                            android:text="18"
-                            android:textAlignment="center"
-                            android:textColor="@color/black"
-                            android:textSize="48sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10sp"
-                            android:text="Cancelados"
-                            android:textAlignment="center"
-                            android:textColor="@color/black"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                    <pl.pawelkleczkowski.customgauge.CustomGauge
-                        android:id="@+id/gauge_cancelados"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_below="@+id/gauge1"
-                        android:layout_centerHorizontal="true"
-                        android:paddingBottom="10dp"
-                        android:paddingLeft="10dp"
-                        android:paddingRight="10dp"
-                        android:paddingTop="10dp"
-                        app:gaugeEndValue="100"
-                        app:gaugePointEndColor="@color/black"
-                        app:gaugePointStartColor="@color/black"
-                        app:gaugeStartAngle="135"
-                        app:gaugeStartValue="0"
-                        app:gaugeStrokeCap="ROUND"
-                        app:gaugeStrokeColor="@color/black"
-                        app:gaugeStrokeWidth="10dp"
-                        app:gaugeSweepAngle="270" />
-                    <LinearLayout
-                        android:layout_width="1dp"
-                        android:layout_height="match_parent"
-                        android:layout_margin="0dp"
-                        android:gravity="bottom"
-                        android:orientation="vertical"
-                        android:background="@color/black"></LinearLayout>
-                </android.support.v7.widget.CardView>
                 <android.support.v7.widget.CardView
                     android:id="@+id/card_gauge_modificados"
                     android:layout_width="0dp"
@@ -535,7 +486,7 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/margin_medium"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="60dp"
+                    app:cardCornerRadius="10dp"
                     app:cardElevation="5dp"
                     android:background="@drawable/square_btn_bg_t1">
                     <LinearLayout
@@ -592,6 +543,71 @@
                         android:gravity="bottom"
                         android:orientation="vertical"
                         android:background="@color/modificado"></LinearLayout>
+                </android.support.v7.widget.CardView>
+                <android.support.v7.widget.CardView
+                    android:id="@+id/card_gauge_cancelados"
+                    android:layout_width="0dp"
+                    android:layout_height="125dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="@dimen/margin_medium"
+                    android:layout_rowWeight="1"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="5dp"
+                    android:background="@drawable/square_btn_bg_t1">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="0dp"
+                        android:gravity="center_horizontal|center_vertical"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/num_cancelados"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="25dp"
+                            android:text="18"
+                            android:textAlignment="center"
+                            android:textColor="@color/black"
+                            android:textSize="48sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10sp"
+                            android:text="Cancelados"
+                            android:textAlignment="center"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                    <pl.pawelkleczkowski.customgauge.CustomGauge
+                        android:id="@+id/gauge_cancelados"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_below="@+id/gauge1"
+                        android:layout_centerHorizontal="true"
+                        android:paddingBottom="10dp"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:paddingTop="10dp"
+                        app:gaugeEndValue="100"
+                        app:gaugePointEndColor="@color/black"
+                        app:gaugePointStartColor="@color/black"
+                        app:gaugeStartAngle="135"
+                        app:gaugeStartValue="0"
+                        app:gaugeStrokeCap="ROUND"
+                        app:gaugeStrokeColor="@color/black"
+                        app:gaugeStrokeWidth="10dp"
+                        app:gaugeSweepAngle="270" />
+                    <LinearLayout
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:layout_margin="0dp"
+                        android:gravity="bottom"
+                        android:orientation="vertical"
+                        android:background="@color/black"></LinearLayout>
                 </android.support.v7.widget.CardView>
             </GridLayout>
     </ScrollView>

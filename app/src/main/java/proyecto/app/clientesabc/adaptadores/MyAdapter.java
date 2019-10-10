@@ -110,8 +110,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                 //TODO seleccionar el tipo de solicitud por el UI
                 //b.putString("tipoSolicitud", "1"); //id de solicitud
                 b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
-
-                Intent intent = new Intent(view.getContext(),SolicitudActivity.class);
+                Intent intent = new Intent(view.getContext(), SolicitudActivity.class);
                 intent.putExtras(b); //Pase el parametro el Intent
                 view.getContext().startActivity(intent);
             }

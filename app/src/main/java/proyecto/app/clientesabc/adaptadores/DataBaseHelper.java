@@ -207,7 +207,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getClientes(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
-        String query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc " +
+        String query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr " +
                 " FROM SAPDClientes";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
@@ -217,6 +217,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("direccion",cursor.getString(2));
             user.put("estado",cursor.getString(3));
             user.put("klabc",cursor.getString(cursor.getColumnIndex("klabc")));
+            user.put("idfiscal",cursor.getString(cursor.getColumnIndex("stcd3")));
+            user.put("ubicacion",cursor.getString(cursor.getColumnIndex("street")));
+            user.put("direccion",cursor.getString(cursor.getColumnIndex("str_suppl1")));
+            user.put("correo",cursor.getString(cursor.getColumnIndex("smtp_addr")));
             clientList.add(user);
         }
         cursor.close();
@@ -427,11 +431,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         while (cursor.moveToNext()){
             HashMap<String,String> solicitud = new HashMap<>();
             solicitud.put("id_solicitud",cursor.getString(cursor.getColumnIndex("id_solicitud")));
-            solicitud.put("IDFORM",cursor.getString(cursor.getColumnIndex("IDFORM")));
+            //solicitud.put("IDFORM",cursor.getString(cursor.getColumnIndex("IDFORM")));
             solicitud.put("TIPFORM",cursor.getString(cursor.getColumnIndex("TIPFORM")));
             solicitud.put("FECCRE",cursor.getString(cursor.getColumnIndex("FECCRE")));
             solicitud.put("USUSOL",cursor.getString(cursor.getColumnIndex("USUSOL")));
-            solicitud.put("ESTADO",cursor.getString(cursor.getColumnIndex("ESTADO")));
+            solicitud.put("ESTADO",cursor.getString(cursor.getColumnIndex("ESTADO")).trim());
             solicitud.put("W_CTE-AKONT",cursor.getString(cursor.getColumnIndex("W_CTE-AKONT")));
             solicitud.put("W_CTE-ALTKN",cursor.getString(cursor.getColumnIndex("W_CTE-ALTKN")));
             solicitud.put("W_CTE-ANTLF",cursor.getString(cursor.getColumnIndex("W_CTE-ANTLF")));
@@ -590,17 +594,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getSolicitudes(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> formList = new ArrayList<>();
-        String query = "SELECT idform as numero, [W_CTE-KUNNR] as codigo, [W_CTE-NAME1] as nombre, estado as estado, tipform, id_solicitud " +
+        String query = "SELECT idform , id_solicitud, [W_CTE-KUNNR] as codigo, [W_CTE-NAME1] as nombre, estado as estado, tipform " +
                 " FROM FormHVKOF_solicitud";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
-            user.put("numero",cursor.getString(0));
-            user.put("codigo",String.valueOf(cursor.getInt(1)));
-            user.put("nombre",cursor.getString(2));
-            user.put("estado",cursor.getString(3));
-            user.put("tipform",cursor.getString(4));
-            user.put("id_solicitud",cursor.getString(5));
+            user.put("idform",String.valueOf(cursor.getInt(0)));
+            user.put("id_solicitud",String.valueOf(cursor.getInt(1)));
+            user.put("codigo",String.valueOf(cursor.getLong(2)));
+            user.put("nombre",cursor.getString(3));
+            user.put("estado",cursor.getString(4));
+            user.put("tipform",cursor.getString(5));
             formList.add(user);
         }
         cursor.close();
@@ -623,7 +627,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
             user.put("numero",cursor.getString(0));
-            user.put("codigo",String.valueOf(cursor.getInt(1)));
+            user.put("codigo",String.valueOf(cursor.getLong(1)));
             user.put("nombre",cursor.getString(2));
             user.put("estado",cursor.getString(3));
             user.put("tipform",cursor.getString(4));
@@ -1100,8 +1104,15 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     //LOGIN DE USUAIRO EN SISTEMA
-    public boolean validarUsuario(String usuario){
-        String selectQuery = "SELECT count(*) as existe FROM t_i_users WHERE upper(trim(UserName)) = '" + usuario.trim().toUpperCase() +"' ";
+    public boolean validarUsuarioHH(String usuario){
+        String user = usuario;
+        try{
+            Integer.parseInt(usuario);
+        }
+        catch (NumberFormatException ex){
+            user = VariablesGlobales.UsuarioMC2UsuarioHH(mContext, usuario);
+        }
+        String selectQuery = "SELECT count(*) as existe FROM t_i_users WHERE upper(trim(UserName)) = '" + user.trim().toUpperCase() +"' ";
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
             Cursor cursor = mDataBase.rawQuery(selectQuery, null);//selectQuery,selectedArguments
@@ -1118,8 +1129,35 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         return true;
     }
+    public boolean validarUsuarioMC(String usuario){
+        String usuarioMC = VariablesGlobales.UsuarioHH2UsuarioMC(mContext, usuario);
+        String selectQuery = "SELECT count(*) as existe FROM mant_usuarios WHERE upper(trim(id_Usuario)) = '" + usuarioMC.trim().toUpperCase() +"' ";
+        try {
+            //SQLiteDatabase db = this.getReadableDatabase();
+            Cursor cursor = mDataBase.rawQuery(selectQuery, null);//selectQuery,selectedArguments
+            cursor.moveToFirst();
+            int cantidad = cursor.getInt(0);
+            cursor.close();
+            if(cantidad <= 0){
+                return false;
+            }
+        }catch (Exception e){
+            e.getMessage();
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
     public boolean LoginUsuario(String usuario,String contrasena){
-        String selectQuery = "SELECT count(*) as existe FROM t_i_users WHERE upper(trim(UserName)) = '" + usuario.trim().toUpperCase() +"' AND Password = '" + contrasena.trim()+"'";
+        String user = usuario;
+        try{
+            Integer.parseInt(usuario);
+        }
+        catch (NumberFormatException ex){
+            user = VariablesGlobales.UsuarioMC2UsuarioHH(mContext, usuario);
+        }
+        String selectQuery = "SELECT count(*) as existe FROM t_i_users WHERE upper(trim(UserName)) = '" + user.trim().toUpperCase() +"' AND Password = '" + contrasena.trim()+"'";
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
             Cursor cursor = mDataBase.rawQuery(selectQuery, null);//selectQuery,selectedArguments
@@ -1139,9 +1177,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public boolean setPropiedadesDeUsuario(){
         boolean ret = false;
-        PreferenceManager.getDefaultSharedPreferences(mContext).getString("user","");
+        String userName = VariablesGlobales.UsuarioMC2UsuarioHH(mContext, PreferenceManager.getDefaultSharedPreferences(mContext).getString("user","").trim().toUpperCase());
         String query = "SELECT RouteID FROM t_i_users WHERE upper(trim(UserName)) = ?";
-        Cursor cursor = mDataBase.rawQuery(query, new String [] {PreferenceManager.getDefaultSharedPreferences(mContext).getString("user","").trim().toUpperCase()});
+        Cursor cursor = mDataBase.rawQuery(query, new String [] {userName});
         String rutaAsignada = "";
         while (cursor.moveToNext()){
             rutaAsignada = cursor.getString(0);
@@ -1632,7 +1670,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     // Metodos de Ayuda para la Transmision de Datos y evitar que se vayan duplicados o que no se vayan
     public void ActualizarEstadosSolicitudesTransmitidas(){
         //SQLiteDatabase db = this.getWritableDatabase();
-        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Transmitido' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_solicitud WHERE trim(estado) = 'Nuevo');";
+        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Transmitido' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_solicitud WHERE trim(estado) IN ('Nuevo','Modificado'));";
         mDataBase.execSQL(sqlUpdate);
     }
     public void ActualizarEstadosSolicitudesTransmitidas(String lista_id_solicitudes){
@@ -1643,13 +1681,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //Solo para debugging
     public void RestaurarEstadosSolicitudesTransmitidas(){
         //SQLiteDatabase db = this.getWritableDatabase();
-        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Nuevo' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_solicitud WHERE trim(estado) = 'Transmitido');";
+        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Nuevo' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_solicitud WHERE trim(estado) IN ('Modificado'));";
         mDataBase.execSQL(sqlUpdate);
     }
     public int CantidadSolicitudesTransmision() {
         int cantidad = 0;
 
-        String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud where trim(estado) = 'Nuevo'";
+        String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud where trim(estado) IN ('Nuevo','Modificado')";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             cantidad = cursor.getInt(0);
@@ -1691,5 +1729,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return bukrs;
+    }
+
+    public String getUserName(String usuarioMC) {
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, String>> formList = new ArrayList<>();
+        String query = "SELECT nombre_Usuario as userName FROM mant_usuarios WHERE upper(trim(id_Usuario)) = upper(?)";
+        Cursor cursor = mDataBase.rawQuery(query, new String[]{usuarioMC});
+        String userName = "";
+        if (cursor.moveToNext()){
+            userName = cursor.getString(0);
+        }
+        cursor.close();
+        return userName;
     }
 }

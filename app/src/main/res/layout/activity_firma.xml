@@ -7,7 +7,7 @@
     tools:context=".actividades.MainActivity"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:background="@drawable/textbackground"
+    android:background="@drawable/canvas_background"
     >
     <ScrollView
         android:id="@+id/scroll"
@@ -15,14 +15,13 @@
         android:layout_height="match_parent"
         android:background="@color/sinFormularios"
         android:layout_weight="9"
-        android:fillViewport="true"
+        android:layout_margin="0dp"
         >
         <LinearLayout
             android:id="@+id/completo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/textbackground">
+            android:orientation="vertical">
     <FrameLayout
         android:id="@+id/documento"
         android:layout_width="match_parent"
@@ -53,11 +52,10 @@
         <LinearLayout
             android:id="@+id/canvasLL"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_height="175dp"
             android:orientation="vertical"
             android:layout_gravity="top"
-            android:padding="5dp"
-            android:background="@drawable/textbackground">
+            android:background="@drawable/canvas_background">
         </LinearLayout>
             <TextView
                 android:layout_width="match_parent"

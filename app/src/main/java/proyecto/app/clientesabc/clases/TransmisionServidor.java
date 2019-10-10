@@ -88,7 +88,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
 
         try {
             //Validar si existen solicitudes para indicar que no ya todas las solicitudes sen transmitido con exito
-            mDBHelper.RestaurarEstadosSolicitudesTransmitidas();
+            //mDBHelper.RestaurarEstadosSolicitudesTransmitidas();
             int cantidad = mDBHelper.CantidadSolicitudesTransmision();
             //int cantidad = 1;
             if(cantidad <= 0){

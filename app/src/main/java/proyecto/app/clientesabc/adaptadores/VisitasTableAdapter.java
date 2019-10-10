@@ -20,9 +20,9 @@ public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
     private static final String LOG_TAG = TableDataAdapter.class.getName();
 
     private int paddingLeft = 20;
-    private int paddingTop = 15;
+    private int paddingTop = 25;
     private int paddingRight = 20;
-    private int paddingBottom = 15;
+    private int paddingBottom = 25;
     private int textSize = 12;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;

@@ -2,6 +2,8 @@ package proyecto.app.clientesabc;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
+import android.content.Context;
+import android.preference.PreferenceManager;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
@@ -113,5 +115,34 @@ public class VariablesGlobales extends Application {
 
     public static void setOrgvta(String orgvta) {
         VariablesGlobales.orgvta = orgvta;
+    }
+
+    public static String UsuarioHH2UsuarioMC(Context context, String usuarioHH) {
+        String usuarioMC = "";
+        String padded = "";
+        try {
+            Integer.parseInt(usuarioHH);
+            padded = "00000000".substring(usuarioHH.length()) + usuarioHH;
+            usuarioMC = PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_LAND1","")+padded;
+        }catch (NumberFormatException ne){
+            usuarioMC = usuarioHH;
+        }
+        return usuarioMC;
+    }
+
+    public static String UsuarioMC2UsuarioHH(Context context, String usuarioMC) {
+        int numero = 0;
+        String usuarioHH = usuarioMC;
+        try {
+            numero = Integer.parseInt(usuarioMC);
+        }catch (NumberFormatException ne){
+            try {
+                numero = Integer.parseInt(usuarioMC.substring(2, usuarioMC.length()));
+                usuarioHH = String.valueOf(numero);
+            }catch (NumberFormatException nex){
+                usuarioHH = usuarioMC;
+            }
+        }
+        return usuarioHH;
     }
 }

@@ -101,6 +101,7 @@ public class FirmaActivity extends AppCompatActivity {
                 String ext = file.getName().substring(index).toLowerCase();
                 String type = mime.getMimeTypeFromExtension(ext);
                 resultIntent.setDataAndType(Uri.fromFile(file), type);
+                resultIntent.putExtra("ImageName", file.getName());
                 setResult(Activity.RESULT_OK, resultIntent);
                 finish();
             }

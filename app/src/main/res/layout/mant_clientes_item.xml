@@ -29,18 +29,26 @@
                 android:id="@+id/textViewHead"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="40dp"
+                android:layout_marginLeft="10dp"
                 android:text="Codigo"
-                android:textAppearance="?android:textAppearanceLarge" />
-
+                android:textAppearance="?android:textAppearanceMedium" />
+            <TextView
+                android:id="@+id/idfiscal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_below="@id/textViewHead"
+                android:text="ID Fiscal"
+                android:textAppearance="?android:textAppearanceSmall" />
             <TextView
                 android:id="@+id/textViewDesc"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="40dp"
-                android:layout_below="@id/textViewHead"
+                android:layout_toRightOf="@id/idfiscal"
+                android:layout_alignBaseline="@+id/idfiscal"
+                android:layout_marginLeft="15dp"
                 android:text="Nombre Cliente"
-                android:textAppearance="?android:textAppearanceMedium" />
+                android:textAppearance="?android:textAppearanceSmallPopupMenu" />
 
             <TextView
                 android:id="@+id/textViewOptions"
@@ -51,7 +59,30 @@
                 android:paddingLeft="@dimen/activity_horizontal_margin"
                 android:text="&#8942;"
                 android:textAppearance="?android:textAppearanceLarge" />
-
+            <TextView
+                android:id="@+id/correo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_below="@id/textViewDesc"
+                android:text="ubicacion"
+                android:textAppearance="?android:textAppearanceSmall" />
+            <!--<TextView
+                android:id="@+id/ubicacion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_below="@id/correo"
+                android:text="ubicacion"
+                android:textAppearance="?android:textAppearanceSmall" />
+            <TextView
+                android:id="@+id/direccion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_below="@id/ubicacion"
+                android:text="Direccion"
+                android:textAppearance="?android:textAppearanceSmall" />-->
         </RelativeLayout>
 
     </android.support.v7.widget.CardView>
