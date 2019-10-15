@@ -6,12 +6,15 @@
     android:layout_width="match_parent"
     >
     <item
-        android:id="@+id/menu1"
-        android:title="Solicitud de Modificacion" />
+        android:id="@+id/detalle"
+        android:title="Ver Detalle" />
     <item
-        android:id="@+id/menu2"
+        android:id="@+id/modificar"
+        android:title="Solicitud de Modificación" />
+    <item
+        android:id="@+id/cierre"
         android:title="Solicitud de Cierre" />
     <item
-        android:id="@+id/menu3"
-        android:title="Equipo Frio" />
+        android:id="@+id/equipofrio"
+        android:title="Equipo Frío" />
 </menu>

@@ -59,7 +59,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:text="Probar Conexion" />
+            android:text="Validar Conexión" />
         <android.support.v7.widget.CardView
             android:id="@+id/barra_tv_conexiones"
             android:layout_width="match_parent"

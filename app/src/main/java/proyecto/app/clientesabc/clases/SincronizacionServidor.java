@@ -58,9 +58,12 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
 
             //Comando String que indicara que se quire realizar una Sincronizacion
             dos.writeUTF("Sincronizacion");
-            dos.flush();
+            //dos.flush();
             //Enviar Ruta que se quiere sincronizar
             dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH",""));
+            dos.flush();
+
+            dos.writeUTF("FIN");
             dos.flush();
 
             //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion

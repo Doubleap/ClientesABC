@@ -183,11 +183,14 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                     System.out.println("Termino Iteracion : " + i + ".");
                 }
 
+                dos.writeUTF("FIN");
+                dos.flush();
+
                 //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
                 long s = dis.readLong();
                 if(s < 0){
                     s = dis.readLong();
-                    byte[] e = new byte[124];
+                    byte[] e = new byte[(int) s];
                     dis.readFully(e);
                     String error = new String(e);
                     xceptionFlag = true;

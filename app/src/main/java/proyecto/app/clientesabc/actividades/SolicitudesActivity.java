@@ -94,7 +94,7 @@ public class SolicitudesActivity extends AppCompatActivity {
             }
         });
 
-        Drawable d = getResources().getDrawable(R.drawable.botella_coca_header_right,null);
+        Drawable d = getResources().getDrawable(R.drawable.header_curved_cc5,null);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Mis Solicitudes");
         //toolbar.setSubtitle("");

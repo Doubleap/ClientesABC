@@ -121,6 +121,7 @@
             >
         </android.widget.Spinner>
         <android.support.v7.widget.AppCompatTextView
+            android:id="@+id/ruta_reparto_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Ruta de Reparto"

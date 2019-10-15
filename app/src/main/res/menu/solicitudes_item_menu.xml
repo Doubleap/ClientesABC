@@ -6,12 +6,18 @@
     android:layout_width="match_parent"
     >
     <item
-        android:id="@+id/menu1"
+        android:id="@+id/detalle"
         android:title="Ver Solicitud" />
     <item
-        android:id="@+id/menu2"
+        android:id="@+id/modificar"
+        android:title="Modificar Solicitud" />
+    <item
+        android:id="@+id/cancelar"
+        android:title="Cancelar Solicitud" />
+    <item
+        android:id="@+id/eliminar"
         android:title="Eliminar Solicitud" />
     <item
-        android:id="@+id/menu3"
-        android:title="Modificar Solicitud" />
+        android:id="@+id/transmitir"
+        android:title="Transmitir Solicitud" />
 </menu>

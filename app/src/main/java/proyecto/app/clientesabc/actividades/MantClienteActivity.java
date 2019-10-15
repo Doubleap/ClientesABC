@@ -285,6 +285,7 @@ public class MantClienteActivity extends AppCompatActivity {
                     startActivity(intent);
                 }
             });
+            final String codigoCliente = codigo.getText().toString().trim();
             textViewOptions.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View view) {
@@ -298,17 +299,25 @@ public class MantClienteActivity extends AppCompatActivity {
                     //inflating menu from xml resource
                     popup.inflate(R.menu.mant_clientes_item_menu);
                     //adding click listener
+
                     popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         @Override
                         public boolean onMenuItemClick(MenuItem item) {
                             switch (item.getItemId()) {
-                                case R.id.menu1:
-
+                                case R.id.detalle:
+                                    Bundle b = new Bundle();
+                                    b.putString("idCliente", codigoCliente); //id de solicitud
+                                    Intent intent = new Intent(getBaseContext(),ClienteActivity.class);
+                                    intent.putExtras(b); //Pase el parametro el Intent
+                                    startActivity(intent);
                                     break;
-                                case R.id.menu2:
+                                case R.id.modificar:
                                     //handle menu2 click
                                     break;
-                                case R.id.menu3:
+                                case R.id.cierre:
+                                    //handle menu3 click
+                                    break;
+                                case R.id.equipofrio:
                                     //handle menu3 click
                                     break;
                             }

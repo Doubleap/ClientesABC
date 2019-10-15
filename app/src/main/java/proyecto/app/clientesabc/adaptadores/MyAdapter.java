@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -134,18 +135,44 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
 
                 //inflating menu from xml resource
                 popup.inflate(R.menu.solicitudes_item_menu);
+                Menu popupMenu = popup.getMenu();
+                if(formListFiltered.get(position).get("estado").trim().equals("Aprobado")
+                        || formListFiltered.get(position).get("estado").trim().equals("Rechazado")
+                        || formListFiltered.get(position).get("estado").trim().equals("Pendiente")){
+                    MenuItem item = popupMenu.findItem(R.id.modificar);
+                    item.setVisible(false);
+                }
+
+
                 //adding click listener
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
+                        Bundle b = new Bundle();
+                        Intent intent = null;
                         switch (item.getItemId()) {
-                            case R.id.menu1:
-                                //handle menu1 click
+                            case R.id.detalle:
+                                //TODO enviar el tipo de formulario tambien a la solicitud
+                                //b.putString("tipoSolicitud", "1"); //id de solicitud
+                                b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
+                                intent = new Intent(context, SolicitudActivity.class);
+                                intent.putExtras(b); //Pase el parametro el Intent
+                                context.startActivity(intent);
                                 break;
-                            case R.id.menu2:
+                            case R.id.modificar:
+                                //b.putString("tipoSolicitud", "1"); //id de solicitud
+                                b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
+                                intent = new Intent(context, SolicitudActivity.class);
+                                intent.putExtras(b); //Pase el parametro el Intent
+                                context.startActivity(intent);
+                                break;
+                            case R.id.cancelar:
                                 //handle menu2 click
                                 break;
-                            case R.id.menu3:
+                            case R.id.eliminar:
+                                //handle menu3 click
+                                break;
+                            case R.id.transmitir:
                                 //handle menu3 click
                                 break;
                         }

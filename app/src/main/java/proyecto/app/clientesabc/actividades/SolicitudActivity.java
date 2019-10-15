@@ -188,6 +188,8 @@ public class SolicitudActivity extends AppCompatActivity {
         mDBHelper = new DataBaseHelper(this);
         mDb = mDBHelper.getWritableDatabase();
 
+        getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.botella_coca_header_right));
+
         if(idSolicitud != null){
             setTitle("Solicitud");
             solicitudSeleccionada = mDBHelper.getSolicitud(idSolicitud);
@@ -594,7 +596,10 @@ public class SolicitudActivity extends AppCompatActivity {
 
         adjuntosSolicitud = new ArrayList<>();
         //notificantesSolicitud = new ArrayList<Adjuntos>();
+
     }
+
+
 
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -1100,6 +1105,19 @@ public class SolicitudActivity extends AppCompatActivity {
                             combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled,null));
                         }
                     }
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                final TextView opcion = (TextView) parent.getSelectedView();
+                                if(position == 0)
+                                    opcion.setError("El campo es obligatorio!");
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+                                Toasty.info(getContext(),"Nothing Selected").show();
+                            }
+                        });
 
                     if(campos.get(i).get("campo").trim().equals("W_CTE-BZIRK")){
 
@@ -1284,8 +1302,12 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
                         listaCamposObligatorios.add(campos.get(i).get("campo").trim());
-                        if((TextView) combo.getChildAt(0) != null)
-                            ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
+                        OpcionSpinner op = new OpcionSpinner("","");
+
+                        //if(selectedIndex == 0)
+                            //((TextView) combo.getSelectedView()).setError("El campo es obligatorio!");
+                            //((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
+
                     }
                 } else {
                     //Tipo EditText normal textbox
@@ -1403,7 +1425,8 @@ public class SolicitudActivity extends AppCompatActivity {
 
 
                     if(campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LAT") || campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LONG")){
-                        et.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_location,null), null);
+                        et.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.icon_location,null), null, null,null);
+                        et.setCompoundDrawablePadding(16);
                         et.setOnTouchListener(new OnTouchListener() {
                             @Override
                             public boolean onTouch(View v, MotionEvent event) {
@@ -1413,7 +1436,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 final int DRAWABLE_BOTTOM = 3;
 
                                 if(event.getAction() == MotionEvent.ACTION_UP) {
-                                    if(event.getRawX() >= (et.getRight() - et.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
+                                    if(event.getRawX() <= (et.getLeft() + et.getCompoundDrawables()[DRAWABLE_LEFT].getBounds().width())*2) {
                                         Toasty.info(getContext(),"Refrescando ubicacion..").show();
                                         LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
                                         autoPineo.startLocationUpdates();
@@ -3075,6 +3098,7 @@ public class SolicitudActivity extends AppCompatActivity {
         final TextInputEditText f_iniEditText = d.findViewById(R.id.f_iniEditTxt);
         final TextInputEditText f_finEditText = d.findViewById(R.id.f_finEditTxt);
         final Spinner fcalidSpinner = d.findViewById(R.id.fcalidSpinner);
+        final TextView ruta_reparto_label = d.findViewById(R.id.ruta_reparto_label);
         final Spinner ruta_reparto = d.findViewById(R.id.ruta_reparto);
         Button saveBtn= d.findViewById(R.id.saveBtn);
         title.setText(String.format(context.getString(R.string.palabras_2),context.getString(R.string.label_vp),seleccionado.getVptyp()));
@@ -3091,8 +3115,11 @@ public class SolicitudActivity extends AppCompatActivity {
         // Drop down layout style - list view with radio button
         dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
         ruta_reparto.setAdapter(dataAdapterRuta);
+        ruta_reparto.setSelection(VariablesGlobales.getIndex(ruta_reparto, seleccionado.getRuta()));
+
         if(!reparto){
-            ruta_reparto.setVisibility(INVISIBLE);
+            ruta_reparto.setVisibility(View.GONE);
+            ruta_reparto_label.setVisibility(View.GONE);
         }
         /*if(reparto){
             kvgr4Spinner.setVisibility(GONE);
