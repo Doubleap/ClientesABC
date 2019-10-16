@@ -34,5 +34,6 @@
         android:background="@color/colorPrimary"
         app:itemIconTint="@color/white"
         app:itemTextColor="@color/white"
+        app:itemBackground="@drawable/bottom_item_bg"
         app:menu="@menu/bottom_menu_solicitud" />
 </FrameLayout>

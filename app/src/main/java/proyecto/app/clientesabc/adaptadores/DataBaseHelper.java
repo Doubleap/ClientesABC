@@ -600,7 +600,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
             user.put("idform",String.valueOf(cursor.getInt(0)));
-            user.put("id_solicitud",String.valueOf(cursor.getInt(1)));
+            user.put("id_solicitud",cursor.getString(1));
             user.put("codigo",String.valueOf(cursor.getLong(2)));
             user.put("nombre",cursor.getString(3));
             user.put("estado",cursor.getString(4));
@@ -1705,6 +1705,23 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return cantidad;
     }
+
+    public void CambiarEstadoSolicitud(String lista_id_solicitudes,String estado){
+        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = '"+estado.trim()+"' WHERE id_solicitud IN ("+lista_id_solicitudes+");";
+        mDataBase.execSQL(sqlUpdate);
+    }
+    public void EliminarSolicitud(String id_solicitud){
+        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), "id_solicitud=?", new String[]{id_solicitud});
+        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), "id_solicitud=?", new String[]{id_solicitud});
+        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), "id_solicitud=?", new String[]{id_solicitud});
+        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), "id_solicitud=?", new String[]{id_solicitud});
+        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), "id_solicitud=?", new String[]{id_solicitud});
+        mDataBase.delete(VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(), "id_solicitud=?", new String[]{id_solicitud});
+        mDataBase.delete(VariablesGlobales.getTablaEncuestaGecSolicitud(), "id_solicitud=?", new String[]{id_solicitud});
+        mDataBase.delete(VariablesGlobales.getTablaEncuestaSolicitud(), "id_solicitud=?", new String[]{id_solicitud});
+        mDataBase.delete("FormHvKof_solicitud", "id_solicitud=?", new String[]{id_solicitud});
+    }
+
 
     public String vkorgToLand1(String vkorg){
         //SQLiteDatabase db = this.getWritableDatabase();

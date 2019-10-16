@@ -255,10 +255,13 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
         dialog.dismiss();
         if(dialog.isShowing())
             dialog.hide();
+        //activity.get().recreate();
         Intent intent = activity.get().getIntent();
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         activity.get().finish();
+        activity.get().overridePendingTransition(0, 0);
         startActivity(context.get(), intent, null);
+        activity.get().overridePendingTransition(0, 0);
     }
 
     public ArrayList<String> getClientList() {

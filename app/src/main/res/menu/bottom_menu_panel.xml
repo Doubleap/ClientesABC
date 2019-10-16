@@ -2,15 +2,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/action_solicitudes"
-        android:icon="@android:drawable/ic_menu_add"
+        android:icon="@drawable/icon_form"
         android:title="Solicitudes" />
     <item
         android:id="@+id/action_nuevo_cliente"
-        android:icon="@android:drawable/ic_input_add"
+        android:icon="@drawable/icon_add_client"
         android:title="Inclusión" />
     <item
         android:id="@+id/action_clientes"
-        android:icon="@drawable/icon_user"
+        android:icon="@drawable/icon_client_list"
         android:title="Clientes" />
     <item
         android:id="@+id/action_sincronizar"

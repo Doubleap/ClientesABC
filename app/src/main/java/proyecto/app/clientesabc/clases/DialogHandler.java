@@ -6,8 +6,6 @@ import android.content.DialogInterface;
 
 public class DialogHandler {
     public Runnable ans_true = null;
-
-
     // Dialog. --------------------------------------------------------------
 
     public boolean Confirm(Activity act, String Title, String ConfirmText,

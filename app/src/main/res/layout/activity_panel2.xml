@@ -622,6 +622,8 @@
         app:itemIconTint="@color/white"
         app:itemTextColor="@color/backColor"
         app:menu="@menu/bottom_menu_panel"
+        app:itemTextAppearanceActive="@style/BottomNavigationView.Active"
+        app:itemTextAppearanceInactive="@style/BottomNavigationView"
         app:itemBackground="@drawable/bottom_item_bg"/>
 </LinearLayout>
     <include

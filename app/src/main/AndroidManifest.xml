@@ -31,15 +31,19 @@
         android:roundIcon="@drawable/favicon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:ignore="GoogleAppIndexingWarning">
+        tools:ignore="GoogleAppIndexingWarning"
+        android:screenOrientation="portrait">
         <activity
+            android:screenOrientation="portrait"
             android:name=".actividades.MainActivity"
             android:theme="@style/AppTheme" />
         <activity
+            android:screenOrientation="portrait"
             android:name=".actividades.DetallesActivity"
             android:label="Lista de Clientes"
             tools:ignore="InnerclassSeparator" />
         <activity
+            android:screenOrientation="portrait"
             android:name=".actividades.LoginActivity"
             android:label="@string/title_activity_login"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
@@ -49,16 +53,20 @@
             </intent-filter>
         </activity>
         <activity
+            android:screenOrientation="portrait"
             android:name=".actividades.FirmaActivity"
             android:label="@string/title_activity_firma" />
         <activity
+            android:screenOrientation="portrait"
             android:name=".actividades.SolicitudActivity"
             android:label="@string/title_activity_solicitud" />
         <activity
+            android:screenOrientation="portrait"
             android:name=".actividades.MantClienteActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"
             android:label="@string/title_activity_mant_clientes" />
         <activity
+            android:screenOrientation="portrait"
             android:name=".actividades.SolicitudesActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"
             android:label="@string/title_activity_solicitudes">
@@ -70,16 +78,19 @@
             </intent-filter>
         </activity>
         <activity
+            android:screenOrientation="portrait"
             android:name=".actividades.TCPActivity"
             android:label="@string/title_activity_TCP" />
 
         <service android:name=".clases.NameService" />
 
         <activity
+            android:screenOrientation="portrait"
             android:name=".actividades.PanelActivity"
             android:label="@string/title_activity_panel"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
         <activity
+            android:screenOrientation="portrait"
             android:name=".actividades.ClienteActivity"
             android:label="@string/title_activity_cliente"></activity>
     </application>

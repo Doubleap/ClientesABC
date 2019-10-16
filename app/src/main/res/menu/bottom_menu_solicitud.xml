@@ -3,14 +3,17 @@
     <item
         android:id="@+id/action_camara"
         android:icon="@android:drawable/ic_menu_camera"
+        android:enabled="true"
         android:title="Cámara" />
     <item
         android:id="@+id/action_file"
         android:icon="@android:drawable/ic_menu_upload"
+        android:enabled="true"
         android:title="Archivo" />
 
     <item
         android:id="@+id/action_save"
         android:icon="@android:drawable/ic_menu_save"
+        android:enabled="true"
         android:title="Guardar"/>
 </menu>

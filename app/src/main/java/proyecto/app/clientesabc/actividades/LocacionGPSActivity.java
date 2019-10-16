@@ -42,6 +42,7 @@ public class LocacionGPSActivity {
     }
 
     protected void startLocationUpdates() {
+        checkLocation();
         // Listener para escuchar cada vez que la locacion cambia
         LocationListener locationListener = new LocationListener() {
             @Override

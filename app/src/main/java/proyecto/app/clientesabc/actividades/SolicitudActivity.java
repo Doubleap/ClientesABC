@@ -145,6 +145,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     static boolean firma;
     static boolean modificable;
+    static BottomNavigationView bottomNavigation;
 
     static Uri mPhotoUri;
 
@@ -184,11 +185,11 @@ public class SolicitudActivity extends AppCompatActivity {
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setMax(10);
 
-        BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
         mDBHelper = new DataBaseHelper(this);
         mDb = mDBHelper.getWritableDatabase();
 
-        getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.botella_coca_header_right));
+        getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.botella_coca_header_der,null));
 
         if(idSolicitud != null){
             setTitle("Solicitud");
@@ -212,8 +213,6 @@ public class SolicitudActivity extends AppCompatActivity {
         listaCamposDinamicos.clear();
         listaCamposBloque.clear();
         listaCamposObligatorios.clear();
-
-        new MostrarFormulario(this).execute();
 
         //Setear Eventos de Elementos del bottom navigation
         bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -279,15 +278,17 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         //Validacion de bloques obligatorios
                         //Al menos 1 dia de visita
-                        if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_L")).getText().toString().isEmpty())
-                            if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_K")).getText().toString().isEmpty())
-                                if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_M")).getText().toString().isEmpty())
-                                    if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_J")).getText().toString().isEmpty())
-                                        if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_V")).getText().toString().isEmpty())
-                                            if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_S")).getText().toString().isEmpty()) {
-                                                numErrores++;
-                                                mensajeError += "- El cliente debe tener al menos 1 día de visita!\n";
-                                            }
+                        if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_L")) != null) {
+                            if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_L")).getText().toString().isEmpty())
+                                if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_K")).getText().toString().isEmpty())
+                                    if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_M")).getText().toString().isEmpty())
+                                        if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_J")).getText().toString().isEmpty())
+                                            if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_V")).getText().toString().isEmpty())
+                                                if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_S")).getText().toString().isEmpty()) {
+                                                    numErrores++;
+                                                    mensajeError += "- El cliente debe tener al menos 1 día de visita!\n";
+                                                }
+                        }
                         //Validacion de politica de privacidad firmada por el cliente.
                         if(!firma){
                             numErrores++;
@@ -295,251 +296,8 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
 
                         if(numErrores == 0) {
-                            String NextId = GUID;
-                            ContentValues insertValues = new ContentValues();
-                            for (int i = 0; i < listaCamposDinamicos.size(); i++) {
-                                if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
-                                    try {
-                                        MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
-                                        String valor = tv.getText().toString();
-                                        /*if(valor.length() == 0)
-                                            valor = valor+"1";*/
-                                        if(!listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC"))
-                                            insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor );
-                                    } catch (Exception e) {
-                                        try {
-                                            Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
-                                            String valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
-                                            insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
-                                        } catch (Exception e2) {
-                                            try {
-                                                CheckBox check = ((CheckBox) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
-                                                String valor = "";
-                                                if (check.isChecked()) {
-                                                    valor = "X";
-                                                }
-                                                insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
-                                            }catch(Exception e3){
-                                                Toasty.error(getBaseContext(),"No se pudo obtener el valor del campo "+listaCamposDinamicos.get(i)).show();
-                                            }
-                                        }
-                                    }
-                                }else{//Revisar que tipo de bloque es para guardarlo en el lugar correcto.
-                                    switch(listaCamposDinamicos.get(i)){
-                                        case "W_CTE-CONTACTOS":
-                                            ContentValues contactoValues = new ContentValues();
-                                            if (solicitudSeleccionada.size() > 0) {
-                                                mDb.delete(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), "id_solicitud=?", new String[]{GUID});
-                                            }
-                                            for (int c = 0; c < contactosSolicitud.size(); c++) {
-                                                contactoValues.put("id_solicitud", NextId);
-                                                contactoValues.put("name1", contactosSolicitud.get(c).getName1());
-                                                contactoValues.put("namev", contactosSolicitud.get(c).getNamev());
-                                                contactoValues.put("telf1", contactosSolicitud.get(c).getTelf1());
-                                                contactoValues.put("house_num1", contactosSolicitud.get(c).getHouse_num1());
-                                                contactoValues.put("street", contactosSolicitud.get(c).getStreet());
-                                                contactoValues.put("gbdat", contactosSolicitud.get(c).getGbdat());
-                                                contactoValues.put("country", contactosSolicitud.get(c).getCountry());
-                                                contactoValues.put("pafkt", contactosSolicitud.get(c).getPafkt());
-                                                try {
-                                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), null, contactoValues);
-                                                    contactoValues.clear();
-                                                } catch (Exception e) {
-                                                    Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud", Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-
-                                            break;
-                                        case "W_CTE-IMPUESTOS":
-                                            ContentValues impuestoValues = new ContentValues();
-                                            int del;
-                                            if (solicitudSeleccionada.size() > 0) {
-                                                del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), "id_solicitud=?", new String[]{GUID});
-                                            }
-                                            for (int c = 0; c < impuestosSolicitud.size(); c++) {
-                                                impuestoValues.put("id_solicitud", NextId);
-                                                impuestoValues.put("vtext", impuestosSolicitud.get(c).getVtext());
-                                                impuestoValues.put("vtext2", impuestosSolicitud.get(c).getVtext2());
-                                                impuestoValues.put("tatyp", impuestosSolicitud.get(c).getTatyp());
-                                                impuestoValues.put("taxkd", impuestosSolicitud.get(c).getTaxkd());
-                                                try {
-                                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), null, impuestoValues);
-                                                    impuestoValues.clear();
-                                                } catch (Exception e) {
-                                                    Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud", Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-
-                                            break;
-                                        case "W_CTE-INTERLOCUTORES":
-                                            ContentValues interlocutorValues = new ContentValues();
-                                            if (solicitudSeleccionada.size() > 0) {
-                                                mDb.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), "id_solicitud=?", new String[]{GUID});
-                                            }
-                                            for (int c = 0; c < interlocutoresSolicitud.size(); c++) {
-                                                interlocutorValues.put("id_solicitud", NextId);
-                                                interlocutorValues.put("parvw", interlocutoresSolicitud.get(c).getParvw());
-
-                                                try {
-                                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), null, interlocutorValues);
-                                                    interlocutorValues.clear();
-                                                } catch (Exception e) {
-                                                    Toasty.error(getApplicationContext(), "Error Insertando Interlocutor de Solicitud", Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-
-                                            break;
-                                        case "W_CTE-BANCOS":
-                                            ContentValues bancoValues = new ContentValues();
-                                            try {
-                                                if (solicitudSeleccionada.size() > 0) {
-                                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), "id_solicitud=?", new String[]{GUID});
-                                                }
-                                                for (int c = 0; c < bancosSolicitud.size(); c++) {
-                                                    bancoValues.put("id_solicitud", NextId);
-                                                    bancoValues.put("bankl", bancosSolicitud.get(c).getBankl());
-                                                    bancoValues.put("bankn", bancosSolicitud.get(c).getBankn());
-                                                    bancoValues.put("banks", bancosSolicitud.get(c).getBanks());
-                                                    bancoValues.put("bkont", bancosSolicitud.get(c).getBkont());
-                                                    bancoValues.put("bkref", bancosSolicitud.get(c).getBkref());
-                                                    bancoValues.put("bvtyp", bancosSolicitud.get(c).getBvtyp());
-                                                    bancoValues.put("koinh", bancosSolicitud.get(c).getKoinh());
-                                                    bancoValues.put("task", bancosSolicitud.get(c).getTask());
-                                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), null, bancoValues);
-                                                    bancoValues.clear();
-                                                }
-                                            } catch (Exception e) {
-                                                Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud", Toast.LENGTH_SHORT).show();
-                                            }
-                                            break;
-                                        case "W_CTE-VISITAS":
-                                            ContentValues visitaValues = new ContentValues();
-                                            try {
-                                                if (solicitudSeleccionada.size() > 0) {
-                                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), "id_solicitud=?", new String[]{GUID});
-                                                }
-                                                for (int c = 0; c < visitasSolicitud.size(); c++) {
-                                                    visitaValues.put("id_solicitud", NextId);
-                                                    if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK", ""), visitasSolicitud.get(c).getVptyp())) {
-                                                        //Tipo visita de Reparto
-
-                                                        visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
-                                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
-                                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
-                                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
-                                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
-                                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
-                                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
-                                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
-                                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
-                                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
-                                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
-                                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
-                                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
-                                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
-                                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
-                                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
-                                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
-                                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
-                                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
-                                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
-                                                    } else {//Tipo Visita de Preventa
-                                                        visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
-                                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
-                                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
-                                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
-                                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
-                                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
-                                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
-                                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
-                                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
-                                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
-                                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
-                                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
-                                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
-                                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
-                                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
-                                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
-                                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
-                                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
-                                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
-                                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
-                                                    }
-                                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
-                                                    visitaValues.clear();
-                                                }
-                                            } catch (Exception e) {
-                                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud", Toast.LENGTH_SHORT).show();
-                                            }
-                                            break;
-                                        case "W_CTE-ADJUNTOS":
-                                            ContentValues adjuntoValues = new ContentValues();
-                                            try {
-                                                if(solicitudSeleccionada.size() > 0){
-                                                    mDb.delete(VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(),"id_solicitud=?",new String[]{GUID});
-                                                }
-                                                for (int c = 0; c < adjuntosSolicitud.size(); c++) {
-                                                    Adjuntos adjunto = adjuntosSolicitud.get(c);
-                                                    adjuntoValues.put("id_solicitud", NextId);
-                                                    adjuntoValues.put("tipo", adjunto.getType());
-                                                    adjuntoValues.put("nombre", adjunto.getName());
-                                                    adjuntoValues.put("imagen", adjunto.getImage());
-                                                    mDb.insert(VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(), null, adjuntoValues);
-                                                    adjuntoValues.clear();
-                                                }
-                                            } catch (Exception e) {
-                                                Toasty.error(getApplicationContext(), "Error Insertando Adjuntos de Solicitud. "+e.getMessage(), Toast.LENGTH_SHORT).show();
-                                            }
-                                            break;
-                                    }
-                                }
-                            }
-                            try {
-                                //Datos que siemrpe deben ir cuando se crea por primera vez.
-                                //TODO seccionar par pais el grupo de cuentas, talvez sacar de una tabla
-                                if(tipoSolicitud.equals("1"))
-                                    insertValues.put("[W_CTE-KTOKD]", "RCMA");
-                                else{
-                                    insertValues.put("[W_CTE-KTOKD]", "RCMA");
-                                }
-                                Spinner sp = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
-                                String id_aprobador = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
-                                insertValues.put("[SIGUIENTE_APROBADOR]", id_aprobador);
-                                insertValues.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BUKRS",""));
-                                insertValues.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
-                                insertValues.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_VKORG",""));
-                                insertValues.put("[id_solicitud]", NextId);
-                                insertValues.put("[tipform]", tipoSolicitud);
-                                insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("user",""));
-                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
-                                Date date = new Date();
-                                //ContentValues initialValues = new ContentValues();
-                                insertValues.put("[feccre]", dateFormat.format(date));
-
-                                //mDBHelper.getWritableDatabase().insert("FormHvKof_solicitud", null, insertValues);
-                                if(solicitudSeleccionada.size() > 0){
-                                    if(solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia")) {
-                                        insertValues.put("[estado]", "Nuevo");
-                                    }
-                                    long modifico = mDb.update("FormHvKof_solicitud", insertValues, "id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});
-                                    Toasty.success(getApplicationContext(), "Registro modificado con éxito", Toast.LENGTH_SHORT).show();
-                                }else {
-                                    insertValues.put("[estado]", "Nuevo");
-                                    long inserto = mDb.insertOrThrow("FormHvKof_solicitud", null, insertValues);
-                                    //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
-                                    Intent sol = getIntent();
-                                    sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                                    SolicitudActivity.this.finish();
-                                    //Bundle par = new Bundle();
-                                    //par.putString("tipo_solicitud",tipoSolicitud);
-                                    //SolicitudActivity.this.startActivity(sol);
-                                    Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toast.LENGTH_LONG).show();
-                                }
-                            } catch (Exception e) {
-                                Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_LONG).show();
-                            }
+                            DialogHandler appdialog = new DialogHandler();
+                            appdialog.Confirm(SolicitudActivity.this, "Confirmación Solicitud", "Esta seguro que desea guardar la solicitud?", "No", "Si", new GuardarFormulario(getBaseContext()));
 
                         }else{
                             Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toast.LENGTH_LONG).show();
@@ -548,6 +306,9 @@ public class SolicitudActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        new MostrarFormulario(this).execute();
+
         if(!modificable) {
             //bottomNavigation.setVisibility(INVISIBLE);
             LinearLayout ll = findViewById(R.id.LinearLayoutMain);
@@ -1090,6 +851,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                         }
                                     });
                                 }
+                                if(position == 0)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
 
                             @Override
@@ -1105,27 +868,15 @@ public class SolicitudActivity extends AppCompatActivity {
                             combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled,null));
                         }
                     }
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                final TextView opcion = (TextView) parent.getSelectedView();
-                                if(position == 0)
-                                    opcion.setError("El campo es obligatorio!");
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-                                Toasty.info(getContext(),"Nothing Selected").show();
-                            }
-                        });
 
                     if(campos.get(i).get("campo").trim().equals("W_CTE-BZIRK")){
-
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 ArrayList<HashMap<String, String>> valores = mDBHelper.getValoresKOFSegunZonaVentas(((OpcionSpinner)combo.getSelectedItem()).getId());
                                 ((Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK")),valores.get(0).get("VWERK")));
+                                if(position == 0)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
 
                             @Override
@@ -1154,6 +905,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                         tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView ) * visitasSolicitud.size());
                                     }
                                 }
+                                if(position == 0)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
 
                             @Override
@@ -1167,6 +920,8 @@ public class SolicitudActivity extends AppCompatActivity {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 Provincias(parent);
+                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
 
                             @Override
@@ -1180,6 +935,8 @@ public class SolicitudActivity extends AppCompatActivity {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 Cantones(parent);
+                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
 
                             @Override
@@ -1194,6 +951,8 @@ public class SolicitudActivity extends AppCompatActivity {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 Distritos(parent);
+                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
 
                             @Override
@@ -1207,6 +966,8 @@ public class SolicitudActivity extends AppCompatActivity {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 DireccionCorta();
+                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
                             @Override
                             public void onNothingSelected(AdapterView<?> parent) {
@@ -1219,6 +980,8 @@ public class SolicitudActivity extends AppCompatActivity {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 Canales(parent);
+                                if(position == 0)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
                             @Override
                             public void onNothingSelected(AdapterView<?> parent) {
@@ -1231,6 +994,8 @@ public class SolicitudActivity extends AppCompatActivity {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 CanalesKof(parent);
+                                if(position == 0)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
                             @Override
                             public void onNothingSelected(AdapterView<?> parent) {
@@ -1243,6 +1008,8 @@ public class SolicitudActivity extends AppCompatActivity {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 ImpuestoSegunUnidadNegocio(parent);
+                                if(position == 0)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
                             @Override
                             public void onNothingSelected(AdapterView<?> parent) {
@@ -1250,6 +1017,22 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         });
                     }
+                    if(combo.getOnItemSelectedListener() == null){
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                final TextView opcion = (TextView) parent.getSelectedView();
+                                if(position == 0)
+                                    opcion.setError("El campo es obligatorio!");
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+                                Toasty.info(getContext(),"Nothing Selected").show();
+                            }
+                        });
+                    }
+
                     //label.addView(combo);
                     ll.addView(label);
                     ll.addView(combo);
@@ -1275,6 +1058,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                 if(campos.get(indice).get("llamado1").contains("Distritos"))
                                     Distritos(parent);
                                 ReplicarValorSpinner(parent,nombreCampo+"1",position);
+                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
 
                             @Override
@@ -1292,6 +1077,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                 if(campos.get(indice).get("llamado1").contains("Distritos"))
                                     Distritos(parent);
                                 ReplicarValorSpinner(parent,nombreCampo,position);
+                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
 
                             @Override
@@ -1303,11 +1090,6 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
                         listaCamposObligatorios.add(campos.get(i).get("campo").trim());
                         OpcionSpinner op = new OpcionSpinner("","");
-
-                        //if(selectedIndex == 0)
-                            //((TextView) combo.getSelectedView()).setError("El campo es obligatorio!");
-                            //((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
-
                     }
                 } else {
                     //Tipo EditText normal textbox
@@ -1468,7 +1250,9 @@ public class SolicitudActivity extends AppCompatActivity {
                     mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), et);
                     if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
                         listaCamposObligatorios.add(campos.get(i).get("campo").trim());
-                        et.setError("El campo es obligatorio!");
+                        if(campos.get(i).get("dfaul").trim().length() == 0) {
+                            et.setError("El campo es obligatorio!");
+                        }
                     }
                     if(campos.get(i).get("tabla_local").trim().length() > 0){
                         listaCamposBloque.add(campos.get(i).get("campo").trim());
@@ -2992,6 +2776,7 @@ public class SolicitudActivity extends AppCompatActivity {
         @Override
         public boolean onDataLongClicked(int rowIndex, Contacto seleccionado) {
             DialogHandler appdialog = new DialogHandler();
+
             appdialog.Confirm(SolicitudActivity.this, "Confirmación Borrado", "Esta seguro que quiere eliminar el contacto "+seleccionado.getName1() + " " +seleccionado.getNamev()+"?",
                     "Cancelar", "Eliminar", new EliminarContacto(getBaseContext(), rowIndex));
             return true;
@@ -3337,6 +3122,262 @@ public class SolicitudActivity extends AppCompatActivity {
         }
     }
 
+    public class GuardarFormulario implements Runnable {
+        private Context context;
+        public GuardarFormulario(Context context) {
+            this.context = context;
+        }
+        public void run() {
+            String NextId = GUID;
+            ContentValues insertValues = new ContentValues();
+            for (int i = 0; i < listaCamposDinamicos.size(); i++) {
+                if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
+                    try {
+                        MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                        String valor = tv.getText().toString();
+                                        /*if(valor.length() == 0)
+                                            valor = valor+"1";*/
+                        if(!listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC"))
+                            insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor );
+                    } catch (Exception e) {
+                        try {
+                            Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                            String valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
+                            insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                        } catch (Exception e2) {
+                            try {
+                                CheckBox check = ((CheckBox) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                                String valor = "";
+                                if (check.isChecked()) {
+                                    valor = "X";
+                                }
+                                insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                            }catch(Exception e3){
+                                Toasty.error(getBaseContext(),"No se pudo obtener el valor del campo "+listaCamposDinamicos.get(i)).show();
+                            }
+                        }
+                    }
+                }else{//Revisar que tipo de bloque es para guardarlo en el lugar correcto.
+                    switch(listaCamposDinamicos.get(i)){
+                        case "W_CTE-CONTACTOS":
+                            ContentValues contactoValues = new ContentValues();
+                            if (solicitudSeleccionada.size() > 0) {
+                                mDb.delete(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), "id_solicitud=?", new String[]{GUID});
+                            }
+                            for (int c = 0; c < contactosSolicitud.size(); c++) {
+                                contactoValues.put("id_solicitud", NextId);
+                                contactoValues.put("name1", contactosSolicitud.get(c).getName1());
+                                contactoValues.put("namev", contactosSolicitud.get(c).getNamev());
+                                contactoValues.put("telf1", contactosSolicitud.get(c).getTelf1());
+                                contactoValues.put("house_num1", contactosSolicitud.get(c).getHouse_num1());
+                                contactoValues.put("street", contactosSolicitud.get(c).getStreet());
+                                contactoValues.put("gbdat", contactosSolicitud.get(c).getGbdat());
+                                contactoValues.put("country", contactosSolicitud.get(c).getCountry());
+                                contactoValues.put("pafkt", contactosSolicitud.get(c).getPafkt());
+                                try {
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), null, contactoValues);
+                                    contactoValues.clear();
+                                } catch (Exception e) {
+                                    Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            break;
+                        case "W_CTE-IMPUESTOS":
+                            ContentValues impuestoValues = new ContentValues();
+                            int del;
+                            if (solicitudSeleccionada.size() > 0) {
+                                del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), "id_solicitud=?", new String[]{GUID});
+                            }
+                            for (int c = 0; c < impuestosSolicitud.size(); c++) {
+                                impuestoValues.put("id_solicitud", NextId);
+                                impuestoValues.put("vtext", impuestosSolicitud.get(c).getVtext());
+                                impuestoValues.put("vtext2", impuestosSolicitud.get(c).getVtext2());
+                                impuestoValues.put("tatyp", impuestosSolicitud.get(c).getTatyp());
+                                impuestoValues.put("taxkd", impuestosSolicitud.get(c).getTaxkd());
+                                try {
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), null, impuestoValues);
+                                    impuestoValues.clear();
+                                } catch (Exception e) {
+                                    Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            break;
+                        case "W_CTE-INTERLOCUTORES":
+                            ContentValues interlocutorValues = new ContentValues();
+                            if (solicitudSeleccionada.size() > 0) {
+                                mDb.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), "id_solicitud=?", new String[]{GUID});
+                            }
+                            for (int c = 0; c < interlocutoresSolicitud.size(); c++) {
+                                interlocutorValues.put("id_solicitud", NextId);
+                                interlocutorValues.put("parvw", interlocutoresSolicitud.get(c).getParvw());
+
+                                try {
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), null, interlocutorValues);
+                                    interlocutorValues.clear();
+                                } catch (Exception e) {
+                                    Toasty.error(getApplicationContext(), "Error Insertando Interlocutor de Solicitud", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            break;
+                        case "W_CTE-BANCOS":
+                            ContentValues bancoValues = new ContentValues();
+                            try {
+                                if (solicitudSeleccionada.size() > 0) {
+                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), "id_solicitud=?", new String[]{GUID});
+                                }
+                                for (int c = 0; c < bancosSolicitud.size(); c++) {
+                                    bancoValues.put("id_solicitud", NextId);
+                                    bancoValues.put("bankl", bancosSolicitud.get(c).getBankl());
+                                    bancoValues.put("bankn", bancosSolicitud.get(c).getBankn());
+                                    bancoValues.put("banks", bancosSolicitud.get(c).getBanks());
+                                    bancoValues.put("bkont", bancosSolicitud.get(c).getBkont());
+                                    bancoValues.put("bkref", bancosSolicitud.get(c).getBkref());
+                                    bancoValues.put("bvtyp", bancosSolicitud.get(c).getBvtyp());
+                                    bancoValues.put("koinh", bancosSolicitud.get(c).getKoinh());
+                                    bancoValues.put("task", bancosSolicitud.get(c).getTask());
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), null, bancoValues);
+                                    bancoValues.clear();
+                                }
+                            } catch (Exception e) {
+                                Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud", Toast.LENGTH_SHORT).show();
+                            }
+                            break;
+                        case "W_CTE-VISITAS":
+                            ContentValues visitaValues = new ContentValues();
+                            try {
+                                if (solicitudSeleccionada.size() > 0) {
+                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), "id_solicitud=?", new String[]{GUID});
+                                }
+                                for (int c = 0; c < visitasSolicitud.size(); c++) {
+                                    visitaValues.put("id_solicitud", NextId);
+                                    if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK", ""), visitasSolicitud.get(c).getVptyp())) {
+                                        //Tipo visita de Reparto
+
+                                        visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
+                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
+                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
+                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
+                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
+                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
+                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
+                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
+                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
+                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
+                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
+                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
+                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
+                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
+                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
+                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
+                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
+                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
+                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
+                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
+                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
+                                    } else {//Tipo Visita de Preventa
+                                        visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
+                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
+                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
+                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
+                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
+                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
+                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
+                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
+                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
+                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
+                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
+                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
+                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
+                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
+                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
+                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
+                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
+                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
+                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
+                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
+                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
+                                    }
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
+                                    visitaValues.clear();
+                                }
+                            } catch (Exception e) {
+                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud", Toast.LENGTH_SHORT).show();
+                            }
+                            break;
+                        case "W_CTE-ADJUNTOS":
+                            ContentValues adjuntoValues = new ContentValues();
+                            try {
+                                if(solicitudSeleccionada.size() > 0){
+                                    mDb.delete(VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(),"id_solicitud=?",new String[]{GUID});
+                                }
+                                for (int c = 0; c < adjuntosSolicitud.size(); c++) {
+                                    Adjuntos adjunto = adjuntosSolicitud.get(c);
+                                    adjuntoValues.put("id_solicitud", NextId);
+                                    adjuntoValues.put("tipo", adjunto.getType());
+                                    adjuntoValues.put("nombre", adjunto.getName());
+                                    adjuntoValues.put("imagen", adjunto.getImage());
+                                    mDb.insert(VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(), null, adjuntoValues);
+                                    adjuntoValues.clear();
+                                }
+                            } catch (Exception e) {
+                                Toasty.error(getApplicationContext(), "Error Insertando Adjuntos de Solicitud. "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                            break;
+                    }
+                }
+            }
+            try {
+                //Datos que siemrpe deben ir cuando se crea por primera vez.
+                //TODO seccionar par pais el grupo de cuentas, talvez sacar de una tabla
+                if(tipoSolicitud.equals("1"))
+                    insertValues.put("[W_CTE-KTOKD]", "RCMA");
+                else{
+                    insertValues.put("[W_CTE-KTOKD]", "RCMA");
+                }
+                Spinner sp = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
+                String id_aprobador = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
+                insertValues.put("[SIGUIENTE_APROBADOR]", id_aprobador);
+                insertValues.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BUKRS",""));
+                insertValues.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
+                insertValues.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_VKORG",""));
+                insertValues.put("[id_solicitud]", NextId);
+                insertValues.put("[tipform]", tipoSolicitud);
+                insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("user",""));
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
+                Date date = new Date();
+                //ContentValues initialValues = new ContentValues();
+                insertValues.put("[feccre]", dateFormat.format(date));
+
+                //mDBHelper.getWritableDatabase().insert("FormHvKof_solicitud", null, insertValues);
+                if(solicitudSeleccionada.size() > 0){
+                    if(solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia")) {
+                        insertValues.put("[estado]", "Nuevo");
+                    }
+                    long modifico = mDb.update("FormHvKof_solicitud", insertValues, "id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});
+                    Toasty.success(getApplicationContext(), "Registro modificado con éxito", Toast.LENGTH_SHORT).show();
+                }else {
+                    insertValues.put("[estado]", "Nuevo");
+                    long inserto = mDb.insertOrThrow("FormHvKof_solicitud", null, insertValues);
+                    //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
+                    Intent sol = getIntent();
+                    sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    SolicitudActivity.this.finish();
+                    //Bundle par = new Bundle();
+                    //par.putString("tipo_solicitud",tipoSolicitud);
+                    //SolicitudActivity.this.startActivity(sol);
+                    Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toast.LENGTH_LONG).show();
+                }
+            } catch (Exception e) {
+                Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+        }
+    }
+
+
     private String getFileName(ContentResolver resolver, Uri uri) {
         Cursor returnCursor =
                 resolver.query(uri, null, null, null, null);
@@ -3372,11 +3413,14 @@ public class SolicitudActivity extends AppCompatActivity {
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
         combo.setSelection(selectedIndex);
+        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
+            ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
         DireccionCorta();
         if(!modificable){
             combo.setEnabled(false);
             combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
         }
+
     }
     private static void Cantones(AdapterView<?> parent){
         Spinner pais = (Spinner)mapeoCamposDinamicos.get("W_CTE-LAND1");
@@ -3403,6 +3447,8 @@ public class SolicitudActivity extends AppCompatActivity {
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
         combo.setSelection(selectedIndex);
+        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
+            ((TextView) combo.getSelectedView()).setError("El campo es obligatorio!");
         DireccionCorta();
         if(!modificable){
             combo.setEnabled(false);
@@ -3434,6 +3480,8 @@ public class SolicitudActivity extends AppCompatActivity {
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
         combo.setSelection(selectedIndex);
+        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
+            ((TextView) combo.getSelectedView()).setError("El campo es obligatorio!");
         DireccionCorta();
         if(!modificable){
             combo.setEnabled(false);

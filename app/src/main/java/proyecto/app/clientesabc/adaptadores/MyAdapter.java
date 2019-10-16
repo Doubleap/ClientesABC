@@ -32,6 +32,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
     private ArrayList<HashMap<String, String>> mDataset;
     private ArrayList<HashMap<String, String>> formListFiltered;
     private Context context;
+    DataBaseHelper db;
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
@@ -48,6 +49,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         mDataset = myDataset;
         formListFiltered = mDataset;
         context = c;
+        db = new DataBaseHelper(context);
     }
     // Crear nuevas Views. Puedo crear diferentes layouts para diferentes adaptadores desde la misma clase
     @NonNull
@@ -141,8 +143,33 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                         || formListFiltered.get(position).get("estado").trim().equals("Pendiente")){
                     MenuItem item = popupMenu.findItem(R.id.modificar);
                     item.setVisible(false);
+                    item = popupMenu.findItem(R.id.cancelar);
+                    item.setVisible(false);
+                    item = popupMenu.findItem(R.id.eliminar);
+                    item.setVisible(false);
+                    item = popupMenu.findItem(R.id.transmitir);
+                    item.setVisible(false);
                 }
-
+                if(formListFiltered.get(position).get("estado").trim().equals("Incidencia")){
+                    MenuItem item = popupMenu.findItem(R.id.cancelar);
+                    item.setVisible(false);
+                    item = popupMenu.findItem(R.id.eliminar);
+                    item.setVisible(false);
+                    item = popupMenu.findItem(R.id.transmitir);
+                    item.setVisible(false);
+                }
+                if(formListFiltered.get(position).get("estado").trim().equals("Cancelado")){
+                    MenuItem item = popupMenu.findItem(R.id.cancelar);
+                    item.setVisible(false);
+                    item = popupMenu.findItem(R.id.transmitir);
+                    item.setVisible(false);
+                }
+                if(formListFiltered.get(position).get("estado").trim().equals("Modificado")){
+                    MenuItem item = popupMenu.findItem(R.id.cancelar);
+                    item.setVisible(false);
+                    item = popupMenu.findItem(R.id.eliminar);
+                    item.setVisible(false);
+                }
 
                 //adding click listener
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -167,10 +194,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                                 context.startActivity(intent);
                                 break;
                             case R.id.cancelar:
-                                //handle menu2 click
+                                db.CambiarEstadoSolicitud(formListFiltered.get(position).get("id_solicitud").trim(),"Cancelado");
+                                notifyDataSetChanged();
                                 break;
                             case R.id.eliminar:
-                                //handle menu3 click
+                                db.EliminarSolicitud(formListFiltered.get(position).get("id_solicitud").trim());
+                                notifyDataSetChanged();
                                 break;
                             case R.id.transmitir:
                                 //handle menu3 click

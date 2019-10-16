@@ -2,6 +2,7 @@ package proyecto.app.clientesabc.actividades;
 
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -12,6 +13,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.DividerItemDecoration;
@@ -312,7 +314,7 @@ public class MantClienteActivity extends AppCompatActivity {
                                     startActivity(intent);
                                     break;
                                 case R.id.modificar:
-                                    //handle menu2 click
+                                    showDialogFormulariosModificacion();
                                     break;
                                 case R.id.cierre:
                                     //handle menu3 click
@@ -378,6 +380,40 @@ public class MantClienteActivity extends AppCompatActivity {
                 }
             };
         }
+    }
+
+    private void showDialogFormulariosModificacion() {
+        String[] forms = {"Modificacion General", "Modificacion Ventas", "Modificacion Marketing", "Modificacion Bancos"};
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.titlebar, null);
+        builder.setCustomTitle(view);
+        builder.setSingleChoiceItems(forms, 0, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface arg0, int arg1) {
+
+            }
+
+        });
+        // Set the action buttons
+        builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                // user clicked OK, so save the mSelectedItems results somewhere
+                // or return them to the component that opened the dialog
+                int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.dismiss();
+                    }
+                });
+        builder.show();
     }
 
 }

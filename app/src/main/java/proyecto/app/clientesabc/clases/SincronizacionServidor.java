@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -27,6 +28,8 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
+import static android.support.v4.content.ContextCompat.startActivity;
+
 public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
@@ -43,7 +46,6 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
     @Override
     protected Void doInBackground(Void... voids) {
         //Solo enviamos los datos necesarios para que la sincronizacion sepa que traer
-
         try {
             System.out.println("Estableciendo comunicación para enviar archivos...");
             socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip",""),Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto","")));
@@ -56,9 +58,9 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
             DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 
-            //Comando String que indicara que se quire realizar una Sincronizacion
+            //Comando String que indicara que se quiere realizar una Sincronizacion
             dos.writeUTF("Sincronizacion");
-            //dos.flush();
+            dos.flush();
             //Enviar Ruta que se quiere sincronizar
             dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH",""));
             dos.flush();
@@ -118,7 +120,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
                             //Copiar nuevamente los formularios que tenga nuevos
                             String sqlAttach = "ATTACH DATABASE '"+externalStoragePath + File.separator + context.get().getPackageName()+ File.separator+"FAWM_ANDROID_2_BACKUP' AS fromDB";
                             mDataBase.execSQL(sqlAttach);
-                            String sqlInsert = "INSERT INTO FormHVKOF_solicitud SELECT * FROM fromDB.FormHVKOF_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                            /*String sqlInsert = "INSERT INTO FormHVKOF_solicitud SELECT * FROM fromDB.FormHVKOF_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
                             mDataBase.execSQL(sqlInsert);
 
                             sqlInsert = "INSERT INTO encuesta_solicitud SELECT * FROM fromDB.encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
@@ -136,7 +138,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
                             sqlInsert = "INSERT INTO grid_interlocutor_solicitud SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
                             mDataBase.execSQL(sqlInsert);
                             sqlInsert = "INSERT INTO adjuntos_solicitud SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo'))";
-                            mDataBase.execSQL(sqlInsert);
+                            mDataBase.execSQL(sqlInsert);*/
 
                         } catch (IOException e) {
                             xceptionFlag = true;
@@ -176,7 +178,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
     protected void onPreExecute() {
         super.onPreExecute();
         AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
-        builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion
+        builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
         builder.setView(R.layout.layout_loading_dialog);
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
@@ -201,5 +203,11 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
         if(dialog.isShowing()) {
             dialog.hide();
         }
+        Intent intent = activity.get().getIntent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        activity.get().finish();
+        activity.get().overridePendingTransition(0, 0);
+        startActivity(context.get(), intent, null);
+        activity.get().overridePendingTransition(0, 0);
     }
 }

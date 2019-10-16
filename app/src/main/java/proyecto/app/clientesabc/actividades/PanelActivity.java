@@ -80,6 +80,7 @@ public class PanelActivity extends AppCompatActivity {
 
 
         BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation_panel);
+
         bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
