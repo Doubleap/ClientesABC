@@ -46,6 +46,7 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.TooltipCompat;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
@@ -145,6 +146,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     static boolean firma;
     static boolean modificable;
+    static boolean correoValidado;
     static BottomNavigationView bottomNavigation;
 
     static Uri mPhotoUri;
@@ -293,6 +295,11 @@ public class SolicitudActivity extends AppCompatActivity {
                         if(!firma){
                             numErrores++;
                             mensajeError += "- El cliente debe firmar las politicas de privacidad!\n";
+                        }
+                        //Validacion de correo
+                        if(!correoValidado){
+                            numErrores++;
+                            mensajeError += "- Formato de correo Invalido!\n";
                         }
 
                         if(numErrores == 0) {
@@ -1017,21 +1024,6 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         });
                     }
-                    if(combo.getOnItemSelectedListener() == null){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                final TextView opcion = (TextView) parent.getSelectedView();
-                                if(position == 0)
-                                    opcion.setError("El campo es obligatorio!");
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-                                Toasty.info(getContext(),"Nothing Selected").show();
-                            }
-                        });
-                    }
 
                     //label.addView(combo);
                     ll.addView(label);
@@ -1090,6 +1082,21 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
                         listaCamposObligatorios.add(campos.get(i).get("campo").trim());
                         OpcionSpinner op = new OpcionSpinner("","");
+                        if(combo.getOnItemSelectedListener() == null){
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    final TextView opcion = (TextView) parent.getSelectedView();
+                                    if(position == 0)
+                                        opcion.setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+                                    Toasty.info(getContext(),"Nothing Selected").show();
+                                }
+                            });
+                        }
                     }
                 } else {
                     //Tipo EditText normal textbox
@@ -1245,7 +1252,16 @@ public class SolicitudActivity extends AppCompatActivity {
                         String fechaSistema = df.format(c);
                         et.setText(fechaSistema);
                     }
-
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-SMTP_ADDR")) {
+                        et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                            @Override
+                            public void onFocusChange(View v, boolean hasFocus) {
+                                if (!hasFocus) {
+                                    correoValidado = isValidEmail(v);
+                                }
+                            }
+                        });
+                    }
                     listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                     mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), et);
                     if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
@@ -3573,10 +3589,11 @@ public class SolicitudActivity extends AppCompatActivity {
             final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
             if(indice != -1) {
                 if (opcion.getId().equals("MA")) {
-                    tb_impuestos.getDataAdapter().getData().get(indice).setTatyp("2");
+                    tb_impuestos.getDataAdapter().getData().get(indice).setTaxkd("2");
                 } else {
-                    tb_impuestos.getDataAdapter().getData().get(indice).setTatyp("1");
+                    tb_impuestos.getDataAdapter().getData().get(indice).setTaxkd("1");
                 }
+                tb_impuestos.getDataAdapter().notifyDataSetChanged();
             }
         }
     }
@@ -3680,5 +3697,15 @@ public class SolicitudActivity extends AppCompatActivity {
             progressBar.setVisibility(View.GONE);
         }
 
+    }
+
+    public final static boolean isValidEmail(View v) {
+        TextView correo = (TextView)v;
+        boolean valido = !TextUtils.isEmpty(correo.getText()) && android.util.Patterns.EMAIL_ADDRESS.matcher(correo.getText()).matches();
+        if(valido)
+            Toasty.success(correo.getContext(),"Formato de correo valido!").show();
+        else
+            Toasty.error(correo.getContext(),"Formato de correo Invalido!").show();
+        return valido;
     }
 }
