@@ -15,6 +15,7 @@ import proyecto.app.clientesabc.modelos.Visitas;
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
 
+    private static String version = "1.0.0";
     private static String sociedad = "F443";
     private static String orgvta = "0443";
     private static String TABLA_BLOQUE_CONTACTO_HH = "grid_contacto_solicitud";
@@ -144,5 +145,13 @@ public class VariablesGlobales extends Application {
             }
         }
         return usuarioHH;
+    }
+
+    public static String getVersion() {
+        return version;
+    }
+
+    public static void setVersion(String version) {
+        VariablesGlobales.version = version;
     }
 }

@@ -78,14 +78,43 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         copyDataBase();
         mNeedUpdate = false;
     }
+    public void deleteDataBase() throws IOException {
+        //backUpDataBase();
+        File dbFile = new File(DB_PATH + DB_NAME);
+        boolean bandera = false;
+        if (dbFile.exists())
+            bandera = dbFile.delete();
+        if(bandera)
+            Log.d("MI TAG","Se ha borrado el archivo "+dbFile.getName());
+    }
+    public static void deleteDatabaseFile(Context context) {
+        File databases = new File(context.getApplicationInfo().dataDir + "/databases");
+        File db = new File(databases, DB_NAME);
+        if (db.delete())
+            System.out.println("Database deleted");
+        else
+            System.out.println("Failed to delete database");
 
-    public boolean checkDataBase() {
+        File journal = new File(databases, DB_NAME + "-journal");
+        if (journal.exists()) {
+            if (journal.delete())
+                System.out.println("Database journal deleted");
+            else
+                System.out.println("Failed to delete database journal");
+        }
+    }
+
+    public void restoreDataBase() throws IOException {
+        copyDataBaseFromBackUp();
+    }
+    public static boolean checkDataBase(Context context) {
+        DB_PATH = context.getApplicationInfo().dataDir + "/databases/";
         File dbFile = new File(DB_PATH + DB_NAME);
         return dbFile.exists();
     }
 
     private void copyDataBase() {
-        if (!checkDataBase()) {
+        if (!checkDataBase(mContext)) {
             this.getReadableDatabase();
             this.close();
             try {
@@ -122,6 +151,32 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    private void copyDataBaseFromBackUp() throws IOException {
+        File tranFileDir = null;
+        File externalStorage = Environment.getExternalStorageDirectory();
+        String externalStoragePath;
+        if (externalStorage != null) {
+            externalStoragePath = externalStorage.getAbsolutePath();
+            tranFileDir = new File(externalStoragePath + File.separator + mContext.getPackageName() + File.separator + "Transmision"+ File.separator +"FAWM_ANDROID_2");
+        }
+        InputStream mInput = null;
+        if (tranFileDir != null) {
+            mInput = new FileInputStream(tranFileDir);
+        }
+        OutputStream mOutput = new FileOutputStream(DB_PATH + DB_NAME);
+        byte[] mBuffer = new byte[1024];
+        int mLength;
+        if (mInput != null) {
+            while ((mLength = mInput.read(mBuffer)) > 0)
+                mOutput.write(mBuffer, 0, mLength);
+        }
+        mOutput.flush();
+        mOutput.close();
+        if (mInput != null) {
+            mInput.close();
+        }
+    }
+
     private void backUpDataBase() throws IOException {
         File bkFileDir;
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
@@ -130,7 +185,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             if (externalStorage != null)
             {
                 String externalStoragePath = externalStorage.getAbsolutePath();
-                bkFileDir = new File(externalStoragePath + File.separator + getActivity(mContext).getPackageName()); //$NON-NLS-1$
+                if(getActivity(mContext) != null)
+                    bkFileDir = new File(externalStoragePath + File.separator + getActivity(mContext).getPackageName()); //$NON-NLS-1$
+                else
+                    bkFileDir = new File(externalStoragePath + File.separator + mContext.getPackageName());
                 boolean ex = bkFileDir.mkdirs();
                 File bkFile = new File(bkFileDir,DB_NAME+"_BACKUP");
                 File dbFile = new File(DB_PATH + DB_NAME);
@@ -207,7 +265,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getClientes(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
-        String query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr " +
+        String query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
                 " FROM SAPDClientes";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
@@ -221,6 +279,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("ubicacion",cursor.getString(cursor.getColumnIndex("street")));
             user.put("direccion",cursor.getString(cursor.getColumnIndex("str_suppl1")));
             user.put("correo",cursor.getString(cursor.getColumnIndex("smtp_addr")));
+            user.put("latitud",cursor.getString(cursor.getColumnIndex("latitud")));
+            user.put("longitud",cursor.getString(cursor.getColumnIndex("longitud")));
             clientList.add(user);
         }
         cursor.close();
@@ -690,7 +750,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<HashMap<String, String>> getCamposPestana(String id_formulario, String pestana){
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
-        String query = "SELECT c.campo, c.nombre, c.tipo_input, c.id_seccion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION FROM configuracion c" +
+        String query = "SELECT c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION FROM configuracion c" +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' and cc.ktokd = 'RCMA')" +
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion)" +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip)" +
@@ -718,6 +778,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("evento1",cursor.getString(cursor.getColumnIndex("evento1")));
             user.put("llamado1",cursor.getString(cursor.getColumnIndex("llamado1")));
             user.put("tooltip",cursor.getString(cursor.getColumnIndex("tooltip")));
+            user.put("modificacion",cursor.getString(cursor.getColumnIndex("modificacion")));
             //metadatas
             user.put("datatype",cursor.getString(cursor.getColumnIndex("DATA_TYPE")));
             user.put("numeric_precision",cursor.getString(cursor.getColumnIndex("NUMERIC_PRECISION")));

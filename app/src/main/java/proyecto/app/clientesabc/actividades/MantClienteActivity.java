@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -245,6 +246,8 @@ public class MantClienteActivity extends AppCompatActivity {
             Drawable background = color_gec.getBackground();
             int color = R.color.sinFormularios;
             String klabc = formListFiltered.get(position).get("klabc").toString();
+            final String latitud = formListFiltered.get(position).get("latitud").toString();
+            final String longitud = formListFiltered.get(position).get("longitud").toString();
 
             switch(klabc) {
                 case "00":
@@ -322,6 +325,13 @@ public class MantClienteActivity extends AppCompatActivity {
                                 case R.id.equipofrio:
                                     //handle menu3 click
                                     break;
+                                case R.id.comollegar:
+                                    String uri = "geo:" + longitud + ","
+                                            +latitud + "?q=" + longitud
+                                            + "," + latitud;
+                                    startActivity(new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(uri)));
+                                    break;
+
                             }
                             return false;
                         }

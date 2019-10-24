@@ -89,4 +89,8 @@ public class Impuesto {
     public void setId_solicitud(String id_solicitud) {
         this.id_solicitud = id_solicitud;
     }
+
+    public boolean validarObligatorios() {
+        return (!this.getTatyp().trim().equals("") && !this.getTaxkd().trim().equals(""));
+    }
 }

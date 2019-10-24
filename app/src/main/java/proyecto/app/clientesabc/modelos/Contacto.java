@@ -156,4 +156,8 @@ public class Contacto {
     public void setMaxlength(String maxlength) {
         this.maxlength = maxlength;
     }
+
+    public boolean validarObligatorios(){
+        return (!this.getName1().trim().equals("") && !this.getNamev().trim().equals("") && !this.getTelf1().trim().equals("")  && !this.getPafkt().trim().equals("")  && !this.getCountry().trim().equals(""));
+    }
 }

@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 
+import proyecto.app.clientesabc.R;
+
 public class DialogHandler {
     public Runnable ans_true = null;
     // Dialog. --------------------------------------------------------------
@@ -13,6 +15,9 @@ public class DialogHandler {
         ans_true = aProcedure;
         AlertDialog dialog = new AlertDialog.Builder(act).create();
         dialog.setTitle(Title);
+        //LayoutInflater inflater = act.getLayoutInflater();
+        //View view = inflater.inflate(R.layout.titlebar, null);
+        //dialog.setCustomTitle(view);
         dialog.setMessage(ConfirmText);
         dialog.setCancelable(false);
         dialog.setButton(DialogInterface.BUTTON_POSITIVE, OkBtn,
@@ -28,7 +33,8 @@ public class DialogHandler {
                         dialog.dismiss();
                     }
                 });
-        dialog.setIcon(android.R.drawable.ic_dialog_alert);
+        dialog.setIcon(R.drawable.icon_info_title);
+        dialog.setInverseBackgroundForced(true);
         dialog.show();
         return true;
     }

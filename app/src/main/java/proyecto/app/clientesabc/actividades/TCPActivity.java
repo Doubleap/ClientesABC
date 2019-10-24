@@ -89,6 +89,12 @@ public class TCPActivity extends AppCompatActivity
                             Manifest.permission.ACCESS_NETWORK_STATE},
                     ASK_MULTIPLE_PERMISSION_REQUEST_CODE);
         }
+        boolean deshabilitarTransmision = false;
+        Bundle b = getIntent().getExtras();
+        if(b != null) {
+            deshabilitarTransmision = b.getBoolean("deshabilitarTransmision", false);
+        }
+
 
         addConexion = findViewById(R.id.add_conexion);
         ip_text = findViewById(R.id.txtservidor);
@@ -104,7 +110,9 @@ public class TCPActivity extends AppCompatActivity
         int height = 75;
         list_conexiones = getConexionesFromSharedPreferences();
 
-        if(list_conexiones != null) {
+        if(list_conexiones == null) {
+            list_conexiones = new ArrayList<Conexion>();
+        }
             ConexionTableAdapter stda = new ConexionTableAdapter(this, list_conexiones);
             stda.setPaddings(5, 20, 5, 20);
             stda.setGravity(GRAVITY_CENTER);
@@ -123,9 +131,7 @@ public class TCPActivity extends AppCompatActivity
             tv_conexiones.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(getResources().getColor(R.color.white,null), getResources().getColor(R.color.backColor,null)));
             tv_conexiones.addDataClickListener(new TCPActivity.ConexionClickListener());
             tv_conexiones.addDataLongClickListener(new TCPActivity.ConexionLongClickListener());
-        }else{
-            list_conexiones = new ArrayList<Conexion>();
-        }
+
         addConexion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -182,13 +188,16 @@ public class TCPActivity extends AppCompatActivity
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
-                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, filePath, wholePath);
+                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, filePath, wholePath,"");
                             f.execute();
                         }
                 }
                 return true;
             }
         });
+
+        bottomNavigation.getMenu().getItem(2).setEnabled(!deshabilitarTransmision);
+        bottomNavigation.getMenu().getItem(2).setVisible(!deshabilitarTransmision);
     }
 
     private boolean validarConexion(){

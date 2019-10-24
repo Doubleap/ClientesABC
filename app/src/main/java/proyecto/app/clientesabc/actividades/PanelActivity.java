@@ -57,7 +57,7 @@ public class PanelActivity extends AppCompatActivity {
         setContentView(R.layout.activity_panel2);
 
         mDBHelper = new DataBaseHelper(this);
-        mDb = mDBHelper.getWritableDatabase();
+        //mDb = mDBHelper.getWritableDatabase();
         principal = (LinearLayout)findViewById(R.id.principal);
         gridLayout = (GridLayout)findViewById(R.id.mainGrid);
         rutaPanel = findViewById(R.id.rutaPanel);
@@ -115,7 +115,7 @@ public class PanelActivity extends AppCompatActivity {
                             WeakReference<Context> weakRef = new WeakReference<Context>(PanelActivity.this);
                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(PanelActivity.this);
                             //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "");
+                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "","");
                             f.execute();
                         //}
                         break;
@@ -227,13 +227,13 @@ public class PanelActivity extends AppCompatActivity {
                             VerSolicitudes("Rechazado");
                             break;
                         case 5:
-                            VerSolicitudes("Transmitido");
+                            VerSolicitudes("Modificado");
                             break;
                         case 6:
                             VerSolicitudes("Cancelado");
                             break;
                         case 7:
-                            VerSolicitudes("Modificado");
+                            VerSolicitudes();
                             break;
                     }
                 }
@@ -244,7 +244,10 @@ public class PanelActivity extends AppCompatActivity {
     private void showDialogSolicitudes() {
 
     }
-
+    public void VerSolicitudes() {
+        intent = new Intent(this, SolicitudesActivity.class);
+        startActivity(intent);
+    }
     public void VerSolicitudes(String estado) {
         Bundle b = new Bundle();
         b.putString("estado", estado.trim()); //id de solicitud

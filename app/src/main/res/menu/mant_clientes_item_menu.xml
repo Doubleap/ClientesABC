@@ -17,4 +17,7 @@
     <item
         android:id="@+id/equipofrio"
         android:title="Equipo Frío" />
+    <item
+        android:id="@+id/comollegar"
+        android:title="Como llegar" />
 </menu>

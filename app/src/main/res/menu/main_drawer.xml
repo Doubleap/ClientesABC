@@ -6,7 +6,7 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/solicitud"
-            android:icon="@android:drawable/ic_menu_add"
+            android:icon="@drawable/icon_inclusion"
             android:title="@string/solicitud"
             app:showAsAction="never|withText">
             >
@@ -14,38 +14,25 @@
         <item
             android:id="@+id/comunicacion"
             android:title="@string/comunicacion"
-            android:icon="@android:drawable/ic_menu_preferences"
+            android:icon="@drawable/icon_comunicacion"
             app:showAsAction="never|withText">
         </item>
         <item
             android:id="@+id/clientes"
             android:title="Clientes"
-            android:icon="@android:drawable/ic_menu_crop"
+            android:icon="@drawable/icon_clientes"
             app:showAsAction="never|withText">
-
         </item>
         <item
             android:id="@+id/solicitudes"
             android:title="Mis Solicitudes"
-            android:icon="@android:drawable/ic_menu_agenda"
+            android:icon="@drawable/icon_solicitudes"
             app:showAsAction="never|withText">
         </item>
         <item
-            android:id="@+id/coordenadas"
-            android:title="Coordenadas"
-            android:icon="@android:drawable/star_off"
-            app:showAsAction="never|withText">
-        </item>
-        <item
-            android:id="@+id/firma"
-            android:title="Firma"
-            android:icon="@android:drawable/star_off"
-            app:showAsAction="never|withText">
-        </item>
-        <item
-            android:id="@+id/detalles"
-            android:title="Detalles"
-            android:icon="@android:drawable/star_off"
+            android:id="@+id/acercade"
+            android:title="Acerca de"
+            android:icon="@drawable/icon_about"
             app:showAsAction="never|withText">
         </item>
     </group>

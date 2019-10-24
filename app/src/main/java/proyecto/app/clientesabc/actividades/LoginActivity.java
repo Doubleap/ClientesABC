@@ -1,5 +1,7 @@
 package proyecto.app.clientesabc.actividades;
 
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -16,12 +18,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -30,6 +34,7 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.clases.DialogHandler;
 
 /**
  * A login screen that offers login via email/password.
@@ -51,12 +56,17 @@ public class LoginActivity extends AppCompatActivity {
     private CheckBox mCheckbox;
     private View mProgressView;
     private View mLoginFormView;
+    private ImageView femsa_logo;
+    private TextView ruta_datos;
     private Intent intent;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //setTheme(R.style.NoActionBar);
+        setTheme(R.style.AppThemeNoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        femsa_logo = findViewById(R.id.femsa_logo);
+        ruta_datos = findViewById(R.id.ruta_datos);
         // Set up the login form.
         mUserView = findViewById(R.id.user);
         mCheckbox = findViewById(R.id.guardar_contrasena);
@@ -75,6 +85,20 @@ public class LoginActivity extends AppCompatActivity {
         mUserView.setText(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("user",""));
         mPasswordView.setText(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("password",""));
         mCheckbox.setChecked(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getBoolean("guardar_contrasena",false));
+
+        femsa_logo.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogHandler appdialog = new DialogHandler();
+                appdialog.Confirm(LoginActivity.this, "Confirmar Sincronización", "Esta seguro que desea sincronizar la información de la ruta?", "NO", "SI", new LoginActivity.SincronizarLogin(LoginActivity.this));
+            }
+        });
+        if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("W_CTE_RUTAHH","").equals("")){
+            ruta_datos.setText("Sin Datos!");
+        }else{
+            ruta_datos.setText("Ruta Preventa "+PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("W_CTE_RUTAHH","")+".");
+        }
+
 
         Button mEmailSignInButton = findViewById(R.id.sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
@@ -108,49 +132,24 @@ public class LoginActivity extends AppCompatActivity {
                 drawer.closeDrawers();
 
                 switch(menuItem.getItemId()) {
-                    case R.id.solicitud:
-                        Bundle b = new Bundle();
-                        //TODO seleccionar el tipo de solicitud por el UI
-                        b.putString("tipoSolicitud", "1"); //id de solicitud
-                        intent = new Intent(getBaseContext(),SolicitudActivity.class);
-                        intent.putExtras(b); //Pase el parametro el Intent
-                        startActivity(intent);
+                    case R.id.acercade:
+                        showDialogAcercade(LoginActivity.this);
                         break;
                     case R.id.comunicacion:
-                        intent = new Intent(getBaseContext(),TCPActivity.class);
+                        Bundle b = new Bundle();
+                        //TODO seleccionar el tipo de solicitud por el UI
+                        b.putBoolean("deshabilitarTransmision", true); //id de solicitud
+                        intent = new Intent(LoginActivity.this, TCPActivity.class);
+                        intent.putExtras(b);
                         startActivity(intent);
                         break;
-                    case R.id.clientes:
-                        intent = new Intent(getBaseContext(),MantClienteActivity.class);
-                        startActivity(intent);
-                        break;
-                    case R.id.solicitudes:
-                        intent = new Intent(getBaseContext(),SolicitudesActivity.class);
-                        startActivity(intent);
-                        break;
-                    case R.id.coordenadas:
-                        intent = new Intent(getBaseContext(),LocacionGPSActivity.class);
-                        startActivity(intent);
-                        break;
-                    case R.id.firma:
-                        intent = new Intent(getBaseContext(),FirmaActivity.class);
-                        startActivity(intent);
-                        break;
-                    case R.id.detalles:
-                        intent = new Intent(getBaseContext(), PanelActivity.class);
-                        startActivity(intent);
+                    case R.id.borrar_datos:
+                        DialogHandler appdialog = new DialogHandler();
+                        appdialog.Confirm(LoginActivity.this, "Confirmar Eliminacion", "Este proceso eliminara todo formulario que no haya sido transmitido, desea continuar con el proceso de eliminacion de datos?", "No", "Si", new LoginActivity.BorrarBaseDatos(getBaseContext()));
                         break;
                     default:
                         Toasty.info(getBaseContext(),"Opcion no encontrada!").show();
                 }
-
-                /*Bundle b = new Bundle();
-                //TODO seleccionar el tipo de solicitud por el UI
-                b.putString("tipoSolicitud", "1"); //id de solicitud
-
-                intent = new Intent(getBaseContext(),SolicitudActivity.class);
-                intent.putExtras(b); //Pase el parametro el Intent
-                startActivity(intent);*/
                 return false;
             }
         });
@@ -158,6 +157,37 @@ public class LoginActivity extends AppCompatActivity {
         //DataBaseHelper db = new DataBaseHelper(getBaseContext());
         //db.RestaurarEstadosSolicitudesTransmitidas();
     }
+
+    @Override
+    protected  void onStart(){
+        super.onStart();
+        if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("W_CTE_RUTAHH","").equals("")){
+            ruta_datos.setText("Sin Datos!");
+        }else{
+            ruta_datos.setText("Ruta Preventa "+PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("W_CTE_RUTAHH","")+".");
+        }
+    }
+
+    private void showDialogAcercade(Context context) {
+        final Dialog d=new Dialog(context);
+        d.setContentView(R.layout.acercade_dialog_layout);
+        //INITIALIZE VIEWS
+        final TextView title = d.findViewById(R.id.title);
+        final TextView version = d.findViewById(R.id.version);
+        final TextView ult_sinc = d.findViewById(R.id.ult_sinc);
+        final TextView ult_trans = d.findViewById(R.id.ult_trans);
+
+        version.setText("Versión: "+VariablesGlobales.getVersion());
+        ult_sinc.setText("Última sincronización: "+PreferenceManager.getDefaultSharedPreferences(context).getString("ultimaSincronizacion","No hay"));
+        ult_trans.setText("Última transmisión: "+PreferenceManager.getDefaultSharedPreferences(context).getString("ultimaTransmision","No hay"));
+        //SHOW DIALOG
+        d.show();
+        Window window = d.getWindow();
+        if (window != null) {
+            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
     /**
      * Intenta iniciar sesión con el formulario de inicio de sesión.
      * Si hay errores de formulario (campos faltantes, usuario inexistente, etc.), el
@@ -181,16 +211,26 @@ public class LoginActivity extends AppCompatActivity {
             cancel = true;
         }
 
+        boolean datosMinimos = DataBaseHelper.checkDataBase(getBaseContext());
+        if(!datosMinimos){
+            Toasty.error(getBaseContext(),"No hay base de datos para trabajar, debe sincronizar el dispositivo antes de ingresar.").show();
+            return;
+        }
+        /*if(ruta_datos.getText().equals("Sin Datos!")){
+            Toasty.error(getBaseContext(),"No hay datos para trabajar, debe sincronizar el dispositivo antes de ingresar.").show();
+            return;
+        }*/
         // Check for a valid user.
+        DataBaseHelper db = new DataBaseHelper(getBaseContext());
         if (TextUtils.isEmpty(user)) {
             mUserView.setError(getString(R.string.error_field_required));
             focusView = mUserView;
             cancel = true;
-        } else if (!isUserHHValid(user)) {
+        } else if (!isUserHHValid(user,db)) {
             mUserView.setError(getString(R.string.error_invalid_email));
             focusView = mUserView;
             cancel = true;
-        }else if (!isUserMCValid(user)) {
+        }else if (!isUserMCValid(user,db)) {
             mUserView.setError(getString(R.string.error_invalid_user_mc));
             focusView = mUserView;
             cancel = true;
@@ -202,19 +242,13 @@ public class LoginActivity extends AppCompatActivity {
             focusView.requestFocus();
         } else {
             //Realizar el login validando la base de datos sincronizada
-            DataBaseHelper db = new DataBaseHelper(getBaseContext());
-            boolean datosMinimos = db.checkDataBase();
+
             boolean intentovalido = db.LoginUsuario(user,password);
 
-            if(!datosMinimos){
-                Toasty.error(getBaseContext(),"Debe sincronizar el dispositivo antes de ingresar.").show();
-                return;
-                //intent = new Intent(getBaseContext(),TCPActivity.class);
-                //startActivity(intent);
-            }
             if(intentovalido){
                 String id_usuarioMC = VariablesGlobales.UsuarioHH2UsuarioMC(LoginActivity.this, mUserView.getText().toString());
                 PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", mUserView.getText().toString()).apply();
+                PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("userMC", id_usuarioMC).apply();
                 String userName = db.getUserName(id_usuarioMC);
                 PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("userName", userName).apply();
                 if(mCheckbox.isChecked()) {
@@ -243,15 +277,13 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private boolean isUserHHValid(String user) {
+    private boolean isUserHHValid(String user, DataBaseHelper db) {
         //Validacion del usuario
-        DataBaseHelper db = new DataBaseHelper(getBaseContext());
         return db.validarUsuarioHH(user);
     }
 
-    private boolean isUserMCValid(String user) {
+    private boolean isUserMCValid(String user, DataBaseHelper db) {
         //Validacion del usuario
-        DataBaseHelper db = new DataBaseHelper(getBaseContext());
         return db.validarUsuarioMC(user);
     }
 
@@ -314,5 +346,30 @@ public class LoginActivity extends AppCompatActivity {
         return true;
     }
 
+    public class SincronizarLogin implements Runnable {
+        private Context context;
+        public SincronizarLogin(Context baseContext) {
+            context = baseContext;
+        }
+        public void run() {
+            Bundle b = new Bundle();
+            //TODO seleccionar el tipo de solicitud por el UI
+            b.putBoolean("deshabilitarTransmision", true); //id de solicitud
+            intent = new Intent(LoginActivity.this, TCPActivity.class);
+            intent.putExtras(b);
+            startActivity(intent);
+        }
+    }
+
+    public class BorrarBaseDatos implements Runnable {
+        private Context context;
+        public BorrarBaseDatos(Context baseContext) {
+            context = baseContext;
+        }
+        public void run() {
+            DataBaseHelper.deleteDatabaseFile(context);
+            Toasty.info(getBaseContext(),"Se han borrado los datos!! Debe sincronizar antes de ingresar!").show();
+        }
+    }
 }
 

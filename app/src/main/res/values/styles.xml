@@ -7,12 +7,23 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:itemBackground">@drawable/menu_item</item>
         <item name="android:colorBackground">@color/white</item>
+
+        <item name="android:dropDownListViewStyle">@style/mySpinnerStyle</item>
+    </style>
+    <style name="AppThemeNoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:itemBackground">@drawable/menu_item</item>
+        <item name="android:colorBackground">@color/white</item>
+
         <item name="android:dropDownListViewStyle">@style/mySpinnerStyle</item>
     </style>
     <style name="ProgressBarStyle">
         <item name="colorAccent">@color/colorProgressBar</item>
     </style>
-    <style name="SplashTheme" parent="AppTheme">
+    <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@drawable/splash</item>
     </style>
     <style name="NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
@@ -61,9 +72,9 @@
     </style>
 
     <style name="BottomNavigationView.Active" parent="@style/TextAppearance.AppCompat.Caption">
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">11sp</item>
     </style>
     <style name="BottomNavigationView.Inactive" parent="@style/TextAppearance.AppCompat.Caption">
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">11sp</item>
     </style>
 </resources>

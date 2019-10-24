@@ -141,4 +141,7 @@ public class Banco {
         return valorCelda;
     }
 
+    public boolean validarObligatorios() {
+        return (!this.getBankl().trim().equals("") && !this.getBanks().trim().equals("") && !this.getBankn().trim().equals("")  && !this.getBkont().trim().equals("")  && !this.getKoinh().trim().equals("")  && !this.getBvtyp().trim().equals("")  && !this.getBkref().trim().equals(""));
+    }
 }

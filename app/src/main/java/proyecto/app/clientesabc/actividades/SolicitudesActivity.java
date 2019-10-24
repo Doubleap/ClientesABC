@@ -57,7 +57,7 @@ public class SolicitudesActivity extends AppCompatActivity {
             formList = db.getSolicitudes();
         RecyclerView rv = findViewById(R.id.user_list);
 
-        mAdapter = new MyAdapter(formList,this);
+        mAdapter = new MyAdapter(formList,this,SolicitudesActivity.this);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));

@@ -29,7 +29,10 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
@@ -46,6 +49,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
     private String destinationAddress="192.168.0.10";
     private String filePath;
     private String wholePath;
+    private String id_solicitud;
     private boolean xceptionFlag = false;
     private String errorFlag = "Transmision NO pudo realizarse.";
     private Socket socket;
@@ -54,11 +58,12 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
     private DataBaseHelper mDBHelper;
     AlertDialog dialog;
 
-    public TransmisionServidor(WeakReference<Context> context, WeakReference<Activity> act, String path, String fullPath){
+    public TransmisionServidor(WeakReference<Context> context, WeakReference<Activity> act, String path, String fullPath, String id_solicitud){
         this.context = context;
         this.activity = act;
         this.filePath = path;
         this.wholePath = fullPath;
+        this.id_solicitud = id_solicitud;
         mDBHelper = new DataBaseHelper(context.get());
     }
 
@@ -112,24 +117,29 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                     mDataBase.execSQL(query);
                 }
                 mDataBase.execSQL(sqlAttach);
+
+                String filtroUnicaSolicitud = "";
+                if(id_solicitud.trim().length() > 0){
+                    filtroUnicaSolicitud = " AND id_solicitud = '"+id_solicitud.trim()+"'";
+                }
                 //Comenzar a crear las tablas segun lo que existe actualmente en la base de datos
-                String sqlCreate = "CREATE TABLE FormHvKof_solicitud AS SELECT * FROM fromDB.FormHvKof_solicitud WHERE trim(estado) IN ('Nuevo','Corregido')";
+                String sqlCreate = "CREATE TABLE FormHvKof_solicitud AS SELECT * FROM fromDB.FormHvKof_solicitud WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud;
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE encuesta_solicitud AS SELECT * FROM fromDB.encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
+                sqlCreate = "CREATE TABLE encuesta_solicitud AS SELECT * FROM fromDB.encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido') "+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE encuesta_gec_solicitud AS SELECT * FROM fromDB.encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
+                sqlCreate = "CREATE TABLE encuesta_gec_solicitud AS SELECT * FROM fromDB.encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_contacto_solicitud AS SELECT * FROM fromDB.grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
+                sqlCreate = "CREATE TABLE grid_contacto_solicitud AS SELECT * FROM fromDB.grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_bancos_solicitud AS SELECT * FROM fromDB.grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
+                sqlCreate = "CREATE TABLE grid_bancos_solicitud AS SELECT * FROM fromDB.grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_impuestos_solicitud AS SELECT * FROM fromDB.grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
+                sqlCreate = "CREATE TABLE grid_impuestos_solicitud AS SELECT * FROM fromDB.grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_visitas_solicitud AS SELECT * FROM fromDB.grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
+                sqlCreate = "CREATE TABLE grid_visitas_solicitud AS SELECT * FROM fromDB.grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_interlocutor_solicitud AS SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido'))";
+                sqlCreate = "CREATE TABLE grid_interlocutor_solicitud AS SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo'))";
+                sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
 
                 String pathFileToZip = context.get().getApplicationInfo().dataDir + "/databases/";
@@ -248,6 +258,9 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
             Toasty.error(context.get(),errorFlag,Toast.LENGTH_LONG).show();
         }
         else{
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            Date date = new Date();
+            PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("ultimaTransmision", dateFormat.format(date)).apply();
             Toasty.success(context.get(),"Transmision Finalizada Correctamente!!",Toast.LENGTH_LONG).show();
             //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
             mDBHelper.ActualizarEstadosSolicitudesTransmitidas(solicitudes_procesadas);

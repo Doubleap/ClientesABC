@@ -177,6 +177,7 @@ public class SolicitudActivity extends AppCompatActivity {
         setContentView(R.layout.activity_solicitud);
         firma = false;
         modificable = true;
+        correoValidado = false;
 
         Bundle b = getIntent().getExtras();
         if(b != null) {
@@ -205,10 +206,15 @@ public class SolicitudActivity extends AppCompatActivity {
         }
         if(solicitudSeleccionada.size() > 0) {
             firma = true;
+            correoValidado = true;
             if(solicitudSeleccionada.get(0).get("ESTADO").equals("Pendiente")
                     ||solicitudSeleccionada.get(0).get("ESTADO").equals("Rechazado")
                     ||solicitudSeleccionada.get(0).get("ESTADO").equals("Aprobado")){
                 modificable = false;
+            }
+        }else{
+            if(!tipoSolicitud.equals("1") && !tipoSolicitud.equals("6")){
+                firma = true;
             }
         }
 
@@ -1105,7 +1111,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     fila.setWeightSum(10);
                     fila.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,10f));
 
-                    TextInputLayout label = new TextInputLayout(Objects.requireNonNull(getContext()));
+                    final TextInputLayout label = new TextInputLayout(Objects.requireNonNull(getContext()));
                     label.setHint(campos.get(i).get("descr"));
                     //label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.white,null)));
 
@@ -1204,6 +1210,46 @@ public class SolicitudActivity extends AppCompatActivity {
                                 }
                             });
                         }
+                    }
+
+                    //Crear campo para valor viejo exclusivo.
+                    if(campos.get(i).get("modificacion").trim().equals("2")){
+                        Button btnAyudai=null;
+                        TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 5f);
+                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75);
+                            textolp2.setMargins(0,0,5,0);
+                            label.setLayoutParams(textolp2);
+                            btnAyudai = new Button(getContext());
+                            btnAyudai.setBackground(getResources().getDrawable(R.drawable.icon_ver_viejo,null));
+                            btnlp2.setMargins(0,35,5,0);
+                            btnAyudai.setLayoutParams(btnlp2);
+                            btnAyudai.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                            btnAyudai.setForegroundGravity(GRAVITY_CENTER);
+                            btnAyudai.setOnTouchListener(new OnTouchListener()
+                            {
+                                @Override
+                                public boolean onTouch(View v, MotionEvent event)
+                                {
+                                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                                        label.setVisibility(View.GONE);
+                                        et.setVisibility(View.GONE);
+                                        return true;
+                                    }else if (event.getAction() == MotionEvent.ACTION_UP){
+                                        label.setVisibility(View.VISIBLE);
+                                        et.setVisibility(View.VISIBLE);
+                                        return true;
+                                    }else if (event.getAction() == MotionEvent.ACTION_CANCEL){
+                                        label.setVisibility(View.VISIBLE);
+                                        et.setVisibility(View.VISIBLE);
+                                        return true;
+                                    }
+
+                                    // TODO Auto-generated method stub
+                                    return false;
+                                }
+                            });
+                        if(btnAyudai != null)
+                            fila.addView(btnAyudai);
                     }
 
                     label.addView(et);
@@ -1327,44 +1373,46 @@ public class SolicitudActivity extends AppCompatActivity {
                 ll.addView(label);
                 ll.addView(combo);
 
-                //Check Box para la aceptacion de las politicas de privacidad
-                final CheckBox checkbox = new CheckBox(getContext());
-                checkbox.setText("Aceptar Politicas de Privacidad");
-                if(solicitudSeleccionada.size() > 0){
-                    checkbox.setChecked(true);
-                    if(!modificable){
+                if(tipoSolicitud.equals("1") || tipoSolicitud.equals("6")) {
+                    //Check Box para la aceptacion de las politicas de privacidad
+                    final CheckBox checkbox = new CheckBox(getContext());
+                    checkbox.setText("Aceptar Politicas de Privacidad");
+                    if (solicitudSeleccionada.size() > 0) {
+                        checkbox.setChecked(true);
                         checkbox.setEnabled(false);
-                    }
-                }
-
-                LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-                checkbox.setLayoutParams(clp);
-                checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_privacy,null), null);
-                ll.addView(checkbox);
-                checkbox.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Aceptacion(v);
-                        if(((CheckBox) v).isChecked())
-                            ((CheckBox) v).setChecked(false);
-                        else
-                            ((CheckBox) v).setChecked(true);
-                    }
-                });
-
-                ColorStateList colorStateList = new ColorStateList(
-                        new int[][]{
-                                new int[]{-android.R.attr.state_checked}, // unchecked
-                                new int[]{android.R.attr.state_checked} , // checked
-                        },
-                        new int[]{
-                                Color.parseColor("#110000"),
-                                Color.parseColor("#00aa00"),
+                        if (!modificable) {
+                            checkbox.setEnabled(false);
                         }
-                );
+                    }
+                    LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+                    checkbox.setLayoutParams(clp);
+                    checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_privacy,null), null);
+                    ll.addView(checkbox);
+                    checkbox.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Aceptacion(v);
+                            if(((CheckBox) v).isChecked())
+                                ((CheckBox) v).setChecked(false);
+                            else
+                                ((CheckBox) v).setChecked(true);
+                        }
+                    });
 
-                CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
-                mapeoCamposDinamicos.put("politica",checkbox);
+                    ColorStateList colorStateList = new ColorStateList(
+                            new int[][]{
+                                    new int[]{-android.R.attr.state_checked}, // unchecked
+                                    new int[]{android.R.attr.state_checked} , // checked
+                            },
+                            new int[]{
+                                    Color.parseColor("#110000"),
+                                    Color.parseColor("#00aa00"),
+                            }
+                    );
+
+                    CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
+                    mapeoCamposDinamicos.put("politica",checkbox);
+                }
             }
         }
 
@@ -1625,7 +1673,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     tb_visitas.setHeaderElevation(1);
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     tb_visitas.setLayoutParams(hlp);
-
+                    btnAddBloque.setVisibility(INVISIBLE);
                     if(solicitudSeleccionada.size() > 0){
                         visitasSolicitud = mDBHelper.getVisitasDB(idSolicitud);
                     }
@@ -2137,6 +2185,11 @@ public class SolicitudActivity extends AppCompatActivity {
                 nuevoContacto.setTelf1(telf1EditText.getText().toString());
                 nuevoContacto.setPafkt(((OpcionSpinner)funcionSpinner.getSelectedItem()).getId());
                 nuevoContacto.setCountry(PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_LAND1",""));
+
+                if(!nuevoContacto.validarObligatorios()){
+                    Toasty.warning(v.getContext(), "Todos los campos son obligatorios!").show();
+                    return;
+                }
                 try {
                     contactosSolicitud.add(nuevoContacto);
                     name1EditText.setText("");
@@ -2221,6 +2274,11 @@ public class SolicitudActivity extends AppCompatActivity {
                 nuevoImpuesto.setTaxkd(((OpcionSpinner)clasiSpinner.getSelectedItem()).getId());
                 nuevoImpuesto.setVtext2(((OpcionSpinner)clasiSpinner.getSelectedItem()).getName());
                 impuestosSolicitud.add(nuevoImpuesto);
+
+                if(!nuevoImpuesto.validarObligatorios()){
+                    Toasty.warning(v.getContext(), "Todos los campos son obligatorios!").show();
+                    return;
+                }
                 try{
                     claveSpinner.setSelection(0);
                     clasiSpinner.setSelection(0);
@@ -2410,6 +2468,12 @@ public class SolicitudActivity extends AppCompatActivity {
                 nuevoBanco.setBvtyp(tipoEditTxt.getText().toString());
                 nuevoBanco.setBkref(montoMaximoEditTxt.getText().toString());
                 bancosSolicitud.add(nuevoBanco);
+
+                if(!nuevoBanco.validarObligatorios()){
+                    Toasty.warning(v.getContext(), "Todos los campos son obligatorios!").show();
+                    return;
+                }
+
                 try {
                     bancoSpinner.setSelection(0);
                     paisSpinner.setSelection(0);
@@ -3361,7 +3425,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 insertValues.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_VKORG",""));
                 insertValues.put("[id_solicitud]", NextId);
                 insertValues.put("[tipform]", tipoSolicitud);
-                insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("user",""));
+                insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("userMC",""));
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
                 Date date = new Date();
                 //ContentValues initialValues = new ContentValues();
@@ -3370,7 +3434,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 //mDBHelper.getWritableDatabase().insert("FormHvKof_solicitud", null, insertValues);
                 if(solicitudSeleccionada.size() > 0){
                     if(solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia")) {
-                        insertValues.put("[estado]", "Nuevo");
+                        insertValues.put("[estado]", "Modificado");
                     }
                     long modifico = mDb.update("FormHvKof_solicitud", insertValues, "id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});
                     Toasty.success(getApplicationContext(), "Registro modificado con éxito", Toast.LENGTH_SHORT).show();

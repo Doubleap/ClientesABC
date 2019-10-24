@@ -1,5 +1,6 @@
 package proyecto.app.clientesabc.adaptadores;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -22,16 +23,21 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.actividades.SolicitudActivity;
+import proyecto.app.clientesabc.clases.TransmisionServidor;
+
+import static android.support.v4.content.ContextCompat.startActivity;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> implements Filterable {
     private ArrayList<HashMap<String, String>> mDataset;
     private ArrayList<HashMap<String, String>> formListFiltered;
     private Context context;
+    private Activity activity;
     DataBaseHelper db;
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -45,10 +51,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         }
     }
     // Constructor de Adaptador HashMap
-    public MyAdapter(ArrayList<HashMap<String, String>> myDataset,Context c) {
+    public MyAdapter(ArrayList<HashMap<String, String>> myDataset,Context c, Activity a) {
         mDataset = myDataset;
         formListFiltered = mDataset;
         context = c;
+        activity = a;
         db = new DataBaseHelper(context);
     }
     // Crear nuevas Views. Puedo crear diferentes layouts para diferentes adaptadores desde la misma clase
@@ -80,7 +87,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         if(formListFiltered.get(position).get("estado").trim().equals("Pendiente")){
             color = R.color.pendientes;
         }
-        if(formListFiltered.get(position).get("estado").trim().equals("Devuelto")){
+        if(formListFiltered.get(position).get("estado").trim().equals("Incidencia")){
             color = R.color.devuelto;
         }
         if(formListFiltered.get(position).get("estado").trim().equals("Rechazado")){
@@ -195,14 +202,28 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                                 break;
                             case R.id.cancelar:
                                 db.CambiarEstadoSolicitud(formListFiltered.get(position).get("id_solicitud").trim(),"Cancelado");
-                                notifyDataSetChanged();
+                                intent = activity.getIntent();
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                                activity.finish();
+                                activity.overridePendingTransition(0, 0);
+                                startActivity(context, intent, null);
+                                activity.overridePendingTransition(0, 0);
                                 break;
                             case R.id.eliminar:
                                 db.EliminarSolicitud(formListFiltered.get(position).get("id_solicitud").trim());
-                                notifyDataSetChanged();
+                                intent = activity.getIntent();
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                                activity.finish();
+                                activity.overridePendingTransition(0, 0);
+                                startActivity(context, intent, null);
+                                activity.overridePendingTransition(0, 0);
                                 break;
                             case R.id.transmitir:
-                                //handle menu3 click
+                                WeakReference<Context> weakRef = new WeakReference<Context>(context);
+                                WeakReference<Activity> weakRefA = new WeakReference<Activity>((Activity)context);
+                                //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
+                                TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "", formListFiltered.get(position).get("id_solicitud").trim());
+                                f.execute();
                                 break;
                         }
                         return false;
