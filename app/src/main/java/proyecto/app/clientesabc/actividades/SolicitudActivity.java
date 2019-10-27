@@ -41,6 +41,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.CompoundButtonCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.TooltipCompat;
@@ -147,6 +148,7 @@ public class SolicitudActivity extends AppCompatActivity {
     static boolean firma;
     static boolean modificable;
     static boolean correoValidado;
+    static boolean cedulaValidada;
     static BottomNavigationView bottomNavigation;
 
     static Uri mPhotoUri;
@@ -178,6 +180,7 @@ public class SolicitudActivity extends AppCompatActivity {
         firma = false;
         modificable = true;
         correoValidado = false;
+        cedulaValidada = false;
 
         Bundle b = getIntent().getExtras();
         if(b != null) {
@@ -207,6 +210,7 @@ public class SolicitudActivity extends AppCompatActivity {
         if(solicitudSeleccionada.size() > 0) {
             firma = true;
             correoValidado = true;
+            cedulaValidada = true;
             if(solicitudSeleccionada.get(0).get("ESTADO").equals("Pendiente")
                     ||solicitudSeleccionada.get(0).get("ESTADO").equals("Rechazado")
                     ||solicitudSeleccionada.get(0).get("ESTADO").equals("Aprobado")){
@@ -265,6 +269,13 @@ public class SolicitudActivity extends AppCompatActivity {
                                     numErrores++;
                                     mensajeError += "- "+tv.getTag()+"\n";
                                 }
+                                if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") || listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG")){
+                                    if(valor.equals("0")){
+                                        tv.setError("El campo "+tv.getTag()+" no puede ser 0!");
+                                        numErrores++;
+                                        mensajeError += "- "+tv.getTag()+"\n";
+                                    }
+                                }
                             }catch(Exception e){
                                 Spinner combo = ((Spinner) mapeoCamposDinamicos.get(listaCamposObligatorios.get(i)));
                                 if(combo.getSelectedItem() != null) {
@@ -300,12 +311,17 @@ public class SolicitudActivity extends AppCompatActivity {
                         //Validacion de politica de privacidad firmada por el cliente.
                         if(!firma){
                             numErrores++;
-                            mensajeError += "- El cliente debe firmar las politicas de privacidad!\n";
+                            mensajeError += "- El cliente debe firmar las políticas de privacidad!\n";
                         }
                         //Validacion de correo
                         if(!correoValidado){
                             numErrores++;
-                            mensajeError += "- Formato de correo Invalido!\n";
+                            mensajeError += "- Formato de correo Inválido!\n";
+                        }
+                        //Validacion de correo
+                        if(!cedulaValidada){
+                            numErrores++;
+                            mensajeError += "- Formato de cédula Inválida!\n";
                         }
 
                         if(numErrores == 0) {
@@ -329,6 +345,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
             h.setMargins(0,0,0,0);
             ll.setLayoutParams(h);
+            bottomNavigation.setVisibility(View.GONE);
             bottomNavigation.animate().translationY(150);
         }
 
@@ -372,7 +389,29 @@ public class SolicitudActivity extends AppCompatActivity {
         //notificantesSolicitud = new ArrayList<Adjuntos>();
 
     }
-
+    @Override
+    public void onBackPressed() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setIcon(R.drawable.icon_info_title);
+        builder.setCancelable(false);
+        builder.setMessage("Esta seguro que quiere salir de la solicitud?");
+        builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //if user pressed "yes", then he is allowed to exit from application
+                finish();
+            }
+        });
+        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //if user select "No", just cancel this dialog and continue with app
+                dialog.cancel();
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
 
 
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
@@ -1262,6 +1301,8 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LAT") || campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LONG")){
                         et.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.icon_location,null), null, null,null);
                         et.setCompoundDrawablePadding(16);
+                        et.setInputType(InputType.TYPE_NUMBER_FLAG_SIGNED|InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
+
                         et.setOnTouchListener(new OnTouchListener() {
                             @Override
                             public boolean onTouch(View v, MotionEvent event) {
@@ -1752,7 +1793,6 @@ public class SolicitudActivity extends AppCompatActivity {
                         et.setPadding(1,0,1,0);
 
                         et.setLayoutParams(lp);
-                        //et.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f));
                         if(solicitudSeleccionada.size() > 0 && visitasSolicitud.size() > 0 ){
                             switch(x) {
                                 case 0:
@@ -2747,6 +2787,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
         for (int j = 0; j < preguntas.size(); j++){
             TextInputEditText monto = new TextInputEditText(d.getContext());
+            monto.setInputType(InputType.TYPE_CLASS_NUMBER);
             ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
 
             TextView label_pregunta = new TextView(d.getContext());
@@ -3690,8 +3731,16 @@ public class SolicitudActivity extends AppCompatActivity {
         Matcher matcher = pattern.matcher(texto.getText());
         if (!matcher.matches()) {
             texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+            cedulaValidada = false;
             return false;
         }
+        cedulaValidada = true;
+        MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
+        String cedulaDigitada = texto.getText().toString().trim();
+        if(texto.getText().toString().trim().endsWith("-00"))
+            idfiscal.setText(cedulaDigitada.substring(0,cedulaDigitada.length()-3).replaceFirst("^0+(?!$)", "").replace("-",""));
+        else
+            idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-",""));
         Toasty.success(texto.getContext(),"Formato Regimen "+tipoCedula+" valido!").show();
         return true;
     }

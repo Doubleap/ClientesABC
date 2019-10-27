@@ -37,6 +37,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.TooltipCompat;
@@ -44,6 +46,8 @@ import android.text.InputFilter;
 import android.text.InputType;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -59,6 +63,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
+import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -111,6 +116,7 @@ import static android.support.design.widget.TabLayout.INVISIBLE;
 import static android.support.design.widget.TabLayout.OnClickListener;
 import static android.support.design.widget.TabLayout.OnFocusChangeListener;
 import static android.support.design.widget.TabLayout.TEXT_ALIGNMENT_CENTER;
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 public class ClienteActivity extends AppCompatActivity {
 
@@ -172,7 +178,20 @@ public class ClienteActivity extends AppCompatActivity {
             tipoSolicitud = getString(R.string.ID_FORM_CONSULTA_CLIENTE);
             //GUID = clienteSeleccionado.get(0).get("id_solicitud");
             setTitle(clienteSeleccionado.get(0).get("W_CTE-KUNNR")+ " - " +clienteSeleccionado.get(0).get("W_CTE-NAME1"));
-
+            ActionBar bar = getSupportActionBar();
+            if(bar!=null){
+                TextView tv = new TextView(getApplicationContext());
+                RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.MATCH_PARENT, // Width of TextView
+                        RelativeLayout.LayoutParams.WRAP_CONTENT); // Height of TextView
+                tv.setLayoutParams(lp);
+                tv.setText(bar.getTitle());
+                tv.setGravity(Gravity.LEFT);
+                tv.setTextColor(Color.WHITE);
+                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+                bar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+                bar.setCustomView(tv);
+            }
         }else{
             GUID = mDBHelper.getGuiId();
             clienteSeleccionado.clear();
@@ -183,6 +202,13 @@ public class ClienteActivity extends AppCompatActivity {
         listaCamposObligatorios.clear();
 
         new MostrarFormulario(this).execute();
+
+        //Quitar el bottom navigation
+        LinearLayout ll = findViewById(R.id.LinearLayoutMain);
+        DrawerLayout.LayoutParams h = new DrawerLayout.LayoutParams(MATCH_PARENT,MATCH_PARENT);
+        h.setMargins(0,0,0,0);
+        ll.setLayoutParams(h);
+        bottomNavigation.setVisibility(View.GONE);
 
         //Setear Eventos de Elementos del bottom navigation
         bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -1427,7 +1453,7 @@ public class ClienteActivity extends AppCompatActivity {
                     tb_visitas.setHeaderElevation(1);
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     tb_visitas.setLayoutParams(hlp);
-
+                    btnAddBloque.setVisibility(INVISIBLE);
                     if(clienteSeleccionado.size() > 0){
                         visitasSolicitud = mDBHelper.getVisitasCliente(idCliente);
                     }
@@ -1455,23 +1481,57 @@ public class ClienteActivity extends AppCompatActivity {
                     //Textos de dias de visita
                     //Desplegar textos para las secuencias de los dias de visita de la preventa.
                     //TODO Generar segun la Modalidad de venta seleccionada para usuarios tipo jefe de ventas y no preventas
-                    final String[] diaLabel = {"Lunes","Martes","Miercoles","Jueves","Viernes","Sabado","Domingo"};
+                    final String[] diaLabel = {"L","K","M","J","V","S","D"};
                     int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
                     int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
+
+                    CardView seccion_visitas = new CardView(Objects.requireNonNull(getContext()));
+
+                    TextView header_visitas = new TextView(getContext());
+                    header_visitas.setAllCaps(true);
+                    header_visitas.setText("Dias de Visita Ruta de Preventa");
+                    header_visitas.setLayoutParams(tlp);
+                    header_visitas.setPadding(10, 0, 0, 0);
+                    header_visitas.setTextColor(getResources().getColor(R.color.white, null));
+                    header_visitas.setTextSize(10);
+
+                    LinearLayout.LayoutParams hlpv = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+                    hlpv.setMargins(0, 25, 0, 15);
+                    seccion_visitas.setLayoutParams(hlpv);
+                    seccion_visitas.setBackground(getResources().getDrawable(R.color.colorPrimary, null));
+                    seccion_visitas.setPadding(5, 5, 5, 5);
+
+                    seccion_visitas.addView(header_visitas);
+                    ll.addView(seccion_visitas);
+
+                    TableLayout v_ll = new TableLayout(getContext());
+                    LinearLayout.LayoutParams hlpll = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                    v_ll.setOrientation(LinearLayout.HORIZONTAL);
+                    v_ll.setLayoutParams(hlpll);
+                    TableRow tr = new TableRow(getContext());
+                    tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,6f));
+                    tr.setPadding(0,0,0,0);
+
                     for(int x = 0; x < 6; x++){
                         TextInputLayout label = new TextInputLayout(getContext());
-                        label.setHint("Secuencia dia "+diaLabel[x]);
+                        label.setHint(""+diaLabel[x]);
                         label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
                         label.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
+                        label.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f));
+                        label.setPadding(0,0,0,0);
 
                         final TextInputEditText et = new TextInputEditText(getContext());
                         mapeoCamposDinamicos.put("ZPV_"+diaLabel[x],et);
                         et.setMaxLines(1);
+                        et.setTextSize(16);
+
                         et.setInputType(InputType.TYPE_CLASS_NUMBER);
-                        TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5f);
-                        lp.setMargins(0, 15, 0, 15);
+                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( 4 ) });
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        lp.setMargins(0, 10, 10, 10);
+                        et.setPadding(1,0,1,0);
+
                         et.setLayoutParams(lp);
-                        et.setTextColor(getResources().getColor(R.color.black,null));
                         if(clienteSeleccionado.size() > 0){
                             switch(x) {
                                 case 0:
@@ -1501,9 +1561,14 @@ public class ClienteActivity extends AppCompatActivity {
                         //Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
                         //et.setBackground(d);
 
+                        tr.addView(label);
                         label.addView(et);
-                        ll.addView(label);
+
+                        //label.addView(et);
+                        //ll.addView(label);
                     }
+                    v_ll.addView(tr);
+                    ll.addView(v_ll);
                 break;
                 case "W_CTE-ADJUNTOS":
                     tb_adjuntos.setColumnCount(3);
@@ -2762,7 +2827,6 @@ public class ClienteActivity extends AppCompatActivity {
             //LinearLayout ll = findViewById(R.id.LinearLayoutMain);
             publishProgress(10);
             return null;
-            //return ll;
         }
         @Override
         protected void onProgressUpdate(Integer... values) {

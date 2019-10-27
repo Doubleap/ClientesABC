@@ -7,10 +7,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -34,7 +36,7 @@ import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 import static android.support.v4.content.ContextCompat.startActivity;
 
-public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
+public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
     private boolean xceptionFlag = false;
@@ -51,6 +53,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
     protected Void doInBackground(Void... voids) {
         //Solo enviamos los datos necesarios para que la sincronizacion sepa que traer
         try {
+            publishProgress("Estableciendo comunicación...");
             System.out.println("Estableciendo comunicación para enviar archivos...");
             socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip",""),Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto","")));
             //socket.setReuseAddress(true);
@@ -63,6 +66,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
             DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 
             //Comando String que indicara que se quiere realizar una Sincronizacion
+            publishProgress("Comunicacion establecida...");
             dos.writeUTF("Sincronizacion");
             dos.flush();
             //Enviar Ruta que se quiere sincronizar
@@ -75,6 +79,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
             //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
             long s = dis.readLong();
             if(s < 0){
+                publishProgress("Error en Sincronizacion...");
                 s = dis.readLong();
                 byte[] e = new byte[124];
                 dis.readFully(e);
@@ -82,6 +87,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
                 xceptionFlag = true;
                 messageFlag = "Error: "+error;
             }else {
+                publishProgress("Procesando datos recibidos...");
                 byte[] r = new byte[(int) s];
                 dis.readFully(r);
 
@@ -116,11 +122,13 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
                         messageFlag = "No se pudo renombrar el archivo.";
                     }
                     if(unzip) {
+                        publishProgress("Reemplazando Base de datos...");
                         //Pasar de la sincronizacion a caerle encima a la base de datos actual con la informacion recibida.
                         DataBaseHelper mDBHelper = new DataBaseHelper(context.get());
                         try {
                             mDBHelper.updateDataBase();
                             if(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH","").trim().equals(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("ultimaRutaSincronizada","").trim())) {
+                                publishProgress("Recuperando informacion...");
                                 SQLiteDatabase mDataBase = SQLiteDatabase.openDatabase(mDBHelper.DB_PATH + "FAWM_ANDROID_2", null, SQLiteDatabase.OPEN_READWRITE);
                                 //Copiar nuevamente los formularios que tenga nuevos
                                 String sqlAttach = "ATTACH DATABASE '" + externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "FAWM_ANDROID_2_BACKUP' AS fromDB";
@@ -146,24 +154,24 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
                                 sqlInsert = "DELETE FROM adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado','Corregido'))";
                                 mDataBase.execSQL(sqlInsert);
 
-                                //Insertar registros del BACK UP realizado antes de sincornizar de la HH para no perder nuevos o modificados
-                                sqlInsert = "INSERT INTO FormHVKOF_solicitud SELECT * FROM fromDB.FormHVKOF_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                                //Insertar registros del BACK UP realizado antes de sincornizar de la HH para no perder nuevos , modificados o incompletos
+                                sqlInsert = "INSERT INTO FormHVKOF_solicitud SELECT * FROM fromDB.FormHVKOF_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "INSERT INTO encuesta_solicitud SELECT * FROM fromDB.encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                                sqlInsert = "INSERT INTO encuesta_solicitud SELECT * FROM fromDB.encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "INSERT INTO encuesta_gec_solicitud SELECT * FROM fromDB.encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                                sqlInsert = "INSERT INTO encuesta_gec_solicitud SELECT * FROM fromDB.encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "INSERT INTO grid_contacto_solicitud SELECT * FROM fromDB.grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                                sqlInsert = "INSERT INTO grid_contacto_solicitud SELECT * FROM fromDB.grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "INSERT INTO grid_bancos_solicitud SELECT * FROM fromDB.grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                                sqlInsert = "INSERT INTO grid_bancos_solicitud SELECT * FROM fromDB.grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "INSERT INTO grid_impuestos_solicitud SELECT * FROM fromDB.grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                                sqlInsert = "INSERT INTO grid_impuestos_solicitud SELECT * FROM fromDB.grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "INSERT INTO grid_visitas_solicitud SELECT * FROM fromDB.grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                                sqlInsert = "INSERT INTO grid_visitas_solicitud SELECT * FROM fromDB.grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "INSERT INTO grid_interlocutor_solicitud SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                                sqlInsert = "INSERT INTO grid_interlocutor_solicitud SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "INSERT INTO adjuntos_solicitud SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Corregido'))";
+                                sqlInsert = "INSERT INTO adjuntos_solicitud SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
                                 mDataBase.execSQL(sqlInsert);
                             }
                         } catch (IOException e) {
@@ -181,7 +189,7 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
                     }
                 }
             }
-
+            publishProgress("Proceso Terminado...");
         } catch (IOException e) {
             xceptionFlag = true;
             messageFlag = e.getMessage();
@@ -204,6 +212,12 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
         return null;
     }
 
+    @Override
+    protected void onProgressUpdate(String... progress) {
+        super.onProgressUpdate(progress);
+        TextView v = (TextView) dialog.findViewById(R.id.mensaje_espera);
+        v.setText(progress[0]);
+    }
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
@@ -243,5 +257,14 @@ public class SincronizacionServidor extends AsyncTask<Void,Void,Void> {
         activity.get().overridePendingTransition(0, 0);
         startActivity(context.get(), intent, null);
         activity.get().overridePendingTransition(0, 0);
+    }
+    public void EnableWiFi(){
+        WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifimanager.setWifiEnabled(true);
+    }
+
+    public void DisableWiFi(){
+        WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifimanager.setWifiEnabled(false);
     }
 }

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -104,5 +105,13 @@ public class PruebaConexionServidor extends AsyncTask<Void,Void,Void> {
         if(dialog.isShowing())
             dialog.hide();
     }
+    public void EnableWiFi(){
+        WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifimanager.setWifiEnabled(true);
+    }
 
+    public void DisableWiFi(){
+        WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifimanager.setWifiEnabled(false);
+    }
 }

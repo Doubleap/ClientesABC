@@ -724,7 +724,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if (cursor.moveToNext()){
             id += String.format("%4s", String.valueOf(cursor.getInt(0)+1)).replace(' ', '0');
         }else{
-            id += String.format("%4s", String.valueOf(1).replace(' ', '0'));
+            id += String.format("%4s", String.valueOf(1)).replace(' ', '0');
         }
         cursor.close();
         return id;
@@ -841,7 +841,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     " FROM " + tabla +" a INNER JOIN" +
                     " EX_T_RUTAS_VP AS b ON a.zone1 = b.zroute_rep AND b.bzirk = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK","")+"'";
         }
-
+        //Cadena = cat_zesdvt_00561, Keyaccount = cat_ztmdcmc_00038t
+        if(tabla.equals("cat_zesdvt_00561") && PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F443")){
+            filtros.append(" AND trim(hkunnr) = '0000160000' AND zzkeyacc = 'CA002'");
+        }
+        if(tabla.equals("cat_ztmdcmc_00038t") && PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F443")){
+            filtros.append(" AND trim(zkeyacc) = 'CA002'");
+        }
         //Crear Filtros Automaticos segun el pais
 
         //Si existe BUKRS en la tabla del catalago vamos a filtros por Sociedad
@@ -1750,6 +1756,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud where trim(estado) IN ('Nuevo','Modificado')";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            cantidad = cursor.getInt(0);
+        }
+        cursor.close();
+        return cantidad;
+    }
+    public int CantidadSolicitudesTotal() {
+        int cantidad = 0;
+        String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,new String[]{});
         while (cursor.moveToNext()){
             cantidad = cursor.getInt(0);
         }

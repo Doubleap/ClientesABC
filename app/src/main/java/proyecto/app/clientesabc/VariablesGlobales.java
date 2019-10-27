@@ -18,6 +18,7 @@ public class VariablesGlobales extends Application {
     private static String version = "1.0.0";
     private static String sociedad = "F443";
     private static String orgvta = "0443";
+    private static String land1 = "CR";
     private static String TABLA_BLOQUE_CONTACTO_HH = "grid_contacto_solicitud";
     private static String TABLA_BLOQUE_BANCO_HH = "grid_bancos_solicitud";
     private static String TABLA_BLOQUE_IMPUESTO_HH = "grid_impuestos_solicitud";
@@ -124,7 +125,7 @@ public class VariablesGlobales extends Application {
         try {
             Integer.parseInt(usuarioHH);
             padded = "00000000".substring(usuarioHH.length()) + usuarioHH;
-            usuarioMC = PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_LAND1","")+padded;
+            usuarioMC = PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_LAND1",getLand1())+padded;
         }catch (NumberFormatException ne){
             usuarioMC = usuarioHH;
         }
@@ -153,5 +154,13 @@ public class VariablesGlobales extends Application {
 
     public static void setVersion(String version) {
         VariablesGlobales.version = version;
+    }
+
+    public static String getLand1() {
+        return land1;
+    }
+
+    public static void setLand1(String land1) {
+        VariablesGlobales.land1 = land1;
     }
 }

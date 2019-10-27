@@ -47,9 +47,9 @@ public class PanelActivity extends AppCompatActivity {
     private TextView num_incidencias;
     private TextView num_aprobados;
     private TextView num_rechazados;
-    private TextView num_transmitidos;
-    private TextView num_cancelados;
+    private TextView num_incompletos;
     private TextView num_modificados;
+    private TextView num_total;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,9 +71,9 @@ public class PanelActivity extends AppCompatActivity {
         num_incidencias = findViewById(R.id.num_incidencias);
         num_aprobados = findViewById(R.id.num_aprobados);
         num_rechazados = findViewById(R.id.num_rechazados);
-        //num_transmitidos = findViewById(R.id.num_transmitidos);
-        num_cancelados = findViewById(R.id.num_cancelados);
+        num_incompletos = findViewById(R.id.num_incompletos);
         num_modificados = findViewById(R.id.num_modificados);
+        num_total = findViewById(R.id.num_total);
         DrawerLayout.LayoutParams lp = (DrawerLayout.LayoutParams) principal.getLayoutParams();
         lp.setMargins(0,0,0,0);
         principal.setLayoutParams(lp);
@@ -107,6 +107,11 @@ public class PanelActivity extends AppCompatActivity {
                         WeakReference<Activity> weakRefAs = new WeakReference<Activity>(PanelActivity.this);
                         //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
                         SincronizacionServidor s = new SincronizacionServidor(weakRefs, weakRefAs);
+                        if(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion","").equals("wifi")){
+                            s.EnableWiFi();
+                        }else{
+                            s.DisableWiFi();
+                        }
                         s.execute();
                         break;
                     case R.id.action_transmitir:
@@ -116,6 +121,11 @@ public class PanelActivity extends AppCompatActivity {
                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(PanelActivity.this);
                             //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
                             TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "","");
+                            if(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion","").equals("wifi")){
+                                f.EnableWiFi();
+                            }else{
+                                f.DisableWiFi();
+                            }
                             f.execute();
                         //}
                         break;
@@ -198,9 +208,9 @@ public class PanelActivity extends AppCompatActivity {
         num_incidencias.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Incidencia")));
         num_aprobados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Aprobado")));
         num_rechazados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Rechazado")));
-        //num_transmitidos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Transmitido")));
-        num_cancelados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Cancelado")));
+        num_incompletos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Incompleto")));
         num_modificados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Modificado")));
+        num_total.setText(String.valueOf(mDBHelper.CantidadSolicitudesTotal()));
     }
     // we are setting onClickListener for each element
     private void setSingleEvent(GridLayout gridLayout) {
@@ -230,7 +240,7 @@ public class PanelActivity extends AppCompatActivity {
                             VerSolicitudes("Modificado");
                             break;
                         case 6:
-                            VerSolicitudes("Cancelado");
+                            VerSolicitudes("Incompleto");
                             break;
                         case 7:
                             VerSolicitudes();

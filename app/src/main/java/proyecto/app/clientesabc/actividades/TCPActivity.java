@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -42,6 +43,7 @@ import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
 import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.ConexionTableAdapter;
 import proyecto.app.clientesabc.clases.PruebaConexionServidor;
 import proyecto.app.clientesabc.clases.SincronizacionServidor;
@@ -58,6 +60,7 @@ public class TCPActivity extends AppCompatActivity
     private Button serverUDPButton;
     private Button clientUDPButton;
     private Button probarConexionButton;
+    private Spinner tipo_conexion;
     private EditText ip_text;
     private EditText puerto_text;
     private EditText ruta_text;
@@ -97,6 +100,22 @@ public class TCPActivity extends AppCompatActivity
 
 
         addConexion = findViewById(R.id.add_conexion);
+        tipo_conexion = findViewById(R.id.tipo_conexion);
+
+        ArrayList<OpcionSpinner> listatipos = new ArrayList<>();
+        OpcionSpinner opWifi = new OpcionSpinner("wifi","WiFi");
+        OpcionSpinner opGPRS = new OpcionSpinner("gprs","GPRS");
+        //OpcionSpinner opLocal = new OpcionSpinner("local","Local");
+        listatipos.add(opWifi);
+        listatipos.add(opGPRS);
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(this, R.layout.simple_spinner_item, listatipos);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        tipo_conexion.setAdapter(dataAdapter);
+
+        tipo_conexion.setSelection(VariablesGlobales.getIndex(tipo_conexion,PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("tipo_conexion","")));
         ip_text = findViewById(R.id.txtservidor);
         ip_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("Ip",""));
         puerto_text = (EditText)findViewById(R.id.txtPuerto);
@@ -146,10 +165,16 @@ public class TCPActivity extends AppCompatActivity
                     //Realizar una prueba de conexion para validar los datos ingresados
                     WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
                     WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
+                    PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("tipo_conexion",((OpcionSpinner)tipo_conexion.getSelectedItem()).getId()).apply();
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
                     PruebaConexionServidor f = new PruebaConexionServidor(weakRef, weakRefA);
+                    if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                        EnableWiFi();
+                    }else{
+                        DisableWiFi();
+                    }
                     f.execute();
                 }
             }
@@ -173,10 +198,16 @@ public class TCPActivity extends AppCompatActivity
                             //startService(new Intent(TCPActivity.this, NameService.class));
                             WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
+                            PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("tipo_conexion",((OpcionSpinner)tipo_conexion.getSelectedItem()).getId()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
                             SincronizacionServidor s = new SincronizacionServidor(weakRef, weakRefA);
+                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                EnableWiFi();
+                            }else{
+                                DisableWiFi();
+                            }
                             s.execute();
                         }
                         return true;
@@ -185,10 +216,16 @@ public class TCPActivity extends AppCompatActivity
                             //Realizar la transmision de lo que se necesita (Db o txt)
                             WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
+                            PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("tipo_conexion",((OpcionSpinner)tipo_conexion.getSelectedItem()).getId()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
                             TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, filePath, wholePath,"");
+                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                EnableWiFi();
+                            }else{
+                                DisableWiFi();
+                            }
                             f.execute();
                         }
                 }
@@ -318,6 +355,7 @@ public class TCPActivity extends AppCompatActivity
         @Override
         public void onDataClicked(int rowIndex, Conexion seleccionado) {
             String salida = seleccionado.getIp() + ":" + seleccionado.getPuerto()+" ha sido seleccionado.";
+            tipo_conexion.setSelection(VariablesGlobales.getIndex(tipo_conexion, seleccionado.getTipo().toLowerCase()));
             ip_text.setText(seleccionado.getIp());
             puerto_text.setText(seleccionado.getPuerto());
             Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
@@ -354,5 +392,14 @@ public class TCPActivity extends AppCompatActivity
             Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
             return true;
         }
+    }
+    public void EnableWiFi() {
+        WifiManager wifimanager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifimanager.setWifiEnabled(true);
+    }
+
+    public void DisableWiFi() {
+        WifiManager wifimanager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifimanager.setWifiEnabled(false);
     }
 }

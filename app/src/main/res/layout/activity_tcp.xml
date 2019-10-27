@@ -11,21 +11,36 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:focusableInTouchMode="true">
-
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tipo Conexión"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="16dp"/>
+        <android.widget.Spinner
+            android:id="@+id/tipo_conexion"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:background="@drawable/spinner_background"
+            >
+        </android.widget.Spinner>
         <TextView
             android:id="@+id/servidor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:layout_marginTop="16dp"
             android:text="Servidor" />
         <EditText
             android:id="@+id/txtservidor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp" />
+            android:layout_marginRight="20dp"
+            android:background="@drawable/textbackground"/>
 
         <TextView
             android:id="@+id/secTxt"
@@ -39,7 +54,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp" />
+            android:layout_marginRight="20dp"
+            android:background="@drawable/textbackground"/>
         <TextView
             android:id="@+id/rutaTxt"
             android:layout_width="wrap_content"
@@ -52,19 +68,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp" />
+            android:layout_marginRight="20dp"
+            android:background="@drawable/textbackground"/>
 
         <Button android:id="@+id/button_probar_conexion"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginLeft="17dp"
+            android:layout_marginRight="17dp"
             android:text="Validar Conexión" />
+
         <android.support.v7.widget.CardView
             android:id="@+id/barra_tv_conexiones"
             android:layout_width="match_parent"
             android:layout_height="25dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="12dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:background="@color/colorPrimary"

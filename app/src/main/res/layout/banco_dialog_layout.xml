@@ -108,7 +108,7 @@
                 android:layout_height="wrap_content"
                 android:singleLine="true"
                 android:maxLength="20"
-                android:inputType="text"
+                android:inputType="number"
                 android:hint= "Monto maximo de cheque"
                 />
         </android.support.design.widget.TextInputLayout>

@@ -6,12 +6,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -40,7 +40,7 @@ import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 import static android.support.v4.content.ContextCompat.startActivity;
 
-public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
+public class TransmisionServidor extends AsyncTask<Void,String,Void> {
 
     private String solicitudes_procesadas;
     private WeakReference<ListView> listView;
@@ -68,20 +68,10 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
     }
 
     @Override
-    protected void onProgressUpdate(Void... values) {
-        super.onProgressUpdate(values);
-        //Seteando listView para desplegar IPs disponibles
-        //listView = new WeakReference<>((ListView)activity.get().findViewById(R.id.listView));
-        //ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context.get(), android.R.layout.simple_list_item_1, a );
-
-        //listView.get().setAdapter(arrayAdapter);
-        listView.get().setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                //obtener la IP seleccionada del UI
-                destinationAddress = (String)adapterView.getItemAtPosition(position);
-            }
-        });
+    protected void onProgressUpdate(String... progress) {
+        super.onProgressUpdate(progress);
+        TextView v = (TextView) dialog.findViewById(R.id.mensaje_espera);
+        v.setText(progress[0]);
     }
 
     @Override
@@ -100,7 +90,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 xceptionFlag = true;
                 errorFlag = "Hay "+cantidad+" solicitudes nuevas para transmitir.";
             }else {
-                System.out.println("Estableciendo comunicación para enviar archivos...");
+                publishProgress("Estableciendo comunicación...");
                 socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip",""),Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto","")));
                 // Enviar archivo en socket
                 //File myFile = new File("/data/user/0/proyecto.app.clientesabc/databases/", "FAWM_ANDROID_2");
@@ -109,7 +99,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 SQLiteDatabase mDataBase = SQLiteDatabase.openDatabase("/data/user/0/proyecto.app.clientesabc/databases/TRANSMISION_"+ PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH",""), null, SQLiteDatabase.CREATE_IF_NECESSARY);
 
                 //Crear una base de datos solo para los datos que deben ser transmitidos
-                System.out.println("Opened database successfully");
+                publishProgress("Extrayendo datos...");
                 String sqlDrop = "DROP TABLE IF EXISTS 'FormHvKof_solicitud';DROP TABLE IF EXISTS 'FormHvKof_old_solicitud';DROP TABLE IF EXISTS 'encuesta_solicitud';DROP TABLE IF EXISTS 'encuesta_gec_solicitud';DROP TABLE IF EXISTS 'grid_contacto_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_solicitud';DROP TABLE IF EXISTS 'grid_bancos_solicitud';DROP TABLE IF EXISTS 'grid_visitas_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_solicitud';DROP TABLE IF EXISTS 'adjuntos_solicitud';";
                 String sqlAttach = "ATTACH DATABASE '/data/user/0/proyecto.app.clientesabc/databases/FAWM_ANDROID_2' AS fromDB";
                 String[] droptables = sqlDrop.split(";");
@@ -141,7 +131,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 mDataBase.execSQL(sqlCreate);
                 sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-
+                publishProgress("Empaquetando datos...");
                 String pathFileToZip = context.get().getApplicationInfo().dataDir + "/databases/";
                 FileHelper.zip(pathFileToZip,context.get().getApplicationInfo().dataDir + "/databases/","TRANSMISION_"+ PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH","")+".zip",false);
                 File myFile = new File(context.get().getApplicationInfo().dataDir + "/databases/", "TRANSMISION_"+ PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH","")+".zip");
@@ -158,6 +148,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
                 System.out.println(files.size());
 
+                publishProgress("Enviando datos...");
                 //Comando String que indicara que se queire realizar Sincronizacion/Transmision
                 dos.writeUTF("Transmision");
                 //cantidad de archivos a enviar al servidor
@@ -195,10 +186,11 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
 
                 dos.writeUTF("FIN");
                 dos.flush();
-
+                publishProgress("Esperando respuesta...");
                 //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
                 long s = dis.readLong();
                 if(s < 0){
+                    publishProgress("Error Transmision...");
                     s = dis.readLong();
                     byte[] e = new byte[(int) s];
                     dis.readFully(e);
@@ -206,6 +198,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                     xceptionFlag = true;
                     errorFlag = "Error: "+error;
                 }else {
+                    publishProgress("Procesando respuesta...");
                     byte[] r = new byte[(int) s];
                     dis.readFully(r);
                     solicitudes_procesadas = new String(r, Charset.defaultCharset());
@@ -214,6 +207,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
                 //O cerrarlo aqui estara bien?
                 dos.close();
             }
+            publishProgress("Transmision Finalizada...");
         } catch (IOException e) {
             xceptionFlag = true;
             errorFlag = e.getMessage();
@@ -234,6 +228,7 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
 
         return null;
     }
+
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
@@ -368,5 +363,14 @@ public class TransmisionServidor extends AsyncTask<Void,Void,Void> {
         }
         return arr;
 
+    }
+    public void EnableWiFi(){
+        WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifimanager.setWifiEnabled(true);
+    }
+
+    public void DisableWiFi(){
+        WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifimanager.setWifiEnabled(false);
     }
 }

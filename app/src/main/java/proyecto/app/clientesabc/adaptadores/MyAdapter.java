@@ -201,7 +201,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                                 context.startActivity(intent);
                                 break;
                             case R.id.cancelar:
-                                db.CambiarEstadoSolicitud(formListFiltered.get(position).get("id_solicitud").trim(),"Cancelado");
+                                db.CambiarEstadoSolicitud(formListFiltered.get(position).get("id_solicitud").trim(),"Incompleto");
                                 intent = activity.getIntent();
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                                 activity.finish();

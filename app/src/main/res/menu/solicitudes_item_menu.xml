@@ -13,7 +13,7 @@
         android:title="Modificar Solicitud" />
     <item
         android:id="@+id/cancelar"
-        android:title="Cancelar Solicitud" />
+        android:title="Marcar Incompleto" />
     <item
         android:id="@+id/eliminar"
         android:title="Eliminar Solicitud" />
