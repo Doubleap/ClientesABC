@@ -1734,6 +1734,29 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return  respuestasEncuestaGec;
     }
 
+    public ArrayList<HashMap<String, String>> getConfigExcepciones(String tiposolicitud) {
+        ArrayList<HashMap<String, String>> excepciones = new ArrayList<>();
+        String sql_encuesta = "SELECT * FROM ConfigExcepciones WHERE bukrs = ? AND ktokd = ? AND tipform = ?";
+        //String sql_encuesta2 = "select zid_quest, monto from encuesta_gec_solicitud p";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,new String[]{PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS",""),
+                PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_KTOKD","RCMA"),
+                tiposolicitud});
+        //bukrs, ktokd, tipform, campo, VIS, OBL, OPC, SUP
+        while (cursor.moveToNext()){
+            HashMap<String,String> resp = new HashMap<>();
+            resp.put("bukrs",cursor.getString(1).trim());
+            resp.put("kotkd",cursor.getString(2).trim());
+            resp.put("tipform",cursor.getString(3).trim());
+            resp.put("campo",cursor.getString(4).trim());
+            resp.put("vis",cursor.getString(5).trim());
+            resp.put("obl",cursor.getString(6).trim());
+            resp.put("opc",cursor.getString(7).trim());
+            resp.put("sup",cursor.getString(8).trim());
+            excepciones.add(resp);
+        }
+        cursor.close();
+        return  excepciones;
+    }
     // Metodos de Ayuda para la Transmision de Datos y evitar que se vayan duplicados o que no se vayan
     public void ActualizarEstadosSolicitudesTransmitidas(){
         //SQLiteDatabase db = this.getWritableDatabase();

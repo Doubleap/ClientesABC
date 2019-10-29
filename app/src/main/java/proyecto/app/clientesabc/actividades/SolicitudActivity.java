@@ -142,6 +142,7 @@ public class SolicitudActivity extends AppCompatActivity {
     static ArrayList<String> listaCamposObligatorios = new ArrayList<>();
     static ArrayList<String> listaCamposBloque = new ArrayList<>();
     static Map<String, View> mapeoCamposDinamicos = new HashMap<>();
+    static  ArrayList<HashMap<String, String>> configExcepciones = new ArrayList<>();
     static  ArrayList<HashMap<String, String>> solicitudSeleccionada = new ArrayList<>();
     private static String GUID;
     private ProgressBar progressBar;
@@ -197,6 +198,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
         getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.botella_coca_header_der,null));
 
+
         if(idSolicitud != null){
             setTitle("Solicitud");
             solicitudSeleccionada = mDBHelper.getSolicitud(idSolicitud);
@@ -222,9 +224,13 @@ public class SolicitudActivity extends AppCompatActivity {
             }
         }
 
+        configExcepciones.clear();
         listaCamposDinamicos.clear();
         listaCamposBloque.clear();
         listaCamposObligatorios.clear();
+
+
+        configExcepciones = mDBHelper.getConfigExcepciones(tipoSolicitud);
 
         //Setear Eventos de Elementos del bottom navigation
         bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -296,6 +302,24 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         }
                         //Validacion de bloques obligatorios
+                        //Validacion de encuestas ejecutadas
+                        CheckBox encuesta = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA");
+                        if(encuesta!= null && !encuesta.isChecked()){
+                            numErrores++;
+                            mensajeError += "- Debe ejecutar la encuesta GEC!\n";
+                        }
+                        CheckBox encuesta_gec = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
+                        if(encuesta_gec != null && !encuesta_gec.isChecked()){
+                            numErrores++;
+                            mensajeError += "- Debe ejecutar la encuesta de Canales!\n";
+                        }
+                        //Validar el campo de ruta de reparto del grid de visitas
+                        //int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPR");
+                        int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
+                        if(visitasSolicitud.get(indiceReparto).getRuta().trim().length() > 5){
+                            numErrores++;
+                            mensajeError += "- Falta ruta de reparto en planes de visita!\n";
+                        }
                         //Al menos 1 dia de visita
                         if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_L")) != null) {
                             if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_L")).getText().toString().isEmpty())
@@ -801,6 +825,25 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(campos.get(i).get("dfaul").trim().length() > 0){
                         checkbox.setChecked(true);
                     }
+
+                    ll.addView(checkbox);
+                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                    mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
+                    //Excepciones de visualizacion y configuracionde campos dados por la tabla ConfigCampos
+                    int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
+                    if(excepcion >= 0) {
+                        HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
+                        if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
+                            checkbox.setEnabled(false);
+                        }else if(configExcepcion.get("vis") != null){
+                            checkbox.setEnabled(true);
+                        }
+                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                            checkbox.setVisibility(View.GONE);
+                        }else if(configExcepcion.get("sup") != null){
+                            checkbox.setVisibility(View.VISIBLE);
+                        }
+                    }
                     if(solicitudSeleccionada.size() > 0){
                         if(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
                             checkbox.setChecked(true);
@@ -808,10 +851,6 @@ public class SolicitudActivity extends AppCompatActivity {
                             checkbox.setEnabled(false);
                         }
                     }
-                    ll.addView(checkbox);
-                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
-                    mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
-
                 }else if (campos.get(i).get("tabla")!= null && campos.get(i).get("tabla").trim().length() > 0) {
                     //Tipo ComboBox/SelectBox/Spinner
                     TextView label = new TextView(getContext());
@@ -1143,6 +1182,23 @@ public class SolicitudActivity extends AppCompatActivity {
                             });
                         }
                     }
+                    //Excepciones de visualizacion y configuracionde campos dados por la tabla ConfigCampos
+                    int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
+                    if(excepcion >= 0) {
+                        HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
+                        if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
+                            combo.setEnabled(false);
+                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                        }else if(configExcepcion.get("vis") != null){
+                            combo.setEnabled(true);
+                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
+                        }
+                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                            combo.setVisibility(View.GONE);
+                        }else if(configExcepcion.get("sup") != null){
+                            combo.setVisibility(View.VISIBLE);
+                        }
+                    }
                 } else {
                     //Tipo EditText normal textbox
                     TableRow fila = new TableRow(getContext());
@@ -1361,6 +1417,23 @@ public class SolicitudActivity extends AppCompatActivity {
                         listaCamposBloque.add(campos.get(i).get("campo").trim());
                     }
 
+                    //Excepciones de visualizacion y configuracionde campos dados por la tabla ConfigCampos
+                    int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
+                    if(excepcion >= 0) {
+                        HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
+                        if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
+                            et.setEnabled(false);
+                            et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
+                        }else if(configExcepcion.get("vis") != null){
+                            et.setEnabled(true);
+                            et.setBackground(getResources().getDrawable(R.drawable.textbackground, null));
+                        }
+                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                            et.setVisibility(View.GONE);
+                        }else if(configExcepcion.get("sup") != null){
+                            et.setVisibility(View.VISIBLE);
+                        }
+                    }
                 }
 
                 seccionAnterior = campos.get(i).get("id_seccion").trim();
@@ -2825,6 +2898,9 @@ public class SolicitudActivity extends AppCompatActivity {
                         encuestaValues.put("monto", monto.getText().toString());
                         if(!monto.getText().toString().trim().equals("")){
                             suma_montos += Integer.valueOf(monto.getText().toString());
+                        }else{
+                            Toasty.error(v.getContext(), "Por favor llene todos los campos de la encuesta.", Toast.LENGTH_SHORT).show();
+                            return;
                         }
 
                         try {
@@ -3820,5 +3896,14 @@ public class SolicitudActivity extends AppCompatActivity {
         else
             Toasty.error(correo.getContext(),"Formato de correo Invalido!").show();
         return valido;
+    }
+    public static int getIndexConfigCampo(String campo) {
+        for (int i = 0; i < configExcepciones.size(); i++) {
+            HashMap<String, String> map = configExcepciones.get(i);
+            if (map.containsValue(campo)) { // Or map.getOrDefault("songTitle", "").equals(songName);
+                return i;
+            }
+        }
+        return -1; // Not found.
     }
 }
