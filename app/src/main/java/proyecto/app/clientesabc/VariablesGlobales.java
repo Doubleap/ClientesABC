@@ -15,7 +15,6 @@ import proyecto.app.clientesabc.modelos.Visitas;
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
 
-    private static String version = "1.0.0";
     private static String sociedad = "F443";
     private static String orgvta = "0443";
     private static String land1 = "CR";
@@ -148,14 +147,6 @@ public class VariablesGlobales extends Application {
         return usuarioHH;
     }
 
-    public static String getVersion() {
-        return version;
-    }
-
-    public static void setVersion(String version) {
-        VariablesGlobales.version = version;
-    }
-
     public static String getLand1() {
         return land1;
     }
@@ -163,4 +154,5 @@ public class VariablesGlobales extends Application {
     public static void setLand1(String land1) {
         VariablesGlobales.land1 = land1;
     }
+
 }

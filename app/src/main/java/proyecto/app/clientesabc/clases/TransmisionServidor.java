@@ -16,17 +16,12 @@ import android.widget.Toast;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -272,98 +267,6 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
         activity.get().overridePendingTransition(0, 0);
     }
 
-    public ArrayList<String> getClientList() {
-
-        final ArrayList<String> arr = new ArrayList<>(25);
-
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                BufferedReader br = null;
-                boolean isFirstLine = true;
-
-                try {
-                    br = new BufferedReader(new FileReader("/proc/net/arp"));
-                    String line;
-
-                    while ((line = br.readLine()) != null) {
-                        if (isFirstLine) {
-                            isFirstLine = false;
-                            continue;
-                        }
-
-                        String[] splitted = line.split(" +");
-
-                        if (splitted.length >= 4) {
-
-                            String ipAddress = splitted[0];
-                            String macAddress = splitted[3];
-
-                            boolean isReachable = InetAddress.getByName(
-                                    splitted[0]).isReachable(500);
-                            // this is network call so we cant do that on UI thread, so take background thread.
-                            if (isReachable) {
-                                Log.d("Device Information", ipAddress + " : "
-                                        + macAddress);
-
-                                //added afterwards for receiving names of available clients..
-                                //but by adding this names to array list, the ip addresses is lost. so do something.
-                                try {
-                                    Socket socket = new Socket();
-                                    //receive from port 5006 and timeout is 5s.
-                                    socket.connect(new InetSocketAddress(ipAddress, 5006), 5000);
-                                    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                                    givenName = reader.readLine();
-                                    reader.close();
-                                    socket.close();
-                                    Log.i("TAG", givenName);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                                //Assigning values to final array or array list is perfectly fine.
-
-                                arr.add(ipAddress);
-                                InetAddress inetAddress = InetAddress.getByName(ipAddress);
-                                hostName = inetAddress.getHostName();
-                                canonicalHostname = inetAddress.getCanonicalHostName();
-
-                                //  Toast.makeText(context,hostName+canonicalHostname,Toast.LENGTH_LONG).show();
-
-                            }
-
-                        }
-
-                    }
-
-                } catch (Exception e) {
-                    xceptionFlag = true;
-                    e.printStackTrace();
-                } finally {
-                    try {
-                        if (br != null) {
-                            br.close();
-                        }
-                    } catch (IOException e) {
-                        xceptionFlag = true;
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-        thread.start();
-
-        //Wait util thread is completed. And then return array.
-        //Otherwise it'll return null array or array list or what ever.
-        try{
-            thread.join();
-        }
-        catch (Exception e){
-            xceptionFlag = true;
-            e.printStackTrace();
-        }
-        return arr;
-
-    }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifimanager.setWifiEnabled(true);

@@ -23,6 +23,13 @@
             android:icon="@drawable/icon_delete"
             app:showAsAction="never|withText">
         </item>
+        <item
+            android:id="@+id/actualizar_version"
+            android:title="Actualizar version"
+            android:icon="@drawable/icon_update"
+            app:showAsAction="never|withText">
+        </item>
+
     </group>
 
 </menu>

@@ -1,6 +1,7 @@
 package proyecto.app.clientesabc.actividades;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -33,10 +34,17 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.clases.ActualizacionServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 
 /**
@@ -150,6 +158,19 @@ public class LoginActivity extends AppCompatActivity {
                         DialogHandler appdialog = new DialogHandler();
                         appdialog.Confirm(LoginActivity.this, "Confirmar Eliminacion", "Este proceso eliminara todo formulario que no haya sido transmitido, desea continuar con el proceso de eliminacion de datos?", "No", "Si", new LoginActivity.BorrarBaseDatos(getBaseContext()));
                         break;
+                    case R.id.actualizar_version:
+                        //Realizar la transmision de lo que se necesita (Db o txt)
+                        WeakReference<Context> weakRefs = new WeakReference<Context>(LoginActivity.this);
+                        WeakReference<Activity> weakRefAs = new WeakReference<Activity>(LoginActivity.this);
+
+                        ActualizacionServidor a = new ActualizacionServidor(weakRefs, weakRefAs);
+                        if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("wifi")){
+                            a.EnableWiFi();
+                        }else{
+                            a.DisableWiFi();
+                        }
+                        a.execute();
+                        break;
                     default:
                         Toasty.info(getBaseContext(),"Opcion no encontrada!").show();
                 }
@@ -193,7 +214,10 @@ public class LoginActivity extends AppCompatActivity {
         final TextView ult_sinc = d.findViewById(R.id.ult_sinc);
         final TextView ult_trans = d.findViewById(R.id.ult_trans);
 
-        version.setText("Versión: "+VariablesGlobales.getVersion());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        Date buildDate = BuildConfig.BuildDate;
+
+        version.setText("Versión: "+ BuildConfig.VERSION_NAME+" ("+dateFormat.format(buildDate)+")");
         ult_sinc.setText("Última sincronización: "+PreferenceManager.getDefaultSharedPreferences(context).getString("ultimaSincronizacion","No hay"));
         ult_trans.setText("Última transmisión: "+PreferenceManager.getDefaultSharedPreferences(context).getString("ultimaTransmision","No hay"));
         //SHOW DIALOG

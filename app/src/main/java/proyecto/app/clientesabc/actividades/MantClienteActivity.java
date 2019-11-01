@@ -317,7 +317,7 @@ public class MantClienteActivity extends AppCompatActivity {
                                     startActivity(intent);
                                     break;
                                 case R.id.modificar:
-                                    showDialogFormulariosModificacion();
+                                    showDialogFormulariosModificacion(codigoCliente);
                                     break;
                                 case R.id.cierre:
                                     //handle menu3 click
@@ -392,8 +392,9 @@ public class MantClienteActivity extends AppCompatActivity {
         }
     }
 
-    private void showDialogFormulariosModificacion() {
-        String[] forms = {"Modificacion General", "Modificacion Ventas", "Modificacion Marketing", "Modificacion Bancos"};
+    private void showDialogFormulariosModificacion(final String codigoCliente) {
+        final String[] idforms = {"2", "3", "4", "5"};
+        final String[] forms = {"Modificacion General", "Modificacion Ventas", "Modificacion Marketing", "Modificacion Bancos"};
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
@@ -401,8 +402,9 @@ public class MantClienteActivity extends AppCompatActivity {
         builder.setCustomTitle(view);
         builder.setSingleChoiceItems(forms, 0, new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface arg0, int arg1) {
-
+            public void onClick(DialogInterface dialog, int arg1) {
+                //ListView lw = ((AlertDialog)dialog).getListView();
+                //Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
             }
 
         });
@@ -413,7 +415,12 @@ public class MantClienteActivity extends AppCompatActivity {
                 // user clicked OK, so save the mSelectedItems results somewhere
                 // or return them to the component that opened the dialog
                 int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
-
+                Bundle b = new Bundle();
+                b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
+                b.putString("codigoCliente", codigoCliente);
+                intent = new Intent(getApplicationContext(),SolicitudModificacionActivity.class);
+                intent.putExtras(b); //Pase el parametro el Intent
+                startActivity(intent);
             }
         });
 

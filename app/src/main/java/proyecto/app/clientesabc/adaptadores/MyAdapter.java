@@ -150,31 +150,35 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                         || formListFiltered.get(position).get("estado").trim().equals("Pendiente")){
                     MenuItem item = popupMenu.findItem(R.id.modificar);
                     item.setVisible(false);
-                    item = popupMenu.findItem(R.id.cancelar);
+                    item = popupMenu.findItem(R.id.incompleto);
                     item.setVisible(false);
                     item = popupMenu.findItem(R.id.eliminar);
                     item.setVisible(false);
                     item = popupMenu.findItem(R.id.transmitir);
+                    item.setVisible(false);
+                    item = popupMenu.findItem(R.id.reactivar);
                     item.setVisible(false);
                 }
                 if(formListFiltered.get(position).get("estado").trim().equals("Incidencia")){
-                    MenuItem item = popupMenu.findItem(R.id.cancelar);
+                    MenuItem item = popupMenu.findItem(R.id.incompleto);
                     item.setVisible(false);
                     item = popupMenu.findItem(R.id.eliminar);
                     item.setVisible(false);
                     item = popupMenu.findItem(R.id.transmitir);
                     item.setVisible(false);
-                }
-                if(formListFiltered.get(position).get("estado").trim().equals("Cancelado")){
-                    MenuItem item = popupMenu.findItem(R.id.cancelar);
-                    item.setVisible(false);
-                    item = popupMenu.findItem(R.id.transmitir);
+                    item = popupMenu.findItem(R.id.reactivar);
                     item.setVisible(false);
                 }
                 if(formListFiltered.get(position).get("estado").trim().equals("Modificado")){
-                    MenuItem item = popupMenu.findItem(R.id.cancelar);
+                    MenuItem item = popupMenu.findItem(R.id.incompleto);
                     item.setVisible(false);
                     item = popupMenu.findItem(R.id.eliminar);
+                    item.setVisible(false);
+                }
+                if(formListFiltered.get(position).get("estado").trim().equals("Incompleto")){
+                    MenuItem item = popupMenu.findItem(R.id.incompleto);
+                    item.setVisible(false);
+                    item = popupMenu.findItem(R.id.transmitir);
                     item.setVisible(false);
                 }
 
@@ -200,8 +204,21 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                                 intent.putExtras(b); //Pase el parametro el Intent
                                 context.startActivity(intent);
                                 break;
-                            case R.id.cancelar:
+                            case R.id.incompleto:
                                 db.CambiarEstadoSolicitud(formListFiltered.get(position).get("id_solicitud").trim(),"Incompleto");
+                                intent = activity.getIntent();
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                                activity.finish();
+                                activity.overridePendingTransition(0, 0);
+                                startActivity(context, intent, null);
+                                activity.overridePendingTransition(0, 0);
+                                break;
+                            case R.id.reactivar:
+                                if(formListFiltered.get(position).get("estado").trim().equals("Modificado")){
+                                    db.CambiarEstadoSolicitud(formListFiltered.get(position).get("id_solicitud").trim(),"Incidencia");
+                                }else{
+                                    db.CambiarEstadoSolicitud(formListFiltered.get(position).get("id_solicitud").trim(),"Nuevo");
+                                }
                                 intent = activity.getIntent();
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                                 activity.finish();

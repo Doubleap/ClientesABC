@@ -7,8 +7,9 @@ android {
         minSdkVersion 23
         targetSdkVersion 27
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        buildConfigField "java.util.Date", "BuildDate", "new java.util.Date(" + System.currentTimeMillis() + "L)"
     }
     buildTypes {
         release {

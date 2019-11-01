@@ -1807,7 +1807,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     public void CambiarEstadoSolicitud(String lista_id_solicitudes,String estado){
-        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = '"+estado.trim()+"' WHERE id_solicitud IN ("+lista_id_solicitudes+");";
+        String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = '"+estado.trim()+"' WHERE id_solicitud IN ('"+lista_id_solicitudes+"');";
         mDataBase.execSQL(sqlUpdate);
     }
     public void EliminarSolicitud(String id_solicitud){

@@ -81,7 +81,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
             if(s < 0){
                 publishProgress("Error en Sincronizacion...");
                 s = dis.readLong();
-                byte[] e = new byte[124];
+                byte[] e = new byte[(int) s];
                 dis.readFully(e);
                 String error = new String(e);
                 xceptionFlag = true;

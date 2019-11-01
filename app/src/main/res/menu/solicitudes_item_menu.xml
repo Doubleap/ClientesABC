@@ -12,11 +12,14 @@
         android:id="@+id/modificar"
         android:title="Modificar Solicitud" />
     <item
-        android:id="@+id/cancelar"
+        android:id="@+id/incompleto"
         android:title="Marcar Incompleto" />
     <item
         android:id="@+id/eliminar"
         android:title="Eliminar Solicitud" />
+    <item
+        android:id="@+id/reactivar"
+        android:title="Reactivar Solicitud" />
     <item
         android:id="@+id/transmitir"
         android:title="Transmitir Solicitud" />

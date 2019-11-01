@@ -1,16 +1,26 @@
 package proyecto.app.clientesabc.modelos;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Contacto {
    private String id;
    private String id_solicitud;
    private String id_formulario;
+   @SerializedName("W_CTE-NAME1")
    private String name1;
+    @SerializedName("W_CTE-NAMEV")
    private String namev;
+    @SerializedName("W_CTE-TELF1")
    private String telf1;
+    @SerializedName("W_CTE-PAFKT")
    private String pafkt;
+    @SerializedName("W_CTE-GBDAT")
    private String gbdat;
+    @SerializedName("W_CTE-STREET")
    private String street;
+    @SerializedName("W_CTE-HOUSE_NUM1")
    private String house_num1;
+    @SerializedName("W_CTE-COUNTRY")
    private String country;
    private String datatype;
    private String numeric_precision;
