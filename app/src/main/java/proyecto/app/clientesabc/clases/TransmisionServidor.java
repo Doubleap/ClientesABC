@@ -108,23 +108,23 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                     filtroUnicaSolicitud = " AND id_solicitud = '"+id_solicitud.trim()+"'";
                 }
                 //Comenzar a crear las tablas segun lo que existe actualmente en la base de datos
-                String sqlCreate = "CREATE TABLE FormHvKof_solicitud AS SELECT * FROM fromDB.FormHvKof_solicitud WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud;
+                String sqlCreate = "CREATE TABLE FormHvKof_solicitud AS SELECT * FROM fromDB.FormHvKof_solicitud WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud;
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE encuesta_solicitud AS SELECT * FROM fromDB.encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido') "+filtroUnicaSolicitud+")";
+                sqlCreate = "CREATE TABLE encuesta_solicitud AS SELECT * FROM fromDB.encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado') "+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE encuesta_gec_solicitud AS SELECT * FROM fromDB.encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud+")";
+                sqlCreate = "CREATE TABLE encuesta_gec_solicitud AS SELECT * FROM fromDB.encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_contacto_solicitud AS SELECT * FROM fromDB.grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud+")";
+                sqlCreate = "CREATE TABLE grid_contacto_solicitud AS SELECT * FROM fromDB.grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_bancos_solicitud AS SELECT * FROM fromDB.grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud+")";
+                sqlCreate = "CREATE TABLE grid_bancos_solicitud AS SELECT * FROM fromDB.grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_impuestos_solicitud AS SELECT * FROM fromDB.grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud+")";
+                sqlCreate = "CREATE TABLE grid_impuestos_solicitud AS SELECT * FROM fromDB.grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_visitas_solicitud AS SELECT * FROM fromDB.grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud+")";
+                sqlCreate = "CREATE TABLE grid_visitas_solicitud AS SELECT * FROM fromDB.grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE grid_interlocutor_solicitud AS SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Corregido')"+filtroUnicaSolicitud+")";
+                sqlCreate = "CREATE TABLE grid_interlocutor_solicitud AS SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo')"+filtroUnicaSolicitud+")";
+                sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
                 publishProgress("Empaquetando datos...");
                 String pathFileToZip = context.get().getApplicationInfo().dataDir + "/databases/";

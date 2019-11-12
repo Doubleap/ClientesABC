@@ -77,4 +77,7 @@
     <style name="BottomNavigationView.Inactive" parent="@style/TextAppearance.AppCompat.Caption">
         <item name="android:textSize">11sp</item>
     </style>
+    <style name="AlertDialogTheme" parent="AppTheme">
+        <item name="android:textSize">14sp</item>
+    </style>
 </resources>

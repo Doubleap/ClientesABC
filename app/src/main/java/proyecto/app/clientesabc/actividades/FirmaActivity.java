@@ -9,6 +9,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -93,17 +94,6 @@ public class FirmaActivity extends AppCompatActivity {
             public void onClick(View v) {
                 view.setDrawingCacheEnabled(true);
                 mSignature.save(view,StoredPath);
-
-                Intent resultIntent = new Intent();
-                File file = new File(StoredPath);
-                MimeTypeMap mime = MimeTypeMap.getSingleton();
-                int index = file.getName().lastIndexOf('.')+1;
-                String ext = file.getName().substring(index).toLowerCase();
-                String type = mime.getMimeTypeFromExtension(ext);
-                resultIntent.setDataAndType(Uri.fromFile(file), type);
-                resultIntent.putExtra("ImageName", file.getName());
-                setResult(Activity.RESULT_OK, resultIntent);
-                finish();
             }
         });
 
@@ -111,8 +101,12 @@ public class FirmaActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //mSignature.clear();
-                mSignature.setScaleX(mSignature.getScaleX()+1);
-                mSignature.setScaleY(mSignature.getScaleY()+1);
+                if(mSignature.getScaleX() <= 2f) {
+                    mSignature.setScaleX(mSignature.getScaleX()+0.1f);
+                    mSignature.setScaleY(mSignature.getScaleY()+0.1f);
+                }else{
+                    Toasty.info(getBaseContext(),"Escala máxima").show();
+                }
             }
         });
 
@@ -120,8 +114,12 @@ public class FirmaActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //mSignature.clear();
-                mSignature.setScaleX(mSignature.getScaleX()-1);
-                mSignature.setScaleY(mSignature.getScaleY()-1);
+                if(mSignature.getScaleX() > 0.3f) {
+                    mSignature.setScaleX(mSignature.getScaleX() - 0.1f);
+                    mSignature.setScaleY(mSignature.getScaleY() - 0.1f);
+                }else{
+                    Toasty.info(getBaseContext(),"Escala mínima").show();
+                }
             }
         });
 
@@ -154,23 +152,40 @@ public class FirmaActivity extends AppCompatActivity {
         public void save(View v, String StoredPath) {
             Log.v("log_tag", "Width: " + v.getWidth());
             Log.v("log_tag", "Height: " + v.getHeight());
+
+            PathMeasure mp = new PathMeasure(path,false);
+            if(path.isEmpty()){
+                Toasty.warning(getBaseContext(),"Las politicas deben ser firmadas por el cliente!").show();
+                return;
+            }
             if (bitmap == null) {
                 bitmap = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.RGB_565);
             }
+
             Canvas canvas = new Canvas(bitmap);
+
             try {
                 // Output the file
                 FileOutputStream mFileOutStream = new FileOutputStream(StoredPath);
                 v.draw(canvas);
 
                 // Convert the output file to Image such as .png
-                bitmap.compress(Bitmap.CompressFormat.PNG, 90, mFileOutStream);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 20, mFileOutStream);
                 mFileOutStream.flush();
                 mFileOutStream.close();
 
                 //Una vez guardado en el archivo Signature, se procede a ligar la imagen al formulario activo
                 Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
-
+                Intent resultIntent = new Intent();
+                File file = new File(StoredPath);
+                MimeTypeMap mime = MimeTypeMap.getSingleton();
+                int index = file.getName().lastIndexOf('.')+1;
+                String ext = file.getName().substring(index).toLowerCase();
+                String type = mime.getMimeTypeFromExtension(ext);
+                resultIntent.setDataAndType(Uri.fromFile(file), type);
+                resultIntent.putExtra("ImageName", file.getName());
+                setResult(Activity.RESULT_OK, resultIntent);
+                finish();
             } catch (Exception e) {
                 Log.v("log_tag", e.toString());
             }

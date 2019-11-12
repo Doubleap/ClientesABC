@@ -52,7 +52,7 @@
         <LinearLayout
             android:id="@+id/canvasLL"
             android:layout_width="match_parent"
-            android:layout_height="175dp"
+            android:layout_height="200dp"
             android:orientation="vertical"
             android:layout_gravity="top"
             android:background="@drawable/canvas_background">
@@ -71,12 +71,13 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginBottom="20dp"
-        android:layout_marginTop="20dp"
+        android:layout_weight="2"
+        android:layout_marginBottom="0dp"
+        android:layout_marginTop="0dp"
         android:layout_marginStart="10dp"
         android:orientation="horizontal"
-        android:layout_gravity="bottom">
+        android:layout_gravity="bottom"
+        >
 
         <Button
             style="?android:attr/buttonBarButtonStyle"

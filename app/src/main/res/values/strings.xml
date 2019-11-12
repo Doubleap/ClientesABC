@@ -17,8 +17,8 @@
     </string>
     <string name="solicitud">Solicitud Inclusion</string>
     <string name="comunicacion">Comunicacion</string>
-    <string name="title_activity_comunicacion">Actualizacion de Datos</string>
-    <string name="title_activity_firma">Firma Aceptacion Cliente</string>
+    <string name="title_activity_comunicacion">Actualización de Datos</string>
+    <string name="title_activity_firma">Firma Aceptación Cliente</string>
     <string name="title_activity_solicitud">Crear Solicitud</string>
 
     <string name="inicial">MAESTRO CLIENTES APP</string>

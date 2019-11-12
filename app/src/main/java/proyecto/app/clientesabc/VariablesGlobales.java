@@ -27,6 +27,14 @@ public class VariablesGlobales extends Application {
     private static String TABLA_ENCUESTA_SOLICITUD = "encuesta_solicitud";
     private static String TABLA_ENCUESTA_GEC_SOLICITUD = "encuesta_gec_solicitud";
 
+    private static String TABLA_BLOQUE_CONTACTO_OLD_HH = "grid_contacto_old_solicitud";
+    private static String TABLA_BLOQUE_BANCO_OLD_HH = "grid_bancos_old_solicitud";
+    private static String TABLA_BLOQUE_IMPUESTO_OLD_HH = "grid_impuestos_old_solicitud";
+    private static String TABLA_BLOQUE_INTERLOCUTOR_OLD_HH = "grid_interlocutor_old_solicitud";
+    private static String TABLA_BLOQUE_VISITA_OLD_HH = "grid_visitas_old_solicitud";
+    private static String TABLA_ENCUESTA_OLD_SOLICITUD = "encuesta_old_solicitud";
+    private static String TABLA_ENCUESTA_OLD_GEC_SOLICITUD = "encuesta_gec_old_solicitud";
+
     public static String getTablaEncuestaSolicitud() {
         return TABLA_ENCUESTA_SOLICITUD;
     }
@@ -155,4 +163,59 @@ public class VariablesGlobales extends Application {
         VariablesGlobales.land1 = land1;
     }
 
+    public static String getTABLA_BLOQUE_CONTACTO_OLD_HH() {
+        return TABLA_BLOQUE_CONTACTO_OLD_HH;
+    }
+
+    public static void setTABLA_BLOQUE_CONTACTO_OLD_HH(String tablaBloqueContactoOldHh) {
+        TABLA_BLOQUE_CONTACTO_OLD_HH = tablaBloqueContactoOldHh;
+    }
+
+    public static String getTABLA_BLOQUE_BANCO_OLD_HH() {
+        return TABLA_BLOQUE_BANCO_OLD_HH;
+    }
+
+    public static void setTABLA_BLOQUE_BANCO_OLD_HH(String tablaBloqueBancoOldHh) {
+        TABLA_BLOQUE_BANCO_OLD_HH = tablaBloqueBancoOldHh;
+    }
+
+    public static String getTABLA_BLOQUE_IMPUESTO_OLD_HH() {
+        return TABLA_BLOQUE_IMPUESTO_OLD_HH;
+    }
+
+    public static void setTABLA_BLOQUE_IMPUESTO_OLD_HH(String tablaBloqueImpuestoOldHh) {
+        TABLA_BLOQUE_IMPUESTO_OLD_HH = tablaBloqueImpuestoOldHh;
+    }
+
+    public static String getTABLA_BLOQUE_INTERLOCUTOR_OLD_HH() {
+        return TABLA_BLOQUE_INTERLOCUTOR_OLD_HH;
+    }
+
+    public static void setTABLA_BLOQUE_INTERLOCUTOR_OLD_HH(String tablaBloqueInterlocutorOldHh) {
+        TABLA_BLOQUE_INTERLOCUTOR_OLD_HH = tablaBloqueInterlocutorOldHh;
+    }
+
+    public static String getTABLA_BLOQUE_VISITA_OLD_HH() {
+        return TABLA_BLOQUE_VISITA_OLD_HH;
+    }
+
+    public static void setTABLA_BLOQUE_VISITA_OLD_HH(String tablaBloqueVisitaOldHh) {
+        TABLA_BLOQUE_VISITA_OLD_HH = tablaBloqueVisitaOldHh;
+    }
+
+    public static String getTABLA_ENCUESTA_OLD_SOLICITUD() {
+        return TABLA_ENCUESTA_OLD_SOLICITUD;
+    }
+
+    public static void setTABLA_ENCUESTA_OLD_SOLICITUD(String tablaEncuestaOldSolicitud) {
+        TABLA_ENCUESTA_OLD_SOLICITUD = tablaEncuestaOldSolicitud;
+    }
+
+    public static String getTABLA_ENCUESTA_OLD_GEC_SOLICITUD() {
+        return TABLA_ENCUESTA_OLD_GEC_SOLICITUD;
+    }
+
+    public static void setTABLA_ENCUESTA_OLD_GEC_SOLICITUD(String tablaEncuestaOldGecSolicitud) {
+        TABLA_ENCUESTA_OLD_GEC_SOLICITUD = tablaEncuestaOldGecSolicitud;
+    }
 }

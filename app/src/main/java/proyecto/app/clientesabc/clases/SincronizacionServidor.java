@@ -87,10 +87,10 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                 xceptionFlag = true;
                 messageFlag = "Error: "+error;
             }else {
-                publishProgress("Procesando datos recibidos...");
+                publishProgress("Recibiendo datos...");
                 byte[] r = new byte[(int) s];
                 dis.readFully(r);
-
+                publishProgress("Procesando datos recibidos...");
                 File tranFileDir;
                 File externalStorage = Environment.getExternalStorageDirectory();
                 if (externalStorage != null) {
@@ -135,23 +135,23 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                                 mDataBase.execSQL(sqlAttach);
 
                                 //Borrar Incidencias que fueron modificadas pero no han sido transmitidas
-                                String sqlInsert = "DELETE FROM FormHVKOF_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado','Corregido'))";
+                                String sqlInsert = "DELETE FROM FormHVKOF_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "DELETE FROM encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado','Corregido'))";
+                                sqlInsert = "DELETE FROM encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "DELETE FROM encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado','Corregido'))";
+                                sqlInsert = "DELETE FROM encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "DELETE FROM grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado','Corregido'))";
+                                sqlInsert = "DELETE FROM grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "DELETE FROM grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado','Corregido'))";
+                                sqlInsert = "DELETE FROM grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "DELETE FROM grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado','Corregido'))";
+                                sqlInsert = "DELETE FROM grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "DELETE FROM grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado','Corregido'))";
+                                sqlInsert = "DELETE FROM grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "DELETE FROM grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado','Corregido'))";
+                                sqlInsert = "DELETE FROM grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
                                 mDataBase.execSQL(sqlInsert);
-                                sqlInsert = "DELETE FROM adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado','Corregido'))";
+                                sqlInsert = "DELETE FROM adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
                                 mDataBase.execSQL(sqlInsert);
 
                                 //Insertar registros del BACK UP realizado antes de sincornizar de la HH para no perder nuevos , modificados o incompletos

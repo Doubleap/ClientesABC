@@ -1,12 +1,18 @@
 package proyecto.app.clientesabc.modelos;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Impuesto {
     private String id_impuestos;
     private String id_solicitud;
     private String id_formulario;
+    @SerializedName("W_CTE-TATYP")
     private String tatyp;
+    @SerializedName("W_CTE-VTEXT")
     private String vtext;
+    @SerializedName("W_CTE-TAXKD")
     private String taxkd;
+    @SerializedName("W_CTE-VTEXT2")
     private String vtext2;
 
     private String getId_impuestos() {

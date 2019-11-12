@@ -1,30 +1,55 @@
 package proyecto.app.clientesabc.modelos;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Visitas {
     private String id_formulario;
     private String id_solicitud;
+    @SerializedName("W_CTE-VPTYP")
     private String vptyp;
+    @SerializedName("W_CTE-KVGR4")
     private String kvgr4;
+    @SerializedName("W_CTE-RUTA")
     private String ruta;
+    @SerializedName("W_CTE-LUN_DE")
     private String lun_de;
+    @SerializedName("W_CTE-LUN_A")
     private String lun_a;
+    @SerializedName("W_CTE-MAR_DE")
     private String mar_de;
+    @SerializedName("W_CTE-MAR_A")
     private String mar_a;
+    @SerializedName("W_CTE-MIER_DE")
     private String mier_de;
+    @SerializedName("W_CTE-MIER_A")
     private String mier_a;
+    @SerializedName("W_CTE-JUE_DE")
     private String jue_de;
+    @SerializedName("W_CTE-JUE_A")
     private String jue_a;
+    @SerializedName("W_CTE-VIE_DE")
     private String vie_de;
+    @SerializedName("W_CTE-VIE_A")
     private String vie_a;
+    @SerializedName("W_CTE-SAB_DE")
     private String sab_de;
+    @SerializedName("W_CTE-SAB_A")
     private String sab_a;
+    @SerializedName("W_CTE-DOM_DE")
     private String dom_de;
+    @SerializedName("W_CTE-DOM_A")
     private String dom_a;
+    @SerializedName("W_CTE-F_INI")
     private String f_ini;
+    @SerializedName("W_CTE-F_FIN")
     private String f_fin;
+    @SerializedName("W_CTE-F_FREC")
     private String f_frec;
+    @SerializedName("W_CTE-F_ICO")
     private String f_ico;
+    @SerializedName("W_CTE-F_FCO")
     private String f_fco;
+    @SerializedName("W_CTE-FCALID")
     private String fcalid;
 
     public String getId_formulario() {

@@ -9,32 +9,34 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
-import android.os.Bundle;
-import android.widget.EditText;
+
+import com.vicmikhailau.maskededittext.MaskedEditText;
+
+import es.dmoral.toasty.Toasty;
 
 public class LocacionGPSActivity {
 
     private static final String TAG = "LocacionGPSActivity";
-    private EditText mLatitudeTextView;
-    private EditText mLongitudeTextView;
-    private Location mLocation;
-    private LocationManager mLocationManager;
-
-    private long UPDATE_INTERVAL = 2 * 1000;  /* 10 secs */
-    private long FASTEST_INTERVAL = 2000; /* 2 sec */
+    private MaskedEditText mLatitudeTextView;
+    private MaskedEditText mLongitudeTextView;
+    private long UPDATE_INTERVAL = 10 * 1000;  /* 10 secs */
+    private long FASTEST_INTERVAL = 1000; /* 1 sec */
 
     private LocationManager locationManager;
     private Context context;
     private Activity activity;
 
+    private LocationListener locationListener;
+
     LocacionGPSActivity() {
 
     }
 
-    LocacionGPSActivity(Context c, Activity a, EditText lat, EditText longi){
+    LocacionGPSActivity(Context c, Activity a, MaskedEditText lat, MaskedEditText longi){
         context = c;
         activity = a;
         mLatitudeTextView = lat;
@@ -44,30 +46,31 @@ public class LocacionGPSActivity {
     protected void startLocationUpdates() {
         checkLocation();
         // Listener para escuchar cada vez que la locacion cambia
-        LocationListener locationListener = new LocationListener() {
+        locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                String msg = "Actualizando ubicacion: " +
+                String msg = "Coordenadas Actualizadas: " +
                         Double.toString(location.getLatitude()) + "," +
                         Double.toString(location.getLongitude());
                 mLatitudeTextView.setText(String.valueOf(location.getLatitude()));
                 mLongitudeTextView.setText(String.valueOf(location.getLongitude() ));
 
-                //Toast.makeText(getBaseContext(), msg, Toast.LENGTH_SHORT).show();
+                Toasty.success(context, msg, Toasty.LENGTH_SHORT).show();
                 // You can now create a LatLng Object for use with maps
                 //LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                if(!mLatitudeTextView.getText().equals("0") && !mLongitudeTextView.getText().equals("0"))
+                if(!mLatitudeTextView.getText().equals("0") && !mLongitudeTextView.getText().equals("0")) {
                     locationManager.removeUpdates(this);
+                }
             }
 
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
-                //Toast.makeText(getBaseContext(), "Status "+provider + " : "+status, Toast.LENGTH_SHORT).show();
+                //Toasty.info(context, "Status "+provider + " : "+status, Toasty.LENGTH_SHORT).show();
             }
 
             @Override
             public void onProviderEnabled(String provider) {
-                //Toast.makeText(getBaseContext(), "Habilitado "+provider, Toast.LENGTH_SHORT).show();
+                //Toasty.info(context, "Habilitado " + provider, Toasty.LENGTH_SHORT).show();
             }
 
             @Override
@@ -75,17 +78,23 @@ public class LocacionGPSActivity {
                 //Toast.makeText(getBaseContext(), "Deshabilitado "+provider, Toast.LENGTH_SHORT).show();
             }
         };
-        locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        locationManager = (LocationManager) context.getSystemService(context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
             return;
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-        locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, locationListener);
+        try{
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, FASTEST_INTERVAL, 0, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, FASTEST_INTERVAL, 0, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, FASTEST_INTERVAL, 0, locationListener);
+        } catch (java.lang.SecurityException ex) {
+            Toasty.error(context, "Fallo en pedir la ubicacion").show();
+        } catch (IllegalArgumentException ex) {
+            Toasty.error(context, "Proveedor de ubicacion no existe").show();
+        }
 
-        Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         mLatitudeTextView.setText("0");
         mLongitudeTextView.setText("0");
     }
@@ -119,7 +128,7 @@ public class LocacionGPSActivity {
     }
 
     private boolean isLocationEnabled() {
-        locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        locationManager = (LocationManager) context.getSystemService(context.LOCATION_SERVICE);
         return locationManager != null && (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) || locationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER));
     }
 

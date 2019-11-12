@@ -29,6 +29,7 @@ import java.util.HashMap;
 
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.actividades.SolicitudActivity;
+import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
 
 import static android.support.v4.content.ContextCompat.startActivity;
@@ -79,6 +80,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         TextView estado_text = (TextView) holder.listView.findViewById(R.id.estado_text);
         ImageView estado_circulo = holder.listView.findViewById(R.id.estado_circulo);
         ImageView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
+        TextView tipo_solicitud = (TextView) holder.listView.findViewById(R.id.tipo_solicitud);
 
         Drawable background = estado.getBackground();
         Drawable background_circulo = estado_circulo.getBackground();
@@ -112,17 +114,24 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         estado_text.setTextColor(ContextCompat.getColor(context, color));
         estado.setBackground(ContextCompat.getDrawable(context, color));
         estado_circulo.getBackground().setTint(ContextCompat.getColor(context, color));
+        tipo_solicitud.setText(formListFiltered.get(position).get("tipo_solicitud").trim());
+        tipo_solicitud.setTextColor(color);
 
         holder.listView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Bundle b = new Bundle();
-                //TODO seleccionar el tipo de solicitud por el UI
-                //b.putString("tipoSolicitud", "1"); //id de solicitud
+                Intent intent;
                 b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
-                Intent intent = new Intent(view.getContext(), SolicitudActivity.class);
-                intent.putExtras(b); //Pase el parametro el Intent
-                view.getContext().startActivity(intent);
+                if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6")) {
+                    intent = new Intent(context, SolicitudActivity.class);
+                    intent.putExtras(b); //Pase el parametro el Intent
+                    context.startActivity(intent);
+                }else{
+                    intent = new Intent(context, SolicitudModificacionActivity.class);
+                    intent.putExtras(b); //Pase el parametro el Intent
+                    context.startActivity(intent);
+                }
             }
         });
         codigo.setOnClickListener(new View.OnClickListener() {
@@ -193,16 +202,27 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                                 //TODO enviar el tipo de formulario tambien a la solicitud
                                 //b.putString("tipoSolicitud", "1"); //id de solicitud
                                 b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
-                                intent = new Intent(context, SolicitudActivity.class);
-                                intent.putExtras(b); //Pase el parametro el Intent
-                                context.startActivity(intent);
+                                if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6")) {
+                                    intent = new Intent(context, SolicitudActivity.class);
+                                    intent.putExtras(b); //Pase el parametro el Intent
+                                    context.startActivity(intent);
+                                }else{
+                                    intent = new Intent(context, SolicitudModificacionActivity.class);
+                                    intent.putExtras(b); //Pase el parametro el Intent
+                                    context.startActivity(intent);
+                                }
                                 break;
                             case R.id.modificar:
-                                //b.putString("tipoSolicitud", "1"); //id de solicitud
                                 b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
-                                intent = new Intent(context, SolicitudActivity.class);
-                                intent.putExtras(b); //Pase el parametro el Intent
-                                context.startActivity(intent);
+                                if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6")) {
+                                    intent = new Intent(context, SolicitudActivity.class);
+                                    intent.putExtras(b); //Pase el parametro el Intent
+                                    context.startActivity(intent);
+                                }else{
+                                    intent = new Intent(context, SolicitudModificacionActivity.class);
+                                    intent.putExtras(b); //Pase el parametro el Intent
+                                    context.startActivity(intent);
+                                }
                                 break;
                             case R.id.incompleto:
                                 db.CambiarEstadoSolicitud(formListFiltered.get(position).get("id_solicitud").trim(),"Incompleto");

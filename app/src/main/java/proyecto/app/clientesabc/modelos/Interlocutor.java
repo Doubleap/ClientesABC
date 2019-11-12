@@ -1,12 +1,18 @@
 package proyecto.app.clientesabc.modelos;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Interlocutor {
     private String id_interlocutor;
     private String id_formulario;
     private String id_solicitud;
+    @SerializedName("W_CTE-PARVW")
     private String parvw;
+    @SerializedName("W_CTE-VTEXT")
     private String vtext;
+    @SerializedName("W_CTE-KUNN2")
     private String kunn2;
+    @SerializedName("W_CTE-NAME1")
     private String name1;
 
     private String getId_interlocutor() {

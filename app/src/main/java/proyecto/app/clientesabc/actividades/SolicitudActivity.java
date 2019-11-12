@@ -200,14 +200,18 @@ public class SolicitudActivity extends AppCompatActivity {
 
 
         if(idSolicitud != null){
-            setTitle("Solicitud");
             solicitudSeleccionada = mDBHelper.getSolicitud(idSolicitud);
             tipoSolicitud = solicitudSeleccionada.get(0).get("TIPFORM");
             GUID = solicitudSeleccionada.get(0).get("id_solicitud");
             setTitle(GUID);
+            String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
+            getSupportActionBar().setSubtitle(descripcion);
         }else{
             GUID = mDBHelper.getGuiId();
             solicitudSeleccionada.clear();
+            setTitle("Solicitud Nuevo Cliente");
+            String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
+            getSupportActionBar().setSubtitle(descripcion);
         }
         if(solicitudSeleccionada.size() > 0) {
             firma = true;
@@ -281,6 +285,14 @@ public class SolicitudActivity extends AppCompatActivity {
                                         numErrores++;
                                         mensajeError += "- "+tv.getTag()+"\n";
                                     }
+                                    if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") && !ValidarCoordenadaY(tv)){
+                                        numErrores++;
+                                        mensajeError += "- Formato Coordenada Y invalido\n";
+                                    }
+                                    if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG") && !ValidarCoordenadaX(tv)){
+                                        numErrores++;
+                                        mensajeError += "- Formato Coordenada X invalido\n";
+                                    }
                                 }
                             }catch(Exception e){
                                 Spinner combo = ((Spinner) mapeoCamposDinamicos.get(listaCamposObligatorios.get(i)));
@@ -346,6 +358,23 @@ public class SolicitudActivity extends AppCompatActivity {
                         if(!cedulaValidada){
                             numErrores++;
                             mensajeError += "- Formato de cédula Inválida!\n";
+                        }
+
+                        //Validacion de siguiente aprobador seleccionado
+                        Spinner combo = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
+                        if(combo.getSelectedItem() != null) {
+                            String valor = ((OpcionSpinner)combo.getAdapter().getItem((int) combo.getSelectedItemId())).getId();
+
+                            if (combo.getAdapter().getCount() == 0 || (combo.getAdapter().getCount() > 0 && valor.isEmpty() )) {
+                                ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
+                                numErrores++;
+                                mensajeError += "- Siguiente Aprobador\n";
+                            }
+                        }else{
+                            TextView error = (TextView)combo.getSelectedView();
+                            error.setError("El campo es obligatorio!");
+                            numErrores++;
+                            mensajeError += "- Siguiente Aprobador\n";
                         }
 
                         if(numErrores == 0) {
@@ -650,6 +679,9 @@ public class SolicitudActivity extends AppCompatActivity {
             }
             if(nombre.equals("Marketing")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"M");
+            }
+            if(nombre.equals("Creditos") || nombre.equals("Créditos")  || nombre.equals("Crédito")  || nombre.equals("Credito")) {
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"C");
             }
             if(nombre.equals("Adjuntos") || nombre.equals("Adicionales")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"Z");
@@ -1479,7 +1511,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 if(solicitudSeleccionada.size() == 0) {
                     combo.setSelection(1);
                 }else{
-                    combo.setSelection(VariablesGlobales.getIndex(combo,solicitudSeleccionada.get(0).get("SIGUIENTE_APROBADOR")));
+                    combo.setSelection(VariablesGlobales.getIndex(combo,solicitudSeleccionada.get(0).get("SIGUIENTE_APROBADOR").toString().trim()));
                     if(!solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")){
                         combo.setEnabled(false);
                     }
@@ -3723,7 +3755,7 @@ public class SolicitudActivity extends AppCompatActivity {
         if (dir != null) {
             if (prov != null && !((OpcionSpinner)prov.getSelectedItem()).getId().equals("")) {
                 if(!p.getId().isEmpty())
-                    dircorta.append(p.getName().trim().split("-")[1]);
+                    dircorta.append(p.getName().trim().split("- ")[1]);
             }
             if (cant != null && !((OpcionSpinner)cant.getSelectedItem()).getId().equals("")) {
                 if(!c.getId().isEmpty())
@@ -3840,6 +3872,30 @@ public class SolicitudActivity extends AppCompatActivity {
         idfiscal.setError(null);
         idfiscal.clearFocus();
         Toasty.success(texto.getContext(),"Formato Regimen "+tipoCedula+" valido!").show();
+        return true;
+    }
+    private static boolean ValidarCoordenadaY(View v){
+        TextView texto = (TextView)v;
+        String coordenadaY = "^[-]?(([8-9]|[1][0-2])(\\.\\d{5,10}+)?)";
+        Pattern pattern = Pattern.compile(coordenadaY);
+        Matcher matcher = pattern.matcher(texto.getText().toString().trim());
+        if (!matcher.matches()) {
+            texto.setError("Formato Coordenada Y "+texto.getText().toString().trim()+" invalido!");
+            return false;
+        }
+        //Toasty.success(texto.getContext(),"Formato Coordenada Y "+valor+" valido!").show();
+        return true;
+    }
+    private static boolean ValidarCoordenadaX(View v){
+        TextView texto = (TextView)v;
+        String coordenadaX = "^[-](([8][2-6])(\\.\\d{5,10}+)?)";
+        Pattern pattern = Pattern.compile(coordenadaX);
+        Matcher matcher = pattern.matcher(texto.getText().toString().trim());
+        if (!matcher.matches()) {
+            texto.setError("Formato Coordenada X "+ texto.getText().toString().trim()+" invalido!");
+            return false;
+        }
+        //Toasty.success(texto.getContext(),"Formato Coordenada X "+valor+" valido!").show();
         return true;
     }
 

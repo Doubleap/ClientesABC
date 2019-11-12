@@ -85,6 +85,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -111,7 +112,7 @@ import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
 import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
-import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
+import proyecto.app.clientesabc.clases.ConsultaCreditoClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.FileHelper;
 import proyecto.app.clientesabc.modelos.Adjuntos;
@@ -133,12 +134,13 @@ import static android.support.design.widget.TabLayout.TEXT_ALIGNMENT_CENTER;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
-public class SolicitudModificacionActivity extends AppCompatActivity {
+public class SolicitudCreditoActivity extends AppCompatActivity {
 
     final static int alturaFilaTableView = 75;
     static String tipoSolicitud ="";
     static String idSolicitud = "";
     static String codigoCliente = "";
+    static String subtitulo = "";
     @SuppressLint("StaticFieldLeak")
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
@@ -198,6 +200,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     private static JsonArray impuestos;
     private static JsonArray bancos;
     private static JsonArray visitas;
+    private static JsonArray credito;
 
     @SuppressLint("ResourceType")
     @Override
@@ -232,15 +235,15 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             tipoSolicitud = solicitudSeleccionada.get(0).get("TIPFORM");
             GUID = solicitudSeleccionada.get(0).get("id_solicitud");
             setTitle(GUID);
-            String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
-            getSupportActionBar().setSubtitle(descripcion);
+            subtitulo = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
+            getSupportActionBar().setSubtitle(subtitulo);
         }else{
             GUID = mDBHelper.getGuiId();
             solicitudSeleccionada.clear();
             solicitudSeleccionadaOld.clear();
             setTitle(codigoCliente+"-");
-            String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
-            getSupportActionBar().setSubtitle(descripcion);
+            subtitulo = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
+            getSupportActionBar().setSubtitle(subtitulo);
         }
         if(solicitudSeleccionada.size() > 0) {
             firma = true;
@@ -403,15 +406,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             numErrores++;
                             mensajeError += "- Formato de correo Inválido!\n";
                         }
-                        //Validacion de correo
-                        if(!cedulaValidada){
-                            numErrores++;
-                            mensajeError += "- Formato de cédula Inválida!\n";
-                        }
 
                         if(numErrores == 0) {
                             DialogHandler appdialog = new DialogHandler();
-                            appdialog.Confirm(SolicitudModificacionActivity.this, "Confirmación Modificacion", "Esta seguro que desea guardar la solicitud de Modificacion?", "No", "Si", new GuardarFormulario(getBaseContext()));
+                            appdialog.Confirm(SolicitudCreditoActivity.this, "Confirmación Modificacion", "Esta seguro que desea guardar la solicitud de Modificacion?", "No", "Si", new GuardarFormulario(getBaseContext()));
 
                         }else{
                             Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toast.LENGTH_LONG).show();
@@ -425,7 +423,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         if(solicitudSeleccionada.size() == 0 ) {
             WeakReference<Context> weakRefs1 = new WeakReference<Context>(this);
             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(this);
-            ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoCliente);
+            ConsultaCreditoClienteServidor c = new ConsultaCreditoClienteServidor(weakRefs1, weakRefAs1, codigoCliente);
             c.execute();
         }
         //cliente = c.execute().get();
@@ -1958,7 +1956,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             displayDialogInterlocutor(getContext(),null);
                         }
                     });*/
-                    seccion_header.setOnClickListener(new View.OnClickListener() {
+                    seccion_header.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             //displayDialogInterlocutor(getContext(),null);
@@ -3243,7 +3241,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     private class ContactoClickListener implements TableDataClickListener<Contacto> {
         @Override
         public void onDataClicked(int rowIndex, Contacto seleccionado) {
-            displayDialogContacto(SolicitudModificacionActivity.this,seleccionado);
+            displayDialogContacto(SolicitudCreditoActivity.this,seleccionado);
         }
     }
     //Listeners de Bloques de datos
@@ -3252,7 +3250,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         public boolean onDataLongClicked(int rowIndex, Contacto seleccionado) {
             DialogHandler appdialog = new DialogHandler();
 
-            appdialog.Confirm(SolicitudModificacionActivity.this, "Confirmación Borrado", "Esta seguro que quiere eliminar el contacto "+seleccionado.getName1() + " " +seleccionado.getNamev()+"?",
+            appdialog.Confirm(SolicitudCreditoActivity.this, "Confirmación Borrado", "Esta seguro que quiere eliminar el contacto "+seleccionado.getName1() + " " +seleccionado.getNamev()+"?",
                     "Cancelar", "Eliminar", new EliminarContacto(getBaseContext(), rowIndex));
             return true;
         }
@@ -3276,7 +3274,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     private class ImpuestoClickListener implements TableDataClickListener<Impuesto> {
         @Override
         public void onDataClicked(int rowIndex, Impuesto seleccionado) {
-            displayDialogImpuesto(SolicitudModificacionActivity.this,seleccionado);
+            displayDialogImpuesto(SolicitudCreditoActivity.this,seleccionado);
         }
     }
     private class ImpuestoLongClickListener implements TableDataLongClickListener<Impuesto> {
@@ -3294,14 +3292,14 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     private class BancoClickListener implements TableDataClickListener<Banco> {
         @Override
         public void onDataClicked(int rowIndex, Banco seleccionado) {
-            displayDialogBancos(SolicitudModificacionActivity.this,seleccionado);
+            displayDialogBancos(SolicitudCreditoActivity.this,seleccionado);
         }
     }
     private class BancoLongClickListener implements TableDataLongClickListener<Banco> {
         @Override
         public boolean onDataLongClicked(int rowIndex, Banco seleccionado) {
             DialogHandler appdialog = new DialogHandler();
-            appdialog.Confirm(SolicitudModificacionActivity.this, "Confirmación Borrado", "Esta seguro que quiere eliminar el banco "+seleccionado.getBankn()+"?",
+            appdialog.Confirm(SolicitudCreditoActivity.this, "Confirmación Borrado", "Esta seguro que quiere eliminar el banco "+seleccionado.getBankn()+"?",
                     "Cancelar", "Eliminar", new EliminarBanco(getBaseContext(), rowIndex));
             return true;
         }
@@ -3325,7 +3323,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     private class InterlocutorClickListener implements TableDataClickListener<Interlocutor> {
         @Override
         public void onDataClicked(int rowIndex, Interlocutor seleccionado) {
-            displayDialogInterlocutor(SolicitudModificacionActivity.this,seleccionado);
+            displayDialogInterlocutor(SolicitudCreditoActivity.this,seleccionado);
         }
     }
     private class InterlocutorLongClickListener implements TableDataLongClickListener<Interlocutor> {
@@ -3342,16 +3340,16 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     private class VisitasClickListener implements TableDataClickListener<Visitas> {
         @Override
         public void onDataClicked(int rowIndex, Visitas seleccionado) {
-            DetallesVisitPlan(SolicitudModificacionActivity.this, seleccionado);
+            DetallesVisitPlan(SolicitudCreditoActivity.this, seleccionado);
         }
     }
     @SuppressWarnings("unchecked")
     private void DetallesVisitPlan(final Context context, final Visitas seleccionado) {
         final Dialog d = new Dialog(context);
         d.setContentView(R.layout.visita_dialog_layout);
-        final boolean reparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_BZIRK",""), seleccionado.getVptyp());
+        final boolean reparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BZIRK",""), seleccionado.getVptyp());
 
-        final boolean permite_modificar = PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_TIPORUTA","ZPV").toString().equals(seleccionado.getVptyp());
+        final boolean permite_modificar = PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_TIPORUTA","ZPV").toString().equals(seleccionado.getVptyp());
 
         final TextView title = d.findViewById(R.id.title);
         final Spinner kvgr4Spinner = d.findViewById(R.id.kvgr4Spinner);
@@ -3425,7 +3423,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
                     ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
                 }else{
-                    seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_RUTAHH",""));
+                    seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_RUTAHH",""));
                 }
                 //seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
                 seleccionado.setKvgr4(kvgr4Spinner.getSelectedItem().toString().trim());
@@ -3474,7 +3472,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         for (int y = 0 ; y < numplanes; y++) {
             Visitas vp = visitasSolicitud.get(y);
             //Revisar si el VP es una ruta de reparto para ser borrada y recalculada
-            if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp())) {
+            if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp())) {
                 vp.setLun_de("");
                 vp.setLun_a("");
                 vp.setMar_de("");
@@ -3496,7 +3494,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             Visitas vp = visitasSolicitud.get(y);
 
             //Si no es tipo de reparto debemos tomar en cuenta para calcular su reparto
-            boolean esReparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp());
+            boolean esReparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp());
             //TODO cambiar el valor "PR" por el valor dinamico del comboBox de Modalidad de venta
             if(!esReparto){
                 String rutaReparto = mDBHelper.RutaRepartoAsociada("PR", vp.getVptyp());
@@ -3783,7 +3781,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 }
                                 for (int c = 0; c < visitasSolicitud.size(); c++) {
                                     visitaValues.put("id_solicitud", NextId);
-                                    if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_BZIRK", ""), visitasSolicitud.get(c).getVptyp())) {
+                                    if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BZIRK", ""), visitasSolicitud.get(c).getVptyp())) {
                                         //Tipo visita de Reparto
 
                                         visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
@@ -3871,12 +3869,12 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 String id_aprobador = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
                 insertValues.put("[W_CTE-KUNNR]", codigoCliente);
                 insertValues.put("[SIGUIENTE_APROBADOR]", id_aprobador);
-                insertValues.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_BUKRS",""));
-                insertValues.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_RUTAHH",""));
-                insertValues.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_VKORG",""));
+                insertValues.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BUKRS",""));
+                insertValues.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_RUTAHH",""));
+                insertValues.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_VKORG",""));
                 insertValues.put("[id_solicitud]", NextId);
                 insertValues.put("[tipform]", tipoSolicitud);
-                insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("userMC",""));
+                insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("userMC",""));
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
                 Date date = new Date();
                 //ContentValues initialValues = new ContentValues();
@@ -3895,17 +3893,17 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                     insertValuesOld.put("[W_CTE-KUNNR]", codigoCliente);
                     insertValuesOld.put("[estado]", "Nuevo");
-                    insertValuesOld.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_BUKRS",""));
-                    insertValuesOld.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_RUTAHH",""));
-                    insertValuesOld.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_VKORG",""));
+                    insertValuesOld.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BUKRS",""));
+                    insertValuesOld.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_RUTAHH",""));
+                    insertValuesOld.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_VKORG",""));
                     insertValuesOld.put("[id_solicitud]", NextId);
                     insertValuesOld.put("[tipform]", tipoSolicitud);
-                    insertValuesOld.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("userMC",""));
+                    insertValuesOld.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("userMC",""));
                     long insertoOld = mDb.insertOrThrow("FormHvKof_old_solicitud", null, insertValuesOld);
                     //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
                     Intent sol = getIntent();
                     sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    SolicitudModificacionActivity.this.finish();
+                    SolicitudCreditoActivity.this.finish();
                     //Bundle par = new Bundle();
                     //par.putString("tipo_solicitud",tipoSolicitud);
                     //SolicitudActivity.this.startActivity(sol);
@@ -3920,7 +3918,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
     public static void LlenarCampos(Context context, Activity activity, ArrayList<JsonArray> estructurasSAP){
         if(estructurasSAP.size() == 0){
-            Toasty.error(context.getApplicationContext(),"No se pudo obtener la informacion del cliente!");
+            Toasty.error(context.getApplicationContext(),"No se pudo obtener la informacion del cliente!").show();
             activity.finish();
             return;
         }
@@ -3935,22 +3933,30 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         impuestos = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Impuestos");
         bancos = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Bancos");
         visitas = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Visitas");
+        credito = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Credito");
+
+        if(credito.size() > 0 && subtitulo.toLowerCase().contains("apertura")){
+            Toasty.error(context.getApplicationContext(),"Debe modificar el crédito existente.").show();
+            activity.finish();
+            return;
+        }
 
         //Titulo deseado
         activity.setTitle(activity.getTitle()+cliente.get(0).getAsJsonObject().get("W_CTE-NAME1").getAsString());
-
+        double valorsugerido = 0;
         for (int i = 0; i < listaCamposDinamicos.size(); i++) {
             if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                 try {
-                    MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
-                    tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString());
+                    MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i).trim()));
+                    if(tv != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
+                        tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
 
                     tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i).trim()));
-                    if(tv != null)
+                    if(tv != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
                         tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
 
                     tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i).trim()));
-                    if(tv != null)
+                    if(tv != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
                         tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
 
                     if(listaCamposDinamicos.get(i).equals("W_CTE-SMTP_ADDR")){
@@ -3960,18 +3966,35 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         cedulaValidada = ValidarCedula(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-KATR3").getAsString());
                     }
 
+                    //Caerle encima con los valores de la RFC de Credito
+                    if(credito.size() > 0){
+                        if(listaCamposDinamicos.get(i).contains("DMBTR")){
+                            Double mes = NumberFormat.getInstance(Locale.FRANCE).parse(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString()).doubleValue();
+                            valorsugerido += mes;
+                        }
+                        tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i).trim()));
+                        tv.setText(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
+                    }
                 } catch (Exception e) {
                     try {
-                        Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
-                        sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString().trim()));
+                        Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i).trim()));
+                        if(sp != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
+                        sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString().trim()));
 
-                        sp = ((Spinner) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
-                        if(sp != null)
-                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString().trim()));
+                        sp = ((Spinner) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i).trim()));
+                        if(sp != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
+                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString().trim()));
 
-                        sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i)));
-                        if(sp != null)
-                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString().trim()));
+                        sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i).trim()));
+                        if(sp != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
+                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString().trim()));
+
+                        //Caerle encima con los valores de la RFC de Credito
+                        if(credito.size() > 0){
+                            sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                            if(sp != null && credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
+                                sp.setSelection(VariablesGlobales.getIndex(sp,credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString()));
+                        }
                     } catch (Exception e2) {
                         try {
                             CheckBox check = ((CheckBox) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
@@ -4124,6 +4147,16 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 }
             }
         }
+
+        //Campo de limite sugerido se debe calcular de manera manual.
+        if(credito.size() > 0) {
+            valorsugerido = ((valorsugerido / 3) / 4) * 2.5;
+            MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-LIMSUG"));
+            if(tv != null){
+                tv.setText(String.valueOf(valorsugerido));
+            }
+        }
+
         //Estrucutura de telefonos y faxes
         if (telefonos.size() > 0) {
             for (int i = 0; i < telefonos.size(); i++) {

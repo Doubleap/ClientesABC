@@ -47,11 +47,12 @@ public class MantClienteActivity extends AppCompatActivity {
     Intent intent;
     private SearchView searchView;
     private MyAdapter mAdapter;
+    private DataBaseHelper db;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detalle);
-        DataBaseHelper db = new DataBaseHelper(this);
+        db = new DataBaseHelper(this);
         ArrayList<HashMap<String, String>> clientList = db.getClientes();
         RecyclerView rv = findViewById(R.id.user_list);
 
@@ -318,12 +319,19 @@ public class MantClienteActivity extends AppCompatActivity {
                                     break;
                                 case R.id.modificar:
                                     showDialogFormulariosModificacion(codigoCliente);
+                                    //Toasty.info(getBaseContext(),"Funcionalidad de Modificaciones NO disponible de momento.").show();
                                     break;
                                 case R.id.cierre:
-                                    //handle menu3 click
+                                    Bundle bc = new Bundle();
+                                    bc.putString("tipoSolicitud", "5"); //id de solicitud
+                                    bc.putString("codigoCliente", codigoCliente);
+                                    intent = new Intent(getApplicationContext(),SolicitudModificacionActivity.class);
+                                    intent.putExtras(bc); //Pase el parametro el Intent
+                                    startActivity(intent);
+                                    //Toasty.info(getBaseContext(),"Funcionalidad de Cierre NO disponible de momento.").show();
                                     break;
                                 case R.id.equipofrio:
-                                    //handle menu3 click
+                                    Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
                                     break;
                                 case R.id.comollegar:
                                     String uri = "geo:" + longitud + ","
@@ -393,14 +401,22 @@ public class MantClienteActivity extends AppCompatActivity {
     }
 
     private void showDialogFormulariosModificacion(final String codigoCliente) {
-        final String[] idforms = {"2", "3", "4", "5"};
-        final String[] forms = {"Modificacion General", "Modificacion Ventas", "Modificacion Marketing", "Modificacion Bancos"};
+        ArrayList<HashMap<String,String>> formulariosPermitidos = db.getModificacionesPermitidas();
+        String[] idformsTemp = new String[formulariosPermitidos.size()];
+        String[] formsTemp = new String[formulariosPermitidos.size()];
+        for(int x=0; x < formulariosPermitidos.size(); x++){
+            idformsTemp[x] = formulariosPermitidos.get(x).get("idform");
+            formsTemp[x] = formulariosPermitidos.get(x).get("descripcion");
+        }
+        final String[] idforms = idformsTemp;
+        final String[] forms = formsTemp;
+        ContextThemeWrapper cw = new ContextThemeWrapper( this, R.style.AlertDialogTheme );
+        final AlertDialog.Builder builder = new AlertDialog.Builder(cw);
 
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
         View view = inflater.inflate(R.layout.titlebar, null);
         builder.setCustomTitle(view);
-        builder.setSingleChoiceItems(forms, 0, new DialogInterface.OnClickListener() {
+        builder.setSingleChoiceItems(forms, -1, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int arg1) {
                 //ListView lw = ((AlertDialog)dialog).getListView();
@@ -414,13 +430,22 @@ public class MantClienteActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int id) {
                 // user clicked OK, so save the mSelectedItems results somewhere
                 // or return them to the component that opened the dialog
-                int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
-                Bundle b = new Bundle();
-                b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
-                b.putString("codigoCliente", codigoCliente);
-                intent = new Intent(getApplicationContext(),SolicitudModificacionActivity.class);
-                intent.putExtras(b); //Pase el parametro el Intent
-                startActivity(intent);
+                int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                if(!forms[selectedPosition].toLowerCase().contains("credito") && !forms[selectedPosition].toLowerCase().contains("crédito")) {
+                    Bundle b = new Bundle();
+                    b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
+                    b.putString("codigoCliente", codigoCliente);
+                    intent = new Intent(getApplicationContext(), SolicitudModificacionActivity.class);
+                    intent.putExtras(b); //Pase el parametro el Intent
+                    startActivity(intent);
+                }else{
+                    Bundle b = new Bundle();
+                    b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
+                    b.putString("codigoCliente", codigoCliente);
+                    intent = new Intent(getApplicationContext(), SolicitudCreditoActivity.class);
+                    intent.putExtras(b); //Pase el parametro el Intent
+                    startActivity(intent);
+                }
             }
         });
 
@@ -430,6 +455,7 @@ public class MantClienteActivity extends AppCompatActivity {
                         dialog.dismiss();
                     }
                 });
+
         builder.show();
     }
 

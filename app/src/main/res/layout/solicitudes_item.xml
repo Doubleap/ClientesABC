@@ -50,6 +50,14 @@
                 android:text="- Abastecedor Tio Andres"
                 android:textAppearance="?android:textAppearanceSmall" />
             <TextView
+                android:id="@+id/tipo_solicitud"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_below="@+id/textViewDesc"
+                android:text="TIPO SOLICITUD"
+                android:textAppearance="?android:textAppearanceSmall" />
+            <TextView
                 android:id="@+id/estado_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

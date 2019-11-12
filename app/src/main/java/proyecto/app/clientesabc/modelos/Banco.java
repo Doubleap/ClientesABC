@@ -1,16 +1,26 @@
 package proyecto.app.clientesabc.modelos;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Banco {
     private String id_bancos;
     private String id_formulario;
     private String id_solicitud;
+    @SerializedName("W_CTE-BANKL")
     private String bankl;
+    @SerializedName("W_CTE-BANKS")
     private String banks;
+    @SerializedName("W_CTE-BANKN")
     private String bankn;
+    @SerializedName("W_CTE-BKONT")
     private String bkont;
+    @SerializedName("W_CTE-KOINH")
     private String koinh;
+    @SerializedName("W_CTE-BVTYP")
     private String bvtyp;
+    @SerializedName("W_CTE-BKREF")
     private String bkref;
+    @SerializedName("W_CTE-TASK")
     private String task;
 
     private String getId_bancos() {
