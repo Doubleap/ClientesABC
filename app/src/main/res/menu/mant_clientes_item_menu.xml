@@ -15,8 +15,11 @@
         android:id="@+id/cierre"
         android:title="Solicitud de Cierre" />
     <item
+        android:id="@+id/credito"
+        android:title="Solicitud de Crédito" />
+    <item
         android:id="@+id/equipofrio"
-        android:title="Equipo Frío" />
+        android:title="Solicitud de Equipo Frío" />
     <item
         android:id="@+id/comollegar"
         android:title="Como llegar" />

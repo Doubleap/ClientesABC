@@ -23,7 +23,7 @@ public class AdjuntoTableAdapter extends TableDataAdapter<Adjuntos> {
     private int paddingTop = 25;
     private int paddingRight = 20;
     private int paddingBottom = 25;
-    private int textSize = 8;
+    private int textSize = 10;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
     private int gravity = Gravity.START;

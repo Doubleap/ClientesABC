@@ -21,7 +21,6 @@ import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -72,8 +71,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
     public void onBindViewHolder(@NonNull final MyAdapter.MyViewHolder holder, final int position) {
         // - Obtener Elemento del data set en esta position
         // - Reemplazar aqui cualquier contenido dinamico dependiendo de algun valor de l dataset creado y o el contenido del dataset
-        TextView codigo = holder.listView.findViewById(R.id.textViewHead);
-        codigo.setText(formListFiltered.get(position).get("codigo"));
+        TextView textViewHead = holder.listView.findViewById(R.id.textViewHead);
+        textViewHead.setText(formListFiltered.get(position).get("codigo"));
+        TextView codigo = holder.listView.findViewById(R.id.codigo);
+        codigo.setText(formListFiltered.get(position).get("id_fiscal"));
         TextView nombre = holder.listView.findViewById(R.id.textViewDesc);
         nombre.setText(formListFiltered.get(position).get("nombre"));
         LinearLayout estado = (LinearLayout) holder.listView.findViewById(R.id.estado);
@@ -120,6 +121,23 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         holder.listView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                /*Bundle b = new Bundle();
+                Intent intent;
+                b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
+                if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6")) {
+                    intent = new Intent(context, SolicitudActivity.class);
+                    intent.putExtras(b); //Pase el parametro el Intent
+                    context.startActivity(intent);
+                }else{
+                    intent = new Intent(context, SolicitudModificacionActivity.class);
+                    intent.putExtras(b); //Pase el parametro el Intent
+                    context.startActivity(intent);
+                }*/
+            }
+        });
+        codigo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 Bundle b = new Bundle();
                 Intent intent;
                 b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
@@ -134,11 +152,21 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                 }
             }
         });
-        codigo.setOnClickListener(new View.OnClickListener() {
+        nombre.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO Pantalla de visualizacion de datos del cliente, la informacion debe ser mapeada desde la tabla de clientes de HH (Dependiente de los datos que existan ahi para mostrar)
-                Toast.makeText(context, "Ver Cliente codigo clickeado:"+((TextView)v).getText(),Toast.LENGTH_SHORT).show();
+                Bundle b = new Bundle();
+                Intent intent;
+                b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
+                if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6")) {
+                    intent = new Intent(context, SolicitudActivity.class);
+                    intent.putExtras(b); //Pase el parametro el Intent
+                    context.startActivity(intent);
+                }else{
+                    intent = new Intent(context, SolicitudModificacionActivity.class);
+                    intent.putExtras(b); //Pase el parametro el Intent
+                    context.startActivity(intent);
+                }
             }
         });
         textViewOptions.setOnClickListener(new View.OnClickListener() {
@@ -154,6 +182,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                 //inflating menu from xml resource
                 popup.inflate(R.menu.solicitudes_item_menu);
                 Menu popupMenu = popup.getMenu();
+                if(formListFiltered.get(position).get("estado").trim().equals("Nuevo")){
+                    MenuItem item = popupMenu.findItem(R.id.reactivar);
+                    item.setVisible(false);
+                }
                 if(formListFiltered.get(position).get("estado").trim().equals("Aprobado")
                         || formListFiltered.get(position).get("estado").trim().equals("Rechazado")
                         || formListFiltered.get(position).get("estado").trim().equals("Pendiente")){

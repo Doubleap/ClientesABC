@@ -18,6 +18,7 @@ public class VariablesGlobales extends Application {
     private static String sociedad = "F443";
     private static String orgvta = "0443";
     private static String land1 = "CR";
+    private static String cadenaRM = "0000160000";
     private static String TABLA_BLOQUE_CONTACTO_HH = "grid_contacto_solicitud";
     private static String TABLA_BLOQUE_BANCO_HH = "grid_bancos_solicitud";
     private static String TABLA_BLOQUE_IMPUESTO_HH = "grid_impuestos_solicitud";
@@ -79,11 +80,15 @@ public class VariablesGlobales extends Application {
     }
 
     public static int getIndiceTipoVisita(ArrayList<Visitas> visitasSolicitud, String tipo) {
-        int pos=-1;
-        for (int i=0;i<visitasSolicitud.size();i++){
-            if(visitasSolicitud.get(i).getVptyp().trim().equals(tipo)){
-              pos = i;
+        int pos = -1;
+        try {
+            for (int i = 0; i < visitasSolicitud.size(); i++) {
+                if (visitasSolicitud.get(i).getVptyp().trim().equals(tipo)) {
+                    pos = i;
+                }
             }
+        }catch(Exception e){
+
         }
         return pos;
     }
@@ -217,5 +222,13 @@ public class VariablesGlobales extends Application {
 
     public static void setTABLA_ENCUESTA_OLD_GEC_SOLICITUD(String tablaEncuestaOldGecSolicitud) {
         TABLA_ENCUESTA_OLD_GEC_SOLICITUD = tablaEncuestaOldGecSolicitud;
+    }
+
+    public static String getCadenaRM() {
+        return cadenaRM;
+    }
+
+    public static void setCadenaRM(String cadenaRM) {
+        VariablesGlobales.cadenaRM = cadenaRM;
     }
 }

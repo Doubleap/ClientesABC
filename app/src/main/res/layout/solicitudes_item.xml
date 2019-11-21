@@ -29,33 +29,33 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:text="Inclusion MA"
+                android:text="Codigo Cliente "
                 android:textAppearance="?android:textAppearanceLarge" />
             <TextView
                 android:id="@+id/codigo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:text="0"
+                android:text="01-1241-0070-00"
                 android:layout_below="@+id/textViewHead"
                 android:textAppearance="?android:textAppearanceSmall" />
 
             <TextView
                 android:id="@+id/textViewDesc"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:maxWidth="325dp"
                 android:layout_marginLeft="10dp"
-                android:layout_toRightOf="@id/codigo"
-                android:layout_alignBaseline="@+id/codigo"
-                android:text="- Abastecedor Tio Andres"
+                android:layout_below="@id/codigo"
+                android:text="Andres Aymerich Panayotty asdsadsds dfdgdfgdfgddf"
                 android:textAppearance="?android:textAppearanceSmall" />
             <TextView
                 android:id="@+id/tipo_solicitud"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
                 android:layout_below="@+id/textViewDesc"
-                android:text="TIPO SOLICITUD"
+                android:text="INCLUSION MA BLA BLA BLA"
                 android:textAppearance="?android:textAppearanceSmall" />
             <TextView
                 android:id="@+id/estado_text"

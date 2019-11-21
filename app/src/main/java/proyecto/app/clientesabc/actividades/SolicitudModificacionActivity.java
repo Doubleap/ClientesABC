@@ -143,11 +143,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
     static ArrayList<String> listaCamposDinamicos = new ArrayList<>();
+    static ArrayList<String> listaCamposDinamicosEnca = new ArrayList<>();
     static ArrayList<String> listaCamposObligatorios = new ArrayList<>();
     static ArrayList<String> listaCamposBloque = new ArrayList<>();
     static Map<String, View> mapeoCamposDinamicos = new HashMap<>();
     static Map<String, View> mapeoCamposDinamicosOld = new HashMap<>();
     static Map<String, View> mapeoCamposDinamicosEnca = new HashMap<>();
+    static Map<String, View> mapeoVisitas = new HashMap<>();
     static  ArrayList<HashMap<String, String>> configExcepciones = new ArrayList<>();
     static  ArrayList<HashMap<String, String>> solicitudSeleccionada = new ArrayList<>();
     static  ArrayList<HashMap<String, String>> solicitudSeleccionadaOld = new ArrayList<>();
@@ -403,16 +405,11 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             numErrores++;
                             mensajeError += "- Formato de correo Inválido!\n";
                         }
-                        //Validacion de correo
-                        if(!cedulaValidada){
-                            numErrores++;
-                            mensajeError += "- Formato de cédula Inválida!\n";
-                        }
+
 
                         if(numErrores == 0) {
                             DialogHandler appdialog = new DialogHandler();
                             appdialog.Confirm(SolicitudModificacionActivity.this, "Confirmación Modificacion", "Esta seguro que desea guardar la solicitud de Modificacion?", "No", "Si", new GuardarFormulario(getBaseContext()));
-
                         }else{
                             Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toast.LENGTH_LONG).show();
                         }
@@ -456,7 +453,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         tb_contactos.addDataClickListener(new ContactoClickListener());
         tb_contactos.addDataLongClickListener(new ContactoLongClickListener());
         tb_impuestos = new de.codecrafters.tableview.TableView<>(this);
-        //tb_impuestos.addDataClickListener(new ImpuestoClickListener());
+        tb_impuestos.addDataClickListener(new ImpuestoClickListener());
         //tb_impuestos.addDataLongClickListener(new ImpuestoLongClickListener());
         tb_bancos = new de.codecrafters.tableview.TableView<>(this);
         tb_bancos.addDataClickListener(new BancoClickListener());
@@ -990,7 +987,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             if(opciones.get(j).get("id").trim().equals(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim())){
                                 selectedIndex = j;
                             }
-                            if(opciones.get(j).get("id").trim().equals(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim())){
+                            if(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim())!= null && opciones.get(j).get("id").trim().equals(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim())){
                                 selectedIndexOld = j;
                             }
                         }
@@ -1208,6 +1205,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     if(campos.get(i).get("modificacion").trim().equals("1") && campos.get(i).get("sup").trim().length() == 0){
                         combo.setEnabled(false);
                         combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_old,null));
+                        listaCamposDinamicosEnca.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicosEnca.put(campos.get(i).get("campo").trim(),combo);
                     }
 
@@ -1522,6 +1520,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     if(campos.get(i).get("modificacion").trim().equals("1") && campos.get(i).get("sup").trim().length() == 0){
                         et.setEnabled(false);
                         et.setBackground(getResources().getDrawable(R.drawable.textbackground_old,null));
+                        listaCamposDinamicosEnca.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicosEnca.put(campos.get(i).get("campo").trim(),et);
                     }
 
@@ -1637,6 +1636,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 return false;
                             }
                         });
+                        et.setText(et.getText().toString().replace(",","."));
                     }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")){
                         et.setSingleLine(false);
@@ -1666,7 +1666,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     }
                     listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                     mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), et);
-                    if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
+                    if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0 && !campos.get(i).get("modificacion").equals("1") ){
                         listaCamposObligatorios.add(campos.get(i).get("campo").trim());
                         //if(cliente != null && cliente.get(campos.get(i).get("campo")) != null && cliente.get(campos.get(i).get("campo").trim()).getAsString().length() == 0) {
                             //et.setError("El campo es obligatorio!");
@@ -1797,7 +1797,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         }
 
         public void DesplegarBloque(DataBaseHelper db, View _ll, HashMap<String, String> campo) {
-            int height = 50;
+            int height = alturaFilaTableView;
             TextView empty_data = new TextView(getContext());
             empty_data.setText(R.string.texto_sin_datos);
             empty_data.setBackground(getResources().getDrawable(R.color.backColor,null));
@@ -1921,8 +1921,6 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     bloque_impuesto.setLayoutParams(hlp);
 
-                    ArrayList<Impuesto> listaImpuestos = db.getImpuestosPais();
-                    impuestosSolicitud.addAll(listaImpuestos);
                     if(solicitudSeleccionada.size() > 0){
                         impuestosSolicitud.clear();
                         impuestosSolicitud_old.clear();
@@ -2070,8 +2068,6 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     //Adaptadores
                     if(visitasSolicitud != null) {
                         VisitasTableAdapter stda = new VisitasTableAdapter(getContext(), visitasSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
                         stda.setGravity(GRAVITY_CENTER);
                         tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+(visitasSolicitud.size()*alturaFilaTableView);
                         tb_visitas.setDataAdapter(stda);
@@ -2094,21 +2090,28 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     final String[] diaLabel = {"L","K","M","J","V","S","D"};
                     int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
                     int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZJV");
+                    int indiceKafe = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZKV");
                     int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
-                    int totalvp_preventa = 1;
+                    int totalvp_preventa = 0;
                     if(indicePreventa != -1){
                         totalvp_preventa++;
                     }
                     if(indiceEspecializada != -1){
                         totalvp_preventa++;
                     }
+                    if(visitasSolicitud.size() == 0){
+                        totalvp_preventa = 2;
+                    }
                     String tipoVisitaActual = "ZPV";
-                    for (int i = 0; i < 2; i++) {
+                    for (int i = 0; i < totalvp_preventa; i++) {
                         if(i==0)
                             tipoVisitaActual = "ZPV";
                         if(i==1)
                             tipoVisitaActual = "ZJV";
+                        if(i==2)
+                            tipoVisitaActual = "ZKV";
                         CardView seccion_visitas = new CardView(Objects.requireNonNull(getContext()));
+                        mapeoVisitas.put(tipoVisitaActual,seccion_visitas);
 
                         TextView header_visitas = new TextView(getContext());
                         header_visitas.setAllCaps(true);
@@ -2159,6 +2162,40 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 et.setEnabled(false);
                                 et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
                             }
+
+                            if(solicitudSeleccionada.size() > 0){
+                                int indiceActual = -1;
+                                if(i==0)
+                                    indiceActual = indicePreventa;
+                                if(i==1)
+                                    indiceActual = indiceEspecializada;
+                                if(i==2)
+                                    indiceActual = indiceKafe;
+                                switch (x) {
+                                    case 0:
+                                        et.setText(visitasSolicitud.get(indiceActual).getLun_a());
+                                        break;
+                                    case 1:
+                                        et.setText(visitasSolicitud.get(indiceActual).getMar_a());
+                                        break;
+                                    case 2:
+                                        et.setText(visitasSolicitud.get(indiceActual).getMier_a());
+                                        break;
+                                    case 3:
+                                        et.setText(visitasSolicitud.get(indiceActual).getJue_a());
+                                        break;
+                                    case 4:
+                                        et.setText(visitasSolicitud.get(indiceActual).getVie_a());
+                                        break;
+                                    case 5:
+                                        et.setText(visitasSolicitud.get(indiceActual).getSab_a());
+                                        break;
+                                    case 6:
+                                        et.setText(visitasSolicitud.get(indiceActual).getDom_a());
+                                        break;
+                                }
+                            }
+
                             //et.setPadding(20, 5, 20, 5);
                             Drawable d = getResources().getDrawable(R.drawable.textbackground_min_padding, null);
                             et.setBackground(d);
@@ -2635,6 +2672,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         //INITIALIZE VIEWS
         final TextView title = d.findViewById(R.id.title);
         final Spinner claveSpinner= d.findViewById(R.id.claveSpinner);
+        claveSpinner.setEnabled(false);
         final Spinner clasiSpinner= d.findViewById(R.id.clasiSpinner);
         Button saveBtn= d.findViewById(R.id.saveBtn);
         if(seleccionado != null){
@@ -2681,7 +2719,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         }
 
         //Para campos de seleccion para grid impuestos campo clave de impuesto
-        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_impstos",1,2, "taxkd=1");
+        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_impstos",1,2, "tatyp='"+seleccionado.getTatyp()+"' AND taxkd='"+seleccionado.getTaxkd()+"'");
 
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
         int selectedIndexClave = 0;
@@ -2710,6 +2748,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 ArrayList<OpcionSpinner> listaopcionesClasi = new ArrayList<>();
                 int selectedIndexClasi = 0;
                 for (int j = 0; j < opcionesClasi.size(); j++){
+                    if(seleccionado != null && opcionesClasi.get(j).get("id").equals(seleccionado.getTaxkd())){
+                        selectedIndexClasi = j;
+                    }
                     listaopcionesClasi.add(new OpcionSpinner(opcionesClasi.get(j).get("id"), opcionesClasi.get(j).get("descripcion")));
                 }
                 // Creando el adaptador(opcionesClasi) para el comboBox deseado
@@ -2720,6 +2761,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 Drawable spinner_back_clasi = view.getContext().getResources().getDrawable(R.drawable.spinner_underlined, null);
                 clasiSpinner.setBackground(spinner_back_clasi);
                 clasiSpinner.setAdapter(dataAdapterClasi);
+                clasiSpinner.setSelection(selectedIndexClasi);
             }
 
             @Override
@@ -2729,13 +2771,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         });
 
         //Para campos de seleccion para grid bancos campo clasificacion fiscal
-        ArrayList<HashMap<String, String>> opcionesClasi = mDBHelper.getDatosCatalogo("cat_impstos",3,4);
+        ArrayList<HashMap<String, String>> opcionesClasi = mDBHelper.getDatosCatalogo("cat_impstos",3,4,"tatyp='"+seleccionado.getTatyp()+"'");
 
         ArrayList<OpcionSpinner> listaopcionesClasi = new ArrayList<>();
         int selectedIndexClasi = 0;
         for (int j = 0; j < opcionesClasi.size(); j++){
-            if(seleccionado != null && opciones.get(j).get("id").equals(seleccionado.getTatyp())){
-                selectedIndexClave = j;
+            if(seleccionado != null && opcionesClasi.get(j).get("id").equals(seleccionado.getTaxkd())){
+                selectedIndexClasi = j;
             }
             listaopcionesClasi.add(new OpcionSpinner(opcionesClasi.get(j).get("id"), opcionesClasi.get(j).get("descripcion")));
         }
@@ -2751,7 +2793,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
         if(seleccionado != null){
             claveSpinner.setSelection(selectedIndexClave);
-            clasiSpinner.setSelection(selectedIndexClave);
+            clasiSpinner.setSelection(selectedIndexClasi);
         }
         //SHOW DIALOG
         d.show();
@@ -3620,6 +3662,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             String NextId = GUID;
             ContentValues insertValues = new ContentValues();
             ContentValues insertValuesOld = new ContentValues();
+            boolean cambioRealizado = false;
             for (int i = 0; i < listaCamposDinamicos.size(); i++) {
                 if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                     try {
@@ -3708,16 +3751,36 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), null, contactoValues);
                                     contactoValues.clear();
                                 } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud", Toast.LENGTH_SHORT).show();
+                                    Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud Nuevo", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            for (int c = 0; c < contactosSolicitud_old.size(); c++) {
+                                contactoValuesOld.put("id_solicitud", NextId);
+                                contactoValuesOld.put("name1", contactosSolicitud_old.get(c).getName1());
+                                contactoValuesOld.put("namev", contactosSolicitud_old.get(c).getNamev());
+                                contactoValuesOld.put("telf1", contactosSolicitud_old.get(c).getTelf1());
+                                contactoValuesOld.put("house_num1", contactosSolicitud_old.get(c).getHouse_num1());
+                                contactoValuesOld.put("street", contactosSolicitud_old.get(c).getStreet());
+                                contactoValuesOld.put("gbdat", contactosSolicitud_old.get(c).getGbdat());
+                                contactoValuesOld.put("country", contactosSolicitud_old.get(c).getCountry());
+                                contactoValuesOld.put("pafkt", contactosSolicitud_old.get(c).getPafkt());
+                                try {
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_OLD_HH(), null, contactoValuesOld);
+                                    contactoValuesOld.clear();
+                                } catch (Exception e) {
+                                    Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud Actual", Toast.LENGTH_SHORT).show();
                                 }
                             }
 
                             break;
                         case "W_CTE-IMPUESTOS":
                             ContentValues impuestoValues = new ContentValues();
+                            ContentValues impuestoValuesOld = new ContentValues();
                             int del;
                             if (solicitudSeleccionada.size() > 0) {
                                 del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), "id_solicitud=?", new String[]{GUID});
+                                del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_OLD_HH(), "id_solicitud=?", new String[]{GUID});
                             }
                             for (int c = 0; c < impuestosSolicitud.size(); c++) {
                                 impuestoValues.put("id_solicitud", NextId);
@@ -3729,7 +3792,23 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), null, impuestoValues);
                                     impuestoValues.clear();
                                 } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud", Toast.LENGTH_SHORT).show();
+                                    Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud Nuevo", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                            if (solicitudSeleccionadaOld.size() > 0) {
+                                del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_OLD_HH(), "id_solicitud=?", new String[]{GUID});
+                            }
+                            for (int c = 0; c < impuestosSolicitud_old.size(); c++) {
+                                impuestoValuesOld.put("id_solicitud", NextId);
+                                impuestoValuesOld.put("vtext", impuestosSolicitud_old.get(c).getVtext());
+                                impuestoValuesOld.put("vtext2", impuestosSolicitud_old.get(c).getVtext2());
+                                impuestoValuesOld.put("tatyp", impuestosSolicitud_old.get(c).getTatyp());
+                                impuestoValuesOld.put("taxkd", impuestosSolicitud_old.get(c).getTaxkd());
+                                try {
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_OLD_HH(), null, impuestoValuesOld);
+                                    impuestoValuesOld.clear();
+                                } catch (Exception e) {
+                                    Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud Nuevo", Toast.LENGTH_SHORT).show();
                                 }
                             }
 
@@ -3742,12 +3821,34 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             for (int c = 0; c < interlocutoresSolicitud.size(); c++) {
                                 interlocutorValues.put("id_solicitud", NextId);
                                 interlocutorValues.put("parvw", interlocutoresSolicitud.get(c).getParvw());
+                                interlocutorValues.put("kunn2", interlocutoresSolicitud.get(c).getKunn2());
+                                interlocutorValues.put("name1", interlocutoresSolicitud.get(c).getName1());
+                                interlocutorValues.put("vtext", interlocutoresSolicitud.get(c).getVtext());
 
                                 try {
                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), null, interlocutorValues);
                                     interlocutorValues.clear();
                                 } catch (Exception e) {
                                     Toasty.error(getApplicationContext(), "Error Insertando Interlocutor de Solicitud", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                            //valroes OLD
+                            ContentValues interlocutorValuesOld = new ContentValues();
+                            if (solicitudSeleccionadaOld.size() > 0) {
+                                mDb.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_OLD_HH(), "id_solicitud=?", new String[]{GUID});
+                            }
+                            for (int c = 0; c < interlocutoresSolicitud_old.size(); c++) {
+                                interlocutorValuesOld.put("id_solicitud", NextId);
+                                interlocutorValuesOld.put("parvw", interlocutoresSolicitud_old.get(c).getParvw());
+                                interlocutorValuesOld.put("kunn2", interlocutoresSolicitud_old.get(c).getKunn2());
+                                interlocutorValuesOld.put("name1", interlocutoresSolicitud_old.get(c).getName1());
+                                interlocutorValuesOld.put("vtext", interlocutoresSolicitud_old.get(c).getVtext());
+
+                                try {
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_OLD_HH(), null, interlocutorValuesOld);
+                                    interlocutorValuesOld.clear();
+                                } catch (Exception e) {
+                                    Toasty.error(getApplicationContext(), "Error Insertando Interlocutor de Solicitud Actual", Toast.LENGTH_SHORT).show();
                                 }
                             }
 
@@ -3774,6 +3875,28 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             } catch (Exception e) {
                                 Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud", Toast.LENGTH_SHORT).show();
                             }
+                            //Valores OLD
+                            ContentValues bancoValuesOld = new ContentValues();
+                            try {
+                                if (solicitudSeleccionadaOld.size() > 0) {
+                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_OLD_HH(), "id_solicitud=?", new String[]{GUID});
+                                }
+                                for (int c = 0; c < bancosSolicitud_old.size(); c++) {
+                                    bancoValuesOld.put("id_solicitud", NextId);
+                                    bancoValuesOld.put("bankl", bancosSolicitud_old.get(c).getBankl());
+                                    bancoValuesOld.put("bankn", bancosSolicitud_old.get(c).getBankn());
+                                    bancoValuesOld.put("banks", bancosSolicitud_old.get(c).getBanks());
+                                    bancoValuesOld.put("bkont", bancosSolicitud_old.get(c).getBkont());
+                                    bancoValuesOld.put("bkref", bancosSolicitud_old.get(c).getBkref());
+                                    bancoValuesOld.put("bvtyp", bancosSolicitud_old.get(c).getBvtyp());
+                                    bancoValuesOld.put("koinh", bancosSolicitud_old.get(c).getKoinh());
+                                    bancoValuesOld.put("task", bancosSolicitud_old.get(c).getTask());
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_BANCO_OLD_HH(), null, bancoValuesOld);
+                                    bancoValuesOld.clear();
+                                }
+                            } catch (Exception e) {
+                                Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud", Toast.LENGTH_SHORT).show();
+                            }
                             break;
                         case "W_CTE-VISITAS":
                             ContentValues visitaValues = new ContentValues();
@@ -3783,58 +3906,69 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 }
                                 for (int c = 0; c < visitasSolicitud.size(); c++) {
                                     visitaValues.put("id_solicitud", NextId);
-                                    if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_BZIRK", ""), visitasSolicitud.get(c).getVptyp())) {
-                                        //Tipo visita de Reparto
+                                    visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
+                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
+                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
+                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
+                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
+                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
+                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
+                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
+                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
+                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
+                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
+                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
+                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
+                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
+                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
+                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
+                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
+                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
+                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
+                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
+                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
 
-                                        visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
-                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
-                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
-                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
-                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
-                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
-                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
-                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
-                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
-                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
-                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
-                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
-                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
-                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
-                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
-                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
-                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
-                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
-                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
-                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
-                                    } else {//Tipo Visita de Preventa
-                                        visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
-                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
-                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
-                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
-                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
-                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
-                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
-                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
-                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
-                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
-                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
-                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
-                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
-                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
-                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
-                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
-                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
-                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
-                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
-                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
-                                    }
                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
                                     visitaValues.clear();
                                 }
                             } catch (Exception e) {
-                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud", Toast.LENGTH_SHORT).show();
+                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud Nueva", Toast.LENGTH_SHORT).show();
+                            }
+                            //OLD
+                            ContentValues visitaValuesOld = new ContentValues();
+                            try {
+                                if (solicitudSeleccionada.size() > 0) {
+                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_OLD_HH(), "id_solicitud=?", new String[]{GUID});
+                                }
+                                for (int c = 0; c < visitasSolicitud_old.size(); c++) {
+                                    visitaValuesOld.put("id_solicitud", NextId);
+                                    visitaValuesOld.put("ruta", visitasSolicitud_old.get(c).getRuta());
+                                        visitaValuesOld.put("kvgr4", visitasSolicitud_old.get(c).getKvgr4());
+                                        visitaValuesOld.put("vptyp", visitasSolicitud_old.get(c).getVptyp());
+                                        visitaValuesOld.put("f_frec", visitasSolicitud_old.get(c).getF_frec());
+                                        visitaValuesOld.put("lun_de", visitasSolicitud_old.get(c).getLun_de());
+                                        visitaValuesOld.put("mar_de", visitasSolicitud_old.get(c).getMar_de());
+                                        visitaValuesOld.put("mier_de", visitasSolicitud_old.get(c).getMier_de());
+                                        visitaValuesOld.put("jue_de", visitasSolicitud_old.get(c).getJue_de());
+                                        visitaValuesOld.put("vie_de", visitasSolicitud_old.get(c).getVie_de());
+                                        visitaValuesOld.put("sab_de", visitasSolicitud_old.get(c).getSab_de());
+                                        visitaValuesOld.put("lun_a", visitasSolicitud_old.get(c).getLun_a());
+                                        visitaValuesOld.put("mar_a", visitasSolicitud_old.get(c).getMar_a());
+                                        visitaValuesOld.put("mier_a", visitasSolicitud_old.get(c).getMier_a());
+                                        visitaValuesOld.put("jue_a", visitasSolicitud_old.get(c).getJue_a());
+                                        visitaValuesOld.put("vie_a", visitasSolicitud_old.get(c).getVie_a());
+                                        visitaValuesOld.put("sab_a", visitasSolicitud_old.get(c).getSab_a());
+                                        visitaValuesOld.put("f_ico", visitasSolicitud_old.get(c).getF_ico());
+                                        visitaValuesOld.put("f_fco", visitasSolicitud_old.get(c).getF_fco());
+                                        visitaValuesOld.put("f_ini", visitasSolicitud_old.get(c).getF_ini());
+                                        visitaValuesOld.put("f_fin", visitasSolicitud_old.get(c).getF_fin());
+                                        visitaValuesOld.put("fcalid", visitasSolicitud_old.get(c).getFcalid());
+
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_OLD_HH(), null, visitaValuesOld);
+                                    visitaValuesOld.clear();
+                                }
+                            } catch (Exception e) {
+                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud Actual", Toast.LENGTH_SHORT).show();
                             }
                             break;
                         case "W_CTE-ADJUNTOS":
@@ -3909,7 +4043,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     //Bundle par = new Bundle();
                     //par.putString("tipo_solicitud",tipoSolicitud);
                     //SolicitudActivity.this.startActivity(sol);
-                    Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toast.LENGTH_LONG).show();
+                    Toasty.success(getApplicationContext(), "Solicitud de Modificación Creada", Toast.LENGTH_LONG).show();
                 }
             } catch (Exception e) {
                 Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -3944,15 +4078,18 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 try {
                     MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
                     tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString());
-
+                    if (listaCamposDinamicos.get(i).equals("W_CTE-PO_BOX") && tv.getText().toString().trim().equals("")) {
+                        tv.setText(".");
+                    }
                     tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i).trim()));
-                    if(tv != null)
+                    if(tv != null) {
                         tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
-
+                    }
                     tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i).trim()));
-                    if(tv != null)
+                    if(tv != null) {
                         tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
 
+                    }
                     if(listaCamposDinamicos.get(i).equals("W_CTE-SMTP_ADDR")){
                         correoValidado = isValidEmail(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
                     }
@@ -4004,9 +4141,17 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         break;
                     case "W_CTE-IMPUESTOS":
                         Impuesto impuesto=null;
-
+                        ArrayList<Impuesto> todos = mDBHelper.getImpuestosPais();
                         for(int x=0; x < impuestos.size(); x++){
+
                             impuesto = gson.fromJson(impuestos.get(x), Impuesto.class);
+                            for(int y=0; y < todos.size(); y++){
+                                if(todos.get(y).getTatyp().equals(impuestos.get(x).getAsJsonObject().get("W_CTE-TATYP").getAsString()) && todos.get(y).getTaxkd().equals(impuestos.get(x).getAsJsonObject().get("W_CTE-TAXKD").getAsString())){
+                                    impuesto.setVtext(todos.get(y).getVtext());
+                                    impuesto.setVtext2(todos.get(y).getVtext2());
+                                    break;
+                                }
+                            }
                             impuestosSolicitud.add(impuesto);
                         }
                         if(impuestosSolicitud != null) {
@@ -4040,9 +4185,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         break;
                     case "W_CTE-VISITAS":
                         Visitas visita = null;
-                        int indiceReparto = 0;
-                        int indicePreventa = 0;
-                        int indiceEspecializada = 0;
+                        int indiceReparto = -1;
+                        int indicePreventa = -1;
+                        int indiceEspecializada = -1;
 
                         for(int x=0; x < visitas.size(); x++){
                             if(visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZDD")){
@@ -4064,7 +4209,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         }
 
                         //Campos de las secuencias de la visita de preventa
-                        if(visitasSolicitud.size() > 0) {
+                        if(visitasSolicitud.size() > 0 && indicePreventa >= 0) {
                             //Al menos 1 dia de visita
                             TextInputEditText diaL = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_L"));
                             TextInputEditText diaK = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_K"));
@@ -4072,25 +4217,42 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             TextInputEditText diaJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_J"));
                             TextInputEditText diaV = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_V"));
                             TextInputEditText diaS = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_S"));
-                            if ( diaL != null) {
+                            if (diaL != null) {
                                 diaL.setText(visitasSolicitud_old.get(indicePreventa).getLun_de());
                             }
-                            if ( diaK != null) {
+                            if (diaK != null) {
                                 diaK.setText(visitasSolicitud_old.get(indicePreventa).getMar_de());
                             }
-                            if ( diaM != null) {
+                            if (diaM != null) {
                                 diaM.setText(visitasSolicitud_old.get(indicePreventa).getMier_de());
                             }
-                            if ( diaJ != null) {
+                            if (diaJ != null) {
                                 diaJ.setText(visitasSolicitud_old.get(indicePreventa).getJue_de());
                             }
-                            if ( diaV != null) {
+                            if (diaV != null) {
                                 diaV.setText(visitasSolicitud_old.get(indicePreventa).getVie_de());
                             }
-                            if ( diaS != null) {
+                            if (diaS != null) {
                                 diaS.setText(visitasSolicitud_old.get(indicePreventa).getSab_de());
                             }
+                        }else{
+                            CardView tituloV = ((CardView)mapeoVisitas.get("ZPV"));
+                            TextInputEditText diaL = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_L"));
+                            TextInputEditText diaK = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_K"));
+                            TextInputEditText diaM = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_M"));
+                            TextInputEditText diaJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_J"));
+                            TextInputEditText diaV = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_V"));
+                            TextInputEditText diaS = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_S"));
 
+                            tituloV.setVisibility(View.GONE);
+                            diaL.setVisibility(View.GONE);
+                            diaK.setVisibility(View.GONE);
+                            diaM.setVisibility(View.GONE);
+                            diaJ.setVisibility(View.GONE);
+                            diaV.setVisibility(View.GONE);
+                            diaS.setVisibility(View.GONE);
+                        }
+                        if(visitasSolicitud.size() > 0 && indiceEspecializada >= 0) {
                             //En caso de que tenga especializada
                             TextInputEditText diaEL = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_L"));
                             TextInputEditText diaEK = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_K"));
@@ -4116,6 +4278,22 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             if ( diaES != null) {
                                 diaES.setText(visitasSolicitud_old.get(indiceEspecializada).getSab_de());
                             }
+                        }else{
+                            CardView tituloV = ((CardView)mapeoVisitas.get("ZJV"));
+                            TextInputEditText diaEL = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_L"));
+                            TextInputEditText diaEK = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_K"));
+                            TextInputEditText diaEM = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_M"));
+                            TextInputEditText diaEJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_J"));
+                            TextInputEditText diaEV = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_V"));
+                            TextInputEditText diaES = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_S"));
+
+                            tituloV.setVisibility(View.GONE);
+                            diaEL.setVisibility(View.GONE);
+                            diaEK.setVisibility(View.GONE);
+                            diaEM.setVisibility(View.GONE);
+                            diaEJ.setVisibility(View.GONE);
+                            diaEV.setVisibility(View.GONE);
+                            diaES.setVisibility(View.GONE);
                         }
                         break;
                     case "W_CTE-ADJUNTOS":

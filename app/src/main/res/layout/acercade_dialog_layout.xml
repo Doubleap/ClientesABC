@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="5dp"
             android:paddingBottom="8dp"
-            android:background="@drawable/header_curved_cc3"
+            android:background="@drawable/header_curved_cc5"
             android:text="Acerca del app"
             android:textColor="@color/white"
             android:textSize="20dp"

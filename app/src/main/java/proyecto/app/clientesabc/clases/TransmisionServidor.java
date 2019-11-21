@@ -233,7 +233,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
             @Override
             public void onCancel(DialogInterface dialog) {
                 errorFlag = "Proceso cancelado por el usuario.";
-                cancel(true);
+                cancel(false);
             }
         });
         builder.setView(R.layout.layout_loading_dialog);

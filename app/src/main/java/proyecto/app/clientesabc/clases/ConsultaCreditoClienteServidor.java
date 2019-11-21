@@ -33,16 +33,18 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
     private String codigoCliente;
+    private String tipoCreditoSAP;
     private boolean xceptionFlag = false;
     private String messageFlag = "";
     private ServerSocket ss;
     private Socket socket;
     ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
-    public ConsultaCreditoClienteServidor(WeakReference<Context> c, WeakReference<Activity> a, String codigoCliente){
+    public ConsultaCreditoClienteServidor(WeakReference<Context> c, WeakReference<Activity> a, String codigoCliente, String tipoCreditoSAP){
         this.context = c;
         this.activity = a;
         this.codigoCliente = codigoCliente;
+        this.tipoCreditoSAP = tipoCreditoSAP;
     }
 
     @Override
@@ -69,6 +71,9 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
             dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_AREACREDITO",""));
             dos.flush();
 
+            dos.writeUTF(tipoCreditoSAP);
+            dos.flush();
+
             dos.writeUTF("FIN");
             dos.flush();
 
@@ -81,7 +86,7 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
                 dis.readFully(e);
                 String error = new String(e);
                 xceptionFlag = true;
-                messageFlag = "Error: "+error;
+                messageFlag = ""+error;
             }else {
                 publishProgress("Procesando datos recibidos...");
                 /*ORDEN DE ESTRUCTURAS SAP RECIBIDAS
@@ -94,7 +99,8 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
                         String jsonInterlocutores = 6;
                         String jsonImpuestos = 7;
                         String jsonBancos = 8;
-                        String jsonVisitas = 9;*/
+                        String jsonVisitas = 9;
+                        String jsonCredito = 9;*/
 
                 //Toda la info de cliente
                 publishProgress("Recibiendo informacion..");
@@ -158,7 +164,7 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
             dialog.hide();
         }
         if(xceptionFlag){
-            Toasty.error(context.get(),"No se pudo consultar el cliente: "+messageFlag,Toast.LENGTH_LONG).show();
+            Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
         }
         SolicitudCreditoActivity.LlenarCampos(context.get(), activity.get(), estructuras);
     }

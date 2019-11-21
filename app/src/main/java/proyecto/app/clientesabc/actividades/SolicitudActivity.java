@@ -1411,6 +1411,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 return false;
                             }
                         });
+                        et.setText(et.getText().toString().replace(",","."));
                     }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")){
                         et.setSingleLine(false);
@@ -3876,7 +3877,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }
     private static boolean ValidarCoordenadaY(View v){
         TextView texto = (TextView)v;
-        String coordenadaY = "^[-]?(([8-9]|[1][0-2])(\\.\\d{5,10}+)?)";
+        String coordenadaY = "^[-]?(([8-9]|[1][0-2])(\\.\\d{3,10}+)?)";
         Pattern pattern = Pattern.compile(coordenadaY);
         Matcher matcher = pattern.matcher(texto.getText().toString().trim());
         if (!matcher.matches()) {
@@ -3888,7 +3889,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }
     private static boolean ValidarCoordenadaX(View v){
         TextView texto = (TextView)v;
-        String coordenadaX = "^[-](([8][2-6])(\\.\\d{5,10}+)?)";
+        String coordenadaX = "^[-](([8][2-6])(\\.\\d{3,10}+)?)";
         Pattern pattern = Pattern.compile(coordenadaX);
         Matcher matcher = pattern.matcher(texto.getText().toString().trim());
         if (!matcher.matches()) {

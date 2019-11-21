@@ -35,6 +35,7 @@ import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.clases.FileHelper;
 
 public class FirmaActivity extends AppCompatActivity {
 
@@ -51,7 +52,7 @@ public class FirmaActivity extends AppCompatActivity {
     // Creating Separate Directory for saving Generated Images
     String DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/Signature/";
     String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-    String StoredPath = DIRECTORY + "PoliticaPrivacidad_"+pic_name + ".png";
+    String StoredPath = DIRECTORY + "PoliticaPrivacidad_"+pic_name + ".jpg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,7 +171,7 @@ public class FirmaActivity extends AppCompatActivity {
                 v.draw(canvas);
 
                 // Convert the output file to Image such as .png
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 20, mFileOutStream);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, mFileOutStream);
                 mFileOutStream.flush();
                 mFileOutStream.close();
 
@@ -178,6 +179,9 @@ public class FirmaActivity extends AppCompatActivity {
                 Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
                 Intent resultIntent = new Intent();
                 File file = new File(StoredPath);
+
+                file = FileHelper.saveBitmapToFile(file);
+
                 MimeTypeMap mime = MimeTypeMap.getSingleton();
                 int index = file.getName().lastIndexOf('.')+1;
                 String ext = file.getName().substring(index).toLowerCase();

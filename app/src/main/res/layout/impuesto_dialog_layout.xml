@@ -10,11 +10,12 @@
         android:orientation="vertical"
         android:layout_height="match_parent">
         <TextView
+            android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="5dp"
             android:paddingBottom="8dp"
-            android:background="@drawable/header_curved_cc3"
+            android:background="@drawable/header_curved_cc5"
             android:text="+ Nuevo Impuesto"
             android:textColor="@color/white"
             android:textSize="20dp"

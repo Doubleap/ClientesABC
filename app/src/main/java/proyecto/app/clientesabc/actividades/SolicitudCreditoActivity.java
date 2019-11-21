@@ -141,6 +141,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     static String idSolicitud = "";
     static String codigoCliente = "";
     static String subtitulo = "";
+    static String tipoCreditoSAP = "";
+    static int minAdjuntos = 0;
     @SuppressLint("StaticFieldLeak")
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
@@ -201,6 +203,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private static JsonArray bancos;
     private static JsonArray visitas;
     private static JsonArray credito;
+    private static JsonArray creditoCadena;
 
     @SuppressLint("ResourceType")
     @Override
@@ -243,6 +246,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             solicitudSeleccionadaOld.clear();
             setTitle(codigoCliente+"-");
             subtitulo = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
+            tipoCreditoSAP = devolverTipoSolicitudSAP(subtitulo);
+            minAdjuntos = mDBHelper.CantidadAdjuntosMinima(tipoSolicitud);
             getSupportActionBar().setSubtitle(subtitulo);
         }
         if(solicitudSeleccionada.size() > 0) {
@@ -401,6 +406,12 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             numErrores++;
                             mensajeError += "- El cliente debe firmar las políticas de privacidad!\n";
                         }*/
+
+                        if(minAdjuntos > adjuntosSolicitud.size()){
+                            numErrores++;
+                            mensajeError += "- Debe adjuntar al menos "+minAdjuntos+" documentos a la solicitud!\n";
+                        }
+
                         //Validacion de correo
                         if(!correoValidado){
                             numErrores++;
@@ -409,7 +420,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
                         if(numErrores == 0) {
                             DialogHandler appdialog = new DialogHandler();
-                            appdialog.Confirm(SolicitudCreditoActivity.this, "Confirmación Modificacion", "Esta seguro que desea guardar la solicitud de Modificacion?", "No", "Si", new GuardarFormulario(getBaseContext()));
+                            appdialog.Confirm(SolicitudCreditoActivity.this, "Confirmación Modificacion", "Esta seguro que desea guardar la solicitud de Crédito?", "No", "Si", new GuardarFormulario(getBaseContext()));
 
                         }else{
                             Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toast.LENGTH_LONG).show();
@@ -423,7 +434,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         if(solicitudSeleccionada.size() == 0 ) {
             WeakReference<Context> weakRefs1 = new WeakReference<Context>(this);
             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(this);
-            ConsultaCreditoClienteServidor c = new ConsultaCreditoClienteServidor(weakRefs1, weakRefAs1, codigoCliente);
+            ConsultaCreditoClienteServidor c = new ConsultaCreditoClienteServidor(weakRefs1, weakRefAs1, codigoCliente, tipoCreditoSAP);
             c.execute();
         }
         //cliente = c.execute().get();
@@ -484,6 +495,30 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         visitasSolicitud_old = new ArrayList<>();
         adjuntosSolicitud_old = new ArrayList<>();
 
+    }
+
+    private String devolverTipoSolicitudSAP(String subtitulo) {
+        String tipo = "";
+        if(subtitulo.contains("APERTURA")){
+            tipo += "A";
+        }else
+        if(subtitulo.contains("MODIFICACION")){
+            tipo += "M";
+        }else
+        if(subtitulo.contains("BLOQUEO")){
+            tipo += "B";
+        }
+        tipo += "C";
+        if(subtitulo.contains("INFORMAL")){
+            tipo += "I";
+        }else
+        if(subtitulo.contains("FORMAL D")){
+            tipo += "F";
+        }else
+        if(subtitulo.contains("FORMAL ABC")){
+            tipo += "F";
+        }
+        return tipo;
     }
 
     @Override
@@ -1635,6 +1670,10 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                 return false;
                             }
                         });
+                        et.setText(et.getText().toString().replace(",","."));
+                    }
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-KLIMK")){
+                        et.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
                     }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")){
                         et.setSingleLine(false);
@@ -3918,7 +3957,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
     public static void LlenarCampos(Context context, Activity activity, ArrayList<JsonArray> estructurasSAP){
         if(estructurasSAP.size() == 0){
-            Toasty.error(context.getApplicationContext(),"No se pudo obtener la informacion del cliente!").show();
             activity.finish();
             return;
         }
@@ -3934,11 +3972,39 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         bancos = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Bancos");
         visitas = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Visitas");
         credito = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Credito");
+        creditoCadena = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("CreditoCadena");
 
-        if(credito.size() > 0 && subtitulo.toLowerCase().contains("apertura")){
+        //Cliene SI tiene credito pero quieren aperturar - NO PERMITIDO
+        /*if(credito.size() > 0 && subtitulo.toLowerCase().contains("apertura")){
             Toasty.error(context.getApplicationContext(),"Debe modificar el crédito existente.").show();
             activity.finish();
             return;
+        }*/
+        String cadenaCliente = credito.get(0).getAsJsonObject().get("W_CTE-HKUNNR").getAsString();
+        //Cliente SI tiene credito y se quiere modificar
+        if(subtitulo.toLowerCase().contains("modifica")) {
+            String tipo = credito.get(0).getAsJsonObject().get("W_CTE-PSON2").getAsString();
+
+            //if(cadenaCliente.trim().equals(VariablesGlobales.getCadenaRM())) {
+
+                if (!tipo.equals("D") && subtitulo.toLowerCase().contains("formal d")) {
+                    Toasty.warning(context.getApplicationContext(),"Cliente no se puede Modificar/Bloquear con Credito Formal!").show();
+                    activity.finish();
+                    return;
+                }
+
+                if ((!tipo.equals("A") && !tipo.equals("B") && !tipo.equals("C")) && subtitulo.toLowerCase().contains("formal abc")) {
+                    Toasty.warning(context.getApplicationContext(),"Cliente no se puede Modificar/Bloquear con Credito Formal ABC!").show();
+                    activity.finish();
+                    return;
+                }
+
+                if (subtitulo.toLowerCase().contains("informal") && !tipo.equals("I")) {
+                    Toasty.warning(context.getApplicationContext(),"Cliente no se puede Modificar/Bloquear con Credito Informal!").show();
+                    activity.finish();
+                    return;
+                }
+
         }
 
         //Titulo deseado
@@ -3948,33 +4014,50 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                 try {
                     MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i).trim()));
-                    if(tv != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
+                    if (tv != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
                         tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
 
                     tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i).trim()));
-                    if(tv != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
+                    if (tv != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
                         tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
 
                     tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i).trim()));
-                    if(tv != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
+                    if (tv != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
                         tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
 
-                    if(listaCamposDinamicos.get(i).equals("W_CTE-SMTP_ADDR")){
+                    if (listaCamposDinamicos.get(i).equals("W_CTE-SMTP_ADDR")) {
                         correoValidado = isValidEmail(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
                     }
-                    if(listaCamposDinamicos.get(i).equals("W_CTE-STCD1")){
-                        cedulaValidada = ValidarCedula(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-KATR3").getAsString());
+                    if (listaCamposDinamicos.get(i).equals("W_CTE-STCD1")) {
+                        cedulaValidada = ValidarCedula(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString(), cliente.get(0).getAsJsonObject().get("W_CTE-KATR3").getAsString());
                     }
 
                     //Caerle encima con los valores de la RFC de Credito
-                    if(credito.size() > 0){
-                        if(listaCamposDinamicos.get(i).contains("DMBTR")){
-                            Double mes = NumberFormat.getInstance(Locale.FRANCE).parse(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString()).doubleValue();
-                            valorsugerido += mes;
-                        }
+                    //if(credito.size() > 0){
                         tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i).trim()));
-                        tv.setText(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
+                        if(tv != null)
+                            tv.setText(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
+                        tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i).trim()));
+                        if(tv != null)
+                            tv.setText(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
+                        tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i).trim()));
+                        if(tv != null)
+                            tv.setText(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
+                        if(listaCamposDinamicos.get(i).contains("DMBTR")){
+                            Double mes = NumberFormat.getInstance(Locale.FRENCH).parse(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString()).doubleValue();
+                            valorsugerido += mes;
+                            tv.setText(String.format ("%,.2f", mes));
+                        }
+                    if(listaCamposDinamicos.get(i).contains("KLIMK")){
+                        Double limite = NumberFormat.getInstance(Locale.FRENCH).parse(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString()).doubleValue();
+                        tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i).trim()));
+                        if(tv != null)
+                            tv.setText(String.format ("%.2f", limite));
+                        tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i).trim()));
+                        if(tv != null)
+                            tv.setText(String.format ("%.2f", limite));
                     }
+                    //}
                 } catch (Exception e) {
                     try {
                         Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i).trim()));
@@ -4149,64 +4232,115 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }
 
         //Campo de limite sugerido se debe calcular de manera manual.
-        if(credito.size() > 0) {
-            valorsugerido = ((valorsugerido / 3) / 4) * 2.5;
-            MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-LIMSUG"));
-            if(tv != null){
-                tv.setText(String.valueOf(valorsugerido));
-            }
+        valorsugerido = ((valorsugerido / 3) / 4) * 2.5;
+        MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-LIMSUG"));
+        if(tv != null){
+            tv.setText(String.format ("%,.2f", valorsugerido));
         }
 
-        //Estrucutura de telefonos y faxes
-        if (telefonos.size() > 0) {
-            for (int i = 0; i < telefonos.size(); i++) {
-                //Telefono principal
-                if (telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals("1")) {
-                    MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER"));
-                    if(tv != null) {
-                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
-                        tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TEL_EXTENS"));
-                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_EXTENS").getAsString());
+        //Cliente NO tiene credito y se quiere aperturar - llenar los campos neccesarios con los campos por defecto en tabla ValidaCrecitod
+        if(subtitulo.toLowerCase().contains("apertura")) {
+            String tipo = "I";
+            if(subtitulo.toLowerCase().contains("informal"))
+                tipo = "I";
+            if(subtitulo.toLowerCase().contains("formal d"))
+                tipo = "D";
+            if(subtitulo.toLowerCase().contains("formal abc"))
+                tipo = "ABC";
 
-                        tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-TEL_NUMBER"));
-                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
-                        tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-TEL_EXTENS"));
-                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_EXTENS").getAsString());
+            String cuentacont = "";
+            String claseriesgo = "";
+            String tipocobro = "";
+            String clasedocven = "";
+            String clasicxc = "";
+            String condpago = "";
+            ArrayList<HashMap<String, String>> datosNuevoCredito = mDBHelper.getValidaCreditos(tipo);
+            if(cadenaCliente.trim().equals(VariablesGlobales.getCadenaRM())) {
+                cuentacont = datosNuevoCredito.get(0).get("cuentacont").trim();
+                claseriesgo = datosNuevoCredito.get(0).get("claseriesgo").trim();
+                tipocobro = datosNuevoCredito.get(0).get("tipocobro").trim();
+                clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
+                clasicxc = datosNuevoCredito.get(0).get("clasicxc").trim();
+                condpago = datosNuevoCredito.get(0).get("condpago").trim();
+            }else{
+                String errordesc="";
+                String meserr="";
+                cuentacont = creditoCadena.get(0).getAsJsonObject().get("W_CTE-AKONT").getAsString();
+                claseriesgo = "RR7";
+                tipocobro = creditoCadena.get(0).getAsJsonObject().get("W_CTE-KVGR2").getAsString();
+                clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
+                clasicxc = creditoCadena.get(0).getAsJsonObject().get("W_CTE-PSON2").getAsString();
+                condpago = creditoCadena.get(0).getAsJsonObject().get("W_CTE-ZTERM").getAsString();
+                if (cuentacont.trim().equals("") || tipocobro.trim().equals("") || condpago.trim().equals("") || clasicxc.trim().equals(""))
+                {
+                    if (cuentacont.trim().equals(""))
+                    {
+                        errordesc += "Cuenta Asociada. ";
                     }
-                }
-                //Telefono Celular
-                if (telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals("3")) {
-                    MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER2"));
-                    if(tv != null) {
-                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
-
-                        tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-TEL_NUMBER2"));
-                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+                    if (tipocobro.trim().equals(""))
+                    {
+                        errordesc += "Tipo de Cobro. ";
                     }
-                }
-                //Telefono adicional
-                if (telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals(" ") || telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals("")) {
-                    MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER3"));
-                    if(tv != null) {
-                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
-
-                        tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-TEL_NUMBER3"));
-                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+                    if (condpago.trim().equals(""))
+                    {
+                        errordesc += "Condicion de Pago. ";
                     }
+                    if (clasicxc.trim().equals(""))
+                    {
+                        errordesc += "Clasificacion CxC. ";
+                    }
+                    Toasty.error(context.getApplicationContext(),"Cadena Padre "+cadenaCliente+" sin datos necesarios para crédito: "+errordesc).show();
+                    activity.finish();
+                    return;
                 }
             }
-            if (faxes.size() > 0) {
-                MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-FAX_NUMBER"));
-                if(tv != null) {
-                    tv.setText(faxes.get(0).getAsJsonObject().get("W_CTE-FAX_NUMBER").getAsString());
-                    tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-FAX_EXTENS"));
-                    tv.setText(faxes.get(0).getAsJsonObject().get("W_CTE-FAX_EXTENS").getAsString());
+            if ( (tipo.equals("ABC")) && ( !clasicxc.equals("A") && !clasicxc.equals("B") && !clasicxc.equals("C")))
+            {
+                Toasty.error(context.getApplicationContext(),"Cliente no se puede Aperturar con Credito Formal ABC!").show();
+                activity.finish();
+                return;
+            }
+            if (tipo.equals("D") && !clasicxc.equals("D"))
+            {
+                Toasty.error(context.getApplicationContext(),"Cliente no se puede Aperturar con Credito Formal D!").show();
+                activity.finish();
+                return;
+            }
+            if (tipo.equals("I") && !clasicxc.equals("I"))
+            {
+                Toasty.error(context.getApplicationContext(),"Cliente no se puede Aperturar con Credito Informal!").show();
+                activity.finish();
+                return;
+            }
+            //Campos para aperturas de credito
+            Spinner zzauart = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-ZZAUART");
+            if(zzauart != null) {
+                zzauart.setSelection(VariablesGlobales.getIndex(zzauart, clasedocven));
+            }
 
-                    tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-FAX_NUMBER"));
-                    tv.setText(faxes.get(0).getAsJsonObject().get("W_CTE-FAX_NUMBER").getAsString());
-                    tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-FAX_EXTENS"));
-                    tv.setText(faxes.get(0).getAsJsonObject().get("W_CTE-FAX_EXTENS").getAsString());
-                }
+            Spinner pson2 = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
+            if(pson2 != null) {
+                pson2.setSelection(VariablesGlobales.getIndex(pson2, clasicxc));
+            }
+
+            Spinner zterm = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTERM");
+            if(zterm != null) {
+                zterm.setSelection(VariablesGlobales.getIndex(zterm, condpago));
+            }
+
+            Spinner ctlpc = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CTLPC");
+            if(ctlpc != null) {
+                ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, claseriesgo));
+            }
+
+            Spinner kvgr2 = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-KVGR2");
+            if(kvgr2 != null) {
+                kvgr2.setSelection(VariablesGlobales.getIndex(kvgr2, tipocobro));
+            }
+
+            Spinner akont = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-AKONT");
+            if(akont != null) {
+                akont.setSelection(VariablesGlobales.getIndex(akont, cuentacont));
             }
         }
     }

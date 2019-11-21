@@ -318,7 +318,7 @@ public class MantClienteActivity extends AppCompatActivity {
                                     startActivity(intent);
                                     break;
                                 case R.id.modificar:
-                                    showDialogFormulariosModificacion(codigoCliente);
+                                    showDialogFormulariosModificacion(codigoCliente,false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Modificaciones NO disponible de momento.").show();
                                     break;
                                 case R.id.cierre:
@@ -330,13 +330,24 @@ public class MantClienteActivity extends AppCompatActivity {
                                     startActivity(intent);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Cierre NO disponible de momento.").show();
                                     break;
+                                case R.id.credito:
+                                    showDialogFormulariosModificacion(codigoCliente,true);
+                                    //Toasty.info(getBaseContext(),"Funcionalidad de Modificaciones NO disponible de momento.").show();
+                                    break;
                                 case R.id.equipofrio:
                                     Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
                                     break;
                                 case R.id.comollegar:
-                                    String uri = "geo:" + longitud + ","
-                                            +latitud + "?q=" + longitud
-                                            + "," + latitud;
+                                    String uri = "";
+                                    if(Float.parseFloat(latitud) > 30f || Float.parseFloat(latitud) < 0f) {
+                                        uri = "geo:" + longitud + ","
+                                                + latitud + "?q=" + longitud
+                                                + "," + latitud;
+                                    }else{
+                                        uri = "geo:" + latitud + ","
+                                                + longitud + "?q=" + latitud
+                                                + "," + longitud;
+                                    }
                                     startActivity(new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(uri)));
                                     break;
 
@@ -400,8 +411,13 @@ public class MantClienteActivity extends AppCompatActivity {
         }
     }
 
-    private void showDialogFormulariosModificacion(final String codigoCliente) {
-        ArrayList<HashMap<String,String>> formulariosPermitidos = db.getModificacionesPermitidas();
+    private void showDialogFormulariosModificacion(final String codigoCliente, boolean credito) {
+        ArrayList<HashMap<String,String>> formulariosPermitidos = null;
+        if(credito)
+            formulariosPermitidos = db.getModificacionesCreditoPermitidas();
+        else
+            formulariosPermitidos = db.getModificacionesPermitidas();
+
         String[] idformsTemp = new String[formulariosPermitidos.size()];
         String[] formsTemp = new String[formulariosPermitidos.size()];
         for(int x=0; x < formulariosPermitidos.size(); x++){
@@ -424,27 +440,31 @@ public class MantClienteActivity extends AppCompatActivity {
             }
 
         });
-        // Set the action buttons
+
         builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
                 // user clicked OK, so save the mSelectedItems results somewhere
                 // or return them to the component that opened the dialog
                 int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
-                if(!forms[selectedPosition].toLowerCase().contains("credito") && !forms[selectedPosition].toLowerCase().contains("crédito")) {
-                    Bundle b = new Bundle();
-                    b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
-                    b.putString("codigoCliente", codigoCliente);
-                    intent = new Intent(getApplicationContext(), SolicitudModificacionActivity.class);
-                    intent.putExtras(b); //Pase el parametro el Intent
-                    startActivity(intent);
-                }else{
-                    Bundle b = new Bundle();
-                    b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
-                    b.putString("codigoCliente", codigoCliente);
-                    intent = new Intent(getApplicationContext(), SolicitudCreditoActivity.class);
-                    intent.putExtras(b); //Pase el parametro el Intent
-                    startActivity(intent);
+                if(selectedPosition < 0){
+                    Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de modificación!").show();
+                }else {
+                    if (!forms[selectedPosition].toLowerCase().contains("credito") && !forms[selectedPosition].toLowerCase().contains("crédito")) {
+                        Bundle b = new Bundle();
+                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
+                        b.putString("codigoCliente", codigoCliente);
+                        intent = new Intent(getApplicationContext(), SolicitudModificacionActivity.class);
+                        intent.putExtras(b); //Pase el parametro el Intent
+                        startActivity(intent);
+                    } else {
+                        Bundle b = new Bundle();
+                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
+                        b.putString("codigoCliente", codigoCliente);
+                        intent = new Intent(getApplicationContext(), SolicitudCreditoActivity.class);
+                        intent.putExtras(b); //Pase el parametro el Intent
+                        startActivity(intent);
+                    }
                 }
             }
         });
@@ -455,8 +475,40 @@ public class MantClienteActivity extends AppCompatActivity {
                         dialog.dismiss();
                     }
                 });
+        final AlertDialog dialog = builder.create();
+        dialog.show();
 
-        builder.show();
+        //Sobreescribir handler de click de boton positivo
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                // user clicked OK, so save the mSelectedItems results somewhere
+                // or return them to the component that opened the dialog
+                int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                if(selectedPosition < 0){
+                    Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de modificación!").show();
+                }else {
+                    dialog.dismiss();
+                    if (!forms[selectedPosition].toLowerCase().contains("credito") && !forms[selectedPosition].toLowerCase().contains("crédito")) {
+                        Bundle b = new Bundle();
+                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
+                        b.putString("codigoCliente", codigoCliente);
+                        intent = new Intent(getApplicationContext(), SolicitudModificacionActivity.class);
+                        intent.putExtras(b); //Pase el parametro el Intent
+                        startActivity(intent);
+                    } else {
+                        Bundle b = new Bundle();
+                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
+                        b.putString("codigoCliente", codigoCliente);
+                        intent = new Intent(getApplicationContext(), SolicitudCreditoActivity.class);
+                        intent.putExtras(b); //Pase el parametro el Intent
+                        startActivity(intent);
+                    }
+                }
+            }
+        });
     }
 
 }
