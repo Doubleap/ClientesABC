@@ -24,8 +24,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
@@ -38,6 +42,7 @@ public class PanelActivity extends AppCompatActivity {
     private Intent intent;
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
+    private TextView versionPanel;
     private TextView rutaPanel;
     private TextView userPanel;
     private TextView userName;
@@ -60,6 +65,10 @@ public class PanelActivity extends AppCompatActivity {
         //mDb = mDBHelper.getWritableDatabase();
         principal = (LinearLayout)findViewById(R.id.principal);
         gridLayout = (GridLayout)findViewById(R.id.mainGrid);
+        versionPanel = findViewById(R.id.versionPanel);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        Date buildDate = BuildConfig.BuildDate;
+        versionPanel.setText("Versión: "+ BuildConfig.VERSION_NAME+" ("+dateFormat.format(buildDate)+")");
         rutaPanel = findViewById(R.id.rutaPanel);
         rutaPanel.setText(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","").trim().toUpperCase());
         userPanel = findViewById(R.id.userPanel);

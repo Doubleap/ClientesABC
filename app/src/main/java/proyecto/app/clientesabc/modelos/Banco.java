@@ -133,16 +133,19 @@ public class Banco {
                 valorCelda = getBankn();
                 break;
             case 6:
-                valorCelda = getBkont();
+                valorCelda = getKoinh();
+                //valorCelda = getBkont();
                 break;
             case 7:
-                valorCelda = getKoinh();
+                valorCelda = getBkref();
+                //valorCelda = getKoinh();
                 break;
             case 8:
                 valorCelda = getBvtyp();
                 break;
             case 9:
-                valorCelda = getBkref();
+                valorCelda = getBkont();
+                //valorCelda = getBkref();
                 break;
             case 10:
                 valorCelda = getTask();

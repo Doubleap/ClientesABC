@@ -9,7 +9,7 @@
         <item name="android:colorBackground">@color/white</item>
 
         <item name="android:dropDownListViewStyle">@style/mySpinnerStyle</item>
-        <item name="cardViewStyle">@style/CardView</item>
+        <item name="cardViewStyle">@style/CardView.Light</item>
     </style>
     <style name="AppThemeNoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
@@ -20,6 +20,7 @@
         <item name="android:colorBackground">@color/white</item>
 
         <item name="android:dropDownListViewStyle">@style/mySpinnerStyle</item>
+        <item name="cardViewStyle">@style/CardView.Light</item>
     </style>
     <style name="ProgressBarStyle">
         <item name="colorAccent">@color/colorProgressBar</item>
@@ -67,7 +68,9 @@
         <item name="android:dividerHeight">1dp</item>
         <item name="android:background">#aaaaaa</item>
     </style>
-
+    <style name="CardViewStyle" parent="AppTheme">
+        <item name="cardViewStyle">@style/CardView.Light</item>
+    </style>
     <style name="BottomNavigationView" parent="@style/TextAppearance.AppCompat.Caption">
         <item name="android:textSize">10sp</item>
     </style>

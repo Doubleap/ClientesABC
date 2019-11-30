@@ -104,15 +104,18 @@ import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.BancoTableAdapter;
+import proyecto.app.clientesabc.adaptadores.ComentarioTableAdapter;
 import proyecto.app.clientesabc.adaptadores.ContactoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
 import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
+import proyecto.app.clientesabc.clases.AdjuntoServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.FileHelper;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
+import proyecto.app.clientesabc.modelos.Comentario;
 import proyecto.app.clientesabc.modelos.Contacto;
 import proyecto.app.clientesabc.modelos.EditTextDatePicker;
 import proyecto.app.clientesabc.modelos.Impuesto;
@@ -135,6 +138,7 @@ public class SolicitudActivity extends AppCompatActivity {
     final static int alturaFilaTableView = 75;
     static String tipoSolicitud ="";
     static String idSolicitud = "";
+    static String idForm = "";
     @SuppressLint("StaticFieldLeak")
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
@@ -166,12 +170,16 @@ public class SolicitudActivity extends AppCompatActivity {
     private static de.codecrafters.tableview.TableView<Visitas> tb_visitas;
     @SuppressLint("StaticFieldLeak")
     private static de.codecrafters.tableview.TableView<Adjuntos> tb_adjuntos;
+    @SuppressLint("StaticFieldLeak")
+    private static de.codecrafters.tableview.TableView<Comentario> tb_comentarios;
     private static ArrayList<Contacto> contactosSolicitud;
     private static ArrayList<Impuesto> impuestosSolicitud;
     private static ArrayList<Banco> bancosSolicitud;
     private static ArrayList<Interlocutor> interlocutoresSolicitud;
     private static ArrayList<Visitas> visitasSolicitud;
     private static ArrayList<Adjuntos> adjuntosSolicitud;
+    private static ArrayList<Adjuntos> adjuntosServidor;
+    private static ArrayList<Comentario> comentarios;
 
     @SuppressLint("ResourceType")
     @Override
@@ -203,11 +211,13 @@ public class SolicitudActivity extends AppCompatActivity {
             solicitudSeleccionada = mDBHelper.getSolicitud(idSolicitud);
             tipoSolicitud = solicitudSeleccionada.get(0).get("TIPFORM");
             GUID = solicitudSeleccionada.get(0).get("id_solicitud");
+            idForm = solicitudSeleccionada.get(0).get("IDFORM");
             setTitle(GUID);
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             getSupportActionBar().setSubtitle(descripcion);
         }else{
             GUID = mDBHelper.getGuiId();
+            idForm = "";
             solicitudSeleccionada.clear();
             setTitle("Solicitud Nuevo Cliente");
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
@@ -232,7 +242,6 @@ public class SolicitudActivity extends AppCompatActivity {
         listaCamposDinamicos.clear();
         listaCamposBloque.clear();
         listaCamposObligatorios.clear();
-
 
         configExcepciones = mDBHelper.getConfigExcepciones(tipoSolicitud);
 
@@ -430,6 +439,7 @@ public class SolicitudActivity extends AppCompatActivity {
         //tb_visitas.addDataLongClickListener(new VisitasLongClickListener());
 
         tb_adjuntos = new de.codecrafters.tableview.TableView<>(this);
+        tb_comentarios = new de.codecrafters.tableview.TableView<>(this);
         //tb_adjuntos.addDataClickListener(new AdjuntosClickListener());
         //tb_adjuntos.addDataLongClickListener(new AdjuntosLongClickListener());
         contactosSolicitud = new ArrayList<>();
@@ -439,6 +449,7 @@ public class SolicitudActivity extends AppCompatActivity {
         visitasSolicitud = new ArrayList<>();
 
         adjuntosSolicitud = new ArrayList<>();
+        comentarios = new ArrayList<>();
         //notificantesSolicitud = new ArrayList<Adjuntos>();
 
     }
@@ -505,33 +516,40 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         File file2 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
 
-                        file2 = FileHelper.saveBitmapToFile(file2);
 
-                        byte[] bytesArray = new byte[(int) file2.length()];
+                        BitmapFactory.Options options = new BitmapFactory.Options();
+                        options.inJustDecodeBounds = true;
 
-                        FileInputStream fis = new FileInputStream(file2);
-                        fis.read(bytesArray); //read file into bytes[]
-                        fis.close();
-                        file2.delete();
-                        //Agregar al tableView del UI
-                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
-
-                        adjuntosSolicitud.add(nuevoAdjunto);
-                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
-                        tb_adjuntos.setDataAdapter(stda);
-
-                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext());
-
-                        //Intento de borrar el archivo que se guarda automatico en Pictures
-                        File file3 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//Pictures//"+name);
-                        file3.delete();
-
-                        Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
+                        BitmapFactory.decodeFile(file2.getAbsolutePath(), options);
+                        int imageHeight = options.outHeight;
+                        int imageWidth = options.outWidth;
+                        /*CROP*/
+                        try {
+                            // call the standard crop action intent (the user device may not
+                            // support it)
+                            Intent cropIntent = new Intent("com.android.camera.action.CROP");
+                            // indicate image type and Uri
+                            cropIntent.setDataAndType(mPhotoUri, "image/*");
+                            // set crop properties
+                            cropIntent.putExtra("crop", true);
+                            // indicate aspect of desired crop
+                            cropIntent.putExtra("aspectX", 1);
+                            cropIntent.putExtra("aspectY", 1.33);
+                            // indicate output X and Y
+                            //cropIntent.putExtra("outputX", imageWidth);
+                            //cropIntent.putExtra("outputY", imageHeight);
+                            // retrieve data on return
+                            cropIntent.putExtra("return-data", true);
+                            // start the activity - we handle returning in onActivityResult
+                            startActivityForResult(cropIntent, 200);
+                        }
+                        // respond to users whose devices do not support the crop action
+                        catch (ActivityNotFoundException anfe) {
+                            Toast toast = Toast
+                                    .makeText(this, "This device doesn't support the crop action!", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                        /*END CROP*/
                     } catch (IOException e) {
                         Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
                         e.printStackTrace();
@@ -595,10 +613,8 @@ public class SolicitudActivity extends AppCompatActivity {
                         //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
                         tb_adjuntos.setDataAdapter(stda);
 
-
-
                         HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext());
+                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudActivity.this);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -607,6 +623,72 @@ public class SolicitudActivity extends AppCompatActivity {
                     firma = true;
                     politica.setEnabled(false);
                     Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
+                }
+                break;
+            case 200:
+                if (resultCode == RESULT_OK) {
+                    Uri uri = null;
+                    if (data != null)
+                        uri = data.getData();
+                    if(uri == null){
+                        uri = mPhotoUri;
+                    }
+                    InputStream iStream = null;
+                    try {
+                        iStream = getContentResolver().openInputStream(uri);
+                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        ContentResolver cR =  getContentResolver();
+                        String type = cR.getType(uri);
+                        String name = getFileName(cR, uri);
+                        byte[] inputData = getBytes(iStream);
+                        File file = null;
+                        try {
+                            file = new File( Environment.getExternalStorageDirectory().getAbsolutePath());
+                            if (!file.exists()) {
+                                file.createNewFile();
+                            }
+                            FileOutputStream fos = new FileOutputStream(file+"//"+name);
+                            fos.write(inputData);
+                            fos.close();
+                        } catch (Exception e) {
+                            Log.e("thumbnail", e.getMessage());
+                        }
+                        File file2 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
+                        file2 = FileHelper.saveBitmapToFile(file2);
+
+                        byte[] bytesArray = new byte[(int) file2.length()];
+
+                        FileInputStream fis = new FileInputStream(file2);
+                        fis.read(bytesArray); //read file into bytes[]
+                        fis.close();
+                        file2.delete();
+                        //Agregar al tableView del UI
+                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
+
+                        adjuntosSolicitud.add(nuevoAdjunto);
+                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
+                        stda.setPaddings(10, 5, 10, 5);
+                        stda.setTextSize(10);
+                        stda.setGravity(GRAVITY_CENTER);
+                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
+                        tb_adjuntos.setDataAdapter(stda);
+
+                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
+                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudActivity.this);
+
+                        //Intento de borrar el archivo que se guarda automatico en Pictures
+                        File file3 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//Pictures//"+name);
+                        file3.delete();
+
+                        Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
+                    } catch (IOException e) {
+                        Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
+                        e.printStackTrace();
+                    }
                 }
                 break;
         }
@@ -1420,8 +1502,46 @@ public class SolicitudActivity extends AppCompatActivity {
                         et.setMaxLines(6);
                         et.setVerticalScrollBarEnabled(true);
                         et.setMovementMethod(ScrollingMovementMethod.getInstance());
-                        et.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
+                        et.setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
                         et.setGravity(INDICATOR_GRAVITY_TOP);
+
+                        if(solicitudSeleccionada.size() > 0 && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo")) {
+                            et.setText("");
+                            RelativeLayout rl = new RelativeLayout(getContext());
+                            CoordinatorLayout.LayoutParams rlp = new CoordinatorLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+                            rl.setLayoutParams(rlp);
+                            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) rl.getLayoutParams();
+                            params.setBehavior(new AppBarLayout.ScrollingViewBehavior(getContext(), null));
+
+                            tb_comentarios.setColumnCount(4);
+                            tb_comentarios.setHeaderBackgroundColor(getResources().getColor(R.color.colorHeaderTableView,null));
+                            tb_comentarios.setHeaderElevation(2);
+                            LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, 50);
+                            tb_comentarios.setLayoutParams(hlp);
+
+                            if(solicitudSeleccionada.size() > 0){
+                                comentarios.clear();
+                                comentarios = mDBHelper.getComentariosDB(idForm);
+                            }
+                            //Adaptadores
+                            if(comentarios != null) {
+                                tb_comentarios.getLayoutParams().height = tb_interlocutores.getLayoutParams().height + (comentarios.size() * alturaFilaTableView);
+                                tb_comentarios.setDataAdapter(new ComentarioTableAdapter(getContext(), comentarios));
+                            }
+                            String[] headers = ((ComentarioTableAdapter) tb_comentarios.getDataAdapter()).getHeaders();
+                            SimpleTableHeaderAdapter sta = new SimpleTableHeaderAdapter(getContext(), headers);
+                            sta.setPaddings(5,15,5,15);
+                            sta.setTextSize(12);
+                            sta.setTextColor(getResources().getColor(R.color.white,null));
+                            sta.setTypeface(Typeface.BOLD);
+                            sta.setGravity(GRAVITY_CENTER);
+
+                            tb_comentarios.setHeaderAdapter(sta);
+                            tb_comentarios.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(getResources().getColor(R.color.white,null), getResources().getColor(R.color.backColor,null)));
+
+                            rl.addView(tb_comentarios);
+                            ll.addView(rl);
+                        }
                     }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-DATAB")){
                         Date c = Calendar.getInstance().getTime();
@@ -2159,7 +2279,10 @@ public class SolicitudActivity extends AppCompatActivity {
                     tb_adjuntos.setLayoutParams(hlp);
 
                     if(solicitudSeleccionada.size() > 0){
-                        adjuntosSolicitud = mDBHelper.getAdjuntosDB(idSolicitud);
+                        if(idForm == null || idForm.equals("") )
+                            adjuntosSolicitud = mDBHelper.getAdjuntosDB(idSolicitud);
+                        else
+                            adjuntosSolicitud = mDBHelper.getAdjuntosServidor(idForm);
                     }
                     if(modificable) {
                         btnAddBloque.setOnClickListener(new View.OnClickListener() {
@@ -2203,11 +2326,13 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     //Horizontal View de adjuntos
                     HorizontalScrollView hsv = new HorizontalScrollView(getContext());
-                    MostrarGaleriaAdjuntosHorizontal(hsv, getContext());
+                    MostrarGaleriaAdjuntosHorizontal(hsv, getContext(), getActivity());
 
                     rl.addView(hsv);
                     ll.addView(rl);
                     mapeoCamposDinamicos.put("GaleriaAdjuntos", hsv);
+                    break;
+                case "W_CTE-COMENTARIOS":
                     break;
                 case "W_CTE-NOTIFICANTES":
                     break;
@@ -2216,7 +2341,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
     }
 
-    public static void MostrarGaleriaAdjuntosHorizontal(HorizontalScrollView hsv, final Context context) {
+    public static void MostrarGaleriaAdjuntosHorizontal(HorizontalScrollView hsv, final Context context, final Activity activity) {
         hsv.removeAllViews();
         hsv.setBackground(context.getResources().getDrawable(R.drawable.squared_textbackground,null));
         hsv.setLayoutParams(new RelativeLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
@@ -2225,44 +2350,61 @@ public class SolicitudActivity extends AppCompatActivity {
         myGallery.setPadding(10,10,10,10);
         for(int x=0; x < adjuntosSolicitud.size(); x++){
             LinearLayout layout = new LinearLayout(context);
-            layout.setLayoutParams(new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
+            lp.setMargins(0,0,5,0);
+            layout.setLayoutParams(lp);
             layout.setGravity(Gravity.CENTER);
-            //layout.setPadding(5,0,5,0);
+
             final ImageView adjunto_image = new ImageView(context);
             adjunto_image.setLayoutParams(new LinearLayout.LayoutParams(150, 150));
-            adjunto_image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            adjunto_image.setScaleType(ImageView.ScaleType.FIT_XY);
             adjunto_image.setPadding(5,5,5,5);
 
             final String nombre_adjunto = adjuntosSolicitud.get(x).getName();
             //Bitmap _bitmap = null;
-            byte[] image = adjuntosSolicitud.get(x).getImage();
-            //_bitmap.compress(Bitmap.CompressFormat.PNG, 50, image);
-            BitmapFactory.Options o = new BitmapFactory.Options();
-            o.inSampleSize = 1;
-            if(image.length  > 200000)
-                o.inSampleSize = 2;
-            if(image.length  > 400000)
-                o.inSampleSize = 4;
-            if(image.length  > 500000)
-                o.inSampleSize = 8;
-            Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length,o);
 
-            adjunto_image.setImageBitmap(imagen);
+            if(adjuntosSolicitud.get(x).getImage() != null) {
+                byte[] image = adjuntosSolicitud.get(x).getImage();
+                //_bitmap.compress(Bitmap.CompressFormat.PNG, 50, image);
+                BitmapFactory.Options o = new BitmapFactory.Options();
+                o.inSampleSize = 1;
+                if (image.length > 200000)
+                    o.inSampleSize = 2;
+                if (image.length > 400000)
+                    o.inSampleSize = 4;
+                if (image.length > 500000)
+                    o.inSampleSize = 8;
+                Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length, o);
 
-            final int finalX = x;
-            adjunto_image.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
-                }
-            });
-            if(modificable) {
-                adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
+                adjunto_image.setImageBitmap(imagen);
+                adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
+
+                final int finalX = x;
+                adjunto_image.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public boolean onLongClick(View v) {
-                        DialogHandler appdialog = new DialogHandler();
-                        appdialog.Confirm((Activity) context, "Confirmación Borrado", "Esta seguro que quiere eliminar el archivo adjunto #"+finalX+"?", "Cancelar", "Eliminar", new EliminarAdjunto(context, finalX));
-                        return false;
+                    public void onClick(View v) {
+                        mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
+                        //mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
+                    }
+                });
+                if (modificable) {
+                    adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            DialogHandler appdialog = new DialogHandler();
+                            appdialog.Confirm((Activity) context, "Confirmación Borrado", "Esta seguro que quiere eliminar el archivo adjunto #" + finalX + "?", "Cancelar", "Eliminar", new EliminarAdjunto(context, activity, finalX));
+                            return false;
+                        }
+                    });
+                }
+            }else{
+                adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
+                adjunto_image.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.icon_file));
+                final int finalX = x;
+                adjunto_image.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
                     }
                 });
             }
@@ -3015,6 +3157,33 @@ public class SolicitudActivity extends AppCompatActivity {
         }
     }
 
+    public static void mostrarAdjuntoServidor(Context context, Activity activity, Adjuntos adjunto) {
+        final Dialog d = new Dialog(context);
+        d.setContentView(R.layout.adjunto_layout);
+        ImageView adjunto_img = d.findViewById(R.id.imagen);
+        TextView adjunto_txt = d.findViewById(R.id.nombre);
+        adjunto_txt.setText(adjunto.getName());
+        if(!adjunto.getName().toLowerCase().contains(".pdf")) {
+            //SHOW DIALOG
+            d.show();
+            Window window = d.getWindow();
+            if (window != null) {
+                window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            }
+        }
+        //Realizar la transmision de lo que se necesita (Db o txt)
+        WeakReference<Context> weakRefs = new WeakReference<Context>(context);
+        WeakReference<Activity> weakRefAs = new WeakReference<Activity>(activity);
+        //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
+        AdjuntoServidor s = new AdjuntoServidor(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
+        if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
+            s.EnableWiFi();
+        }else{
+            s.DisableWiFi();
+        }
+        s.execute();
+
+    }
     private class ContactoClickListener implements TableDataClickListener<Contacto> {
         @Override
         public void onDataClicked(int rowIndex, Contacto seleccionado) {
@@ -3352,9 +3521,11 @@ public class SolicitudActivity extends AppCompatActivity {
 
     public static class EliminarAdjunto implements Runnable {
         private Context context;
+        private Activity activity;
         private int rowIndex;
-        public EliminarAdjunto(Context context, int rowIndex) {
+        public EliminarAdjunto(Context context, Activity activity, int rowIndex) {
             this.context = context;
+            this.activity = activity;
             this.rowIndex = rowIndex;
         }
         public void run() {
@@ -3366,7 +3537,7 @@ public class SolicitudActivity extends AppCompatActivity {
             }
             adjuntosSolicitud.remove(rowIndex);
             tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(context, adjuntosSolicitud));
-            MostrarGaleriaAdjuntosHorizontal((HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos"),context);
+            MostrarGaleriaAdjuntosHorizontal((HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos"),context, activity);
 
             Toasty.info(context, "Se ha eliminado el adjunto!", Toast.LENGTH_SHORT).show();
         }
@@ -3385,10 +3556,18 @@ public class SolicitudActivity extends AppCompatActivity {
                     try {
                         MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
                         String valor = tv.getText().toString();
-                                        /*if(valor.length() == 0)
-                                            valor = valor+"1";*/
-                        if(!listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC"))
+
+                        if(!listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")&& !listaCamposDinamicos.get(i).equals("W_CTE-COMENTARIOS"))
                             insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor );
+
+                        if(listaCamposDinamicos.get(i).equals("W_CTE-COMENTARIOS")) {
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
+                            Date date = new Date();
+                            if(comentarios.size() == 0)
+                                insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                            else
+                                insertValues.put("[" + listaCamposDinamicos.get(i) + "]", comentarios.get(0).getComentario()+"("+dateFormat.format(date)+"): "+valor);
+                        }
                     } catch (Exception e) {
                         try {
                             Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));

@@ -32,7 +32,7 @@ public class Adjuntos {
                 valorCelda = getName();
                 break;
             case 4:
-                valorCelda = getImage().toString();
+                valorCelda = getImage() != null ? getImage().toString():null;
                 break;
         }
         return valorCelda;

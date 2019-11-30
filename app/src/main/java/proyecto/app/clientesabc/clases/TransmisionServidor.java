@@ -95,7 +95,8 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
 
                 //Crear una base de datos solo para los datos que deben ser transmitidos
                 publishProgress("Extrayendo datos...");
-                String sqlDrop = "DROP TABLE IF EXISTS 'FormHvKof_solicitud';DROP TABLE IF EXISTS 'FormHvKof_old_solicitud';DROP TABLE IF EXISTS 'encuesta_solicitud';DROP TABLE IF EXISTS 'encuesta_gec_solicitud';DROP TABLE IF EXISTS 'grid_contacto_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_solicitud';DROP TABLE IF EXISTS 'grid_bancos_solicitud';DROP TABLE IF EXISTS 'grid_visitas_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_solicitud';DROP TABLE IF EXISTS 'adjuntos_solicitud';";
+                String sqlDrop = "DROP TABLE IF EXISTS 'FormHvKof_solicitud';DROP TABLE IF EXISTS 'FormHvKof_old_solicitud';DROP TABLE IF EXISTS 'encuesta_solicitud';DROP TABLE IF EXISTS 'encuesta_gec_solicitud';DROP TABLE IF EXISTS 'grid_contacto_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_solicitud';DROP TABLE IF EXISTS 'grid_bancos_solicitud';DROP TABLE IF EXISTS 'grid_visitas_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_solicitud';DROP TABLE IF EXISTS 'adjuntos_solicitud';" +
+                        "DROP TABLE IF EXISTS 'grid_contacto_old_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_old_solicitud';DROP TABLE IF EXISTS 'grid_bancos_old_solicitud';DROP TABLE IF EXISTS 'grid_visitas_old_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_old_solicitud';";
                 String sqlAttach = "ATTACH DATABASE '/data/user/0/proyecto.app.clientesabc/databases/FAWM_ANDROID_2' AS fromDB";
                 String[] droptables = sqlDrop.split(";");
                 for(String query : droptables){
@@ -126,6 +127,26 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                 mDataBase.execSQL(sqlCreate);
                 sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
                 mDataBase.execSQL(sqlCreate);
+
+                //Datos de formularios de modificaicion, credito o avisos de Equipo frio, con datos en tablas OLD
+                sqlCreate = "CREATE TABLE FormHvKof_old_solicitud AS SELECT * FROM fromDB.FormHvKof_old_solicitud WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud;
+                mDataBase.execSQL(sqlCreate);
+                /*sqlCreate = "CREATE TABLE encuesta_old_solicitud AS SELECT * FROM fromDB.encuesta_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado') "+filtroUnicaSolicitud+")";
+                mDataBase.execSQL(sqlCreate);
+                sqlCreate = "CREATE TABLE encuesta_gec_old_solicitud AS SELECT * FROM fromDB.encuesta_gec_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
+                mDataBase.execSQL(sqlCreate);*/
+                sqlCreate = "CREATE TABLE grid_contacto_old_solicitud AS SELECT * FROM fromDB.grid_contacto_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
+                mDataBase.execSQL(sqlCreate);
+                sqlCreate = "CREATE TABLE grid_bancos_old_solicitud AS SELECT * FROM fromDB.grid_bancos_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
+                mDataBase.execSQL(sqlCreate);
+                sqlCreate = "CREATE TABLE grid_impuestos_old_solicitud AS SELECT * FROM fromDB.grid_impuestos_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
+                mDataBase.execSQL(sqlCreate);
+                sqlCreate = "CREATE TABLE grid_visitas_old_solicitud AS SELECT * FROM fromDB.grid_visitas_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
+                mDataBase.execSQL(sqlCreate);
+                sqlCreate = "CREATE TABLE grid_interlocutor_old_solicitud AS SELECT * FROM fromDB.grid_interlocutor_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
+                mDataBase.execSQL(sqlCreate);
+
+
                 publishProgress("Empaquetando datos...");
                 String pathFileToZip = context.get().getApplicationInfo().dataDir + "/databases/";
                 FileHelper.zip(pathFileToZip,context.get().getApplicationInfo().dataDir + "/databases/","TRANSMISION_"+ PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH","")+".zip",false);
@@ -146,6 +167,11 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                 publishProgress("Enviando datos...");
                 //Comando String que indicara que se queire realizar Sincronizacion/Transmision
                 dos.writeUTF("Transmision");
+
+                //Enviar Ruta que se quiere transmitir
+                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH",""));
+                dos.flush();
+
                 //cantidad de archivos a enviar al servidor
                 dos.writeInt(files.size());
                 //dos.flush();
@@ -181,6 +207,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
 
                 dos.writeUTF("FIN");
                 dos.flush();
+                //dialog.setCancelable(false);
                 publishProgress("Esperando respuesta...");
                 //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
                 long s = dis.readLong();
@@ -227,8 +254,8 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-
         AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
+        builder.setCancelable(false);
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {

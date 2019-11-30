@@ -35,7 +35,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
-                                                <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/image/ic_remove_red_eye_black_24dp.xml" />
+                                                <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/image/ic_photo_black_24dp.xml" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -57,9 +57,7 @@
                                   <option name="values">
                                     <map>
                                       <entry key="imageAsset" value="C:\Users\andre\Desktop\femsa-logo-900.jpg" />
-                                      <entry key="outputName" value="icon_ver_viejo" />
-                                      <entry key="theme" value="CUSTOM" />
-                                      <entry key="themeColor" value="611fe5" />
+                                      <entry key="outputName" value="icon_file" />
                                     </map>
                                   </option>
                                 </PersistentState>

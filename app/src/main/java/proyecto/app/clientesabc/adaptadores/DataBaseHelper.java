@@ -33,6 +33,7 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
+import proyecto.app.clientesabc.modelos.Comentario;
 import proyecto.app.clientesabc.modelos.Contacto;
 import proyecto.app.clientesabc.modelos.Impuesto;
 import proyecto.app.clientesabc.modelos.Interlocutor;
@@ -512,7 +513,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         while (cursor.moveToNext()){
             HashMap<String,String> solicitud = new HashMap<>();
             solicitud.put("id_solicitud",cursor.getString(cursor.getColumnIndex("id_solicitud")));
-            //solicitud.put("IDFORM",cursor.getString(cursor.getColumnIndex("IDFORM")));
+            solicitud.put("IDFORM",cursor.getString(cursor.getColumnIndex("IDFORM")));
             solicitud.put("TIPFORM",cursor.getString(cursor.getColumnIndex("TIPFORM")));
             solicitud.put("FECCRE",cursor.getString(cursor.getColumnIndex("FECCRE")));
             solicitud.put("USUSOL",cursor.getString(cursor.getColumnIndex("USUSOL")));
@@ -680,7 +681,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         while (cursor.moveToNext()){
             HashMap<String,String> solicitud = new HashMap<>();
             solicitud.put("id_solicitud",cursor.getString(cursor.getColumnIndex("id_solicitud")));
-            //solicitud.put("IDFORM",cursor.getString(cursor.getColumnIndex("IDFORM")));
+            solicitud.put("IDFORM",cursor.getString(cursor.getColumnIndex("IDFORM")));
             solicitud.put("TIPFORM",cursor.getString(cursor.getColumnIndex("TIPFORM")));
             solicitud.put("FECCRE",cursor.getString(cursor.getColumnIndex("FECCRE")));
             solicitud.put("USUSOL",cursor.getString(cursor.getColumnIndex("USUSOL")));
@@ -1666,6 +1667,22 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return  adjuntosList;
     }
+    public ArrayList<Adjuntos> getAdjuntosServidor(String idform){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<Adjuntos> adjuntosList = new ArrayList<>();
+        String query = "SELECT * FROM adjuntos WHERE idform = ?";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{idform});
+        while (cursor.moveToNext()){
+            Adjuntos adjunto = new Adjuntos();
+            adjunto.setId_solicitud(cursor.getString(cursor.getColumnIndex("idform")));
+            adjunto.setType(null);
+            adjunto.setName(cursor.getString(cursor.getColumnIndex("adjunto")));
+            adjunto.setImage(null);
+            adjuntosList.add(adjunto);
+        }
+        cursor.close();
+        return  adjuntosList;
+    }
 
     public ArrayList<Interlocutor> getInterlocutoresDB(String id_solicitud){
         //SQLiteDatabase db = this.getWritableDatabase();
@@ -2165,6 +2182,33 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return  excepciones;
     }
+
+    public ArrayList<Comentario> getComentariosDB(String idform) {
+        ArrayList<Comentario> comentarios = new ArrayList<>();
+        String sql_encuesta = "select '' as orden, 'Creacion' as etapa," +
+                "ususol|| ' - ' || nom_sol as aprobador,feccre as fecha,comentario_sol as comentarios, estado " +
+                "FROM VistaFlujos WHERE idform = ?" +
+                " UNION " +
+                "select Orden as orden, cast(id_etapa as varchar) || ' - ' ||nom_etapa as etapa," +
+                "siguienteAprobador|| ' - ' || nom_aprob  as aprobador,fechaIngreso as fecha,comentario_aprob as comentarios , estado " +
+                "FROM VistaFlujos " +
+                "WHERE idform = ? ORDER by orden desc";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,new String[]{idform,idform});
+        while (cursor.moveToNext()){
+            Comentario comentario = new Comentario();
+            comentario.setId_formulario(idform);
+            comentario.setOrden(cursor.getString(cursor.getColumnIndex("orden")));
+            comentario.setEtapa(cursor.getString(cursor.getColumnIndex("etapa")));
+            comentario.setAprobador(cursor.getString(cursor.getColumnIndex("aprobador")));
+            comentario.setFecha(cursor.getString(cursor.getColumnIndex("fecha")));
+            comentario.setComentario(cursor.getString(cursor.getColumnIndex("comentarios")));
+            comentario.setEstado(cursor.getString(cursor.getColumnIndex("estado")));
+            comentarios.add(comentario);
+        }
+        cursor.close();
+        return  comentarios;
+    }
+
     // Metodos de Ayuda para la Transmision de Datos y evitar que se vayan duplicados o que no se vayan
     public void ActualizarEstadosSolicitudesTransmitidas(){
         //SQLiteDatabase db = this.getWritableDatabase();
