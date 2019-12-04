@@ -2492,6 +2492,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         }
 
                                     }
+                                    RecalcularDiasDeReparto(getContext());
                                 }
                             });
                             tr.addView(label);
@@ -3614,7 +3615,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 }
 
                 //RECALCULAR DIAS DE VISITA
-                RecalcularDiasDeReparto();
+                RecalcularDiasDeReparto(context);
 
                 tb_visitas.setDataAdapter(new VisitasTableAdapter(v.getContext(), visitasSolicitud));
                 try {
@@ -3639,13 +3640,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         d.show();
     }
 
-    private void RecalcularDiasDeReparto() {
+    private static void RecalcularDiasDeReparto(Context context) {
         int numplanes = visitasSolicitud.size();
         //Iterrar sobre todos los planes de la modalida de venta seleccionada
         for (int y = 0 ; y < numplanes; y++) {
             Visitas vp = visitasSolicitud.get(y);
             //Revisar si el VP es una ruta de reparto para ser borrada y recalculada
-            if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp())) {
+            if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BZIRK",""), vp.getVptyp())) {
                 vp.setLun_de("");
                 vp.setLun_a("");
                 vp.setMar_de("");
@@ -3663,17 +3664,25 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         //Recalcular los dias de visita del(os) reparto segun las preventas existentes nuevas determinadas
         //Se recorren la cantidad de visit plans para obtener la data de cada uno especifico
         Visitas rep = null;
+        Visitas rep_old = null;
         for (int y = 0 ; y < numplanes; y++) {
             Visitas vp = visitasSolicitud.get(y);
 
             //Si no es tipo de reparto debemos tomar en cuenta para calcular su reparto
-            boolean esReparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp());
-            //TODO cambiar el valor "PR" por el valor dinamico del comboBox de Modalidad de venta
+            boolean esReparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BZIRK",""), vp.getVptyp());
+
             if(!esReparto){
-                String rutaReparto = mDBHelper.RutaRepartoAsociada("PR", vp.getVptyp());
+                Spinner metodo = ((Spinner)mapeoCamposDinamicos.get("W_CTE-KVGR5"));
+                String rutaReparto = mDBHelper.RutaRepartoAsociada(((OpcionSpinner)metodo.getSelectedItem()).getId(), vp.getVptyp());
                 for (int x = 0; x < visitasSolicitud.size(); x++) {
                     if (rutaReparto.equals(visitasSolicitud.get(x).getVptyp())) {
                         rep = visitasSolicitud.get(x);
+                        break;
+                    }
+                }
+                for (int x = 0; x < visitasSolicitud_old.size(); x++) {
+                    if (rutaReparto.equals(visitasSolicitud_old.get(x).getVptyp())) {
+                        rep_old = visitasSolicitud_old.get(x);
                         break;
                     }
                 }
@@ -3694,19 +3703,19 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 String v = vp_Viernes.getText().toString().isEmpty()? null : vp_Viernes.getText().toString();
                 String s = vp_Sabado.getText().toString().isEmpty()? null : vp_Sabado.getText().toString();
 
-                asignarDiaReparto(diasParaReparto, 1, l, rep);
-                asignarDiaReparto(diasParaReparto, 2, m, rep);
-                asignarDiaReparto(diasParaReparto, 3, k, rep);
-                asignarDiaReparto(diasParaReparto, 4, j, rep);
-                asignarDiaReparto(diasParaReparto, 5, v, rep);
-                asignarDiaReparto(diasParaReparto, 6, s, rep);
+                asignarDiaReparto(diasParaReparto, 1, l, rep, rep_old);
+                asignarDiaReparto(diasParaReparto, 2, m, rep, rep_old);
+                asignarDiaReparto(diasParaReparto, 3, k, rep, rep_old);
+                asignarDiaReparto(diasParaReparto, 4, j, rep, rep_old);
+                asignarDiaReparto(diasParaReparto, 5, v, rep, rep_old);
+                asignarDiaReparto(diasParaReparto, 6, s, rep, rep_old);
 
             }
 
         }
     }
 
-    public static void asignarDiaReparto(int metodo, int diaPreventa, String secuencia, Visitas vp_reparto){
+    public static void asignarDiaReparto(int metodo, int diaPreventa, String secuencia, Visitas vp_reparto, Visitas vp_reparto_old){
         if(secuencia != null){
             int diaReparto;
             if ((diaPreventa+metodo) > 6) {
@@ -3721,28 +3730,59 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             String secuenciaSAP = h+m;
             switch(diaReparto){
                 case 1:
-                    vp_reparto.setLun_a(secuenciaSAP);
-                    vp_reparto.setLun_de(secuenciaSAP);
+                    if(vp_reparto_old == null || vp_reparto_old.getLun_a().trim().length() == 0) {
+                        vp_reparto.setLun_a(secuenciaSAP);
+                        vp_reparto.setLun_de(secuenciaSAP);
+                    }else{
+                        vp_reparto.setLun_a(vp_reparto_old.getLun_a());
+                        vp_reparto.setLun_de(vp_reparto_old.getLun_a());
+                    }
                     break;
                 case 2:
-                    vp_reparto.setMar_a(secuenciaSAP);
-                    vp_reparto.setMar_de(secuenciaSAP);
+                    if(vp_reparto_old == null || vp_reparto_old.getMar_a().trim().length() == 0) {
+                        vp_reparto.setMar_a(secuenciaSAP);
+                        vp_reparto.setMar_de(secuenciaSAP);
+                    }else{
+                        vp_reparto.setMar_a(vp_reparto_old.getMar_a());
+                        vp_reparto.setMar_de(vp_reparto_old.getMar_a());
+                    }
                     break;
                 case 3:
-                    vp_reparto.setMier_a(secuenciaSAP);
-                    vp_reparto.setMier_de(secuenciaSAP);
+                    if(vp_reparto_old == null || vp_reparto_old.getMier_a().trim().length() == 0) {
+                        vp_reparto.setMier_a(secuenciaSAP);
+                        vp_reparto.setMier_de(secuenciaSAP);
+                    }
+                    else{
+                        vp_reparto.setMier_a(vp_reparto_old.getMier_a());
+                        vp_reparto.setMier_de(vp_reparto_old.getMier_de());
+                    }
                     break;
                 case 4:
-                    vp_reparto.setJue_a(secuenciaSAP);
-                    vp_reparto.setJue_de(secuenciaSAP);
+                    if(vp_reparto_old == null || vp_reparto_old.getJue_a().trim().length() == 0) {
+                        vp_reparto.setJue_a(secuenciaSAP);
+                        vp_reparto.setJue_de(secuenciaSAP);
+                    }else{
+                        vp_reparto.setJue_a(vp_reparto_old.getJue_a());
+                        vp_reparto.setJue_de(vp_reparto_old.getJue_de());
+                    }
                     break;
                 case 5:
-                    vp_reparto.setVie_a(secuenciaSAP);
-                    vp_reparto.setVie_de(secuenciaSAP);
+                    if(vp_reparto_old == null || vp_reparto_old.getVie_a().trim().length() == 0) {
+                        vp_reparto.setVie_a(secuenciaSAP);
+                        vp_reparto.setVie_de(secuenciaSAP);
+                    }else{
+                        vp_reparto.setVie_a(vp_reparto_old.getVie_a());
+                        vp_reparto.setVie_de(vp_reparto_old.getVie_de());
+                    }
                     break;
                 case 6:
-                    vp_reparto.setSab_a(secuenciaSAP);
-                    vp_reparto.setSab_de(secuenciaSAP);
+                    if(vp_reparto_old == null || vp_reparto_old.getSab_a().trim().length() == 0) {
+                        vp_reparto.setSab_a(secuenciaSAP);
+                        vp_reparto.setSab_de(secuenciaSAP);
+                    }else{
+                        vp_reparto.setSab_a(vp_reparto_old.getSab_a());
+                        vp_reparto.setSab_de(vp_reparto_old.getSab_de());
+                    }
                     break;
             }
         }
@@ -4263,7 +4303,15 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                         for(int x=0; x < contactos.size(); x++){
                             contacto = gson.fromJson(contactos.get(x), Contacto.class);
+                            contacto.setGbdat(contacto.getGbdat().replace("-",""));
+                            if(contacto.getGbdat().trim().replace("0","").length()==0)
+                                contacto.setGbdat("");
                             contactosSolicitud.add(contacto);
+                            try {
+                                contactosSolicitud_old.add((Contacto)contacto.clone());
+                            } catch (CloneNotSupportedException e) {
+                                e.printStackTrace();
+                            }
                         }
                         if(contactosSolicitud != null) {
                             tb_contactos.setDataAdapter(new ContactoTableAdapter(context, contactosSolicitud));
@@ -4284,6 +4332,11 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 }
                             }
                             impuestosSolicitud.add(impuesto);
+                            try {
+                                impuestosSolicitud_old.add((Impuesto)impuesto.clone());
+                            } catch (CloneNotSupportedException e) {
+                                e.printStackTrace();
+                            }
                         }
                         if(impuestosSolicitud != null) {
                             tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(context, impuestosSolicitud));
@@ -4296,6 +4349,11 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         for(int x=0; x < interlocutores.size(); x++){
                             interlocutor = gson.fromJson(interlocutores.get(x), Interlocutor.class);
                             interlocutoresSolicitud.add(interlocutor);
+                            try {
+                                interlocutoresSolicitud_old.add((Interlocutor) interlocutor.clone());
+                            } catch (CloneNotSupportedException e) {
+                                e.printStackTrace();
+                            }
                         }
                         if(interlocutoresSolicitud != null) {
                             tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(context, interlocutoresSolicitud));
@@ -4308,6 +4366,11 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         for(int x=0; x < bancos.size(); x++){
                             banco = gson.fromJson(bancos.get(x), Banco.class);
                             bancosSolicitud.add(banco);
+                            try {
+                                bancosSolicitud_old.add((Banco)banco.clone());
+                            } catch (CloneNotSupportedException e) {
+                                e.printStackTrace();
+                            }
                         }
                         if(bancosSolicitud != null) {
                             tb_bancos.setDataAdapter(new BancoTableAdapter(context, bancosSolicitud));
@@ -4331,8 +4394,26 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 indiceEspecializada = x;
                             }
                             visita = gson.fromJson(visitas.get(x), Visitas.class);
+
+                            visita.setF_ico(visita.getF_ico().replace("-",""));
+                            visita.setF_fco(visita.getF_fco().replace("-",""));
+                            visita.setF_ini(visita.getF_ini().replace("-",""));
+                            visita.setF_fin(visita.getF_fin().replace("-",""));
+                            if(visita.getF_ico().trim().replace("0","").length()==0)
+                                visita.setF_ico("");
+                            if(visita.getF_fco().trim().replace("0","").length()==0)
+                                visita.setF_fco("");
+                            if(visita.getF_ini().trim().replace("0","").length()==0)
+                                visita.setF_ini("");
+                            if(visita.getF_fin().trim().replace("0","").length()==0)
+                                visita.setF_fin("");
+
                             visitasSolicitud.add(visita);
-                            visitasSolicitud_old.add(visita);
+                            try {
+                                visitasSolicitud_old.add((Visitas)visita.clone());
+                            } catch (CloneNotSupportedException e) {
+                                e.printStackTrace();
+                            }
                         }
                         if(visitasSolicitud != null) {
                             tb_visitas.setDataAdapter(new VisitasTableAdapter(context, visitasSolicitud));

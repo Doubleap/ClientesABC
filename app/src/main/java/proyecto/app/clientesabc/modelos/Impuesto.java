@@ -2,7 +2,7 @@ package proyecto.app.clientesabc.modelos;
 
 import com.google.gson.annotations.SerializedName;
 
-public class Impuesto {
+public class Impuesto implements Cloneable{
     private String id_impuestos;
     private String id_solicitud;
     private String id_formulario;
@@ -14,6 +14,19 @@ public class Impuesto {
     private String taxkd;
     @SerializedName("W_CTE-VTEXT2")
     private String vtext2;
+
+    public Impuesto(String id_impuestos, String id_solicitud, String id_formulario, String tatyp, String vtext, String taxkd, String vtext2) {
+        this.id_impuestos = id_impuestos;
+        this.id_solicitud = id_solicitud;
+        this.id_formulario = id_formulario;
+        this.tatyp = tatyp;
+        this.vtext = vtext;
+        this.taxkd = taxkd;
+        this.vtext2 = vtext2;
+    }
+
+    public Impuesto() {
+    }
 
     private String getId_impuestos() {
         return id_impuestos;
@@ -98,5 +111,10 @@ public class Impuesto {
 
     public boolean validarObligatorios() {
         return (!this.getTatyp().trim().equals("") && !this.getTaxkd().trim().equals(""));
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

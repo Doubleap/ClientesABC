@@ -2,7 +2,7 @@ package proyecto.app.clientesabc.modelos;
 
 import com.google.gson.annotations.SerializedName;
 
-public class Interlocutor {
+public class Interlocutor implements Cloneable{
     private String id_interlocutor;
     private String id_formulario;
     private String id_solicitud;
@@ -14,6 +14,24 @@ public class Interlocutor {
     private String kunn2;
     @SerializedName("W_CTE-NAME1")
     private String name1;
+
+    public Interlocutor(String id_interlocutor, String id_formulario, String id_solicitud, String parvw, String vtext, String kunn2, String name1) {
+        this.id_interlocutor = id_interlocutor;
+        this.id_formulario = id_formulario;
+        this.id_solicitud = id_solicitud;
+        this.parvw = parvw;
+        this.vtext = vtext;
+        this.kunn2 = kunn2;
+        this.name1 = name1;
+    }
+
+    public Interlocutor() {
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
 
     private String getId_interlocutor() {
         return id_interlocutor;

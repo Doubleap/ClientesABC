@@ -1,26 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_height="match_parent"
-    android:layout_width="match_parent"
-    >
+
+    <menu xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/detalle"
-        android:title="Ver Detalle" />
+        android:icon="@drawable/icon_view"
+        android:title="Ver Detalle"
+        app:showAsAction="never|withText"/>
     <item
         android:id="@+id/modificar"
-        android:title="Solicitud de Modificación" />
+        android:icon="@drawable/icon_modi"
+        android:title="Solicitud de Modificación"
+        app:showAsAction="never|withText"/>
     <item
         android:id="@+id/cierre"
-        android:title="Solicitud de Cierre" />
+        android:icon="@drawable/icon_close"
+        android:title="Solicitud de Cierre"
+        app:showAsAction="never|withText"/>
     <item
         android:id="@+id/credito"
-        android:title="Solicitud de Crédito" />
+        android:icon="@drawable/icon_credit"
+        android:title="Solicitud de Crédito"
+        app:showAsAction="never|withText"/>
     <item
         android:id="@+id/equipofrio"
-        android:title="Solicitud de Equipo Frío" />
+        android:icon="@drawable/icon_equipo"
+        android:title="Solicitud de Equipo Frío"
+        app:showAsAction="never|withText"/>
     <item
         android:id="@+id/comollegar"
-        android:title="Como llegar" />
+        android:icon="@drawable/icon_location"
+        android:title="Como llegar"
+        app:showAsAction="never|withText"/>
 </menu>

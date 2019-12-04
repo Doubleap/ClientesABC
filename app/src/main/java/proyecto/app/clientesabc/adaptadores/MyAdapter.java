@@ -1,5 +1,6 @@
 package proyecto.app.clientesabc.adaptadores;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.view.menu.MenuBuilder;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.view.ContextThemeWrapper;
@@ -170,6 +172,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
             }
         });
         textViewOptions.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("RestrictedApi")
             @Override
             public void onClick(View view) {
 
@@ -298,6 +301,9 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                         return false;
                     }
                 });
+                if (popup.getMenu() instanceof MenuBuilder) {
+                    ((MenuBuilder) popup.getMenu()).setOptionalIconsVisible(true);
+                }
                 //displaying the popup
                 popup.show();
 

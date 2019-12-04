@@ -180,7 +180,7 @@ public class FileHelper {
             o.inJustDecodeBounds = true;
             o.inSampleSize = 1;
             // factor of downsizing the image
-            int calidadImagen = 60;
+            int calidadImagen = 75;
 
             FileInputStream inputStream = new FileInputStream(file);
             //Bitmap selectedBitmap = null;

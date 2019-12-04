@@ -57,7 +57,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -71,8 +70,10 @@ import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.mikelau.croperino.Croperino;
+import com.mikelau.croperino.CroperinoConfig;
+import com.mikelau.croperino.CroperinoFileUtil;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.io.ByteArrayOutputStream;
@@ -132,6 +133,8 @@ import static android.support.design.widget.TabLayout.OnTouchListener;
 import static android.support.design.widget.TabLayout.TEXT_ALIGNMENT_CENTER;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+
+//import com.mikelau.croperino.Croperino;
 
 public class SolicitudActivity extends AppCompatActivity {
 
@@ -252,7 +255,18 @@ public class SolicitudActivity extends AppCompatActivity {
                 Intent intent;
                 switch (item.getItemId()) {
                     case R.id.action_camara:
-                        mPhotoUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        //Initialize on every usage
+                        new CroperinoConfig("ADJ_" + System.currentTimeMillis() + ".jpg", "", "/sdcard");
+                        CroperinoFileUtil.verifyStoragePermissions(SolicitudActivity.this);
+                        CroperinoFileUtil.setupDirectory(SolicitudActivity.this);
+                        //Prepare Camera
+                        try {
+                            Croperino.prepareCamera(SolicitudActivity.this);
+                        } catch(Exception e) {
+                            Log.e("tag", e.getMessage());
+                        }
+
+                        /*mPhotoUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                                 new ContentValues());
                         intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                         intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
@@ -261,10 +275,11 @@ public class SolicitudActivity extends AppCompatActivity {
 
                         } catch (ActivityNotFoundException e) {
                             Log.e("tag", getResources().getString(R.string.no_activity));
-                        }
+                        }*/
                         return true;
                     case R.id.action_file:
-                        intent = new Intent(Intent.ACTION_GET_CONTENT);
+                        Croperino.prepareGallery(SolicitudActivity.this);
+                        /*intent = new Intent(Intent.ACTION_GET_CONTENT);
                         intent.setType("image/*");
                         intent.addCategory(Intent.CATEGORY_OPENABLE);
                         try {
@@ -272,7 +287,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
                         } catch (ActivityNotFoundException e) {
                             Log.e("tag", getResources().getString(R.string.no_activity));
-                        }
+                        }*/
                         return true;
                     case R.id.action_save:
                         int numErrores = 0;
@@ -391,7 +406,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             appdialog.Confirm(SolicitudActivity.this, "Confirmación Solicitud", "Esta seguro que desea guardar la solicitud?", "No", "Si", new GuardarFormulario(getBaseContext()));
 
                         }else{
-                            Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toast.LENGTH_LONG).show();
+                            Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toasty.LENGTH_LONG).show();
                         }
                 }
                 return true;
@@ -478,10 +493,103 @@ public class SolicitudActivity extends AppCompatActivity {
         alert.show();
     }
 
-
-    //Se dispara al escoger el documento que se quiere relacionar a la solicitud
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
         switch (requestCode) {
+            case CroperinoConfig.REQUEST_TAKE_PHOTO:
+                if (resultCode == Activity.RESULT_OK) {
+                    // Parameters of runCropImage = File, Activity Context, Image is Scalable or Not, Aspect Ratio X, Aspect Ratio Y, Button Bar Color, Background Color
+                    Croperino.runCropImage(CroperinoFileUtil.getTempFile(), SolicitudActivity.this, true, 0, 0, getResources().getColor(R.color.colorPrimary,null), getResources().getColor(R.color.black,null));
+                }
+                break;
+            case CroperinoConfig.REQUEST_PICK_FILE:
+                if (resultCode == Activity.RESULT_OK) {
+                    CroperinoFileUtil.newGalleryFile(data, SolicitudActivity.this);
+                    Croperino.runCropImage(CroperinoFileUtil.getTempFile(), SolicitudActivity.this, true, 0, 0, getResources().getColor(R.color.colorPrimary,null), getResources().getColor(R.color.black,null));
+                }
+                break;
+            case CroperinoConfig.REQUEST_CROP_PHOTO:
+                if (resultCode == Activity.RESULT_OK) {
+                    Uri i = Uri.fromFile(CroperinoFileUtil.getTempFile());
+                    //ivMain.setImageURI(i);
+                    //Salvar la imagen despues de Croperino con CroperinoFileUtil.getTempFile()
+                    if (resultCode == RESULT_OK) {
+                        Uri uri = i;
+                        if(uri == null){
+                            uri = mPhotoUri;
+                        }
+                        InputStream iStream = null;
+                        try {
+                            iStream = getContentResolver().openInputStream(uri);
+                            //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            ContentResolver cR =  getContentResolver();
+                            String type = cR.getType(uri);
+                            String name = CroperinoConfig.getsImageName();//getFileName(cR, uri);
+                            byte[] inputData = getBytes(iStream);
+                            File file = null;
+                            try {
+                                file = new File( Environment.getExternalStorageDirectory().getAbsolutePath());
+                                if (!file.exists()) {
+                                    file.createNewFile();
+                                }
+                                FileOutputStream fos = new FileOutputStream(file+"//"+name);
+                                fos.write(inputData);
+                                fos.close();
+                            } catch (Exception e) {
+                                Log.e("thumbnail", e.getMessage());
+                            }
+                            File file2 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
+                            file2 = FileHelper.saveBitmapToFile(file2);
+
+                            byte[] bytesArray = new byte[(int) file2.length()];
+
+                            FileInputStream fis = new FileInputStream(file2);
+                            fis.read(bytesArray); //read file into bytes[]
+                            fis.close();
+                            file2.delete();
+                            //Agregar al tableView del UI
+                            Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
+
+                            adjuntosSolicitud.add(nuevoAdjunto);
+                            AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
+                            stda.setPaddings(10, 5, 10, 5);
+                            stda.setTextSize(10);
+                            stda.setGravity(GRAVITY_CENTER);
+                            //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
+                            tb_adjuntos.setDataAdapter(stda);
+
+                            HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
+                            MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudActivity.this);
+
+                            //Intento de borrar el archivo que se guarda automatico en Pictures
+                            File file3 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//Pictures//"+name);
+                            file3.delete();
+
+                            File eliminar = CroperinoFileUtil.getTempFile();
+                            eliminar.delete();
+
+                            Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
+                        } catch (IOException e) {
+                            Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    //Se dispara al escoger el documento que se quiere relacionar a la solicitud
+    /*public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+
             case 1:
                 if (resultCode == RESULT_OK) {
                     Uri uri = null;
@@ -521,15 +629,15 @@ public class SolicitudActivity extends AppCompatActivity {
                         options.inJustDecodeBounds = true;
 
                         BitmapFactory.decodeFile(file2.getAbsolutePath(), options);
-                        int imageHeight = options.outHeight;
-                        int imageWidth = options.outWidth;
-                        /*CROP*/
+                        //int imageHeight = options.outHeight;
+                        //int imageWidth = options.outWidth;
+                        //CROP
                         try {
                             // call the standard crop action intent (the user device may not
                             // support it)
                             Intent cropIntent = new Intent("com.android.camera.action.CROP");
                             // indicate image type and Uri
-                            cropIntent.setDataAndType(mPhotoUri, "image/*");
+                            cropIntent.setDataAndType(uri, "image/*");
                             // set crop properties
                             cropIntent.putExtra("crop", true);
                             // indicate aspect of desired crop
@@ -545,11 +653,9 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         // respond to users whose devices do not support the crop action
                         catch (ActivityNotFoundException anfe) {
-                            Toast toast = Toast
-                                    .makeText(this, "This device doesn't support the crop action!", Toast.LENGTH_SHORT);
-                            toast.show();
+                            Toasty.warning(this, "Este dispositivo no puede recortar la imagen!", Toasty.LENGTH_SHORT).show();;
                         }
-                        /*END CROP*/
+                        //END CROP
                     } catch (IOException e) {
                         Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
                         e.printStackTrace();
@@ -625,6 +731,70 @@ public class SolicitudActivity extends AppCompatActivity {
                     Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
                 }
                 break;
+            case CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE:
+                CropImage.ActivityResult result = CropImage.getActivityResult(data);
+                if (resultCode == RESULT_OK) {
+                    Uri uri = result.getUri();
+                    InputStream iStream = null;
+                    try {
+                        iStream = getContentResolver().openInputStream(uri);
+                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        ContentResolver cR =  getContentResolver();
+                        String type = cR.getType(uri);
+                        String name = getFileName(cR, uri);
+                        byte[] inputData = getBytes(iStream);
+                        File file = null;
+                        try {
+                            file = new File( Environment.getExternalStorageDirectory().getAbsolutePath());
+                            if (!file.exists()) {
+                                file.createNewFile();
+                            }
+                            FileOutputStream fos = new FileOutputStream(file+"//"+name);
+                            fos.write(inputData);
+                            fos.close();
+                        } catch (Exception e) {
+                            Log.e("thumbnail", e.getMessage());
+                        }
+                        File file2 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
+                        file2 = FileHelper.saveBitmapToFile(file2);
+
+                        byte[] bytesArray = new byte[(int) file2.length()];
+
+                        FileInputStream fis = new FileInputStream(file2);
+                        fis.read(bytesArray); //read file into bytes[]
+                        fis.close();
+                        file2.delete();
+                        //Agregar al tableView del UI
+                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
+
+                        adjuntosSolicitud.add(nuevoAdjunto);
+                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
+                        stda.setPaddings(10, 5, 10, 5);
+                        stda.setTextSize(10);
+                        stda.setGravity(GRAVITY_CENTER);
+                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
+                        tb_adjuntos.setDataAdapter(stda);
+
+                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
+                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudActivity.this);
+
+                        //Intento de borrar el archivo que se guarda automatico en Pictures
+                        File file3 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//Pictures//"+name);
+                        file3.delete();
+
+                        Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
+                    } catch (IOException e) {
+                        Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
+                        e.printStackTrace();
+                    }
+                } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                    Exception error = result.getError();
+                }
+                break;
             case 200:
                 if (resultCode == RESULT_OK) {
                     Uri uri = null;
@@ -692,7 +862,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 }
                 break;
         }
-    }
+    }*/
 
     public static class ViewPagerAdapter extends FragmentPagerAdapter {
 
@@ -1505,7 +1675,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         et.setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
                         et.setGravity(INDICATOR_GRAVITY_TOP);
 
-                        if(solicitudSeleccionada.size() > 0 && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo")) {
+                        if(solicitudSeleccionada.size() > 0 && (!solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incompleto"))) {
                             et.setText("");
                             RelativeLayout rl = new RelativeLayout(getContext());
                             CoordinatorLayout.LayoutParams rlp = new CoordinatorLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
@@ -2589,7 +2759,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         d.dismiss();
                     }
                 } catch(Exception e) {
-                    Toasty.error(v.getContext(), "No se pudo salvar el impuesto. "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toasty.error(v.getContext(), "No se pudo salvar el impuesto. "+e.getMessage(), Toasty.LENGTH_SHORT).show();
                 }
             }
         });
@@ -2717,7 +2887,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         d.dismiss();
                     }
                 } catch(Exception e) {
-                    Toasty.error(v.getContext(), "No se pudo salvar el interlocutor. "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toasty.error(v.getContext(), "No se pudo salvar el interlocutor. "+e.getMessage(), Toasty.LENGTH_SHORT).show();
                 }
             }
         });
@@ -2789,7 +2959,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         d.dismiss();
                     }
                 } catch (Exception e ) {
-                    Toasty.error(v.getContext(), "No se pudo salvar el banco. "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toasty.error(v.getContext(), "No se pudo salvar el banco. "+e.getMessage(), Toasty.LENGTH_SHORT).show();
                 }
             }
         });
@@ -2979,14 +3149,14 @@ public class SolicitudActivity extends AppCompatActivity {
                     try {
                         mDb.insert(VariablesGlobales.getTablaEncuestaSolicitud(), null, encuestaValues);
                     } catch (Exception e) {
-                        Toasty.error(v.getContext(), "Error Insertando Encuesta Canales", Toast.LENGTH_SHORT).show();
+                        Toasty.error(v.getContext(), "Error Insertando Encuesta Canales", Toasty.LENGTH_SHORT).show();
                     }
-                    Toasty.success(v.getContext(), "Encuesta Canales ejecutada correctamente!", Toast.LENGTH_SHORT).show();
+                    Toasty.success(v.getContext(), "Encuesta Canales ejecutada correctamente!", Toasty.LENGTH_SHORT).show();
                     d.dismiss();
                     CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA");
                     ejecutada.setChecked(true);
                 } catch (Exception e) {
-                    Toasty.error(v.getContext(), "No se pudo salvar la encuesta. "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toasty.error(v.getContext(), "No se pudo salvar la encuesta. "+e.getMessage(), Toasty.LENGTH_SHORT).show();
                 }
             }
         });
@@ -3086,14 +3256,14 @@ public class SolicitudActivity extends AppCompatActivity {
                         if(!monto.getText().toString().trim().equals("")){
                             suma_montos += Integer.valueOf(monto.getText().toString());
                         }else{
-                            Toasty.error(v.getContext(), "Por favor llene todos los campos de la encuesta.", Toast.LENGTH_SHORT).show();
+                            Toasty.error(v.getContext(), "Por favor llene todos los campos de la encuesta.", Toasty.LENGTH_SHORT).show();
                             return;
                         }
 
                         try {
                             mDb.insert(VariablesGlobales.getTablaEncuestaGecSolicitud(), null, encuestaValues);
                         } catch (Exception e) {
-                            Toasty.error(v.getContext(), "Error Insertando Encuesta Canales (Registro #"+j+")", Toast.LENGTH_SHORT).show();
+                            Toasty.error(v.getContext(), "Error Insertando Encuesta Canales (Registro #"+j+")", Toasty.LENGTH_SHORT).show();
                         }
                     }
 
@@ -3102,12 +3272,12 @@ public class SolicitudActivity extends AppCompatActivity {
                     Spinner gecSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
                     gecSpinner.setSelection(VariablesGlobales.getIndex(gecSpinner,valor_gec));
 
-                    Toasty.success(v.getContext(), "Encuesta GEC ejecutada correctamente!", Toast.LENGTH_SHORT).show();
+                    Toasty.success(v.getContext(), "Encuesta GEC ejecutada correctamente!", Toasty.LENGTH_SHORT).show();
                     d.dismiss();
                     CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
                     ejecutada.setChecked(true);
                 } catch(Exception e) {
-                    Toasty.error(v.getContext(), "No se pudo salvar la encuesta gec. "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toasty.error(v.getContext(), "No se pudo salvar la encuesta gec. "+e.getMessage(), Toasty.LENGTH_SHORT).show();
                 }
             }
         });
@@ -3214,7 +3384,7 @@ public class SolicitudActivity extends AppCompatActivity {
             contactosSolicitud.remove(rowIndex);
             tb_contactos.setDataAdapter(new ContactoTableAdapter(context, contactosSolicitud));
             tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height-alturaFilaTableView;
-            Toasty.info(context, salida, Toast.LENGTH_SHORT).show();
+            Toasty.info(context, salida, Toasty.LENGTH_SHORT).show();
         }
     }
     private class ImpuestoClickListener implements TableDataClickListener<Impuesto> {
@@ -3230,7 +3400,7 @@ public class SolicitudActivity extends AppCompatActivity {
             impuestosSolicitud.remove(rowIndex);
             tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(getBaseContext(), impuestosSolicitud));
             tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height-alturaFilaTableView;
-            Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
+            Toasty.info(getBaseContext(), salida, Toasty.LENGTH_SHORT).show();
             return true;
         }
     }
@@ -3263,7 +3433,7 @@ public class SolicitudActivity extends AppCompatActivity {
             bancosSolicitud.remove(rowIndex);
             tb_bancos.setDataAdapter(new BancoTableAdapter(context, bancosSolicitud));
             tb_bancos.getLayoutParams().height = tb_bancos.getLayoutParams().height-alturaFilaTableView;
-            Toasty.info(context, salida, Toast.LENGTH_SHORT).show();
+            Toasty.info(context, salida, Toasty.LENGTH_SHORT).show();
         }
     }
     private class InterlocutorClickListener implements TableDataClickListener<Interlocutor> {
@@ -3279,7 +3449,7 @@ public class SolicitudActivity extends AppCompatActivity {
             interlocutoresSolicitud.remove(rowIndex);
             tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(getBaseContext(), interlocutoresSolicitud));
             tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height-alturaFilaTableView;
-            Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
+            Toasty.info(getBaseContext(), salida, Toasty.LENGTH_SHORT).show();
             return true;
         }
     }
@@ -3514,7 +3684,7 @@ public class SolicitudActivity extends AppCompatActivity {
             visitasSolicitud.remove(rowIndex);
             tb_visitas.setDataAdapter(new VisitasTableAdapter(getBaseContext(), visitasSolicitud));
             tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height-alturaFilaTableView;
-            Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
+            Toasty.info(getBaseContext(), salida, Toasty.LENGTH_SHORT).show();
             return true;
         }
     }
@@ -3539,7 +3709,7 @@ public class SolicitudActivity extends AppCompatActivity {
             tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(context, adjuntosSolicitud));
             MostrarGaleriaAdjuntosHorizontal((HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos"),context, activity);
 
-            Toasty.info(context, "Se ha eliminado el adjunto!", Toast.LENGTH_SHORT).show();
+            Toasty.info(context, "Se ha eliminado el adjunto!", Toasty.LENGTH_SHORT).show();
         }
     }
 
@@ -3607,7 +3777,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), null, contactoValues);
                                     contactoValues.clear();
                                 } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud", Toast.LENGTH_SHORT).show();
+                                    Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud", Toasty.LENGTH_SHORT).show();
                                 }
                             }
 
@@ -3628,7 +3798,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), null, impuestoValues);
                                     impuestoValues.clear();
                                 } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud", Toast.LENGTH_SHORT).show();
+                                    Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud", Toasty.LENGTH_SHORT).show();
                                 }
                             }
 
@@ -3646,7 +3816,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), null, interlocutorValues);
                                     interlocutorValues.clear();
                                 } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Interlocutor de Solicitud", Toast.LENGTH_SHORT).show();
+                                    Toasty.error(getApplicationContext(), "Error Insertando Interlocutor de Solicitud", Toasty.LENGTH_SHORT).show();
                                 }
                             }
 
@@ -3671,7 +3841,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     bancoValues.clear();
                                 }
                             } catch (Exception e) {
-                                Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud", Toast.LENGTH_SHORT).show();
+                                Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud", Toasty.LENGTH_SHORT).show();
                             }
                             break;
                         case "W_CTE-VISITAS":
@@ -3733,7 +3903,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     visitaValues.clear();
                                 }
                             } catch (Exception e) {
-                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud", Toast.LENGTH_SHORT).show();
+                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud", Toasty.LENGTH_SHORT).show();
                             }
                             break;
                         case "W_CTE-ADJUNTOS":
@@ -3752,7 +3922,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     adjuntoValues.clear();
                                 }
                             } catch (Exception e) {
-                                Toasty.error(getApplicationContext(), "Error Insertando Adjuntos de Solicitud. "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                                Toasty.error(getApplicationContext(), "Error Insertando Adjuntos de Solicitud. "+e.getMessage(), Toasty.LENGTH_SHORT).show();
                             }
                             break;
                     }
@@ -3786,7 +3956,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         insertValues.put("[estado]", "Modificado");
                     }
                     long modifico = mDb.update("FormHvKof_solicitud", insertValues, "id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});
-                    Toasty.success(getApplicationContext(), "Registro modificado con éxito", Toast.LENGTH_SHORT).show();
+                    Toasty.success(getApplicationContext(), "Registro modificado con éxito", Toasty.LENGTH_SHORT).show();
                 }else {
                     insertValues.put("[estado]", "Nuevo");
                     long inserto = mDb.insertOrThrow("FormHvKof_solicitud", null, insertValues);
@@ -3797,10 +3967,10 @@ public class SolicitudActivity extends AppCompatActivity {
                     //Bundle par = new Bundle();
                     //par.putString("tipo_solicitud",tipoSolicitud);
                     //SolicitudActivity.this.startActivity(sol);
-                    Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toast.LENGTH_LONG).show();
+                    Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toasty.LENGTH_LONG).show();
                 }
             } catch (Exception e) {
-                Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_LONG).show();
+                Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toasty.LENGTH_LONG).show();
             }
 
         }

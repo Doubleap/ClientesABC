@@ -2,7 +2,7 @@ package proyecto.app.clientesabc.modelos;
 
 import com.google.gson.annotations.SerializedName;
 
-public class Banco {
+public class Banco implements Cloneable{
     private String id_bancos;
     private String id_formulario;
     private String id_solicitud;
@@ -22,6 +22,23 @@ public class Banco {
     private String bkref;
     @SerializedName("W_CTE-TASK")
     private String task;
+
+    public Banco(String id_bancos, String id_formulario, String id_solicitud, String bankl, String banks, String bankn, String bkont, String koinh, String bvtyp, String bkref, String task) {
+        this.id_bancos = id_bancos;
+        this.id_formulario = id_formulario;
+        this.id_solicitud = id_solicitud;
+        this.bankl = bankl;
+        this.banks = banks;
+        this.bankn = bankn;
+        this.bkont = bkont;
+        this.koinh = koinh;
+        this.bvtyp = bvtyp;
+        this.bkref = bkref;
+        this.task = task;
+    }
+
+    public Banco() {
+    }
 
     private String getId_bancos() {
         return id_bancos;
@@ -156,5 +173,10 @@ public class Banco {
 
     public boolean validarObligatorios() {
         return (!this.getBankl().trim().equals("") && !this.getBanks().trim().equals("") && !this.getBankn().trim().equals("")  && !this.getBkont().trim().equals("")  && !this.getKoinh().trim().equals("")  && !this.getBvtyp().trim().equals("")  && !this.getBkref().trim().equals(""));
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

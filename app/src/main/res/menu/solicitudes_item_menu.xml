@@ -1,26 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_height="match_parent"
-    android:layout_width="match_parent"
-    >
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/detalle"
-        android:title="Ver Solicitud" />
+        android:icon="@drawable/icon_ver"
+        android:title="Ver Solicitud"
+        app:showAsAction="never|withText"/>
     <item
         android:id="@+id/modificar"
-        android:title="Modificar Solicitud" />
+        android:icon="@drawable/icon_modi"
+        android:title="Modificar Solicitud"
+        app:showAsAction="never|withText"/>
     <item
         android:id="@+id/incompleto"
-        android:title="Marcar Incompleto" />
+        android:icon="@drawable/icon_incompleto"
+        android:title="Marcar Incompleto"
+        app:showAsAction="never|withText"/>
     <item
         android:id="@+id/eliminar"
-        android:title="Eliminar Solicitud" />
+        android:icon="@drawable/icon_delete"
+        android:title="Eliminar Solicitud"
+        app:showAsAction="never|withText"/>
     <item
         android:id="@+id/reactivar"
-        android:title="Reactivar Solicitud" />
+        android:icon="@drawable/icon_reactivar"
+        android:title="Reactivar Solicitud"
+        app:showAsAction="never|withText"
+        />
     <item
         android:id="@+id/transmitir"
-        android:title="Transmitir Solicitud" />
+        android:icon="@drawable/icon_transmitir"
+        android:title="Transmitir Solicitud"
+        app:showAsAction="never|withText"/>
 </menu>

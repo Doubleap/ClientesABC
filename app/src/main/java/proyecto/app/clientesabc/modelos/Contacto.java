@@ -2,7 +2,7 @@ package proyecto.app.clientesabc.modelos;
 
 import com.google.gson.annotations.SerializedName;
 
-public class Contacto {
+public class Contacto implements Cloneable{
    private String id;
    private String id_solicitud;
    private String id_formulario;
@@ -25,6 +25,26 @@ public class Contacto {
    private String datatype;
    private String numeric_precision;
    private String maxlength;
+
+    public Contacto(String id, String id_solicitud, String id_formulario, String name1, String namev, String telf1, String pafkt, String gbdat, String street, String house_num1, String country, String datatype, String numeric_precision, String maxlength) {
+        this.id = id;
+        this.id_solicitud = id_solicitud;
+        this.id_formulario = id_formulario;
+        this.name1 = name1;
+        this.namev = namev;
+        this.telf1 = telf1;
+        this.pafkt = pafkt;
+        this.gbdat = gbdat;
+        this.street = street;
+        this.house_num1 = house_num1;
+        this.country = country;
+        this.datatype = datatype;
+        this.numeric_precision = numeric_precision;
+        this.maxlength = maxlength;
+    }
+
+    public Contacto() {
+    }
 
     public String getId_solicitud() {
         return id_solicitud;
@@ -169,5 +189,18 @@ public class Contacto {
 
     public boolean validarObligatorios(){
         return (!this.getName1().trim().equals("") && !this.getNamev().trim().equals("") && !this.getTelf1().trim().equals("")  && !this.getPafkt().trim().equals("")  && !this.getCountry().trim().equals(""));
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

@@ -17,6 +17,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    packagingOptions {
+        exclude 'META-INF/androidx.vectordrawable_vectordrawable.version'
+        exclude 'META-INF/androidx.legacy_legacy-support-core-utils.version'
+        exclude 'META-INF/androidx.loader_loader.version'
+    }
 }
 
 dependencies {
@@ -37,4 +42,5 @@ dependencies {
     implementation 'com.github.pratikbutani:MultiSelectSpinner:-SNAPSHOT'
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'pl.pawelkleczkowski.customgauge:CustomGauge:1.0.4'
+    implementation 'com.github.mike14u:croperino:1.1.8'
 }

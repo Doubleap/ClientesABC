@@ -2,7 +2,7 @@ package proyecto.app.clientesabc.modelos;
 
 import com.google.gson.annotations.SerializedName;
 
-public class Visitas {
+public class Visitas implements Cloneable{
     private String id_formulario;
     private String id_solicitud;
     @SerializedName("W_CTE-VPTYP")
@@ -51,6 +51,43 @@ public class Visitas {
     private String f_fco;
     @SerializedName("W_CTE-FCALID")
     private String fcalid;
+
+    public Visitas(){
+
+    }
+
+    public Visitas(String id_formulario, String id_solicitud, String vptyp, String kvgr4, String ruta, String lun_de, String lun_a, String mar_de, String mar_a, String mier_de, String mier_a, String jue_de, String jue_a, String vie_de, String vie_a, String sab_de, String sab_a, String dom_de, String dom_a, String f_ini, String f_fin, String f_frec, String f_ico, String f_fco, String fcalid) {
+        this.id_formulario = id_formulario;
+        this.id_solicitud = id_solicitud;
+        this.vptyp = vptyp;
+        this.kvgr4 = kvgr4;
+        this.ruta = ruta;
+        this.lun_de = lun_de;
+        this.lun_a = lun_a;
+        this.mar_de = mar_de;
+        this.mar_a = mar_a;
+        this.mier_de = mier_de;
+        this.mier_a = mier_a;
+        this.jue_de = jue_de;
+        this.jue_a = jue_a;
+        this.vie_de = vie_de;
+        this.vie_a = vie_a;
+        this.sab_de = sab_de;
+        this.sab_a = sab_a;
+        this.dom_de = dom_de;
+        this.dom_a = dom_a;
+        this.f_ini = f_ini;
+        this.f_fin = f_fin;
+        this.f_frec = f_frec;
+        this.f_ico = f_ico;
+        this.f_fco = f_fco;
+        this.fcalid = fcalid;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
 
     public String getId_formulario() {
         return id_formulario;

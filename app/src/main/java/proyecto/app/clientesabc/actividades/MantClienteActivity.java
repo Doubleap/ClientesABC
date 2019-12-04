@@ -1,5 +1,6 @@
 package proyecto.app.clientesabc.actividades;
 
+import android.annotation.SuppressLint;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -17,6 +18,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ContextThemeWrapper;
+import android.support.v7.view.menu.MenuBuilder;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
@@ -293,6 +295,7 @@ public class MantClienteActivity extends AppCompatActivity {
             });
             final String codigoCliente = codigo.getText().toString().trim();
             textViewOptions.setOnClickListener(new View.OnClickListener() {
+                @SuppressLint("RestrictedApi")
                 @Override
                 public void onClick(final View view) {
 
@@ -355,6 +358,13 @@ public class MantClienteActivity extends AppCompatActivity {
                             return false;
                         }
                     });
+
+                    //MenuPopupHelper menuHelper = new MenuPopupHelper(wrapper, (MenuBuilder) popup.getMenu(), holder.listView);
+                    //menuHelper.setForceShowIcon(true);
+                    //menuHelper.show();
+                    if (popup.getMenu() instanceof MenuBuilder) {
+                        ((MenuBuilder) popup.getMenu()).setOptionalIconsVisible(true);
+                    }
                     //displaying the popup
                     popup.show();
 
