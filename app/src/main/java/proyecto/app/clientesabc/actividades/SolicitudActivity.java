@@ -57,6 +57,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -71,9 +72,6 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import com.mikelau.croperino.Croperino;
-import com.mikelau.croperino.CroperinoConfig;
-import com.mikelau.croperino.CroperinoFileUtil;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.io.ByteArrayOutputStream;
@@ -256,7 +254,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 switch (item.getItemId()) {
                     case R.id.action_camara:
                         //Initialize on every usage
-                        new CroperinoConfig("ADJ_" + System.currentTimeMillis() + ".jpg", "", "/sdcard");
+                        /*new CroperinoConfig("ADJ_" + System.currentTimeMillis() + ".jpg", "", "/sdcard");
                         CroperinoFileUtil.verifyStoragePermissions(SolicitudActivity.this);
                         CroperinoFileUtil.setupDirectory(SolicitudActivity.this);
                         //Prepare Camera
@@ -264,9 +262,9 @@ public class SolicitudActivity extends AppCompatActivity {
                             Croperino.prepareCamera(SolicitudActivity.this);
                         } catch(Exception e) {
                             Log.e("tag", e.getMessage());
-                        }
+                        }*/
 
-                        /*mPhotoUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        mPhotoUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                                 new ContentValues());
                         intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                         intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
@@ -275,11 +273,11 @@ public class SolicitudActivity extends AppCompatActivity {
 
                         } catch (ActivityNotFoundException e) {
                             Log.e("tag", getResources().getString(R.string.no_activity));
-                        }*/
+                        }
                         return true;
                     case R.id.action_file:
-                        Croperino.prepareGallery(SolicitudActivity.this);
-                        /*intent = new Intent(Intent.ACTION_GET_CONTENT);
+                        //Croperino.prepareGallery(SolicitudActivity.this);
+                        intent = new Intent(Intent.ACTION_GET_CONTENT);
                         intent.setType("image/*");
                         intent.addCategory(Intent.CATEGORY_OPENABLE);
                         try {
@@ -287,7 +285,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
                         } catch (ActivityNotFoundException e) {
                             Log.e("tag", getResources().getString(R.string.no_activity));
-                        }*/
+                        }
                         return true;
                     case R.id.action_save:
                         int numErrores = 0;
@@ -493,7 +491,7 @@ public class SolicitudActivity extends AppCompatActivity {
         alert.show();
     }
 
-    @Override
+    /*@Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -585,9 +583,9 @@ public class SolicitudActivity extends AppCompatActivity {
             default:
                 break;
         }
-    }
+    }*/
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
-    /*public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
 
             case 1:
@@ -731,7 +729,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
                 }
                 break;
-            case CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE:
+            /*case CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE:
                 CropImage.ActivityResult result = CropImage.getActivityResult(data);
                 if (resultCode == RESULT_OK) {
                     Uri uri = result.getUri();
@@ -794,7 +792,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                     Exception error = result.getError();
                 }
-                break;
+                break;*/
             case 200:
                 if (resultCode == RESULT_OK) {
                     Uri uri = null;
@@ -862,7 +860,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 }
                 break;
         }
-    }*/
+    }
 
     public static class ViewPagerAdapter extends FragmentPagerAdapter {
 
@@ -1210,7 +1208,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 if(cedula != null){
                                     //cedula.setFilters(new InputFilter[]{new RegexInputFilter("[A-Z-a-z]")});
                                     if(opcion.getId().equals("C1")){
-                                        cedula.setMask("0#-####-####-##");
+                                        cedula.setMask("0#-####-####-00");
                                     }
                                     if(opcion.getId().equals("C2")){
                                         cedula.setMask("#-###-######");
@@ -1686,7 +1684,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             tb_comentarios.setColumnCount(4);
                             tb_comentarios.setHeaderBackgroundColor(getResources().getColor(R.color.colorHeaderTableView,null));
                             tb_comentarios.setHeaderElevation(2);
-                            LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, 50);
+                            LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                             tb_comentarios.setLayoutParams(hlp);
 
                             if(solicitudSeleccionada.size() > 0){
@@ -1695,7 +1693,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                             //Adaptadores
                             if(comentarios != null) {
-                                tb_comentarios.getLayoutParams().height = tb_interlocutores.getLayoutParams().height + (comentarios.size() * alturaFilaTableView);
+                                tb_comentarios.getLayoutParams().height = tb_comentarios.getLayoutParams().height + (comentarios.size() * alturaFilaTableView*2);
                                 tb_comentarios.setDataAdapter(new ComentarioTableAdapter(getContext(), comentarios));
                             }
                             String[] headers = ((ComentarioTableAdapter) tb_comentarios.getDataAdapter()).getHeaders();
@@ -4196,7 +4194,10 @@ public class SolicitudActivity extends AppCompatActivity {
         String cedula = "";
         switch(tipoCedula){
             case "C1":
-                cedula = "[0][1-9]-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-[0-9]{2}";
+                if(texto.getText().toString().trim().length()==12){
+                    texto.setText(texto.getText()+"-00");
+                }
+                cedula = "[0][1-9]-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-00";
                 break;
             case "C2":
                 cedula = "((3-[0-9]{3,3}-[0-9]{6,6})|(4-000-[0-9]{6,6}))";

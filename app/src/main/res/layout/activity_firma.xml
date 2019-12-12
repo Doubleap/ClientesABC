@@ -39,6 +39,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="20dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:singleLine="false"
             android:text="@string/politica_privacidad"
             android:maxLines="100"
@@ -72,9 +74,10 @@
         android:layout_weight="2"
         android:layout_marginBottom="0dp"
         android:layout_marginTop="0dp"
-        android:layout_marginStart="10dp"
+        android:layout_marginStart="0dp"
         android:orientation="horizontal"
         android:layout_gravity="bottom"
+        android:background="@drawable/squared_textbackground"
         >
 
         <Button
@@ -82,7 +85,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/btnclear"
-            android:text="@string/limpiar"/>
+            android:text="@string/limpiar"
+            />
 
         <Button
             style="?android:attr/buttonBarButtonStyle"
@@ -102,7 +106,6 @@
             android:layout_height="wrap_content"
             android:id="@+id/btnzoomout"
             android:text="@string/signo_menos"/>
-
     </LinearLayout>
 
 </LinearLayout>

@@ -11,7 +11,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.v4.BuildConfig;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.widget.TextView;
@@ -33,6 +32,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 
 public class ActualizacionServidor extends AsyncTask<Void,String,Void> {

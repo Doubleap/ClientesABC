@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -70,11 +71,22 @@ public class LoginActivity extends AppCompatActivity {
     private ImageView femsa_logo;
     private TextView ruta_datos;
     private Intent intent;
+    private TextView versionLogin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.AppThemeNoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        //Notificacion notificacion = new Notificacion(getBaseContext());
+        //notificacion.crearNotificacion(0,"Actualizar Aplicacion", "Andres Aymerich codigo 9000214432", R.drawable.logo_mc, R.drawable.icon_add_client, R.color.aprobados);
+
+        //notificacion.crearNotificacion(1,"Solicitud con incidencia!", "Codigo de solicitud o nombre de cliente", R.drawable.logo_mc, R.drawable.icon_info_title, R.color.devuelto);
+
+        versionLogin = findViewById(R.id.versionPanel);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        Date buildDate = BuildConfig.BuildDate;
+        versionLogin.setText("Versión: "+ BuildConfig.VERSION_NAME+" ("+dateFormat.format(buildDate)+")");
 
         femsa_logo = findViewById(R.id.femsa_logo);
         ruta_datos = findViewById(R.id.ruta_datos);
@@ -192,6 +204,9 @@ public class LoginActivity extends AppCompatActivity {
                     Manifest.permission.ACCESS_NETWORK_STATE}, 0);
             //return;
         }
+        //TODO seleccionar el tipo de solicitud por el UI
+        //Intent i = new Intent(LoginActivity.this, EscanearActivity.class);
+        //startActivityForResult(i,2);
 
     }
 
@@ -409,6 +424,22 @@ public class LoginActivity extends AppCompatActivity {
         public void run() {
             DataBaseHelper.deleteDatabaseFile(context);
             Toasty.info(getBaseContext(),"Se han borrado los datos!! Debe sincronizar antes de ingresar!").show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == 2) {
+            if (resultCode == Activity.RESULT_OK) {
+                if (data != null) {
+                    String codigo = data.getStringExtra("codigo");
+                    String cedula = codigo.substring(0, 9).trim();
+                    String nombre = codigo.substring(61, 91).trim();
+                    String apellido1 = codigo.substring(9, 35).trim();
+                    String apellido2 = codigo.substring(35, 61).trim();
+                    Toasty.info(getBaseContext(),cedula+" "+nombre+" "+apellido1+" "+apellido2+".").show();
+                }
+            }
         }
     }
 }

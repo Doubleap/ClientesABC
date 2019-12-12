@@ -16,6 +16,7 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -27,7 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.MyAdapter;
@@ -78,6 +78,12 @@ public class SolicitudesActivity extends AppCompatActivity {
         fab1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                showDialogFilters(view);
+            }
+        });
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
                 Bundle b = new Bundle();
                 //TODO seleccionar el tipo de solicitud por el UI
                 b.putString("tipoSolicitud", "1"); //id de solicitud
@@ -85,12 +91,6 @@ public class SolicitudesActivity extends AppCompatActivity {
                 Intent intent = new Intent(view.getContext(),SolicitudActivity.class);
                 intent.putExtras(b); //Pase el parametro el Intent
                 startActivity(intent);
-            }
-        });
-        fab2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showDialogFilters(view);
             }
         });
 
@@ -113,18 +113,32 @@ public class SolicitudesActivity extends AppCompatActivity {
         dialog.setContentView(R.layout.filtros_solicitudes_dialog_layout);
         dialog.show();
 
-        MultiSpinnerSearch estadoSpinner = (MultiSpinnerSearch)dialog.findViewById(R.id.estadoSpinner);
-        MultiSpinnerSearch tipoSolicitudSpinner = (MultiSpinnerSearch)dialog.findViewById(R.id.tipoSolicitudSpinner);
+        final MultiSpinnerSearch estadoSpinner = (MultiSpinnerSearch)dialog.findViewById(R.id.estadoSpinner);
+        final MultiSpinnerSearch tipoSolicitudSpinner = (MultiSpinnerSearch)dialog.findViewById(R.id.tipoSolicitudSpinner);
+        Button btnFiltro = (Button) dialog.findViewById(R.id.saveBtn);
+        btnFiltro.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String filtroEstado = "";
+                String filtroForm = "";
+
+            }
+        });
         //Spinner 1
         final List<KeyPairBoolData> list = db.getEstadosCatalogoParaMultiSpinner();
         estadoSpinner.setItems(list,-1,  new SpinnerListener() {
             @Override
             public void onItemsSelected(List<KeyPairBoolData> items) {
+                String multiFiltro = "";
+                String coma = "";
                 for(int i=0; i<items.size(); i++) {
                     if(items.get(i).isSelected()) {
-                        Toasty.info(getApplicationContext(), i + " : "+ items.get(i).getName());
+                        multiFiltro += coma+items.get(i).getId();
+                        coma = ",";
+                       //Toasty.info(getApplicationContext(), i + " : "+ items.get(i).getName()).show();
                     }
                 }
+                mAdapter.getMultiFilter().filter(multiFiltro);
             }
         });
         Drawable d1 = getResources().getDrawable(R.drawable.spinner_background, null);
@@ -135,11 +149,16 @@ public class SolicitudesActivity extends AppCompatActivity {
         tipoSolicitudSpinner.setItems(list2,-1,  new SpinnerListener() {
             @Override
             public void onItemsSelected(List<KeyPairBoolData> items) {
+                String multiFiltro = "";
+                String coma = "";
                 for(int i=0; i<items.size(); i++) {
                     if(items.get(i).isSelected()) {
-                        Toasty.info(getApplicationContext(), i + " : "+ items.get(i).getName());
+                        multiFiltro += coma+items.get(i).getId();
+                        coma = ",";
+                        //Toasty.info(getApplicationContext(), i + " : "+ items.get(i).getName()).show();
                     }
                 }
+                mAdapter.getMultiFilter().filter(multiFiltro);
             }
         });
         tipoSolicitudSpinner.setBackground(d1);

@@ -107,6 +107,7 @@ import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.BancoTableAdapter;
+import proyecto.app.clientesabc.adaptadores.ComentarioTableAdapter;
 import proyecto.app.clientesabc.adaptadores.ContactoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
@@ -118,6 +119,7 @@ import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.FileHelper;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
+import proyecto.app.clientesabc.modelos.Comentario;
 import proyecto.app.clientesabc.modelos.Contacto;
 import proyecto.app.clientesabc.modelos.EditTextDatePicker;
 import proyecto.app.clientesabc.modelos.Impuesto;
@@ -144,6 +146,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     static String subtitulo = "";
     static String tipoCreditoSAP = "";
     static int minAdjuntos = 0;
+    static String idForm = "";
     @SuppressLint("StaticFieldLeak")
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
@@ -178,6 +181,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private static de.codecrafters.tableview.TableView<Visitas> tb_visitas;
     @SuppressLint("StaticFieldLeak")
     private static de.codecrafters.tableview.TableView<Adjuntos> tb_adjuntos;
+    @SuppressLint("StaticFieldLeak")
+    private static de.codecrafters.tableview.TableView<Comentario> tb_comentarios;
     private static ArrayList<Contacto> contactosSolicitud;
     private static ArrayList<Impuesto> impuestosSolicitud;
     private static ArrayList<Banco> bancosSolicitud;
@@ -191,6 +196,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private static ArrayList<Interlocutor> interlocutoresSolicitud_old;
     private static ArrayList<Visitas> visitasSolicitud_old;
     private static ArrayList<Adjuntos> adjuntosSolicitud_old;
+    private static ArrayList<Comentario> comentarios;
 
     //Datos traidos de SAP
     private static JsonArray cliente;
@@ -238,11 +244,13 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             solicitudSeleccionadaOld = mDBHelper.getSolicitudOld(idSolicitud);
             tipoSolicitud = solicitudSeleccionada.get(0).get("TIPFORM");
             GUID = solicitudSeleccionada.get(0).get("id_solicitud");
+            idForm = solicitudSeleccionada.get(0).get("IDFORM");
             setTitle(GUID);
             subtitulo = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             getSupportActionBar().setSubtitle(subtitulo);
         }else{
             GUID = mDBHelper.getGuiId();
+            idForm = "";
             solicitudSeleccionada.clear();
             solicitudSeleccionadaOld.clear();
             setTitle(codigoCliente+"-");
@@ -419,9 +427,27 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             mensajeError += "- Formato de correo Inválido!\n";
                         }
 
+                        //Validacion de siguiente aprobador seleccionado
+                        Spinner combo = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
+                        if(combo.getSelectedItem() != null) {
+                            String valor = ((OpcionSpinner)combo.getAdapter().getItem((int) combo.getSelectedItemId())).getId();
+
+                            if (combo.getAdapter().getCount() == 0 || (combo.getAdapter().getCount() > 0 && valor.isEmpty() )) {
+                                ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
+                                numErrores++;
+                                mensajeError += "- Siguiente Aprobador\n";
+                            }
+                        }else{
+                            TextView error = (TextView)combo.getSelectedView();
+                            error.setError("El campo es obligatorio!");
+                            numErrores++;
+                            mensajeError += "- Siguiente Aprobador\n";
+                        }
+
+
                         if(numErrores == 0) {
                             DialogHandler appdialog = new DialogHandler();
-                            appdialog.Confirm(SolicitudCreditoActivity.this, "Confirmación Modificacion", "Esta seguro que desea guardar la solicitud de Crédito?", "No", "Si", new GuardarFormulario(getBaseContext()));
+                            appdialog.Confirm(SolicitudCreditoActivity.this, "Confirmación Crédito", "Esta seguro que desea guardar la solicitud de Crédito?", "No", "Si", new GuardarFormulario(getBaseContext()));
 
                         }else{
                             Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toast.LENGTH_LONG).show();
@@ -479,6 +505,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         //tb_visitas.addDataLongClickListener(new VisitasLongClickListener());
 
         tb_adjuntos = new de.codecrafters.tableview.TableView<>(this);
+        tb_comentarios = new de.codecrafters.tableview.TableView<>(this);
         //tb_adjuntos.addDataClickListener(new AdjuntosClickListener());
         //tb_adjuntos.addDataLongClickListener(new AdjuntosLongClickListener());
         contactosSolicitud = new ArrayList<>();
@@ -487,6 +514,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         bancosSolicitud = new ArrayList<>();
         visitasSolicitud = new ArrayList<>();
         adjuntosSolicitud = new ArrayList<>();
+        comentarios = new ArrayList<>();
         //notificantesSolicitud = new ArrayList<Adjuntos>();
 
         contactosSolicitud_old = new ArrayList<>();
@@ -1755,6 +1783,43 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         et.setMovementMethod(ScrollingMovementMethod.getInstance());
                         et.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
                         et.setGravity(INDICATOR_GRAVITY_TOP);
+                        if(solicitudSeleccionada.size() > 0 && (!solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incompleto"))) {
+                            et.setText("");
+                            RelativeLayout rl = new RelativeLayout(getContext());
+                            CoordinatorLayout.LayoutParams rlp = new CoordinatorLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+                            rl.setLayoutParams(rlp);
+                            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) rl.getLayoutParams();
+                            params.setBehavior(new AppBarLayout.ScrollingViewBehavior(getContext(), null));
+
+                            tb_comentarios.setColumnCount(4);
+                            tb_comentarios.setHeaderBackgroundColor(getResources().getColor(R.color.colorHeaderTableView,null));
+                            tb_comentarios.setHeaderElevation(2);
+                            LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                            tb_comentarios.setLayoutParams(hlp);
+
+                            if(solicitudSeleccionada.size() > 0){
+                                comentarios.clear();
+                                comentarios = mDBHelper.getComentariosDB(idForm);
+                            }
+                            //Adaptadores
+                            if(comentarios != null) {
+                                tb_comentarios.getLayoutParams().height = tb_comentarios.getLayoutParams().height + (comentarios.size() * alturaFilaTableView*2);
+                                tb_comentarios.setDataAdapter(new ComentarioTableAdapter(getContext(), comentarios));
+                            }
+                            String[] headers = ((ComentarioTableAdapter) tb_comentarios.getDataAdapter()).getHeaders();
+                            SimpleTableHeaderAdapter sta = new SimpleTableHeaderAdapter(getContext(), headers);
+                            sta.setPaddings(5,15,5,15);
+                            sta.setTextSize(12);
+                            sta.setTextColor(getResources().getColor(R.color.white,null));
+                            sta.setTypeface(Typeface.BOLD);
+                            sta.setGravity(GRAVITY_CENTER);
+
+                            tb_comentarios.setHeaderAdapter(sta);
+                            tb_comentarios.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(getResources().getColor(R.color.white,null), getResources().getColor(R.color.backColor,null)));
+
+                            rl.addView(tb_comentarios);
+                            ll.addView(rl);
+                        }
                     }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-DATAB")){
                         Date c = Calendar.getInstance().getTime();
@@ -3775,6 +3840,17 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             if(tv != null){
                                 valor = tv.getText().toString();
                                 insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                if(!listaCamposDinamicos.get(i).equals("W_CTE-NAME3")){
+                                    insertValuesOld.put("[W_CTE-NAME1]", valor);
+                                }
+                            }
+                            if(listaCamposDinamicos.get(i).equals("W_CTE-COMENTARIOS")) {
+                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
+                                Date date = new Date();
+                                if(comentarios.size() == 0)
+                                    insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                else
+                                    insertValues.put("[" + listaCamposDinamicos.get(i) + "]", comentarios.get(0).getComentario()+"("+dateFormat.format(date)+"): "+valor);
                             }
                         }
                     } catch (Exception e) {
@@ -4015,10 +4091,10 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 insertValues.put("[id_solicitud]", NextId);
                 insertValues.put("[tipform]", tipoSolicitud);
                 insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("userMC",""));
+                insertValues.put("[W_CTE-KKBER]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_AREACREDITO",""));
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
                 Date date = new Date();
-                //ContentValues initialValues = new ContentValues();
-                insertValues.put("[feccre]", dateFormat.format(date));
+                insertValues.put("[FECCRE]", dateFormat.format(date));
 
                 //mDBHelper.getWritableDatabase().insert("FormHvKof_solicitud", null, insertValues);
                 if(solicitudSeleccionada.size() > 0){
@@ -4039,6 +4115,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     insertValuesOld.put("[id_solicitud]", NextId);
                     insertValuesOld.put("[tipform]", tipoSolicitud);
                     insertValuesOld.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("userMC",""));
+                    insertValuesOld.put("[FECCRE]", dateFormat.format(date));
+                    insertValuesOld.put("[W_CTE-KKBER]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_AREACREDITO",""));
                     long insertoOld = mDb.insertOrThrow("FormHvKof_old_solicitud", null, insertValuesOld);
                     //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
                     Intent sol = getIntent();
@@ -4366,12 +4444,26 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             }else{
                 String errordesc="";
                 String meserr="";
-                cuentacont = creditoCadena.get(0).getAsJsonObject().get("W_CTE-AKONT").getAsString();
-                claseriesgo = "RR7";
-                tipocobro = creditoCadena.get(0).getAsJsonObject().get("W_CTE-KVGR2").getAsString();
-                clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
-                clasicxc = creditoCadena.get(0).getAsJsonObject().get("W_CTE-PSON2").getAsString();
-                condpago = creditoCadena.get(0).getAsJsonObject().get("W_CTE-ZTERM").getAsString();
+                if(cadenaCliente.length() > 0) {
+                    cuentacont = creditoCadena.get(0).getAsJsonObject().get("W_CTE-AKONT").getAsString();
+                    claseriesgo = "RR7";
+                    tipocobro = creditoCadena.get(0).getAsJsonObject().get("W_CTE-KVGR2").getAsString();
+                    clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
+                    clasicxc = creditoCadena.get(0).getAsJsonObject().get("W_CTE-PSON2").getAsString();
+                    condpago = creditoCadena.get(0).getAsJsonObject().get("W_CTE-ZTERM").getAsString();
+                }else{
+                    //Quitar y activar el error...!!!
+                    cuentacont = datosNuevoCredito.get(0).get("cuentacont").trim();
+                    claseriesgo = datosNuevoCredito.get(0).get("claseriesgo").trim();
+                    tipocobro = datosNuevoCredito.get(0).get("tipocobro").trim();
+                    clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
+                    clasicxc = datosNuevoCredito.get(0).get("clasicxc").trim();
+                    condpago = datosNuevoCredito.get(0).get("condpago").trim();
+                    /*errordesc += "Cadena Padre '"+cadenaCliente+"' no fue encontrada. No puede aperturar crédito!";
+                    Toasty.error(context.getApplicationContext(),errordesc).show();
+                    activity.finish();
+                    return;*/
+                }
                 if (cuentacont.trim().equals("") || tipocobro.trim().equals("") || condpago.trim().equals("") || clasicxc.trim().equals(""))
                 {
                     if (cuentacont.trim().equals(""))
@@ -4438,11 +4530,18 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             if(kvgr2 != null) {
                 kvgr2.setSelection(VariablesGlobales.getIndex(kvgr2, tipocobro));
             }
-
-            Spinner akont = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-AKONT");
-            if(akont != null) {
-                akont.setSelection(VariablesGlobales.getIndex(akont, cuentacont));
+            try {
+                Spinner akont = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-AKONT");
+                if (akont != null) {
+                    akont.setSelection(VariablesGlobales.getIndex(akont, cuentacont));
+                }
+            }catch(Exception e){
+                MaskedEditText akont = (MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-AKONT");
+                if (akont != null) {
+                    akont.setText(cuentacont);
+                }
             }
+
         }
     }
 

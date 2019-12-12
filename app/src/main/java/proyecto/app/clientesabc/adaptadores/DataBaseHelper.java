@@ -874,7 +874,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             coma = ",";
         }
         params += ")";
-        String query = "SELECT s.idform as numero, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal " +
+        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal " +
                 " FROM FormHVKOF_solicitud s" +
                 " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) " +
                 " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) "+
@@ -882,7 +882,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Cursor cursor = mDataBase.rawQuery(query, estados);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
-            user.put("numero",cursor.getString(0));
+            user.put("idform",cursor.getString(0));
             user.put("codigo",String.valueOf(cursor.getLong(1)));
             user.put("nombre",cursor.getString(2));
             user.put("estado",cursor.getString(3));
@@ -2184,6 +2184,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     public ArrayList<Comentario> getComentariosDB(String idform) {
+        if(idform == null){
+            idform = "0";
+        }
         ArrayList<Comentario> comentarios = new ArrayList<>();
         String sql_encuesta = "select '' as orden, 'Creacion' as etapa," +
                 "ususol|| ' - ' || nom_sol as aprobador,feccre as fecha,comentario_sol as comentarios, estado " +

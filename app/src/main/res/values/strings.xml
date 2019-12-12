@@ -64,6 +64,7 @@
     <string name="ID_FORM_CONSULTA_CLIENTE">35</string>
     <string name="acercade">Info. sistema</string>
     <string name="borrar_datos">Eliminar Datos</string>
+    <string name="title_activity_scanner">Escanear codigo</string>
 
 
     <!-- CATALOGOS PARA ALGUNOS SPINNERS -->

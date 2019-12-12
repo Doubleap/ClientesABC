@@ -84,6 +84,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         ImageView estado_circulo = holder.listView.findViewById(R.id.estado_circulo);
         ImageView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
         TextView tipo_solicitud = (TextView) holder.listView.findViewById(R.id.tipo_solicitud);
+        TextView idform = (TextView) holder.listView.findViewById(R.id.idform);
 
         Drawable background = estado.getBackground();
         Drawable background_circulo = estado_circulo.getBackground();
@@ -119,6 +120,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         estado_circulo.getBackground().setTint(ContextCompat.getColor(context, color));
         tipo_solicitud.setText(formListFiltered.get(position).get("tipo_solicitud").trim());
         tipo_solicitud.setTextColor(color);
+        if(formListFiltered.get(position).get("idform") != null)
+            idform.setText("("+formListFiltered.get(position).get("idform").trim()+")");
 
         holder.listView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -351,6 +354,41 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
 
                 FilterResults filterResults = new FilterResults();
                 filterResults.values = formListFiltered;
+                return filterResults;
+            }
+            @SuppressWarnings("unchecked")
+            @Override
+            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+                formListFiltered = (ArrayList<HashMap<String, String>>) filterResults.values;
+                // refresh the list with filtered data
+                notifyDataSetChanged();
+            }
+        };
+    }
+
+    public Filter getMultiFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence) {
+                String[] charString = charSequence.toString().split(",");
+                FilterResults filterResults = new FilterResults();
+                ArrayList<HashMap<String, String>> filteredList = new ArrayList<>();
+                for(int x=0; x < charString.length; x++) {
+                    if (charString[x].isEmpty()) {
+                        formListFiltered = mDataset;
+                    } else {
+                        for (HashMap<String, String> row : mDataset) {
+                            if (row.get("estado") != null && row.get("estado").trim().contains(charString[x]))
+                                filteredList.add(row);
+                            else if (row.get("tipform") != null && row.get("tipform").trim().contains(charString[x])) {
+                                filteredList.add(row);
+                            }
+                        }
+                        formListFiltered = filteredList;
+                    }
+
+                    filterResults.values = formListFiltered;
+                }
                 return filterResults;
             }
             @SuppressWarnings("unchecked")

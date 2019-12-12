@@ -233,6 +233,8 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
             public void onCancel(DialogInterface dialog) {
                 messageFlag = "Proceso cancelado por el usuario.";
                 cancel(true);
+                activity.get().finish();
+                Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
             }
         });
         dialog = builder.create();
@@ -246,6 +248,7 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
             dialog.hide();
         }
         if(xceptionFlag){
+            activity.get().finish();
             Toasty.error(context.get(),"No se pudo consultar el cliente: "+messageFlag,Toast.LENGTH_LONG).show();
         }
         SolicitudModificacionActivity.LlenarCampos(context.get(), activity.get(), estructuras);

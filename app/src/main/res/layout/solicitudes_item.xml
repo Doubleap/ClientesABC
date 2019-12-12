@@ -58,6 +58,15 @@
                 android:text="INCLUSION MA BLA BLA BLA"
                 android:textAppearance="?android:textAppearanceSmall" />
             <TextView
+                android:id="@+id/idform"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_toRightOf="@+id/tipo_solicitud"
+                android:layout_alignBottom="@id/tipo_solicitud"
+                android:text="(0)"
+                android:textAppearance="?android:textAppearanceSmall" />
+            <TextView
                 android:id="@+id/estado_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
