@@ -3,19 +3,15 @@ package proyecto.app.clientesabc.actividades;
 import android.annotation.SuppressLint;
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.view.menu.MenuBuilder;
@@ -34,7 +30,6 @@ import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -45,20 +40,20 @@ import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 
-public class MantClienteActivity extends AppCompatActivity {
+public class TipoSolicitudPanelActivity extends AppCompatActivity {
     Intent intent;
     private SearchView searchView;
-    private MyAdapter mAdapter;
+    private TipoSolicitudAdapter mAdapter;
     private DataBaseHelper db;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.detalle);
+        setContentView(R.layout.activity_tipo_solicitud_panel);
         db = new DataBaseHelper(this);
-        ArrayList<HashMap<String, String>> clientList = db.getClientes();
-        RecyclerView rv = findViewById(R.id.user_list);
+        ArrayList<HashMap<String, String>> clientList = db.getTipoSolicitudPanel();
+        RecyclerView rv = findViewById(R.id.tipform_list);
 
-        mAdapter = new MyAdapter(clientList);
+        mAdapter = new TipoSolicitudAdapter(clientList);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
@@ -79,10 +74,10 @@ public class MantClienteActivity extends AppCompatActivity {
         /**/
         Drawable d = getResources().getDrawable(R.drawable.header_curved_cc5,null);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("Mis Clientes");
+        toolbar.setTitle("Monitor Solicitudes");
         //toolbar.setSubtitle("");
         toolbar.setBackground(d);
-        toolbar.setSubtitleTextColor(getResources().getColor(R.color.white,null));
+        toolbar.setSubtitleTextColor(getResources().getColor(R.color.black,null));
         if (Build.VERSION.SDK_INT >= 28) {
             toolbar.setOutlineAmbientShadowColor(getResources().getColor(R.color.aprobados,null));
         }
@@ -116,7 +111,7 @@ public class MantClienteActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.clientes:
-                        intent = new Intent(getBaseContext(),MantClienteActivity.class);
+                        intent = new Intent(getBaseContext(),TipoSolicitudPanelActivity.class);
                         startActivity(intent);
                         break;
                     case R.id.solicitudes:
@@ -195,7 +190,7 @@ public class MantClienteActivity extends AppCompatActivity {
         return true;
     }
 
-    public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder>  implements Filterable {
+    public class TipoSolicitudAdapter extends RecyclerView.Adapter<TipoSolicitudAdapter.MyViewHolder>  implements Filterable {
         private ArrayList<HashMap<String, String>> mDataset;
         private ArrayList<HashMap<String, String>> formListFiltered;
         // Provide a reference to the views for each data item
@@ -211,7 +206,7 @@ public class MantClienteActivity extends AppCompatActivity {
         }
 
         // Constructor de Adaptador HashMap
-        private MyAdapter(ArrayList<HashMap<String, String>> myDataset) {
+        private TipoSolicitudAdapter(ArrayList<HashMap<String, String>> myDataset) {
             mDataset = myDataset;
             formListFiltered = mDataset;
         }
@@ -219,81 +214,87 @@ public class MantClienteActivity extends AppCompatActivity {
         // Crear nuevas Views
         @NonNull
         @Override
-        public MyAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public TipoSolicitudAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             // New View creada
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.mant_clientes_item, parent, false);
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.tipo_solicitud_panel_item, parent, false);
             return new MyViewHolder(v);
         }
 
         // Reemplazar el contenido del View. Para ListView se llama solo, pero para RecyclerView hay que llamar al setLayoutManager
         @Override
-        public void onBindViewHolder(@NonNull final MyViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull final MyViewHolder holder, final int position) {
             // - Obtener Elemento del data set en esta position
             // - Reemplazar aqui cualquier contenido dinamico dependiendo de algun valor de l dataset creado y o el contenido del dataset
             TextView codigo = holder.listView.findViewById(R.id.textViewHead);
-            codigo.setText(formListFiltered.get(position).get("codigo") == null?"":formListFiltered.get(position).get("codigo").trim());
-            TextView nombre = holder.listView.findViewById(R.id.textViewDesc);
-            nombre.setText(formListFiltered.get(position).get("nombre") == null?"":formListFiltered.get(position).get("nombre").trim());
             TextView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
-            TextView idfiscal = holder.listView.findViewById(R.id.idfiscal);
-            idfiscal.setText(formListFiltered.get(position).get("idfiscal") == null?"":formListFiltered.get(position).get("idfiscal").trim());
-            TextView correo = holder.listView.findViewById(R.id.correo);
-            correo.setText(formListFiltered.get(position).get("correo") == null?"":formListFiltered.get(position).get("correo").trim());
-            /*TextView ubicacion = holder.listView.findViewById(R.id.ubicacion);
-            ubicacion.setText(formListFiltered.get(position).get("ubicacion"));
-            TextView direccion = holder.listView.findViewById(R.id.direccion);
-            direccion.setText(formListFiltered.get(position).get("direccion"));*/
-            LinearLayout color_gec = holder.listView.findViewById(R.id.color_gec);
-            Drawable d = getResources().getDrawable(R.drawable.circulo_status_cliente, null);
+            codigo.setText(formListFiltered.get(position).get("descripcion") == null?"":formListFiltered.get(position).get("descripcion").trim());
 
-            Drawable background = color_gec.getBackground();
-            int color = R.color.sinFormularios;
-            String klabc = formListFiltered.get(position).get("klabc").toString();
-            final String latitud = formListFiltered.get(position).get("latitud").toString();
-            final String longitud = formListFiltered.get(position).get("longitud").toString();
+            TextView num_nuevos = holder.listView.findViewById(R.id.txt_nuevos);
+            TextView num_pendientes = holder.listView.findViewById(R.id.txt_pendientes);
+            TextView num_incidencias = holder.listView.findViewById(R.id.txt_incidencias);
+            TextView num_aprobados = holder.listView.findViewById(R.id.txt_aprobados);
+            TextView num_rechazados = holder.listView.findViewById(R.id.txt_rechazados);
+            TextView num_incompletos = holder.listView.findViewById(R.id.txt_incompletos);
+            TextView num_modificados = holder.listView.findViewById(R.id.txt_modificados);
+            TextView num_total = holder.listView.findViewById(R.id.txt_total);
+            num_nuevos.setText(formListFiltered.get(position).get("nuevos").trim());
+            num_pendientes.setText(formListFiltered.get(position).get("pendientes").trim());
+            num_incidencias.setText(formListFiltered.get(position).get("incidencias").trim());
+            num_aprobados.setText(formListFiltered.get(position).get("aprobados").trim());
+            num_rechazados.setText(formListFiltered.get(position).get("rechazados").trim());
+            num_incompletos.setText(formListFiltered.get(position).get("incompletos").trim());
+            num_modificados.setText(formListFiltered.get(position).get("modificados").trim());
+            num_total.setText(" ("+formListFiltered.get(position).get("total").trim()+")");
 
-            switch(klabc) {
-                case "00":
-                    color = R.color.baja;break;
-                case "50":
-                    color = R.color.diamante;break;
-                case "51":
-                    color = R.color.oro;break;
-                case "52":
-                    color = R.color.plata;break;
-                case "53":
-                    color = R.color.bronce;break;
-                case "54":
-                    color = R.color.indirectos;break;
-                case "55":
-                    color = R.color.orovending;break;
-                case "56":
-                    color = R.color.platavending;break;
-                case "57":
-                    color = R.color.broncevending;break;
-                case "58":
-                    color = R.color.laton;break;
-                case "59":
-                    color = R.color.plataplus;break;
-                case "99":
-                    color = R.color.customizado;break;
-                case "SA":
-                    color = R.color.sinasignar;break;
-            }
-            color_gec.setBackground(ContextCompat.getDrawable(getBaseContext(), color));
-
-
-            codigo.setOnClickListener(new View.OnClickListener() {
+            num_total.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Bundle b = new Bundle();
-                    b.putString("idCliente", ((TextView)v).getText().toString()); //id de solicitud
-                    Intent intent = new Intent(v.getContext(),ClienteActivity.class);
-                    intent.putExtras(b); //Pase el parametro el Intent
-                    startActivity(intent);
+                    VerSolicitudes(null, formListFiltered.get(position).get("tipform").trim());
                 }
             });
-            final String codigoCliente = codigo.getText().toString().trim();
+            num_nuevos.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    VerSolicitudes("Nuevo", formListFiltered.get(position).get("tipform").trim());
+                }
+            });
+            num_pendientes.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    VerSolicitudes("Pendiente", formListFiltered.get(position).get("tipform").trim());
+                }
+            });
+            num_incidencias.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    VerSolicitudes("Incidencia", formListFiltered.get(position).get("tipform").trim());
+                }
+            });
+            num_aprobados.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    VerSolicitudes("Aprobado", formListFiltered.get(position).get("tipform").trim());
+                }
+            });
+            num_rechazados.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    VerSolicitudes("Rechazado", formListFiltered.get(position).get("tipform").trim());
+                }
+            });
+            num_incompletos.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    VerSolicitudes("Incompleto", formListFiltered.get(position).get("tipform").trim());
+                }
+            });
+            num_modificados.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    VerSolicitudes("Modificado", formListFiltered.get(position).get("tipform").trim());
+                }
+            });
+
             textViewOptions.setOnClickListener(new View.OnClickListener() {
                 @SuppressLint("RestrictedApi")
                 @Override
@@ -314,11 +315,7 @@ public class MantClienteActivity extends AppCompatActivity {
                         public boolean onMenuItemClick(MenuItem item) {
                             switch (item.getItemId()) {
                                 case R.id.detalle:
-                                    Bundle b = new Bundle();
-                                    b.putString("idCliente", codigoCliente); //id de solicitud
-                                    Intent intent = new Intent(getBaseContext(),ClienteActivity.class);
-                                    intent.putExtras(b); //Pase el parametro el Intent
-                                    startActivity(intent);
+
                                     break;
                                 case R.id.modificar:
                                     //showDialogFormulariosModificacion(codigoCliente,false, false);
@@ -342,17 +339,7 @@ public class MantClienteActivity extends AppCompatActivity {
                                     Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
                                     break;
                                 case R.id.comollegar:
-                                    String uri = "";
-                                    if(Float.parseFloat(latitud) > 30f || Float.parseFloat(latitud) < 0f) {
-                                        uri = "geo:" + longitud + ","
-                                                + latitud + "?q=" + longitud
-                                                + "," + latitud;
-                                    }else{
-                                        uri = "geo:" + latitud + ","
-                                                + longitud + "?q=" + latitud
-                                                + "," + longitud;
-                                    }
-                                    startActivity(new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(uri)));
+
                                     break;
 
                             }
@@ -400,7 +387,7 @@ public class MantClienteActivity extends AppCompatActivity {
                     } else {
                         ArrayList<HashMap<String, String>> filteredList = new ArrayList<>();
                         for (HashMap<String, String> row : mDataset) {
-                            if (row.get("codigo").trim().contains(charString) || row.get("nombre").toUpperCase().trim().contains(charString.toUpperCase()) || row.get("direccion").trim().contains(charString)) {
+                            if (row.get("descripcion").trim().contains(charString)) {
                                 filteredList.add(row);
                             }
                         }
@@ -422,120 +409,19 @@ public class MantClienteActivity extends AppCompatActivity {
         }
     }
 
-    private void showDialogFormulariosModificacion(final String codigoCliente, boolean credito, boolean equipofrio) {
-        ArrayList<HashMap<String,String>> formulariosPermitidos = null;
-        if(credito) {
-            formulariosPermitidos = db.getModificacionesCreditoPermitidas();
-            if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
-                Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de crédito para HH.").show();
-                return;
-            }
-        }else if(equipofrio) {
-            formulariosPermitidos = db.getOrdenesServicioPermitidas();
-            if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
-                Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de Equipo frio para HH.").show();
-                return;
-            }
-        }else {
-            formulariosPermitidos = db.getModificacionesPermitidas();
-            if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
-                Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de modificación para HH.").show();
-                return;
-            }
-        }
-
-
-        String[] idformsTemp = new String[formulariosPermitidos.size()];
-        String[] formsTemp = new String[formulariosPermitidos.size()];
-        for(int x=0; x < formulariosPermitidos.size(); x++){
-            idformsTemp[x] = formulariosPermitidos.get(x).get("idform");
-            formsTemp[x] = formulariosPermitidos.get(x).get("descripcion");
-        }
-        final String[] idforms = idformsTemp;
-        final String[] forms = formsTemp;
-        ContextThemeWrapper cw = new ContextThemeWrapper( this, R.style.AlertDialogTheme );
-        final AlertDialog.Builder builder = new AlertDialog.Builder(cw);
-
-        LayoutInflater inflater = getLayoutInflater();
-        View view = inflater.inflate(R.layout.titlebar, null);
-        builder.setCustomTitle(view);
-        builder.setSingleChoiceItems(forms, -1, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int arg1) {
-                //ListView lw = ((AlertDialog)dialog).getListView();
-                //Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
-            }
-
-        });
-
-        builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                // user clicked OK, so save the mSelectedItems results somewhere
-                // or return them to the component that opened the dialog
-                int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
-                if(selectedPosition < 0){
-                    Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de modificación!").show();
-                }else {
-                    if (!forms[selectedPosition].toLowerCase().contains("credito") && !forms[selectedPosition].toLowerCase().contains("crédito")) {
-                        Bundle b = new Bundle();
-                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
-                        b.putString("codigoCliente", codigoCliente);
-                        intent = new Intent(getApplicationContext(), SolicitudModificacionActivity.class);
-                        intent.putExtras(b); //Pase el parametro el Intent
-                        startActivity(intent);
-                    } else {
-                        Bundle b = new Bundle();
-                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
-                        b.putString("codigoCliente", codigoCliente);
-                        intent = new Intent(getApplicationContext(), SolicitudCreditoActivity.class);
-                        intent.putExtras(b); //Pase el parametro el Intent
-                        startActivity(intent);
-                    }
-                }
-            }
-        });
-
-        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.dismiss();
-                    }
-                });
-        final AlertDialog dialog = builder.create();
-        dialog.show();
-
-        //Sobreescribir handler de click de boton positivo
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                // user clicked OK, so save the mSelectedItems results somewhere
-                // or return them to the component that opened the dialog
-                int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
-                if(selectedPosition < 0){
-                    Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de modificación!").show();
-                }else {
-                    dialog.dismiss();
-                    if (!forms[selectedPosition].toLowerCase().contains("credito") && !forms[selectedPosition].toLowerCase().contains("crédito")) {
-                        Bundle b = new Bundle();
-                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
-                        b.putString("codigoCliente", codigoCliente);
-                        intent = new Intent(getApplicationContext(), SolicitudModificacionActivity.class);
-                        intent.putExtras(b); //Pase el parametro el Intent
-                        startActivity(intent);
-                    } else {
-                        Bundle b = new Bundle();
-                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
-                        b.putString("codigoCliente", codigoCliente);
-                        intent = new Intent(getApplicationContext(), SolicitudCreditoActivity.class);
-                        intent.putExtras(b); //Pase el parametro el Intent
-                        startActivity(intent);
-                    }
-                }
-            }
-        });
+    public void VerSolicitudes() {
+        intent = new Intent(this, SolicitudesActivity.class);
+        startActivity(intent);
+    }
+    public void VerSolicitudes(String estado, String tipform) {
+        Bundle b = new Bundle();
+        if(estado != null)
+            b.putString("estado", estado.trim()); //estado solicitud
+        if(tipform != null)
+            b.putString("tipform", tipform.trim()); //tipo de formulario
+        intent = new Intent(this, SolicitudesActivity.class);
+        intent.putExtras(b); //Pase el parametro el Intent
+        startActivity(intent);
     }
 
 }

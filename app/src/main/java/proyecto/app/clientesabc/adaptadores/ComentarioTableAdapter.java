@@ -2,7 +2,6 @@ package proyecto.app.clientesabc.adaptadores;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -19,10 +18,10 @@ public class ComentarioTableAdapter extends TableDataAdapter<Comentario> {
     private static String[] headers = new String[]{"Etapa", "Usuario", "Fecha", "Comentario"};
     private static final String LOG_TAG = TableDataAdapter.class.getName();
 
-    private int paddingLeft = 20;
-    private int paddingTop = 25;
-    private int paddingRight = 20;
-    private int paddingBottom = 25;
+    private int paddingLeft = 10;
+    private int paddingTop = 15;
+    private int paddingRight = 10;
+    private int paddingBottom = 15;
     private int textSize = 10;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
@@ -39,8 +38,6 @@ public class ComentarioTableAdapter extends TableDataAdapter<Comentario> {
         textView.setTypeface(textView.getTypeface(), typeface);
         textView.setTextSize(textSize);
         textView.setTextColor(textColor);
-        //textView.setSingleLine();
-        textView.setEllipsize(TextUtils.TruncateAt.END);
 
         try {
             //final String textToShow = getItem(rowIndex)[columnIndex];
@@ -53,9 +50,10 @@ public class ComentarioTableAdapter extends TableDataAdapter<Comentario> {
                     + "Caught exception: " + e.toString());
             // Show no text
         }
-
         return textView;
     }
+
+
     public String[] getHeaders(){
         return headers;
     }
@@ -147,6 +145,5 @@ public class ComentarioTableAdapter extends TableDataAdapter<Comentario> {
     public void setTextColor(final int textColor) {
         this.textColor = textColor;
     }
-
 
 }

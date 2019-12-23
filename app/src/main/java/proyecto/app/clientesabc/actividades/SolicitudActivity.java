@@ -67,6 +67,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -173,6 +174,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private static de.codecrafters.tableview.TableView<Adjuntos> tb_adjuntos;
     @SuppressLint("StaticFieldLeak")
     private static de.codecrafters.tableview.TableView<Comentario> tb_comentarios;
+    //private static TableView tb_comentarios2;
     private static ArrayList<Contacto> contactosSolicitud;
     private static ArrayList<Impuesto> impuestosSolicitud;
     private static ArrayList<Banco> bancosSolicitud;
@@ -215,7 +217,7 @@ public class SolicitudActivity extends AppCompatActivity {
             idForm = solicitudSeleccionada.get(0).get("IDFORM");
             setTitle(GUID);
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
-            getSupportActionBar().setSubtitle(descripcion);
+            getSupportActionBar().setSubtitle(descripcion +" - "+ solicitudSeleccionada.get(0).get("ESTADO").trim());
         }else{
             GUID = mDBHelper.getGuiId();
             idForm = "";
@@ -280,9 +282,9 @@ public class SolicitudActivity extends AppCompatActivity {
                         intent = new Intent(Intent.ACTION_GET_CONTENT);
                         intent.setType("image/*");
                         intent.addCategory(Intent.CATEGORY_OPENABLE);
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
                         try {
-                            startActivityForResult(intent, 1);
-
+                            startActivityForResult(intent, 200);
                         } catch (ActivityNotFoundException e) {
                             Log.e("tag", getResources().getString(R.string.no_activity));
                         }
@@ -453,6 +455,8 @@ public class SolicitudActivity extends AppCompatActivity {
 
         tb_adjuntos = new de.codecrafters.tableview.TableView<>(this);
         tb_comentarios = new de.codecrafters.tableview.TableView<>(this);
+
+        //tb_comentarios2 = new TableView(this);
         //tb_adjuntos.addDataClickListener(new AdjuntosClickListener());
         //tb_adjuntos.addDataLongClickListener(new AdjuntosLongClickListener());
         contactosSolicitud = new ArrayList<>();
@@ -460,7 +464,6 @@ public class SolicitudActivity extends AppCompatActivity {
         interlocutoresSolicitud = new ArrayList<>();
         bancosSolicitud = new ArrayList<>();
         visitasSolicitud = new ArrayList<>();
-
         adjuntosSolicitud = new ArrayList<>();
         comentarios = new ArrayList<>();
         //notificantesSolicitud = new ArrayList<Adjuntos>();
@@ -588,7 +591,7 @@ public class SolicitudActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
 
-            case 1:
+            case 1://Cuando toma foto por la opcion de camara, permite el recorte de la foto tomada
                 if (resultCode == RESULT_OK) {
                     Uri uri = null;
                     if (data != null)
@@ -638,6 +641,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             cropIntent.setDataAndType(uri, "image/*");
                             // set crop properties
                             cropIntent.putExtra("crop", true);
+                            cropIntent.putExtra("scale", true);
                             // indicate aspect of desired crop
                             cropIntent.putExtra("aspectX", 1);
                             cropIntent.putExtra("aspectY", 1.33);
@@ -729,70 +733,6 @@ public class SolicitudActivity extends AppCompatActivity {
                     Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
                 }
                 break;
-            /*case CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE:
-                CropImage.ActivityResult result = CropImage.getActivityResult(data);
-                if (resultCode == RESULT_OK) {
-                    Uri uri = result.getUri();
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        ContentResolver cR =  getContentResolver();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        File file = null;
-                        try {
-                            file = new File( Environment.getExternalStorageDirectory().getAbsolutePath());
-                            if (!file.exists()) {
-                                file.createNewFile();
-                            }
-                            FileOutputStream fos = new FileOutputStream(file+"//"+name);
-                            fos.write(inputData);
-                            fos.close();
-                        } catch (Exception e) {
-                            Log.e("thumbnail", e.getMessage());
-                        }
-                        File file2 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
-                        file2 = FileHelper.saveBitmapToFile(file2);
-
-                        byte[] bytesArray = new byte[(int) file2.length()];
-
-                        FileInputStream fis = new FileInputStream(file2);
-                        fis.read(bytesArray); //read file into bytes[]
-                        fis.close();
-                        file2.delete();
-                        //Agregar al tableView del UI
-                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
-
-                        adjuntosSolicitud.add(nuevoAdjunto);
-                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
-                        tb_adjuntos.setDataAdapter(stda);
-
-                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudActivity.this);
-
-                        //Intento de borrar el archivo que se guarda automatico en Pictures
-                        File file3 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//Pictures//"+name);
-                        file3.delete();
-
-                        Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-                } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
-                    Exception error = result.getError();
-                }
-                break;*/
             case 200:
                 if (resultCode == RESULT_OK) {
                     Uri uri = null;
@@ -886,6 +826,7 @@ public class SolicitudActivity extends AppCompatActivity {
         public String getPageTitle(int position) {
             return title.get(position);
         }
+
     }
 
     public static class TabFragment extends Fragment {
@@ -914,12 +855,14 @@ public class SolicitudActivity extends AppCompatActivity {
         public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             // Inflate the layout for this fragment
             View view = inflater.inflate(R.layout.pagina_formulario, container, false);
+            ScrollView ms = view.findViewById(R.id.mainScroll);
+            //ms.requestDisallowInterceptTouchEvent(true);
+            //ms.getParent().requestDisallowInterceptTouchEvent(true);
             LinearLayout ll = view.findViewById(R.id.miPagina);
             String nombre = Objects.requireNonNull(Objects.requireNonNull(((ViewPager) container).getAdapter()).getPageTitle(position)).toString().trim();
 
             if(nombre.equals("Datos Generales") || nombre.equals("Informacion General")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"D");
-
             }
             if(nombre.equals("Facturación")|| nombre.equals("Facturacion")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"F");
@@ -1259,6 +1202,27 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         });
                     }
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-VWERK")){
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                Spinner zona_transporte = (Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE");
+                                String valor_centro_suministro = ((OpcionSpinner)combo.getSelectedItem()).getId().trim();
+                                ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
+                                // Creando el adaptador(opciones) para el comboBox deseado
+                                ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
+                                // Drop down layout style - list view with radio button
+                                dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
+                                zona_transporte.setAdapter(dataAdapterRuta);
+                                if(position == 0)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                            }
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-KVGR5")){
                         //TODO aqui se debe cambiar si se quiere trabajar con diferentes tipos de 'PR'
                         if(solicitudSeleccionada.size() == 0) {
@@ -1416,6 +1380,18 @@ public class SolicitudActivity extends AppCompatActivity {
                                     Cantones(parent);
                                 if(campos.get(indice).get("llamado1").contains("Distritos"))
                                     Distritos(parent);
+
+                                if(nombreCampo.equals("W_CTE-VWERK")){
+                                    Spinner zona_transporte = (Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE");
+                                    String valor_centro_suministro = ((OpcionSpinner)parent.getSelectedItem()).getId().trim();
+                                    ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
+                                    // Creando el adaptador(opciones) para el comboBox deseado
+                                    ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
+                                    // Drop down layout style - list view with radio button
+                                    dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
+                                    zona_transporte.setAdapter(dataAdapterRuta);
+                                }
+
                                 ReplicarValorSpinner(parent,nombreCampo+"1",position);
                                 if(position == 0 && ((TextView) parent.getSelectedView()) != null)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
@@ -1435,6 +1411,17 @@ public class SolicitudActivity extends AppCompatActivity {
                                     Cantones(parent);
                                 if(campos.get(indice).get("llamado1").contains("Distritos"))
                                     Distritos(parent);
+
+                                if(nombreCampo.equals("W_CTE-VWERK")){
+                                    Spinner zona_transporte = (Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE");
+                                    String valor_centro_suministro = ((OpcionSpinner)parent.getSelectedItem()).getId().trim();
+                                    ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
+                                    // Creando el adaptador(opciones) para el comboBox deseado
+                                    ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
+                                    // Drop down layout style - list view with radio button
+                                    dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
+                                    zona_transporte.setAdapter(dataAdapterRuta);
+                                }
                                 ReplicarValorSpinner(parent,nombreCampo,position);
                                 if(position == 0 && ((TextView) parent.getSelectedView()) != null)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
@@ -1454,7 +1441,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                     final TextView opcion = (TextView) parent.getSelectedView();
-                                    if(position == 0)
+                                    if(position == 0 && opcion != null)
                                         opcion.setError("El campo es obligatorio!");
                                 }
 
@@ -1666,25 +1653,28 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")){
                         et.setSingleLine(false);
                         et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-                        et.setMinLines(5);
-                        et.setMaxLines(6);
+                        et.setMinLines(1);
+                        et.setMaxLines(5);
                         et.setVerticalScrollBarEnabled(true);
                         et.setMovementMethod(ScrollingMovementMethod.getInstance());
-                        et.setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
+                        et.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
                         et.setGravity(INDICATOR_GRAVITY_TOP);
-
                         if(solicitudSeleccionada.size() > 0 && (!solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incompleto"))) {
                             et.setText("");
                             RelativeLayout rl = new RelativeLayout(getContext());
-                            CoordinatorLayout.LayoutParams rlp = new CoordinatorLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+                            rl.setVerticalScrollBarEnabled(true);
+                            rl.startNestedScroll(1);
+
+                            CoordinatorLayout.LayoutParams rlp = new CoordinatorLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                            rlp.setBehavior(new AppBarLayout.ScrollingViewBehavior(getContext(), null));
+
                             rl.setLayoutParams(rlp);
-                            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) rl.getLayoutParams();
-                            params.setBehavior(new AppBarLayout.ScrollingViewBehavior(getContext(), null));
+                            rl.requestLayout();
 
                             tb_comentarios.setColumnCount(4);
                             tb_comentarios.setHeaderBackgroundColor(getResources().getColor(R.color.colorHeaderTableView,null));
                             tb_comentarios.setHeaderElevation(2);
-                            LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                            LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,  LinearLayout.LayoutParams.WRAP_CONTENT);
                             tb_comentarios.setLayoutParams(hlp);
 
                             if(solicitudSeleccionada.size() > 0){
@@ -1707,6 +1697,19 @@ public class SolicitudActivity extends AppCompatActivity {
                             tb_comentarios.setHeaderAdapter(sta);
                             tb_comentarios.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(getResources().getColor(R.color.white,null), getResources().getColor(R.color.backColor,null)));
 
+                            //Necesario para el nested scrolling del tableview
+                            final List<View> tocables = tb_comentarios.getFocusables(View.FOCUS_FORWARD);
+                            for(int x=0; x < tocables.size(); x++) {
+                                final int finalX = x;
+                                tocables.get(x).setOnTouchListener(new OnTouchListener() {
+                                    @Override
+                                    public boolean onTouch(View v, MotionEvent event) {
+                                        v.getParent().requestDisallowInterceptTouchEvent(true);
+                                        v.getParent().getParent().requestDisallowInterceptTouchEvent(true);
+                                        return false;
+                                    }
+                                });
+                            }
                             rl.addView(tb_comentarios);
                             ll.addView(rl);
                         }
@@ -1798,10 +1801,14 @@ public class SolicitudActivity extends AppCompatActivity {
                 combo.setBackground(d);
                 combo.setAdapter(dataAdapter);
                 if(solicitudSeleccionada.size() == 0) {
-                    combo.setSelection(1);
+                    if(dataAdapter.getCount() > 1) {
+                        combo.setSelection(0);
+                    }else{
+                        combo.setSelection(0);
+                    }
                 }else{
                     combo.setSelection(VariablesGlobales.getIndex(combo,solicitudSeleccionada.get(0).get("SIGUIENTE_APROBADOR").toString().trim()));
-                    if(!solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")){
+                    if(!solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Modificado")){
                         combo.setEnabled(false);
                     }
                 }
@@ -2447,7 +2454,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     tb_adjuntos.setLayoutParams(hlp);
 
                     if(solicitudSeleccionada.size() > 0){
-                        if(idForm == null || idForm.equals("") )
+                        if((idForm == null || idForm.equals("")) || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")|| solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Modificado"))
                             adjuntosSolicitud = mDBHelper.getAdjuntosDB(idSolicitud);
                         else
                             adjuntosSolicitud = mDBHelper.getAdjuntosServidor(idForm);
@@ -3481,7 +3488,9 @@ public class SolicitudActivity extends AppCompatActivity {
         f_iniEditText.setText(seleccionado.getF_ini());
         f_finEditText.setText(seleccionado.getF_fin());
 
-        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont");
+        Spinner centro_suministro = (Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK");
+        String valor_centro_suministro = ((OpcionSpinner)centro_suministro.getSelectedItem()).getId().trim();
+        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(Objects.requireNonNull(context), R.layout.simple_spinner_item, rutas_reparto);
         // Drop down layout style - list view with radio button
@@ -4335,4 +4344,5 @@ public class SolicitudActivity extends AppCompatActivity {
         }
         return -1; // Not found.
     }
+
 }

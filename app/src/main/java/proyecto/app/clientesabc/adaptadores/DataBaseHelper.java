@@ -676,7 +676,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getSolicitudOld(String id_solicitud){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> formList = new ArrayList<>();
-        String query = "SELECT * FROM FormHVKOF_old_solicitud WHERE id_solicitud = ?";
+        String query = "SELECT * FROM FormHVKOF_old_solicitud WHERE rtrim(id_solicitud) = ?";
         Cursor cursor = mDataBase.rawQuery(query,new String[]{id_solicitud});
         while (cursor.moveToNext()){
             HashMap<String,String> solicitud = new HashMap<>();
@@ -896,6 +896,127 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return  formList;
     }
 
+    public ArrayList<HashMap<String, String>> getSolicitudes(String estado, String tipform){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, String>> formList = new ArrayList<>();
+        String where = " WHERE 1=1 ";
+        ArrayList<String> parametros = new ArrayList<>();
+        if(estado != null) {
+            where += " AND trim(s.estado) = ? ";
+            parametros.add(estado);
+        }
+        if(tipform != null) {
+            where += " AND trim(s.tipform) = ? ";
+            parametros.add(tipform);
+        }
+
+        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal " +
+                " FROM FormHVKOF_solicitud s" +
+                " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) " +
+                " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) "+
+                where;
+        String[] p = parametros.size() == 0? null: parametros.toArray(new String[0]);
+        Cursor cursor = mDataBase.rawQuery(query,  p);
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("idform",cursor.getString(0));
+            user.put("codigo",String.valueOf(cursor.getLong(1)));
+            user.put("nombre",cursor.getString(2));
+            user.put("estado",cursor.getString(3));
+            user.put("tipform",cursor.getString(4));
+            user.put("id_solicitud",cursor.getString(5));
+            user.put("tipo_solicitud",cursor.getString(6));
+            user.put("id_fiscal",cursor.getString(7));
+            formList.add(user);
+        }
+        cursor.close();
+        return  formList;
+    }
+    public ArrayList<HashMap<String, String>> getSolicitudes(ArrayList<String> estados, ArrayList<String> tipforms){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, String>> formList = new ArrayList<>();
+        String where = " WHERE 1=1 ";
+        ArrayList<String> parametros = new ArrayList<>();
+
+        String params1 = "";
+        String coma = "";
+        for (int x=0;x < estados.size(); x++){
+            params1 += coma+estados.get(x).trim();
+            coma = ",";
+        }
+        if(estados != null && !params1.equals("")) {
+            where += " AND trim(s.estado) IN (?) ";
+            parametros.add(params1);
+        }
+        String params2 = "";
+        coma = "";
+        for (int x=0;x < tipforms.size(); x++){
+            params2 += coma+tipforms.get(x).trim();
+            coma = ",";
+        }
+        if(tipforms != null) {
+            where += " AND trim(s.tipform) IN (?) ";
+            parametros.add(params2);
+        }
+
+        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal " +
+                " FROM FormHVKOF_solicitud s" +
+                " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) " +
+                " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) "+
+                where;
+        String[] p = parametros.size() == 0? null: parametros.toArray(new String[0]);
+        Cursor cursor = mDataBase.rawQuery(query,  p);
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("idform",cursor.getString(0));
+            user.put("codigo",String.valueOf(cursor.getLong(1)));
+            user.put("nombre",cursor.getString(2));
+            user.put("estado",cursor.getString(3));
+            user.put("tipform",cursor.getString(4));
+            user.put("id_solicitud",cursor.getString(5));
+            user.put("tipo_solicitud",cursor.getString(6));
+            user.put("id_fiscal",cursor.getString(7));
+            formList.add(user);
+        }
+        cursor.close();
+        return  formList;
+    }
+
+    public ArrayList<HashMap<String, String>> getTipoSolicitudPanel(){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, String>> formList = new ArrayList<>();
+        String query = "select s.tipform as tipform, f.Descripcion, count(*) as total," +
+                "count(case rtrim(estado) when 'Nuevo' then 1 else null end) as nuevos," +
+                "count(case rtrim(estado) when 'Incidencia' then 1 else null end) as incidencias," +
+                "count(case rtrim(estado) when 'Pendiente' then 1 else null end) as pendientes," +
+                "count(case rtrim(estado) when 'Aprobado' then 1 else null end) as aprobados," +
+                "count(case rtrim(estado) when 'Rechazado' then 1 else null end) as rechazados," +
+                "count(case rtrim(estado) when 'Modificado' then 1 else null end) as modificados," +
+                "count(case rtrim(estado) when 'Incompleto' then 1 else null end) as incompletos" +
+                " from FormHvKof_solicitud s" +
+                " inner join flujo f ON(f.id_form = s.tipform) " +
+                " group by s.tipform , f.Descripcion";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> tipform = new HashMap<>();
+            tipform.put("tipform",cursor.getString(cursor.getColumnIndex("tipform")));
+            tipform.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")));
+            tipform.put("total",cursor.getString(cursor.getColumnIndex("total")));
+            tipform.put("nuevos",cursor.getString(cursor.getColumnIndex("nuevos")));
+            tipform.put("incidencias",cursor.getString(cursor.getColumnIndex("incidencias")));
+            tipform.put("pendientes",cursor.getString(cursor.getColumnIndex("pendientes")));
+            tipform.put("aprobados",cursor.getString(cursor.getColumnIndex("aprobados")));
+            tipform.put("rechazados",cursor.getString(cursor.getColumnIndex("rechazados")));
+            tipform.put("modificados",cursor.getString(cursor.getColumnIndex("modificados")));
+            tipform.put("incompletos",cursor.getString(cursor.getColumnIndex("incompletos")));
+
+            formList.add(tipform);
+        }
+        cursor.close();
+        return  formList;
+    }
+
+
     public int getNextSolicitudId(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> formList = new ArrayList<>();
@@ -966,7 +1087,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
                 " WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"' " +
-                " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO') " +
+                " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 "UNION " +
                 "SELECT DISTINCT c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION " +
                 "FROM configuracion c " +
@@ -980,13 +1101,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
                 " WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"' " +
-                " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO') " +
+                " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 " )) " +
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
                 "                LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 "                LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
                 "                WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"' " +
-                "                AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO') " +
+                "                AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 ") T " +
                 " ORDER BY T.panta, T.orden_seccion, T.orden_hh";
         Cursor cursor = mDataBase.rawQuery(query,null);
@@ -1152,7 +1273,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(tabla.equals("cat_tzont")){
             selectQuery = "SELECT * " +
                     " FROM " + tabla +" a INNER JOIN" +
-                    " EX_T_RUTAS_VP AS b ON a.zone1 = b.zroute_rep AND b.bzirk = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK","")+"'";
+                    " EX_T_RUTAS_VP AS b ON a.zone1 = b.zroute_rep ";
+                    //"AND b.bzirk = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK","")+"'";
         }
         if(tabla.equals("aprobadores")){
             selectQuery = "select id_usuario, nombre_usuario from flujoxpais as fxp" +
@@ -1191,7 +1313,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             listaCatalogo.add(seleccione);
             // looping through all rows and adding to list
             if (cursor.moveToFirst()) {
-
                 do {
                     HashMap<String,String> lista = new HashMap<>();
                     lista.put("id",cursor.getString(0).trim());//1era columna del query
@@ -1562,7 +1683,21 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return  flujoList;
     }
-
+    //Formularios de modificacion permitidos para la HH
+    public ArrayList<HashMap<String, String>> getOrdenesServicioPermitidas(){
+        ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
+        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 and ind_modelo = 'E' order by orden";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> flujo = new HashMap<>();
+            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_flujo")).trim());
+            flujo.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")).trim());
+            flujoList.add(flujo);
+        }
+        cursor.close();
+        return  flujoList;
+    }
     //Informacion de BLOQUES DE DATOS
 
     //CONTACTOS
@@ -2337,4 +2472,5 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return descripcion;
     }
+
 }

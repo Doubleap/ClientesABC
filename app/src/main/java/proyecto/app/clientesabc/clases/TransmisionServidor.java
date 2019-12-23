@@ -220,9 +220,15 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                     xceptionFlag = true;
                     errorFlag = "Error: "+error;
                 }else {
-                    publishProgress("Procesando respuesta...");
+                    publishProgress("Respuesta recibida...");
                     byte[] r = new byte[(int) s];
-                    dis.readFully(r);
+                    int offset = 0;
+                    int bytesRead;
+                    while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
+                        offset += bytesRead;
+                        publishProgress("Descargando..."+String.format("%.02f",(100f/(s/1024f))*(offset/1024f))+"%");
+                    }
+                    publishProgress("Actualizando solicitudes...");
                     solicitudes_procesadas = new String(r, Charset.defaultCharset());
                 }
 

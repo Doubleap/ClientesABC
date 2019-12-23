@@ -247,7 +247,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             idForm = solicitudSeleccionada.get(0).get("IDFORM");
             setTitle(GUID);
             subtitulo = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
-            getSupportActionBar().setSubtitle(subtitulo);
+            getSupportActionBar().setSubtitle(subtitulo +" - "+ solicitudSeleccionada.get(0).get("ESTADO").trim());
         }else{
             GUID = mDBHelper.getGuiId();
             idForm = "";
@@ -1777,8 +1777,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     if(campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")){
                         et.setSingleLine(false);
                         et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-                        et.setMinLines(5);
-                        et.setMaxLines(6);
+                        et.setMinLines(2);
+                        et.setMaxLines(4);
                         et.setVerticalScrollBarEnabled(true);
                         et.setMovementMethod(ScrollingMovementMethod.getInstance());
                         et.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
@@ -1816,6 +1816,20 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
                             tb_comentarios.setHeaderAdapter(sta);
                             tb_comentarios.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(getResources().getColor(R.color.white,null), getResources().getColor(R.color.backColor,null)));
+
+                            //Necesario para el nested scrolling del tableview
+                            final List<View> tocables = tb_comentarios.getFocusables(View.FOCUS_FORWARD);
+                            for(int x=0; x < tocables.size(); x++) {
+                                final int finalX = x;
+                                tocables.get(x).setOnTouchListener(new OnTouchListener() {
+                                    @Override
+                                    public boolean onTouch(View v, MotionEvent event) {
+                                        v.getParent().requestDisallowInterceptTouchEvent(true);
+                                        v.getParent().getParent().requestDisallowInterceptTouchEvent(true);
+                                        return false;
+                                    }
+                                });
+                            }
 
                             rl.addView(tb_comentarios);
                             ll.addView(rl);
@@ -1910,10 +1924,14 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 combo.setBackground(d);
                 combo.setAdapter(dataAdapter);
                 if(solicitudSeleccionada.size() == 0) {
-                    combo.setSelection(1);
+                    if(dataAdapter.getCount() > 1) {
+                        combo.setSelection(0);
+                    }else{
+                        combo.setSelection(0);
+                    }
                 }else{
-                    combo.setSelection(VariablesGlobales.getIndex(combo,solicitudSeleccionada.get(0).get("SIGUIENTE_APROBADOR")));
-                    if(!solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")){
+                    combo.setSelection(VariablesGlobales.getIndex(combo,solicitudSeleccionada.get(0).get("SIGUIENTE_APROBADOR").trim()));
+                    if(!solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Modificado")){
                         combo.setEnabled(false);
                     }
                 }
@@ -2564,20 +2582,21 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     tb_adjuntos.setLayoutParams(hlp);
 
                     if(solicitudSeleccionada.size() > 0){
-                        adjuntosSolicitud = mDBHelper.getAdjuntosDB(idSolicitud);
+                        if((idForm == null || idForm.equals("")) || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")|| solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Modificado"))
+                            adjuntosSolicitud = mDBHelper.getAdjuntosDB(idSolicitud);
+                        else
+                            adjuntosSolicitud = mDBHelper.getAdjuntosServidor(idForm);
                     }
                     if(modificable) {
                         btnAddBloque.setOnClickListener(new OnClickListener() {
                             @Override
                             public void onClick(View view) {
-
                                 mPhotoUri = getContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                                         new ContentValues());
                                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                                 intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
                                 try {
                                     getActivity().startActivityForResult(intent, 1);
-
                                 } catch (ActivityNotFoundException e) {
                                     Log.e("tag", getResources().getString(R.string.no_activity));
                                 }
@@ -4098,7 +4117,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
                 //mDBHelper.getWritableDatabase().insert("FormHvKof_solicitud", null, insertValues);
                 if(solicitudSeleccionada.size() > 0){
-                    if(solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia")) {
+                    if(solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")) {
                         insertValues.put("[estado]", "Modificado");
                     }
                     long modifico = mDb.update("FormHvKof_solicitud", insertValues, "id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});

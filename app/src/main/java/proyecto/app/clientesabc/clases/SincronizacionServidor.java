@@ -87,10 +87,16 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                 xceptionFlag = true;
                 messageFlag = "Error: "+error;
             }else {
-                publishProgress("Recibiendo datos...");
+                publishProgress("Iniciando descarga de datos para Hand Held");
                 byte[] r = new byte[(int) s];
-                dis.readFully(r);
+                int offset = 0;
+                int bytesRead;
+                while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
+                    offset += bytesRead;
+                    publishProgress("Descargando..."+String.format("%.02f",(100f/(s/1024f))*(offset/1024f))+"%");
+                }
                 publishProgress("Procesando datos recibidos...");
+
                 File tranFileDir;
                 File externalStorage = Environment.getExternalStorageDirectory();
                 if (externalStorage != null) {
@@ -104,6 +110,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                     stream.close();
 
                     dos.close();
+                    publishProgress("Descomprimiendo datos...");
                     //UNZIP informacion recibida
                     boolean unzip = FileHelper.unzip(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision/FAWM_ANDROID_2",externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision");
                     File file = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision/"+PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH","")+".db");

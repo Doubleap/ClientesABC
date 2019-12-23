@@ -94,103 +94,20 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                         String jsonVisitas = 9;*/
 
                 //Toda la info de cliente
-                publishProgress("Recibiendo informacion..");
+                publishProgress("Iniciando descarga...");
                 byte[] r = new byte[(int) s];
-                dis.readFully(r);
+                int offset = 0;
+                int bytesRead;
+                while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
+                    offset += bytesRead;
+                    publishProgress("Descargando..."+String.format("%.02f",(100f/(s/1024f))*(offset/1024f))+"%");
+                }
+                publishProgress("Procesando datos recibidos...");
+
                 String jsoncliente = new String(r);
                 Gson gson = new Gson();
                 estructurasSAP.add(gson.fromJson(jsoncliente, JsonArray.class));
                 publishProgress("Procesando datos cliente..");
-
-               /* //Lectura InfoNotaEntrega
-                s = dis.readLong();
-                r = new byte[(int) s];
-                dis.readFully(r);
-                String jsonNotaEntrega = new String(r);
-                //jsonNotaEntrega = jsonNotaEntrega.substring(1,jsonNotaEntrega.length()-1);
-                gson = new Gson();
-                estructurasSAP.add(gson.fromJson(jsonNotaEntrega, JsonArray.class));
-                publishProgress("Datos Nota Entrega..");
-
-                //Lectura InfoFactura
-                s = dis.readLong();
-                r = new byte[(int) s];
-                dis.readFully(r);
-                String jsonFactura = new String(r);
-                //jsonFactura = jsonFactura.substring(1,jsonFactura.length()-1);
-                gson = new Gson();
-                estructurasSAP.add(gson.fromJson(jsonFactura, JsonArray.class));
-                publishProgress("Datos Factura..");
-
-                //Lectura InfoTelefonos
-                s = dis.readLong();
-                r = new byte[(int) s];
-                dis.readFully(r);
-                String jsonTelefonos = new String(r);
-                //jsonTelefonos = jsonTelefonos.substring(1,jsonTelefonos.length()-1);
-                gson = new Gson();
-                estructurasSAP.add(gson.fromJson(jsonTelefonos, JsonArray.class));
-                publishProgress("Datos Telefonos..");
-
-                //Lectura InfoFaxes
-                s = dis.readLong();
-                r = new byte[(int) s];
-                dis.readFully(r);
-                String jsonFaxes = new String(r);
-                //jsonFaxes = jsonFaxes.substring(1,jsonFaxes.length()-1);
-                gson = new Gson();
-                estructurasSAP.add(gson.fromJson(jsonFaxes, JsonArray.class));
-                publishProgress("Datos Faxes..");
-
-                //Lectura InfoContactos
-                s = dis.readLong();
-                r = new byte[(int) s];
-                dis.readFully(r);
-                String jsonContactos = new String(r);
-                //jsonContactos = jsonContactos.substring(1,jsonContactos.length()-1);
-                gson = new Gson();
-                estructurasSAP.add(gson.fromJson(jsonContactos, JsonArray.class));
-                publishProgress("Datos Contactos..");
-
-                //Lectura InfoInterlocutores
-                s = dis.readLong();
-                r = new byte[(int) s];
-                dis.readFully(r);
-                String jsonInterlocutores = new String(r);
-                //jsonInterlocutores = jsonInterlocutores.substring(1,jsonInterlocutores.length()-1);
-                gson = new Gson();
-                estructurasSAP.add(gson.fromJson(jsonInterlocutores, JsonArray.class));
-                publishProgress("Datos Interlocutores..");
-
-                //Lectura InfoImpuestos
-                s = dis.readLong();
-                r = new byte[(int) s];
-                dis.readFully(r);
-                String jsonImpuestos = new String(r);
-                //jsonImpuestos = jsonImpuestos.substring(1,jsonImpuestos.length()-1);
-                gson = new Gson();
-                estructurasSAP.add(gson.fromJson(jsonImpuestos, JsonArray.class));
-                publishProgress("Datos Impuestos..");
-
-                //Lectura InfoBancos
-                s = dis.readLong();
-                r = new byte[(int) s];
-                dis.readFully(r);
-                String jsonBancos = new String(r);
-                //jsonBancos = jsonBancos.substring(1,jsonBancos.length()-1);
-                gson = new Gson();
-                estructurasSAP.add(gson.fromJson(jsonBancos, JsonArray.class));
-                publishProgress("Datos Bancos..");
-
-                //Lectura InfoVisitas
-                s = dis.readLong();
-                r = new byte[(int) s];
-                dis.readFully(r);
-                String jsonVisitas = new String(r);
-                //jsonVisitas = jsonVisitas.substring(1,jsonVisitas.length()-1);
-                gson = new Gson();
-                estructurasSAP.add(gson.fromJson(jsonVisitas, JsonArray.class));
-                publishProgress("Datos Visitas..");*/
 
             }
             publishProgress("Proceso Terminado...");

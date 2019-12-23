@@ -107,6 +107,11 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
+            android:name=".actividades.TipoSolicitudPanelActivity"
+            android:label="@string/title_activity_panel"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
             android:name=".actividades.ClienteActivity"
             android:label="@string/title_activity_cliente"
             android:screenOrientation="portrait" />

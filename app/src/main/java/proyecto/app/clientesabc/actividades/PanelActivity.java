@@ -201,6 +201,10 @@ public class PanelActivity extends AppCompatActivity {
                         intent = new Intent(getBaseContext(),MainActivity.class);
                         startActivity(intent);
                         break;
+                    case R.id.panel_alternativo:
+                        intent = new Intent(getBaseContext(),TipoSolicitudPanelActivity.class);
+                        startActivity(intent);
+                        break;
                     default:
                         Toasty.info(getBaseContext(),"Opcion no encontrada!").show();
                 }
@@ -258,10 +262,6 @@ public class PanelActivity extends AppCompatActivity {
                 }
             });
         }
-    }
-
-    private void showDialogSolicitudes() {
-
     }
     public void VerSolicitudes() {
         intent = new Intent(this, SolicitudesActivity.class);

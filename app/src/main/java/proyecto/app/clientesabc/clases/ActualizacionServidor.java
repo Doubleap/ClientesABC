@@ -71,7 +71,7 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
             //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
             long s = dis.readLong();
             if(s < 0){
-                publishProgress("Error en Actualizacion...");
+                publishProgress("Iniciando descarga...");
                 s = dis.readLong();
                 byte[] e = new byte[(int) s];
                 dis.readFully(e);
@@ -79,10 +79,14 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
                 xceptionFlag = true;
                 messageFlag = "Error: "+error;
             }else {
-                publishProgress("Procesando datos recibidos...");
                 byte[] r = new byte[(int) s];
-                dis.readFully(r);
-
+                int offset = 0;
+                int bytesRead;
+                while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
+                    offset += bytesRead;
+                    publishProgress("Descargando..."+String.format("%.02f",(100f/(s/1024f))*(offset/1024f))+"%");
+                }
+                publishProgress("Procesando datos recibidos...");
                 File tranFileDir;
                 File externalStorage = Environment.getExternalStorageDirectory();
                 if (externalStorage != null) {

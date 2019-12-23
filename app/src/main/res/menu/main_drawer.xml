@@ -30,6 +30,12 @@
             app:showAsAction="never|withText">
         </item>
         <item
+            android:id="@+id/panel_alternativo"
+            android:title="Resumen Solicitudes"
+            android:icon="@drawable/icon_solicitudes"
+            app:showAsAction="never|withText">
+        </item>
+        <item
             android:id="@+id/acercade"
             android:title="Acerca de"
             android:icon="@drawable/icon_about"

@@ -42,17 +42,24 @@ public class SolicitudesActivity extends AppCompatActivity {
     private FloatingActionButton fab2;
     boolean isFABOpen = false;
     String estado;
+    String tipform;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detalle);
         Bundle b = getIntent().getExtras();
-        if(b != null)
+        if(b != null) {
             estado = b.getString("estado");
+            tipform = b.getString("tipform");
+        }
         db = new DataBaseHelper(this);
         ArrayList<HashMap<String, String>> formList;
-        if(estado != null)
-            formList = db.getSolicitudes(estado);
+        if(estado != null && tipform != null)
+            formList = db.getSolicitudes(estado,tipform);
+        else if(estado != null)
+            formList = db.getSolicitudes(estado,null);
+        else if(tipform != null)
+            formList = db.getSolicitudes(null,tipform);
         else
             formList = db.getSolicitudes();
         RecyclerView rv = findViewById(R.id.user_list);
@@ -97,9 +104,15 @@ public class SolicitudesActivity extends AppCompatActivity {
         Drawable d = getResources().getDrawable(R.drawable.header_curved_cc5,null);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Mis Solicitudes");
-        //toolbar.setSubtitle("");
+        /*if(estado != null && tipform != null)
+            toolbar.setSubtitle("Filtro: "+estado+" / "+tipform);
+        else if(estado != null)
+            toolbar.setSubtitle("Filtro: "+estado);
+        else if(tipform != null)
+            toolbar.setSubtitle("Filtro: "+tipform);*/
+        toolbar.setSubtitleTextColor(getResources().getColor(R.color.colorTextView,null));
         toolbar.setBackground(d);
-        toolbar.setSubtitleTextColor(getResources().getColor(R.color.white,null));
+
 
         if (Build.VERSION.SDK_INT >= 28) {
             toolbar.setOutlineAmbientShadowColor(getResources().getColor(R.color.aprobados,null));
