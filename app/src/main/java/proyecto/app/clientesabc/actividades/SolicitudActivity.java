@@ -51,6 +51,7 @@ import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -73,6 +74,14 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.honeywell.aidc.AidcManager;
+import com.honeywell.aidc.BarcodeFailureEvent;
+import com.honeywell.aidc.BarcodeReadEvent;
+import com.honeywell.aidc.BarcodeReader;
+import com.honeywell.aidc.InvalidScannerNameException;
+import com.honeywell.aidc.ScannerNotClaimedException;
+import com.honeywell.aidc.ScannerUnavailableException;
+import com.honeywell.aidc.UnsupportedPropertyException;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.io.ByteArrayOutputStream;
@@ -82,6 +91,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -183,6 +193,9 @@ public class SolicitudActivity extends AppCompatActivity {
     private static ArrayList<Adjuntos> adjuntosSolicitud;
     private static ArrayList<Adjuntos> adjuntosServidor;
     private static ArrayList<Comentario> comentarios;
+
+    private AidcManager manager;
+    private BarcodeReader reader;
 
     @SuppressLint("ResourceType")
     @Override
@@ -468,6 +481,111 @@ public class SolicitudActivity extends AppCompatActivity {
         comentarios = new ArrayList<>();
         //notificantesSolicitud = new ArrayList<Adjuntos>();
 
+        // create the AidcManager providing a Context and an
+        // CreatedCallback implementation.
+        AidcManager.create(getBaseContext(), new AidcManager.CreatedCallback() {
+            @Override
+            public void onCreated(AidcManager aidcManager) {
+                manager = aidcManager;
+                try {
+                    reader = manager.createBarcodeReader();
+                    reader.setProperty(BarcodeReader.PROPERTY_PDF_417_ENABLED, true);
+                    BarcodeReader.BarcodeListener barcodeListener = new BarcodeReader.BarcodeListener() {
+                        @Override
+                        public void onBarcodeEvent(final BarcodeReadEvent barcodeReadEvent) {
+                            // update UI to reflect the data
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(barcodeReadEvent.getAimId().substring(1,2).equals("L")) {
+                                        String lecturaCedulaCR = barcodeReadEvent.getBarcodeData();
+                                        String timestamp = barcodeReadEvent.getTimestamp();
+                                        try {
+                                            reader.softwareTrigger(false);
+                                        } catch (ScannerNotClaimedException e) {
+                                            e.printStackTrace();
+                                        } catch (ScannerUnavailableException e) {
+                                            e.printStackTrace();
+                                        }
+                                        Spinner spinner_tipo = (Spinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
+                                        MaskedEditText editText_cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD1");
+                                        MaskedEditText editText_name3 = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NAME3");
+                                        MaskedEditText editText_name4 = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NAME4");
+
+                                        if (spinner_tipo != null) {
+                                            spinner_tipo.setSelection(VariablesGlobales.getIndex(spinner_tipo, "C1"));
+                                        }
+
+                                        String datosCedula = decodificarLecturaPDF417(lecturaCedulaCR);
+
+                                        String codigo = datosCedula;
+                                        if(codigo.length() > 100) {
+                                            String cedula = codigo.substring(0, 9).trim();
+                                            String nombre = codigo.substring(61, 91).trim();
+                                            String apellido1 = codigo.substring(9, 35).trim();
+                                            String apellido2 = codigo.substring(35, 61).trim();
+                                            //Toasty.info(getBaseContext(),cedula+" "+nombre+" "+apellido1+" "+apellido2+".").show();
+                                            if (editText_cedula != null) {
+                                                editText_cedula.setMask("0#-####-####-00");
+                                                editText_cedula.setText(cedula);
+                                                ValidarCedula(editText_cedula, ((OpcionSpinner) spinner_tipo.getSelectedItem()).getId());
+                                            }
+                                            if (editText_name3 != null) {
+                                                String nombre_completo = nombre + " " + apellido1 + " " + apellido2;
+                                                if (nombre_completo.length() <= 35)
+                                                    editText_name3.setText(nombre_completo);
+                                                else {
+                                                    editText_name3.setText(nombre_completo.substring(0, 35));
+                                                    if (editText_name4 != null) {
+                                                        editText_name3.setText(nombre_completo.substring(35, 70));
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }else{
+                                        Toasty.warning(getBaseContext(),"Codigo leido no reconocido!",Toasty.LENGTH_SHORT).show();
+                                    }
+                                }
+
+                                private String decodificarLecturaPDF417(String lecturaCedulaCR) {
+                                    byte[] raw = new byte[0];
+                                    try {
+                                        raw = lecturaCedulaCR.getBytes("ISO-8859-1");
+                                    } catch (UnsupportedEncodingException e) {
+                                        e.printStackTrace();
+                                    }
+                                    //Intento de decodificar el valor de la cedula en PDF417 con encriptacion XOR cypher
+                                    String d= "";
+                                    int j = 0;
+                                    for (int i = 0; i < raw.length; i++) {
+                                        if (j == 17) {
+                                            j = 0;
+                                        }
+                                        char c = (char) (keysArray[j] ^ ((char) (raw[i])));
+                                        if((c+"").matches("^[a-zA-Z0-9]*$")){
+                                            d += c;
+                                        }else{
+                                            d += c;
+                                        }
+                                        j ++;
+                                    }
+                                    return d;
+                                }
+                            });
+                        }
+                        @Override
+                        public void onFailureEvent(BarcodeFailureEvent barcodeFailureEvent) {
+                            //Toasty.warning(getBaseContext(), "no se leyó el código", Toast.LENGTH_SHORT).show();
+                        }
+                    };
+                    reader.addBarcodeListener(barcodeListener);
+                } catch (InvalidScannerNameException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedPropertyException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
     @Override
     public void onBackPressed() {
@@ -4203,7 +4321,7 @@ public class SolicitudActivity extends AppCompatActivity {
         String cedula = "";
         switch(tipoCedula){
             case "C1":
-                if(texto.getText().toString().trim().length()==12){
+                if(texto.getText().toString().trim().length()==12 ){
                     texto.setText(texto.getText()+"-00");
                 }
                 cedula = "[0][1-9]-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-00";
@@ -4220,7 +4338,7 @@ public class SolicitudActivity extends AppCompatActivity {
         if (!matcher.matches()) {
             texto.setError("Formato Regimen "+tipoCedula+" invalido!");
             cedulaValidada = false;
-            return false;
+            return true;
         }
         cedulaValidada = true;
         MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
@@ -4345,4 +4463,63 @@ public class SolicitudActivity extends AppCompatActivity {
         return -1; // Not found.
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch(keyCode){
+            case KeyEvent.KEYCODE_UNKNOWN:
+                if(reader != null && event.getRepeatCount() == 0) {
+                    try {
+                        reader.claim();
+                        reader.aim(true);
+                        reader.light(true);
+                        reader.decode(true);
+                    } catch (ScannerNotClaimedException e) {
+                        e.printStackTrace();
+                    } catch (ScannerUnavailableException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        switch(keyCode){
+            case KeyEvent.KEYCODE_UNKNOWN:
+                if(reader != null) {
+                    try {
+                        reader.aim(false);
+                        reader.light(false);
+                        reader.decode(false);
+                        reader.release();
+                    } catch (ScannerNotClaimedException e) {
+                        e.printStackTrace();
+                    } catch (ScannerUnavailableException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+    private static byte[] keysArray = new byte[]{
+            (byte)0x27,
+            (byte)0x30,
+            (byte)0x04,
+            (byte)0xA0,
+            (byte)0x00,
+            (byte)0x0F,
+            (byte)0x93,
+            (byte)0x12,
+            (byte)0xA0,
+            (byte)0xD1,
+            (byte)0x33,
+            (byte)0xE0,
+            (byte)0x03,
+            (byte)0xD0,
+            (byte)0x00,
+            (byte)0xDf,
+            (byte)0x00
+    };
 }

@@ -69,7 +69,7 @@ public class EscanearActivity extends AppCompatActivity implements ZXingScannerV
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        //Intento de decodificar el valor de la cedula en PDF417 con excriptacion XOR cypher
+        //Intento de decodificar el valor de la cedula en PDF417 con encriptacion XOR cypher
         String d= "";
         int j = 0;
         for (int i = 0; i < raw.length; i++) {

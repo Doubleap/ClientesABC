@@ -3,8 +3,10 @@ package proyecto.app.clientesabc.actividades;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -47,7 +49,6 @@ import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.clases.ActualizacionServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
-
 /**
  * A login screen that offers login via email/password.
  */
@@ -61,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextView bookITextView;
     private ProgressBar loadingProgressBar;
     private RelativeLayout rootView, afterAnimationView;
-
+    private BroadcastReceiver myReceiver;
     // UI references.
     private AutoCompleteTextView mUserView;
     private EditText mPasswordView;
@@ -72,12 +73,12 @@ public class LoginActivity extends AppCompatActivity {
     private TextView ruta_datos;
     private Intent intent;
     private TextView versionLogin;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.AppThemeNoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
         //Notificacion notificacion = new Notificacion(getBaseContext());
         //notificacion.crearNotificacion(0,"Actualizar Aplicacion", "Andres Aymerich codigo 9000214432", R.drawable.logo_mc, R.drawable.icon_add_client, R.color.aprobados);
 
@@ -121,7 +122,6 @@ public class LoginActivity extends AppCompatActivity {
         }else{
             ruta_datos.setText("Ruta Preventa "+PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("W_CTE_RUTAHH","")+".");
         }
-
 
         Button mEmailSignInButton = findViewById(R.id.sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
@@ -207,7 +207,6 @@ public class LoginActivity extends AppCompatActivity {
         //TODO seleccionar el tipo de solicitud por el UI
         //Intent i = new Intent(LoginActivity.this, EscanearActivity.class);
         //startActivityForResult(i,2);
-
     }
 
     @Override
@@ -218,6 +217,28 @@ public class LoginActivity extends AppCompatActivity {
         }else{
             ruta_datos.setText("Ruta Preventa "+PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("W_CTE_RUTAHH","")+".");
         }
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        //Create an Intent Filter
+        IntentFilter intentFilter = new IntentFilter("hsm.RECVRBI");
+        myReceiver=new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String d = intent.getStringExtra("data");
+                if(d!=null && d.length()>0){
+                    ruta_datos.setText(d);
+                }
+            }
+        };
+        this.registerReceiver(myReceiver, intentFilter);
+    }
+    @Override
+    protected void onPause(){
+        super.onPause();
+        this.unregisterReceiver(this.myReceiver);
     }
 
     private void showDialogAcercade(Context context) {

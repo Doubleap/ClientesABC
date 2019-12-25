@@ -321,25 +321,25 @@ public class MantClienteActivity extends AppCompatActivity {
                                     startActivity(intent);
                                     break;
                                 case R.id.modificar:
-                                    //showDialogFormulariosModificacion(codigoCliente,false, false);
-                                    Toasty.info(getBaseContext(),"Funcionalidad de Modificaciones NO disponible de momento.").show();
+                                    showDialogFormulariosModificacion(codigoCliente,false, false);
+                                    //Toasty.info(getBaseContext(),"Funcionalidad de Modificaciones NO disponible de momento.").show();
                                     break;
                                 case R.id.cierre:
-                                    /*Bundle bc = new Bundle();
+                                    Bundle bc = new Bundle();
                                     bc.putString("tipoSolicitud", "5"); //id de solicitud
                                     bc.putString("codigoCliente", codigoCliente);
                                     intent = new Intent(getApplicationContext(),SolicitudModificacionActivity.class);
                                     intent.putExtras(bc); //Pase el parametro el Intent
-                                    startActivity(intent);*/
-                                    Toasty.info(getBaseContext(),"Funcionalidad de Cierre NO disponible de momento.").show();
+                                    startActivity(intent);
+                                    //Toasty.info(getBaseContext(),"Funcionalidad de Cierre NO disponible de momento.").show();
                                     break;
                                 case R.id.credito:
-                                    //showDialogFormulariosModificacion(codigoCliente,true, false);
-                                    Toasty.info(getBaseContext(),"Funcionalidad de Credito NO disponible de momento.").show();
+                                    showDialogFormulariosModificacion(codigoCliente,true, false);
+                                    //Toasty.info(getBaseContext(),"Funcionalidad de Credito NO disponible de momento.").show();
                                     break;
                                 case R.id.equipofrio:
-                                    //showDialogFormulariosModificacion(codigoCliente,false, true);
-                                    Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
+                                    showDialogFormulariosModificacion(codigoCliente,false, true);
+                                    //Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
                                     break;
                                 case R.id.comollegar:
                                     String uri = "";
