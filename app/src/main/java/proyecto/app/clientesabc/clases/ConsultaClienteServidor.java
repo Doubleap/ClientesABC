@@ -27,6 +27,7 @@ import java.util.ArrayList;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 
 public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<JsonArray>> {
@@ -168,7 +169,10 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
             activity.get().finish();
             Toasty.error(context.get(),"No se pudo consultar el cliente: "+messageFlag,Toast.LENGTH_LONG).show();
         }
-        SolicitudModificacionActivity.LlenarCampos(context.get(), activity.get(), estructuras);
+        if(context.get().getClass().getSimpleName().equals("SolicitudModificacionActivity"))
+            SolicitudModificacionActivity.LlenarCampos(context.get(), activity.get(), estructuras);
+        else if(context.get().getClass().getSimpleName().equals("SolicitudAvisosEquipoFrioActivity"))
+            SolicitudAvisosEquipoFrioActivity.LlenarCampos(context.get(), activity.get(), estructuras);
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

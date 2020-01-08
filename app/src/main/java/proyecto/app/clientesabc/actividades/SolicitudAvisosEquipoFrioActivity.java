@@ -86,7 +86,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -99,6 +98,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import de.codecrafters.tableview.TableView;
 import de.codecrafters.tableview.listeners.TableDataClickListener;
 import de.codecrafters.tableview.listeners.TableDataLongClickListener;
 import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
@@ -115,7 +115,7 @@ import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
 import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
 import proyecto.app.clientesabc.clases.AdjuntoServidor;
-import proyecto.app.clientesabc.clases.ConsultaCreditoClienteServidor;
+import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.FileHelper;
 import proyecto.app.clientesabc.modelos.Adjuntos;
@@ -123,6 +123,7 @@ import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
 import proyecto.app.clientesabc.modelos.Contacto;
 import proyecto.app.clientesabc.modelos.EditTextDatePicker;
+import proyecto.app.clientesabc.modelos.EquipoFrio;
 import proyecto.app.clientesabc.modelos.Impuesto;
 import proyecto.app.clientesabc.modelos.Interlocutor;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
@@ -138,25 +139,25 @@ import static android.support.design.widget.TabLayout.TEXT_ALIGNMENT_CENTER;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
-public class SolicitudCreditoActivity extends AppCompatActivity {
+public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
     final static int alturaFilaTableView = 75;
     static String tipoSolicitud ="";
     static String idSolicitud = "";
     static String codigoCliente = "";
-    static String subtitulo = "";
-    static String tipoCreditoSAP = "";
-    static int minAdjuntos = 0;
+    static String codigoEquipoFrio = "";
     static String idForm = "";
     @SuppressLint("StaticFieldLeak")
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
     static ArrayList<String> listaCamposDinamicos = new ArrayList<>();
+    static ArrayList<String> listaCamposDinamicosEnca = new ArrayList<>();
     static ArrayList<String> listaCamposObligatorios = new ArrayList<>();
     static ArrayList<String> listaCamposBloque = new ArrayList<>();
     static Map<String, View> mapeoCamposDinamicos = new HashMap<>();
     static Map<String, View> mapeoCamposDinamicosOld = new HashMap<>();
     static Map<String, View> mapeoCamposDinamicosEnca = new HashMap<>();
+    static Map<String, View> mapeoVisitas = new HashMap<>();
     static  ArrayList<HashMap<String, String>> configExcepciones = new ArrayList<>();
     static  ArrayList<HashMap<String, String>> solicitudSeleccionada = new ArrayList<>();
     static  ArrayList<HashMap<String, String>> solicitudSeleccionadaOld = new ArrayList<>();
@@ -171,19 +172,19 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     static Uri mPhotoUri;
 
     @SuppressLint("StaticFieldLeak")
-    private static de.codecrafters.tableview.TableView<Contacto> tb_contactos;
+    private static TableView<Contacto> tb_contactos;
     @SuppressLint("StaticFieldLeak")
-    private static de.codecrafters.tableview.TableView<Impuesto> tb_impuestos;
+    private static TableView<Impuesto> tb_impuestos;
     @SuppressLint("StaticFieldLeak")
-    private static de.codecrafters.tableview.TableView<Interlocutor> tb_interlocutores;
+    private static TableView<Interlocutor> tb_interlocutores;
     @SuppressLint("StaticFieldLeak")
-    private static de.codecrafters.tableview.TableView<Banco> tb_bancos;
+    private static TableView<Banco> tb_bancos;
     @SuppressLint("StaticFieldLeak")
-    private static de.codecrafters.tableview.TableView<Visitas> tb_visitas;
+    private static TableView<Visitas> tb_visitas;
     @SuppressLint("StaticFieldLeak")
-    private static de.codecrafters.tableview.TableView<Adjuntos> tb_adjuntos;
+    private static TableView<Adjuntos> tb_adjuntos;
     @SuppressLint("StaticFieldLeak")
-    private static de.codecrafters.tableview.TableView<Comentario> tb_comentarios;
+    private static TableView<Comentario> tb_comentarios;
     private static ArrayList<Contacto> contactosSolicitud;
     private static ArrayList<Impuesto> impuestosSolicitud;
     private static ArrayList<Banco> bancosSolicitud;
@@ -210,8 +211,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private static JsonArray impuestos;
     private static JsonArray bancos;
     private static JsonArray visitas;
-    private static JsonArray credito;
-    private static JsonArray creditoCadena;
 
     @SuppressLint("ResourceType")
     @Override
@@ -228,6 +227,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             tipoSolicitud = b.getString("tipoSolicitud");
             idSolicitud = b.getString("idSolicitud");
             codigoCliente = b.getString("codigoCliente");
+            codigoEquipoFrio = b.getString("codigoEquipoFrio");
         }
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setMax(10);
@@ -244,21 +244,19 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             solicitudSeleccionada = mDBHelper.getSolicitud(idSolicitud);
             solicitudSeleccionadaOld = mDBHelper.getSolicitudOld(idSolicitud);
             tipoSolicitud = solicitudSeleccionada.get(0).get("TIPFORM");
-            GUID = solicitudSeleccionada.get(0).get("id_solicitud");
+            GUID = solicitudSeleccionada.get(0).get("id_solicitud").trim();
             idForm = solicitudSeleccionada.get(0).get("IDFORM");
             setTitle(GUID);
-            subtitulo = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
-            getSupportActionBar().setSubtitle(subtitulo +" - "+ solicitudSeleccionada.get(0).get("ESTADO").trim());
+            String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
+            getSupportActionBar().setSubtitle(descripcion +" - "+ solicitudSeleccionada.get(0).get("ESTADO").trim());
         }else{
             GUID = mDBHelper.getGuiId();
             idForm = "";
             solicitudSeleccionada.clear();
             solicitudSeleccionadaOld.clear();
             setTitle(codigoCliente+"-");
-            subtitulo = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
-            tipoCreditoSAP = devolverTipoSolicitudSAP(subtitulo);
-            minAdjuntos = mDBHelper.CantidadAdjuntosMinima(tipoSolicitud);
-            getSupportActionBar().setSubtitle(subtitulo);
+            String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
+            getSupportActionBar().setSubtitle(descripcion);
         }
         if(solicitudSeleccionada.size() > 0) {
             firma = true;
@@ -308,7 +306,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         intent.setType("image/*");
                         intent.addCategory(Intent.CATEGORY_OPENABLE);
                         try {
-                            startActivityForResult(intent, 1);
+                            startActivityForResult(intent, 200);
 
                         } catch (ActivityNotFoundException e) {
                             Log.e("tag", getResources().getString(R.string.no_activity));
@@ -416,12 +414,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             numErrores++;
                             mensajeError += "- El cliente debe firmar las políticas de privacidad!\n";
                         }*/
-
-                        if(minAdjuntos > adjuntosSolicitud.size()){
-                            numErrores++;
-                            mensajeError += "- Debe adjuntar al menos "+minAdjuntos+" documentos a la solicitud!\n";
-                        }
-
                         //Validacion de correo
                         if(!correoValidado){
                             numErrores++;
@@ -448,8 +440,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
                         if(numErrores == 0) {
                             DialogHandler appdialog = new DialogHandler();
-                            appdialog.Confirm(SolicitudCreditoActivity.this, "Confirmación Crédito", "Esta seguro que desea guardar la solicitud de Crédito?", "No", "Si", new GuardarFormulario(getBaseContext()));
-
+                            appdialog.Confirm(SolicitudAvisosEquipoFrioActivity.this, "Confirmación Modificacion", "Esta seguro que desea guardar la solicitud de Modificacion?", "No", "Si", new GuardarFormulario(getBaseContext()));
                         }else{
                             Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toast.LENGTH_LONG).show();
                         }
@@ -462,7 +453,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         if(solicitudSeleccionada.size() == 0 ) {
             WeakReference<Context> weakRefs1 = new WeakReference<Context>(this);
             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(this);
-            ConsultaCreditoClienteServidor c = new ConsultaCreditoClienteServidor(weakRefs1, weakRefAs1, codigoCliente, tipoCreditoSAP);
+            ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoCliente);
             c.execute();
         }
         //cliente = c.execute().get();
@@ -489,24 +480,24 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }
 
         //Manejo de Bloques
-        tb_contactos = new de.codecrafters.tableview.TableView<>(this);
+        tb_contactos = new TableView<>(this);
         tb_contactos.addDataClickListener(new ContactoClickListener());
         tb_contactos.addDataLongClickListener(new ContactoLongClickListener());
-        tb_impuestos = new de.codecrafters.tableview.TableView<>(this);
-        //tb_impuestos.addDataClickListener(new ImpuestoClickListener());
+        tb_impuestos = new TableView<>(this);
+        tb_impuestos.addDataClickListener(new ImpuestoClickListener());
         //tb_impuestos.addDataLongClickListener(new ImpuestoLongClickListener());
-        tb_bancos = new de.codecrafters.tableview.TableView<>(this);
+        tb_bancos = new TableView<>(this);
         tb_bancos.addDataClickListener(new BancoClickListener());
         tb_bancos.addDataLongClickListener(new BancoLongClickListener());
-        tb_interlocutores = new de.codecrafters.tableview.TableView<>(this);
+        tb_interlocutores = new TableView<>(this);
         tb_interlocutores.addDataClickListener(new InterlocutorClickListener());
         //tb_interlocutores.addDataLongClickListener(new InterlocutorLongClickListener());
-        tb_visitas = new de.codecrafters.tableview.TableView<>(this);
+        tb_visitas = new TableView<>(this);
         tb_visitas.addDataClickListener(new VisitasClickListener());
         //tb_visitas.addDataLongClickListener(new VisitasLongClickListener());
 
-        tb_adjuntos = new de.codecrafters.tableview.TableView<>(this);
-        tb_comentarios = new de.codecrafters.tableview.TableView<>(this);
+        tb_adjuntos = new TableView<>(this);
+        tb_comentarios = new TableView<>(this);
         //tb_adjuntos.addDataClickListener(new AdjuntosClickListener());
         //tb_adjuntos.addDataLongClickListener(new AdjuntosLongClickListener());
         contactosSolicitud = new ArrayList<>();
@@ -525,30 +516,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         visitasSolicitud_old = new ArrayList<>();
         adjuntosSolicitud_old = new ArrayList<>();
 
-    }
-
-    private String devolverTipoSolicitudSAP(String subtitulo) {
-        String tipo = "";
-        if(subtitulo.contains("APERTURA")){
-            tipo += "A";
-        }else
-        if(subtitulo.contains("MODIFICACION")){
-            tipo += "M";
-        }else
-        if(subtitulo.contains("BLOQUEO")){
-            tipo += "B";
-        }
-        tipo += "C";
-        if(subtitulo.contains("INFORMAL")){
-            tipo += "I";
-        }else
-        if(subtitulo.contains("FORMAL D")){
-            tipo += "F";
-        }else
-        if(subtitulo.contains("FORMAL ABC")){
-            tipo += "F";
-        }
-        return tipo;
     }
 
     @Override
@@ -712,7 +679,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         tb_adjuntos.setDataAdapter(stda);
 
                         HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudCreditoActivity.this);
+                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudAvisosEquipoFrioActivity.this);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -776,7 +743,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         tb_adjuntos.setDataAdapter(stda);
 
                         HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudCreditoActivity.this);
+                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudAvisosEquipoFrioActivity.this);
 
                         //Intento de borrar el archivo que se guarda automatico en Pictures
                         File file3 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//Pictures//"+name);
@@ -792,6 +759,17 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }
     }
 
+    public byte[] getBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+        int bufferSize = 1024;
+        byte[] buffer = new byte[bufferSize];
+
+        int len;
+        while ((len = inputStream.read(buffer)) != -1) {
+            byteBuffer.write(buffer, 0, len);
+        }
+        return byteBuffer.toByteArray();
+    }
 
     public static class ViewPagerAdapter extends FragmentPagerAdapter {
 
@@ -851,21 +829,24 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             if(nombre.equals("Datos Generales") || nombre.equals("Informacion General")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"D");
 
-            }
+            }else
             if(nombre.equals("Facturación")|| nombre.equals("Facturacion")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"F");
-            }
+            }else
             if(nombre.equals("Ventas")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"V");
-            }
+            }else
             if(nombre.equals("Marketing")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"M");
-            }
+            }else
             if(nombre.equals("Creditos") || nombre.equals("Créditos")  || nombre.equals("Crédito")  || nombre.equals("Credito")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"C");
-            }
+            }else
             if(nombre.equals("Adjuntos") || nombre.equals("Adicionales")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"Z");
+            }else
+            if(nombre.toLowerCase().contains("equipo") || nombre.toLowerCase().contains("frio")|| nombre.toLowerCase().contains("eq.")) {
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"E");
             }
             return view;
         }
@@ -1069,7 +1050,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     if(solicitudSeleccionada.size() > 0){
                         if(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
                             checkbox.setChecked(true);
-                        if(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
+                        if(solicitudSeleccionadaOld.size() > 0 && solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
                             checkbox.setChecked(true);
                         if(!modificable){
                             checkbox.setEnabled(false);
@@ -1091,6 +1072,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     label.setLayoutParams(lpl);
 
                     final SearchableSpinner combo = new SearchableSpinner(getContext(), null);
+                    combo.setTitle("Buscar");
+                    combo.setPositiveButton("Cerrar");
                     combo.setTag(campos.get(i).get("descr"));
                     TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
                     lp.setMargins(0, -10, 0, 25);
@@ -1110,22 +1093,30 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         }
                     }
 
+                    //Si son catalogos de equipo frio debo las columnas de ID y Descripcion estan en otros indice de columnas
+
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim());
-                    if(opciones.size() == 0){
-                        opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim());
+                    if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_causas") || campos.get(i).get("tabla").trim().toLowerCase().equals("ef_prioridades")){
+                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),3,4);
+                    }
+                    if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_clases")){
+                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),1,2);
+                    }
+                    if(campos.get(i).get("tabla").trim().toLowerCase().equals("sapdmateriales_pde")){
+                        opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim(),1,4);
                     }
                     ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
                     int selectedIndex = 0;
                     int selectedIndexOld = 0;
                     String valorDefectoxRuta = PreferenceManager.getDefaultSharedPreferences(getContext()).getString(campos.get(i).get("campo").trim().replace("-","_"),"");
                     for (int j = 0; j < opciones.size(); j++){
-                        listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+                        listaopciones.add(new OpcionSpinner(opciones.get(j).get("id").toString(), opciones.get(j).get("descripcion")));
                         if(solicitudSeleccionada.size() > 0){
                             //valor de la solicitud seleccionada
                             if(opciones.get(j).get("id").trim().equals(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim())){
                                 selectedIndex = j;
                             }
-                            if(opciones.get(j).get("id").trim().equals(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim())){
+                            if(solicitudSeleccionadaOld.size() > 0 && solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim())!= null && opciones.get(j).get("id").trim().equals(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim())){
                                 selectedIndexOld = j;
                             }
                         }
@@ -1196,9 +1187,13 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 ArrayList<HashMap<String, String>> valores = mDBHelper.getValoresKOFSegunZonaVentas(((OpcionSpinner)combo.getSelectedItem()).getId());
-                                ((Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK")),valores.get(0).get("VWERK")));
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                if(valores.size() > 0) {
+                                    ((Spinner) mapeoCamposDinamicos.get("W_CTE-VWERK")).setSelection(VariablesGlobales.getIndex(((Spinner) mapeoCamposDinamicos.get("W_CTE-VWERK")), valores.get(0).get("VWERK")));
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }else{
+                                    Toasty.error(getContext(),"No se pudo obtener los datos de KOF segun zona de ventas").show();
+                                }
                             }
 
                             @Override
@@ -1343,6 +1338,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     if(campos.get(i).get("modificacion").trim().equals("1") && campos.get(i).get("sup").trim().length() == 0){
                         combo.setEnabled(false);
                         combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_old,null));
+                        listaCamposDinamicosEnca.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicosEnca.put(campos.get(i).get("campo").trim(),combo);
                     }
 
@@ -1487,6 +1483,17 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                     Cantones(parent);
                                 if(campos.get(indice).get("llamado1").contains("Distritos"))
                                     Distritos(parent);
+
+                                if(nombreCampo.equals("W_CTE-VWERK")){
+                                    Spinner zona_transporte = (Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE");
+                                    String valor_centro_suministro = ((OpcionSpinner)parent.getSelectedItem()).getId().trim();
+                                    ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
+                                    // Creando el adaptador(opciones) para el comboBox deseado
+                                    ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
+                                    // Drop down layout style - list view with radio button
+                                    dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
+                                    zona_transporte.setAdapter(dataAdapterRuta);
+                                }
                                 ReplicarValorSpinner(parent,nombreCampo+"1",position);
                                 if(position == 0 && ((TextView) parent.getSelectedView()) != null)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
@@ -1506,6 +1513,17 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                     Cantones(parent);
                                 if(campos.get(indice).get("llamado1").contains("Distritos"))
                                     Distritos(parent);
+
+                                if(nombreCampo.equals("W_CTE-VWERK")){
+                                    Spinner zona_transporte = (Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE");
+                                    String valor_centro_suministro = ((OpcionSpinner)parent.getSelectedItem()).getId().trim();
+                                    ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
+                                    // Creando el adaptador(opciones) para el comboBox deseado
+                                    ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
+                                    // Drop down layout style - list view with radio button
+                                    dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
+                                    zona_transporte.setAdapter(dataAdapterRuta);
+                                }
                                 ReplicarValorSpinner(parent,nombreCampo,position);
                                 if(position == 0 && ((TextView) parent.getSelectedView()) != null)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
@@ -1525,7 +1543,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                     final TextView opcion = (TextView) parent.getSelectedView();
-                                    if(position == 0)
+                                    if(position == 0 && opcion != null)
                                         opcion.setError("El campo es obligatorio!");
                                 }
 
@@ -1657,6 +1675,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     if(campos.get(i).get("modificacion").trim().equals("1") && campos.get(i).get("sup").trim().length() == 0){
                         et.setEnabled(false);
                         et.setBackground(getResources().getDrawable(R.drawable.textbackground_old,null));
+                        listaCamposDinamicosEnca.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicosEnca.put(campos.get(i).get("campo").trim(),et);
                     }
 
@@ -1774,20 +1793,18 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         });
                         et.setText(et.getText().toString().replace(",","."));
                     }
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-KLIMK")){
-                        et.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                    }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")){
                         et.setSingleLine(false);
                         et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-                        et.setMinLines(2);
-                        et.setMaxLines(4);
+                        et.setMinLines(1);
+                        et.setMaxLines(5);
                         et.setVerticalScrollBarEnabled(true);
                         et.setMovementMethod(ScrollingMovementMethod.getInstance());
                         et.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
                         et.setGravity(INDICATOR_GRAVITY_TOP);
                         if(solicitudSeleccionada.size() > 0 && (!solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incompleto"))) {
                             et.setText("");
+
                             RelativeLayout rl = new RelativeLayout(getContext());
                             CoordinatorLayout.LayoutParams rlp = new CoordinatorLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
                             rl.setLayoutParams(rlp);
@@ -1856,7 +1873,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     }
                     listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                     mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), et);
-                    if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
+                    if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0 && !campos.get(i).get("modificacion").equals("1") ){
                         listaCamposObligatorios.add(campos.get(i).get("campo").trim());
                         //if(cliente != null && cliente.get(campos.get(i).get("campo")) != null && cliente.get(campos.get(i).get("campo").trim()).getAsString().length() == 0) {
                             //et.setError("El campo es obligatorio!");
@@ -1991,7 +2008,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }
 
         public void DesplegarBloque(DataBaseHelper db, View _ll, HashMap<String, String> campo) {
-            int height = 50;
+            int height = alturaFilaTableView;
             TextView empty_data = new TextView(getContext());
             empty_data.setText(R.string.texto_sin_datos);
             empty_data.setBackground(getResources().getDrawable(R.color.backColor,null));
@@ -2092,7 +2109,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     ll.addView(rl);
                     break;
                 case "W_CTE-IMPUESTOS":
-                    de.codecrafters.tableview.TableView<Impuesto> bloque_impuesto;
+                    TableView<Impuesto> bloque_impuesto;
                     tb_impuestos.removeDataClickListener(null);
                     tb_impuestos.removeDataLongClickListener(null);
                     bloque_impuesto = tb_impuestos;
@@ -2115,8 +2132,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     bloque_impuesto.setLayoutParams(hlp);
 
-                    ArrayList<Impuesto> listaImpuestos = db.getImpuestosPais();
-                    impuestosSolicitud.addAll(listaImpuestos);
                     if(solicitudSeleccionada.size() > 0){
                         impuestosSolicitud.clear();
                         impuestosSolicitud_old.clear();
@@ -2143,7 +2158,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     ll.addView(rl);
                     break;
                 case "W_CTE-INTERLOCUTORES":
-                    de.codecrafters.tableview.TableView<Interlocutor> bloque_interlocutor;
+                    TableView<Interlocutor> bloque_interlocutor;
                     bloque_interlocutor = tb_interlocutores;
                     btnAddBloque.setVisibility(INVISIBLE);
                     /*btnAddBloque.setOnClickListener(new View.OnClickListener() {
@@ -2195,7 +2210,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     ll.addView(rl);
                     break;
                 case "W_CTE-BANCOS":
-                    de.codecrafters.tableview.TableView<Banco> bloque_banco;
+                    TableView<Banco> bloque_banco;
                     bloque_banco = tb_bancos;
                     if(modificable) {
                         btnAddBloque.setOnClickListener(new OnClickListener() {
@@ -2264,8 +2279,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     //Adaptadores
                     if(visitasSolicitud != null) {
                         VisitasTableAdapter stda = new VisitasTableAdapter(getContext(), visitasSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
                         stda.setGravity(GRAVITY_CENTER);
                         tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+(visitasSolicitud.size()*alturaFilaTableView);
                         tb_visitas.setDataAdapter(stda);
@@ -2288,21 +2301,28 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     final String[] diaLabel = {"L","K","M","J","V","S","D"};
                     int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
                     int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZJV");
+                    int indiceKafe = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZKV");
                     int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
-                    int totalvp_preventa = 1;
+                    int totalvp_preventa = 0;
                     if(indicePreventa != -1){
                         totalvp_preventa++;
                     }
                     if(indiceEspecializada != -1){
                         totalvp_preventa++;
                     }
+                    if(visitasSolicitud.size() == 0){
+                        totalvp_preventa = 2;
+                    }
                     String tipoVisitaActual = "ZPV";
-                    for (int i = 0; i < 2; i++) {
+                    for (int i = 0; i < totalvp_preventa; i++) {
                         if(i==0)
                             tipoVisitaActual = "ZPV";
                         if(i==1)
                             tipoVisitaActual = "ZJV";
+                        if(i==2)
+                            tipoVisitaActual = "ZKV";
                         CardView seccion_visitas = new CardView(Objects.requireNonNull(getContext()));
+                        mapeoVisitas.put(tipoVisitaActual,seccion_visitas);
 
                         TextView header_visitas = new TextView(getContext());
                         header_visitas.setAllCaps(true);
@@ -2353,6 +2373,40 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                 et.setEnabled(false);
                                 et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
                             }
+
+                            if(solicitudSeleccionada.size() > 0){
+                                int indiceActual = -1;
+                                if(i==0)
+                                    indiceActual = indicePreventa;
+                                if(i==1)
+                                    indiceActual = indiceEspecializada;
+                                if(i==2)
+                                    indiceActual = indiceKafe;
+                                switch (x) {
+                                    case 0:
+                                        et.setText(visitasSolicitud.get(indiceActual).getLun_a());
+                                        break;
+                                    case 1:
+                                        et.setText(visitasSolicitud.get(indiceActual).getMar_a());
+                                        break;
+                                    case 2:
+                                        et.setText(visitasSolicitud.get(indiceActual).getMier_a());
+                                        break;
+                                    case 3:
+                                        et.setText(visitasSolicitud.get(indiceActual).getJue_a());
+                                        break;
+                                    case 4:
+                                        et.setText(visitasSolicitud.get(indiceActual).getVie_a());
+                                        break;
+                                    case 5:
+                                        et.setText(visitasSolicitud.get(indiceActual).getSab_a());
+                                        break;
+                                    case 6:
+                                        et.setText(visitasSolicitud.get(indiceActual).getDom_a());
+                                        break;
+                                }
+                            }
+
                             //et.setPadding(20, 5, 20, 5);
                             Drawable d = getResources().getDrawable(R.drawable.textbackground_min_padding, null);
                             et.setBackground(d);
@@ -2567,6 +2621,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                         }
 
                                     }
+                                    RecalcularDiasDeReparto(getContext());
                                 }
                             });
                             tr.addView(label);
@@ -2594,12 +2649,14 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         btnAddBloque.setOnClickListener(new OnClickListener() {
                             @Override
                             public void onClick(View view) {
+
                                 mPhotoUri = getContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                                         new ContentValues());
                                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                                 intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
                                 try {
                                     getActivity().startActivityForResult(intent, 1);
+
                                 } catch (ActivityNotFoundException e) {
                                     Log.e("tag", getResources().getString(R.string.no_activity));
                                 }
@@ -2652,33 +2709,63 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         myGallery.setPadding(10,10,10,10);
         for(int x=0; x < adjuntosSolicitud.size(); x++){
             LinearLayout layout = new LinearLayout(context);
-            layout.setLayoutParams(new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
+            lp.setMargins(0,0,5,0);
+            layout.setLayoutParams(lp);
             layout.setGravity(Gravity.CENTER);
-            //layout.setPadding(5,0,5,0);
+
+
             final ImageView adjunto_image = new ImageView(context);
             adjunto_image.setLayoutParams(new LinearLayout.LayoutParams(150, 150));
-            adjunto_image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            adjunto_image.setScaleType(ImageView.ScaleType.FIT_XY);
             adjunto_image.setPadding(5,5,5,5);
 
-            final String nombre_adjunto = adjuntosSolicitud.get(x).getName();
-            byte[] image = adjuntosSolicitud.get(x).getImage();
-            Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length);
-            adjunto_image.setImageBitmap(imagen);
 
-            final int finalX = x;
-            adjunto_image.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
-                }
-            });
-            if(modificable) {
-                adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
+
+            final String nombre_adjunto = adjuntosSolicitud.get(x).getName();
+            //Bitmap _bitmap = null;
+
+            if(adjuntosSolicitud.get(x).getImage() != null) {
+                byte[] image = adjuntosSolicitud.get(x).getImage();
+                //_bitmap.compress(Bitmap.CompressFormat.PNG, 50, image);
+                BitmapFactory.Options o = new BitmapFactory.Options();
+                o.inSampleSize = 1;
+                if (image.length > 200000)
+                    o.inSampleSize = 2;
+                if (image.length > 400000)
+                    o.inSampleSize = 4;
+                if (image.length > 500000)
+                    o.inSampleSize = 8;
+                Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length, o);
+
+                adjunto_image.setImageBitmap(imagen);
+                adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
+
+                final int finalX = x;
+                adjunto_image.setOnClickListener(new OnClickListener() {
                     @Override
-                    public boolean onLongClick(View v) {
-                        DialogHandler appdialog = new DialogHandler();
-                        appdialog.Confirm((Activity) context, "Confirmación Borrado", "Esta seguro que quiere eliminar el archivo adjunto #"+finalX+"?", "Cancelar", "Eliminar", new EliminarAdjunto(context, activity, finalX));
-                        return false;
+                    public void onClick(View v) {
+                        mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
+                        //mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
+                    }
+                });
+                if (modificable) {
+                    adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            DialogHandler appdialog = new DialogHandler();
+                            appdialog.Confirm((Activity) context, "Confirmación Borrado", "Esta seguro que quiere eliminar el archivo adjunto #" + finalX + "?", "Cancelar", "Eliminar", new EliminarAdjunto(context, activity, finalX));
+                            return false;
+                        }
+                    });
+                }
+            }else{
+                adjunto_image.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.icon_about));
+                final int finalX = x;
+                adjunto_image.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
                     }
                 });
             }
@@ -2686,17 +2773,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             myGallery.addView(layout);
         }
         hsv.addView(myGallery);
-    }
-    public byte[] getBytes(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
-        int bufferSize = 1024;
-        byte[] buffer = new byte[bufferSize];
-
-        int len;
-        while ((len = inputStream.read(buffer)) != -1) {
-            byteBuffer.write(buffer, 0, len);
-        }
-        return byteBuffer.toByteArray();
     }
 
     //Pruebas para seccion de bloques
@@ -2830,6 +2906,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         //INITIALIZE VIEWS
         final TextView title = d.findViewById(R.id.title);
         final Spinner claveSpinner= d.findViewById(R.id.claveSpinner);
+        claveSpinner.setEnabled(false);
         final Spinner clasiSpinner= d.findViewById(R.id.clasiSpinner);
         Button saveBtn= d.findViewById(R.id.saveBtn);
         if(seleccionado != null){
@@ -2876,7 +2953,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }
 
         //Para campos de seleccion para grid impuestos campo clave de impuesto
-        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_impstos",1,2, "taxkd=1");
+        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_impstos",1,2, "tatyp='"+seleccionado.getTatyp()+"' AND taxkd='"+seleccionado.getTaxkd()+"'");
 
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
         int selectedIndexClave = 0;
@@ -2905,6 +2982,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 ArrayList<OpcionSpinner> listaopcionesClasi = new ArrayList<>();
                 int selectedIndexClasi = 0;
                 for (int j = 0; j < opcionesClasi.size(); j++){
+                    if(seleccionado != null && opcionesClasi.get(j).get("id").equals(seleccionado.getTaxkd())){
+                        selectedIndexClasi = j;
+                    }
                     listaopcionesClasi.add(new OpcionSpinner(opcionesClasi.get(j).get("id"), opcionesClasi.get(j).get("descripcion")));
                 }
                 // Creando el adaptador(opcionesClasi) para el comboBox deseado
@@ -2915,6 +2995,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 Drawable spinner_back_clasi = view.getContext().getResources().getDrawable(R.drawable.spinner_underlined, null);
                 clasiSpinner.setBackground(spinner_back_clasi);
                 clasiSpinner.setAdapter(dataAdapterClasi);
+                clasiSpinner.setSelection(selectedIndexClasi);
             }
 
             @Override
@@ -2924,13 +3005,13 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         });
 
         //Para campos de seleccion para grid bancos campo clasificacion fiscal
-        ArrayList<HashMap<String, String>> opcionesClasi = mDBHelper.getDatosCatalogo("cat_impstos",3,4);
+        ArrayList<HashMap<String, String>> opcionesClasi = mDBHelper.getDatosCatalogo("cat_impstos",3,4,"tatyp='"+seleccionado.getTatyp()+"'");
 
         ArrayList<OpcionSpinner> listaopcionesClasi = new ArrayList<>();
         int selectedIndexClasi = 0;
         for (int j = 0; j < opcionesClasi.size(); j++){
-            if(seleccionado != null && opciones.get(j).get("id").equals(seleccionado.getTatyp())){
-                selectedIndexClave = j;
+            if(seleccionado != null && opcionesClasi.get(j).get("id").equals(seleccionado.getTaxkd())){
+                selectedIndexClasi = j;
             }
             listaopcionesClasi.add(new OpcionSpinner(opcionesClasi.get(j).get("id"), opcionesClasi.get(j).get("descripcion")));
         }
@@ -2946,7 +3027,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
         if(seleccionado != null){
             claveSpinner.setSelection(selectedIndexClave);
-            clasiSpinner.setSelection(selectedIndexClave);
+            clasiSpinner.setSelection(selectedIndexClasi);
         }
         //SHOW DIALOG
         d.show();
@@ -3466,7 +3547,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private class ContactoClickListener implements TableDataClickListener<Contacto> {
         @Override
         public void onDataClicked(int rowIndex, Contacto seleccionado) {
-            displayDialogContacto(SolicitudCreditoActivity.this,seleccionado);
+            displayDialogContacto(SolicitudAvisosEquipoFrioActivity.this,seleccionado);
         }
     }
     //Listeners de Bloques de datos
@@ -3475,7 +3556,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         public boolean onDataLongClicked(int rowIndex, Contacto seleccionado) {
             DialogHandler appdialog = new DialogHandler();
 
-            appdialog.Confirm(SolicitudCreditoActivity.this, "Confirmación Borrado", "Esta seguro que quiere eliminar el contacto "+seleccionado.getName1() + " " +seleccionado.getNamev()+"?",
+            appdialog.Confirm(SolicitudAvisosEquipoFrioActivity.this, "Confirmación Borrado", "Esta seguro que quiere eliminar el contacto "+seleccionado.getName1() + " " +seleccionado.getNamev()+"?",
                     "Cancelar", "Eliminar", new EliminarContacto(getBaseContext(), rowIndex));
             return true;
         }
@@ -3499,7 +3580,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private class ImpuestoClickListener implements TableDataClickListener<Impuesto> {
         @Override
         public void onDataClicked(int rowIndex, Impuesto seleccionado) {
-            displayDialogImpuesto(SolicitudCreditoActivity.this,seleccionado);
+            displayDialogImpuesto(SolicitudAvisosEquipoFrioActivity.this,seleccionado);
         }
     }
     private class ImpuestoLongClickListener implements TableDataLongClickListener<Impuesto> {
@@ -3517,14 +3598,14 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private class BancoClickListener implements TableDataClickListener<Banco> {
         @Override
         public void onDataClicked(int rowIndex, Banco seleccionado) {
-            displayDialogBancos(SolicitudCreditoActivity.this,seleccionado);
+            displayDialogBancos(SolicitudAvisosEquipoFrioActivity.this,seleccionado);
         }
     }
     private class BancoLongClickListener implements TableDataLongClickListener<Banco> {
         @Override
         public boolean onDataLongClicked(int rowIndex, Banco seleccionado) {
             DialogHandler appdialog = new DialogHandler();
-            appdialog.Confirm(SolicitudCreditoActivity.this, "Confirmación Borrado", "Esta seguro que quiere eliminar el banco "+seleccionado.getBankn()+"?",
+            appdialog.Confirm(SolicitudAvisosEquipoFrioActivity.this, "Confirmación Borrado", "Esta seguro que quiere eliminar el banco "+seleccionado.getBankn()+"?",
                     "Cancelar", "Eliminar", new EliminarBanco(getBaseContext(), rowIndex));
             return true;
         }
@@ -3548,7 +3629,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private class InterlocutorClickListener implements TableDataClickListener<Interlocutor> {
         @Override
         public void onDataClicked(int rowIndex, Interlocutor seleccionado) {
-            displayDialogInterlocutor(SolicitudCreditoActivity.this,seleccionado);
+            displayDialogInterlocutor(SolicitudAvisosEquipoFrioActivity.this,seleccionado);
         }
     }
     private class InterlocutorLongClickListener implements TableDataLongClickListener<Interlocutor> {
@@ -3565,16 +3646,16 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private class VisitasClickListener implements TableDataClickListener<Visitas> {
         @Override
         public void onDataClicked(int rowIndex, Visitas seleccionado) {
-            DetallesVisitPlan(SolicitudCreditoActivity.this, seleccionado);
+            DetallesVisitPlan(SolicitudAvisosEquipoFrioActivity.this, seleccionado);
         }
     }
     @SuppressWarnings("unchecked")
     private void DetallesVisitPlan(final Context context, final Visitas seleccionado) {
         final Dialog d = new Dialog(context);
         d.setContentView(R.layout.visita_dialog_layout);
-        final boolean reparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BZIRK",""), seleccionado.getVptyp());
+        final boolean reparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_BZIRK",""), seleccionado.getVptyp());
 
-        final boolean permite_modificar = PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_TIPORUTA","ZPV").toString().equals(seleccionado.getVptyp());
+        final boolean permite_modificar = PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_TIPORUTA","ZPV").toString().equals(seleccionado.getVptyp());
 
         final TextView title = d.findViewById(R.id.title);
         final Spinner kvgr4Spinner = d.findViewById(R.id.kvgr4Spinner);
@@ -3648,7 +3729,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
                     ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
                 }else{
-                    seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_RUTAHH",""));
+                    seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_RUTAHH",""));
                 }
                 //seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
                 seleccionado.setKvgr4(kvgr4Spinner.getSelectedItem().toString().trim());
@@ -3666,7 +3747,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 }
 
                 //RECALCULAR DIAS DE VISITA
-                RecalcularDiasDeReparto();
+                RecalcularDiasDeReparto(context);
 
                 tb_visitas.setDataAdapter(new VisitasTableAdapter(v.getContext(), visitasSolicitud));
                 try {
@@ -3691,13 +3772,13 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         d.show();
     }
 
-    private void RecalcularDiasDeReparto() {
+    private static void RecalcularDiasDeReparto(Context context) {
         int numplanes = visitasSolicitud.size();
         //Iterrar sobre todos los planes de la modalida de venta seleccionada
         for (int y = 0 ; y < numplanes; y++) {
             Visitas vp = visitasSolicitud.get(y);
             //Revisar si el VP es una ruta de reparto para ser borrada y recalculada
-            if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp())) {
+            if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BZIRK",""), vp.getVptyp())) {
                 vp.setLun_de("");
                 vp.setLun_a("");
                 vp.setMar_de("");
@@ -3715,17 +3796,25 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         //Recalcular los dias de visita del(os) reparto segun las preventas existentes nuevas determinadas
         //Se recorren la cantidad de visit plans para obtener la data de cada uno especifico
         Visitas rep = null;
+        Visitas rep_old = null;
         for (int y = 0 ; y < numplanes; y++) {
             Visitas vp = visitasSolicitud.get(y);
 
             //Si no es tipo de reparto debemos tomar en cuenta para calcular su reparto
-            boolean esReparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp());
-            //TODO cambiar el valor "PR" por el valor dinamico del comboBox de Modalidad de venta
+            boolean esReparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BZIRK",""), vp.getVptyp());
+
             if(!esReparto){
-                String rutaReparto = mDBHelper.RutaRepartoAsociada("PR", vp.getVptyp());
+                Spinner metodo = ((Spinner)mapeoCamposDinamicos.get("W_CTE-KVGR5"));
+                String rutaReparto = mDBHelper.RutaRepartoAsociada(((OpcionSpinner)metodo.getSelectedItem()).getId(), vp.getVptyp());
                 for (int x = 0; x < visitasSolicitud.size(); x++) {
                     if (rutaReparto.equals(visitasSolicitud.get(x).getVptyp())) {
                         rep = visitasSolicitud.get(x);
+                        break;
+                    }
+                }
+                for (int x = 0; x < visitasSolicitud_old.size(); x++) {
+                    if (rutaReparto.equals(visitasSolicitud_old.get(x).getVptyp())) {
+                        rep_old = visitasSolicitud_old.get(x);
                         break;
                     }
                 }
@@ -3746,20 +3835,20 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 String v = vp_Viernes.getText().toString().isEmpty()? null : vp_Viernes.getText().toString();
                 String s = vp_Sabado.getText().toString().isEmpty()? null : vp_Sabado.getText().toString();
 
-                asignarDiaReparto(diasParaReparto, 1, l, rep);
-                asignarDiaReparto(diasParaReparto, 2, m, rep);
-                asignarDiaReparto(diasParaReparto, 3, k, rep);
-                asignarDiaReparto(diasParaReparto, 4, j, rep);
-                asignarDiaReparto(diasParaReparto, 5, v, rep);
-                asignarDiaReparto(diasParaReparto, 6, s, rep);
+                asignarDiaReparto(diasParaReparto, 1, l, rep, rep_old);
+                asignarDiaReparto(diasParaReparto, 2, m, rep, rep_old);
+                asignarDiaReparto(diasParaReparto, 3, k, rep, rep_old);
+                asignarDiaReparto(diasParaReparto, 4, j, rep, rep_old);
+                asignarDiaReparto(diasParaReparto, 5, v, rep, rep_old);
+                asignarDiaReparto(diasParaReparto, 6, s, rep, rep_old);
 
             }
 
         }
     }
 
-    public static void asignarDiaReparto(int metodo, int diaPreventa, String secuencia, Visitas vp_reparto){
-        if(secuencia != null){
+    public static void asignarDiaReparto(int metodo, int diaPreventa, String secuencia, Visitas vp_reparto, Visitas vp_reparto_old){
+        if(secuencia != null && secuencia.trim().length() > 0){
             int diaReparto;
             if ((diaPreventa+metodo) > 6) {
                 diaReparto = ((diaPreventa+metodo) - 6);
@@ -3773,28 +3862,59 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             String secuenciaSAP = h+m;
             switch(diaReparto){
                 case 1:
-                    vp_reparto.setLun_a(secuenciaSAP);
-                    vp_reparto.setLun_de(secuenciaSAP);
+                    if(vp_reparto_old == null || vp_reparto_old.getLun_a().trim().length() == 0) {
+                        vp_reparto.setLun_a(secuenciaSAP);
+                        vp_reparto.setLun_de(secuenciaSAP);
+                    }else{
+                        vp_reparto.setLun_a(vp_reparto_old.getLun_a());
+                        vp_reparto.setLun_de(vp_reparto_old.getLun_a());
+                    }
                     break;
                 case 2:
-                    vp_reparto.setMar_a(secuenciaSAP);
-                    vp_reparto.setMar_de(secuenciaSAP);
+                    if(vp_reparto_old == null || vp_reparto_old.getMar_a().trim().length() == 0) {
+                        vp_reparto.setMar_a(secuenciaSAP);
+                        vp_reparto.setMar_de(secuenciaSAP);
+                    }else{
+                        vp_reparto.setMar_a(vp_reparto_old.getMar_a());
+                        vp_reparto.setMar_de(vp_reparto_old.getMar_a());
+                    }
                     break;
                 case 3:
-                    vp_reparto.setMier_a(secuenciaSAP);
-                    vp_reparto.setMier_de(secuenciaSAP);
+                    if(vp_reparto_old == null || vp_reparto_old.getMier_a().trim().length() == 0) {
+                        vp_reparto.setMier_a(secuenciaSAP);
+                        vp_reparto.setMier_de(secuenciaSAP);
+                    }
+                    else{
+                        vp_reparto.setMier_a(vp_reparto_old.getMier_a());
+                        vp_reparto.setMier_de(vp_reparto_old.getMier_de());
+                    }
                     break;
                 case 4:
-                    vp_reparto.setJue_a(secuenciaSAP);
-                    vp_reparto.setJue_de(secuenciaSAP);
+                    if(vp_reparto_old == null || vp_reparto_old.getJue_a().trim().length() == 0) {
+                        vp_reparto.setJue_a(secuenciaSAP);
+                        vp_reparto.setJue_de(secuenciaSAP);
+                    }else{
+                        vp_reparto.setJue_a(vp_reparto_old.getJue_a());
+                        vp_reparto.setJue_de(vp_reparto_old.getJue_de());
+                    }
                     break;
                 case 5:
-                    vp_reparto.setVie_a(secuenciaSAP);
-                    vp_reparto.setVie_de(secuenciaSAP);
+                    if(vp_reparto_old == null || vp_reparto_old.getVie_a().trim().length() == 0) {
+                        vp_reparto.setVie_a(secuenciaSAP);
+                        vp_reparto.setVie_de(secuenciaSAP);
+                    }else{
+                        vp_reparto.setVie_a(vp_reparto_old.getVie_a());
+                        vp_reparto.setVie_de(vp_reparto_old.getVie_de());
+                    }
                     break;
                 case 6:
-                    vp_reparto.setSab_a(secuenciaSAP);
-                    vp_reparto.setSab_de(secuenciaSAP);
+                    if(vp_reparto_old == null || vp_reparto_old.getSab_a().trim().length() == 0) {
+                        vp_reparto.setSab_a(secuenciaSAP);
+                        vp_reparto.setSab_de(secuenciaSAP);
+                    }else{
+                        vp_reparto.setSab_a(vp_reparto_old.getSab_a());
+                        vp_reparto.setSab_de(vp_reparto_old.getSab_de());
+                    }
                     break;
             }
         }
@@ -3845,6 +3965,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             String NextId = GUID;
             ContentValues insertValues = new ContentValues();
             ContentValues insertValuesOld = new ContentValues();
+            boolean cambioRealizado = false;
             for (int i = 0; i < listaCamposDinamicos.size(); i++) {
                 if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                     try {
@@ -3862,9 +3983,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             if(tv != null){
                                 valor = tv.getText().toString();
                                 insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
-                                if(!listaCamposDinamicos.get(i).equals("W_CTE-NAME3")){
-                                    insertValuesOld.put("[W_CTE-NAME1]", valor);
-                                }
                             }
                             if(listaCamposDinamicos.get(i).equals("W_CTE-COMENTARIOS")) {
                                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
@@ -3875,6 +3993,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                     insertValues.put("[" + listaCamposDinamicos.get(i) + "]", comentarios.get(0).getComentario()+"("+dateFormat.format(date)+"): "+valor);
                             }
                         }
+
                     } catch (Exception e) {
                         try {
                             Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
@@ -3944,16 +4063,36 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), null, contactoValues);
                                     contactoValues.clear();
                                 } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud", Toast.LENGTH_SHORT).show();
+                                    Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud Nuevo", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            for (int c = 0; c < contactosSolicitud_old.size(); c++) {
+                                contactoValuesOld.put("id_solicitud", NextId);
+                                contactoValuesOld.put("name1", contactosSolicitud_old.get(c).getName1());
+                                contactoValuesOld.put("namev", contactosSolicitud_old.get(c).getNamev());
+                                contactoValuesOld.put("telf1", contactosSolicitud_old.get(c).getTelf1());
+                                contactoValuesOld.put("house_num1", contactosSolicitud_old.get(c).getHouse_num1());
+                                contactoValuesOld.put("street", contactosSolicitud_old.get(c).getStreet());
+                                contactoValuesOld.put("gbdat", contactosSolicitud_old.get(c).getGbdat());
+                                contactoValuesOld.put("country", contactosSolicitud_old.get(c).getCountry());
+                                contactoValuesOld.put("pafkt", contactosSolicitud_old.get(c).getPafkt());
+                                try {
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_OLD_HH(), null, contactoValuesOld);
+                                    contactoValuesOld.clear();
+                                } catch (Exception e) {
+                                    Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud Actual", Toast.LENGTH_SHORT).show();
                                 }
                             }
 
                             break;
                         case "W_CTE-IMPUESTOS":
                             ContentValues impuestoValues = new ContentValues();
+                            ContentValues impuestoValuesOld = new ContentValues();
                             int del;
                             if (solicitudSeleccionada.size() > 0) {
                                 del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), "id_solicitud=?", new String[]{GUID});
+                                del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_OLD_HH(), "id_solicitud=?", new String[]{GUID});
                             }
                             for (int c = 0; c < impuestosSolicitud.size(); c++) {
                                 impuestoValues.put("id_solicitud", NextId);
@@ -3965,7 +4104,23 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), null, impuestoValues);
                                     impuestoValues.clear();
                                 } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud", Toast.LENGTH_SHORT).show();
+                                    Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud Nuevo", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                            if (solicitudSeleccionadaOld.size() > 0) {
+                                del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_OLD_HH(), "id_solicitud=?", new String[]{GUID});
+                            }
+                            for (int c = 0; c < impuestosSolicitud_old.size(); c++) {
+                                impuestoValuesOld.put("id_solicitud", NextId);
+                                impuestoValuesOld.put("vtext", impuestosSolicitud_old.get(c).getVtext());
+                                impuestoValuesOld.put("vtext2", impuestosSolicitud_old.get(c).getVtext2());
+                                impuestoValuesOld.put("tatyp", impuestosSolicitud_old.get(c).getTatyp());
+                                impuestoValuesOld.put("taxkd", impuestosSolicitud_old.get(c).getTaxkd());
+                                try {
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_OLD_HH(), null, impuestoValuesOld);
+                                    impuestoValuesOld.clear();
+                                } catch (Exception e) {
+                                    Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud Nuevo", Toast.LENGTH_SHORT).show();
                                 }
                             }
 
@@ -3978,12 +4133,34 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             for (int c = 0; c < interlocutoresSolicitud.size(); c++) {
                                 interlocutorValues.put("id_solicitud", NextId);
                                 interlocutorValues.put("parvw", interlocutoresSolicitud.get(c).getParvw());
+                                interlocutorValues.put("kunn2", interlocutoresSolicitud.get(c).getKunn2());
+                                interlocutorValues.put("name1", interlocutoresSolicitud.get(c).getName1());
+                                interlocutorValues.put("vtext", interlocutoresSolicitud.get(c).getVtext());
 
                                 try {
                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), null, interlocutorValues);
                                     interlocutorValues.clear();
                                 } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Interlocutor de Solicitud", Toast.LENGTH_SHORT).show();
+                                    Toasty.error(getApplicationContext(), "Error Insertando Interlocutor de Solicitud Nueva", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                            //valroes OLD
+                            ContentValues interlocutorValuesOld = new ContentValues();
+                            if (solicitudSeleccionadaOld.size() > 0) {
+                                mDb.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_OLD_HH(), "id_solicitud=?", new String[]{GUID});
+                            }
+                            for (int c = 0; c < interlocutoresSolicitud_old.size(); c++) {
+                                interlocutorValuesOld.put("id_solicitud", NextId);
+                                interlocutorValuesOld.put("parvw", interlocutoresSolicitud_old.get(c).getParvw());
+                                interlocutorValuesOld.put("kunn2", interlocutoresSolicitud_old.get(c).getKunn2());
+                                interlocutorValuesOld.put("name1", interlocutoresSolicitud_old.get(c).getName1());
+                                interlocutorValuesOld.put("vtext", interlocutoresSolicitud_old.get(c).getVtext());
+
+                                try {
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_OLD_HH(), null, interlocutorValuesOld);
+                                    interlocutorValuesOld.clear();
+                                } catch (Exception e) {
+                                    Toasty.error(getApplicationContext(), "Error Insertando Interlocutor de Solicitud Actual", Toast.LENGTH_SHORT).show();
                                 }
                             }
 
@@ -4008,7 +4185,29 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                     bancoValues.clear();
                                 }
                             } catch (Exception e) {
-                                Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud", Toast.LENGTH_SHORT).show();
+                                Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud Nueva", Toast.LENGTH_SHORT).show();
+                            }
+                            //Valores OLD
+                            ContentValues bancoValuesOld = new ContentValues();
+                            try {
+                                if (solicitudSeleccionadaOld.size() > 0) {
+                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_OLD_HH(), "id_solicitud=?", new String[]{GUID});
+                                }
+                                for (int c = 0; c < bancosSolicitud_old.size(); c++) {
+                                    bancoValuesOld.put("id_solicitud", NextId);
+                                    bancoValuesOld.put("bankl", bancosSolicitud_old.get(c).getBankl());
+                                    bancoValuesOld.put("bankn", bancosSolicitud_old.get(c).getBankn());
+                                    bancoValuesOld.put("banks", bancosSolicitud_old.get(c).getBanks());
+                                    bancoValuesOld.put("bkont", bancosSolicitud_old.get(c).getBkont());
+                                    bancoValuesOld.put("bkref", bancosSolicitud_old.get(c).getBkref());
+                                    bancoValuesOld.put("bvtyp", bancosSolicitud_old.get(c).getBvtyp());
+                                    bancoValuesOld.put("koinh", bancosSolicitud_old.get(c).getKoinh());
+                                    bancoValuesOld.put("task", bancosSolicitud_old.get(c).getTask());
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_BANCO_OLD_HH(), null, bancoValuesOld);
+                                    bancoValuesOld.clear();
+                                }
+                            } catch (Exception e) {
+                                Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud Actual", Toast.LENGTH_SHORT).show();
                             }
                             break;
                         case "W_CTE-VISITAS":
@@ -4019,58 +4218,69 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                 }
                                 for (int c = 0; c < visitasSolicitud.size(); c++) {
                                     visitaValues.put("id_solicitud", NextId);
-                                    if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BZIRK", ""), visitasSolicitud.get(c).getVptyp())) {
-                                        //Tipo visita de Reparto
+                                    visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
+                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
+                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
+                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
+                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
+                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
+                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
+                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
+                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
+                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
+                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
+                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
+                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
+                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
+                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
+                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
+                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
+                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
+                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
+                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
+                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
 
-                                        visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
-                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
-                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
-                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
-                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
-                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
-                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
-                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
-                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
-                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
-                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
-                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
-                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
-                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
-                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
-                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
-                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
-                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
-                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
-                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
-                                    } else {//Tipo Visita de Preventa
-                                        visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
-                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
-                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
-                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
-                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
-                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
-                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
-                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
-                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
-                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
-                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
-                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
-                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
-                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
-                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
-                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
-                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
-                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
-                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
-                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
-                                    }
                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
                                     visitaValues.clear();
                                 }
                             } catch (Exception e) {
-                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud", Toast.LENGTH_SHORT).show();
+                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud Nueva", Toast.LENGTH_SHORT).show();
+                            }
+                            //OLD
+                            ContentValues visitaValuesOld = new ContentValues();
+                            try {
+                                if (solicitudSeleccionada.size() > 0) {
+                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_OLD_HH(), "id_solicitud=?", new String[]{GUID});
+                                }
+                                for (int c = 0; c < visitasSolicitud_old.size(); c++) {
+                                    visitaValuesOld.put("id_solicitud", NextId);
+                                    visitaValuesOld.put("ruta", visitasSolicitud_old.get(c).getRuta());
+                                        visitaValuesOld.put("kvgr4", visitasSolicitud_old.get(c).getKvgr4());
+                                        visitaValuesOld.put("vptyp", visitasSolicitud_old.get(c).getVptyp());
+                                        visitaValuesOld.put("f_frec", visitasSolicitud_old.get(c).getF_frec());
+                                        visitaValuesOld.put("lun_de", visitasSolicitud_old.get(c).getLun_de());
+                                        visitaValuesOld.put("mar_de", visitasSolicitud_old.get(c).getMar_de());
+                                        visitaValuesOld.put("mier_de", visitasSolicitud_old.get(c).getMier_de());
+                                        visitaValuesOld.put("jue_de", visitasSolicitud_old.get(c).getJue_de());
+                                        visitaValuesOld.put("vie_de", visitasSolicitud_old.get(c).getVie_de());
+                                        visitaValuesOld.put("sab_de", visitasSolicitud_old.get(c).getSab_de());
+                                        visitaValuesOld.put("lun_a", visitasSolicitud_old.get(c).getLun_a());
+                                        visitaValuesOld.put("mar_a", visitasSolicitud_old.get(c).getMar_a());
+                                        visitaValuesOld.put("mier_a", visitasSolicitud_old.get(c).getMier_a());
+                                        visitaValuesOld.put("jue_a", visitasSolicitud_old.get(c).getJue_a());
+                                        visitaValuesOld.put("vie_a", visitasSolicitud_old.get(c).getVie_a());
+                                        visitaValuesOld.put("sab_a", visitasSolicitud_old.get(c).getSab_a());
+                                        visitaValuesOld.put("f_ico", visitasSolicitud_old.get(c).getF_ico());
+                                        visitaValuesOld.put("f_fco", visitasSolicitud_old.get(c).getF_fco());
+                                        visitaValuesOld.put("f_ini", visitasSolicitud_old.get(c).getF_ini());
+                                        visitaValuesOld.put("f_fin", visitasSolicitud_old.get(c).getF_fin());
+                                        visitaValuesOld.put("fcalid", visitasSolicitud_old.get(c).getFcalid());
+
+                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_OLD_HH(), null, visitaValuesOld);
+                                    visitaValuesOld.clear();
+                                }
+                            } catch (Exception e) {
+                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud Actual", Toast.LENGTH_SHORT).show();
                             }
                             break;
                         case "W_CTE-ADJUNTOS":
@@ -4107,20 +4317,20 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 String id_aprobador = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
                 insertValues.put("[W_CTE-KUNNR]", codigoCliente);
                 insertValues.put("[SIGUIENTE_APROBADOR]", id_aprobador);
-                insertValues.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BUKRS",""));
-                insertValues.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_RUTAHH",""));
-                insertValues.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_VKORG",""));
+                insertValues.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_BUKRS",""));
+                insertValues.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_RUTAHH",""));
+                insertValues.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_VKORG",""));
                 insertValues.put("[id_solicitud]", NextId);
                 insertValues.put("[tipform]", tipoSolicitud);
-                insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("userMC",""));
-                insertValues.put("[W_CTE-KKBER]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_AREACREDITO",""));
+                insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("userMC",""));
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
                 Date date = new Date();
+                //ContentValues initialValues = new ContentValues();
                 insertValues.put("[FECCRE]", dateFormat.format(date));
 
                 //mDBHelper.getWritableDatabase().insert("FormHvKof_solicitud", null, insertValues);
                 if(solicitudSeleccionada.size() > 0){
-                    if(solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")) {
+                    if(solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia")) {
                         insertValues.put("[estado]", "Modificado");
                     }
                     long modifico = mDb.update("FormHvKof_solicitud", insertValues, "id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});
@@ -4131,23 +4341,22 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
                     insertValuesOld.put("[W_CTE-KUNNR]", codigoCliente);
                     insertValuesOld.put("[estado]", "Nuevo");
-                    insertValuesOld.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BUKRS",""));
-                    insertValuesOld.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_RUTAHH",""));
-                    insertValuesOld.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_VKORG",""));
+                    insertValuesOld.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_BUKRS",""));
+                    insertValuesOld.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_RUTAHH",""));
+                    insertValuesOld.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_VKORG",""));
                     insertValuesOld.put("[id_solicitud]", NextId);
                     insertValuesOld.put("[tipform]", tipoSolicitud);
-                    insertValuesOld.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("userMC",""));
+                    insertValuesOld.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("userMC",""));
                     insertValuesOld.put("[FECCRE]", dateFormat.format(date));
-                    insertValuesOld.put("[W_CTE-KKBER]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_AREACREDITO",""));
                     long insertoOld = mDb.insertOrThrow("FormHvKof_old_solicitud", null, insertValuesOld);
                     //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
                     Intent sol = getIntent();
                     sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    SolicitudCreditoActivity.this.finish();
+                    SolicitudAvisosEquipoFrioActivity.this.finish();
                     //Bundle par = new Bundle();
                     //par.putString("tipo_solicitud",tipoSolicitud);
                     //SolicitudActivity.this.startActivity(sol);
-                    Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toast.LENGTH_LONG).show();
+                    Toasty.success(getApplicationContext(), "Solicitud de Modificación Creada", Toast.LENGTH_LONG).show();
                 }
             } catch (Exception e) {
                 Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -4158,6 +4367,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
     public static void LlenarCampos(Context context, Activity activity, ArrayList<JsonArray> estructurasSAP){
         if(estructurasSAP.size() == 0){
+            Toasty.error(context.getApplicationContext(),"No se pudo obtener la informacion del cliente. Asegure la conexion e intente de nuevo.").show();
             activity.finish();
             return;
         }
@@ -4172,113 +4382,80 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         impuestos = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Impuestos");
         bancos = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Bancos");
         visitas = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Visitas");
-        credito = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Credito");
-        creditoCadena = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("CreditoCadena");
 
-        //Cliene SI tiene credito pero quieren aperturar - NO PERMITIDO
-        /*if(credito.size() > 0 && subtitulo.toLowerCase().contains("apertura")){
-            Toasty.error(context.getApplicationContext(),"Debe modificar el crédito existente.").show();
-            activity.finish();
-            return;
-        }*/
-        String cadenaCliente = credito.get(0).getAsJsonObject().get("W_CTE-HKUNNR").getAsString();
-        //Cliente SI tiene credito y se quiere modificar
-        if(subtitulo.toLowerCase().contains("modifica")) {
-            String tipo = credito.get(0).getAsJsonObject().get("W_CTE-PSON2").getAsString();
-
-            //if(cadenaCliente.trim().equals(VariablesGlobales.getCadenaRM())) {
-
-                if (!tipo.equals("D") && subtitulo.toLowerCase().contains("formal d")) {
-                    Toasty.warning(context.getApplicationContext(),"Cliente no se puede Modificar/Bloquear con Credito Formal!").show();
-                    activity.finish();
-                    return;
-                }
-
-                if ((!tipo.equals("A") && !tipo.equals("B") && !tipo.equals("C")) && subtitulo.toLowerCase().contains("formal abc")) {
-                    Toasty.warning(context.getApplicationContext(),"Cliente no se puede Modificar/Bloquear con Credito Formal ABC!").show();
-                    activity.finish();
-                    return;
-                }
-
-                if (subtitulo.toLowerCase().contains("informal") && !tipo.equals("I")) {
-                    Toasty.warning(context.getApplicationContext(),"Cliente no se puede Modificar/Bloquear con Credito Informal!").show();
-                    activity.finish();
-                    return;
-                }
-
+        if(codigoEquipoFrio != null){
+            EquipoFrio equipo = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio);
+            MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_EQUIPMENT"));
+            tv.setText(codigoEquipoFrio);
+            MaskedEditText tvs = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_SERIALNO"));
+            tvs.setText(equipo.getSernr());
+            SearchableSpinner tvm = ((SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-IM_MATERIAL"));
+            tvm.setSelection(VariablesGlobales.getIndex(tvm, equipo.getMatnr()));
+            MaskedEditText tvp = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_PARTNER"));
+            tvp.setText(codigoCliente);
         }
-
         //Titulo deseado
         activity.setTitle(activity.getTitle()+cliente.get(0).getAsJsonObject().get("W_CTE-NAME1").getAsString());
-        double valorsugerido = 0;
+
         for (int i = 0; i < listaCamposDinamicos.size(); i++) {
             if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                 try {
-                    MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i).trim()));
-                    if (tv != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
-                        tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
+                    MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                    if(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)) != null)
+                        tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString());
+                    if (listaCamposDinamicos.get(i).equals("W_CTE-IM_DESCRIPT")) {
+                        tv.setText(((SolicitudAvisosEquipoFrioActivity)activity).getSupportActionBar().getSubtitle());
+                        tv.setSingleLine(false);
+                        tv.setEnabled(false);
+                    }
+                    if (listaCamposDinamicos.get(i).equals("W_CTE-PO_BOX") && tv.getText().toString().trim().equals("")) {
+                        tv.setText(".");
+                    }
+                    if (listaCamposDinamicos.get(i).equals("W_CTE-IM_PARTNER")) {
+                        tv.setText(codigoCliente);
+                        tv.setVisibility(View.GONE);
+                        ((TextInputLayout)tv.getParent().getParent()).setVisibility(View.GONE);
+                    }
 
                     tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i).trim()));
-                    if (tv != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
+                    if(tv != null) {
                         tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
-
+                    }
                     tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i).trim()));
-                    if (tv != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
+                    if(tv != null) {
                         tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
 
-                    if (listaCamposDinamicos.get(i).equals("W_CTE-SMTP_ADDR")) {
-                        correoValidado = isValidEmail(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
-                    }
-                    if (listaCamposDinamicos.get(i).equals("W_CTE-STCD1")) {
-                        cedulaValidada = ValidarCedula(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString(), cliente.get(0).getAsJsonObject().get("W_CTE-KATR3").getAsString());
                     }
 
-                    //Caerle encima con los valores de la RFC de Credito
-                    //if(credito.size() > 0){
-                        tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i).trim()));
-                        if(tv != null)
-                            tv.setText(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
-                        tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i).trim()));
-                        if(tv != null)
-                            tv.setText(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
-                        tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i).trim()));
-                        if(tv != null)
-                            tv.setText(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
-                        if(listaCamposDinamicos.get(i).contains("DMBTR")){
-                            Double mes = NumberFormat.getInstance(Locale.FRENCH).parse(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString()).doubleValue();
-                            valorsugerido += mes;
-                            tv.setText(String.format ("%,.2f", mes));
-                        }
-                    if(listaCamposDinamicos.get(i).contains("KLIMK")){
-                        Double limite = NumberFormat.getInstance(Locale.FRENCH).parse(credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString()).doubleValue();
-                        tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i).trim()));
-                        if(tv != null)
-                            tv.setText(String.format ("%.2f", limite));
-                        tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i).trim()));
-                        if(tv != null)
-                            tv.setText(String.format ("%.2f", limite));
-                    }
-                    //}
                 } catch (Exception e) {
                     try {
-                        Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i).trim()));
-                        if(sp != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
-                        sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString().trim()));
+                        Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                        if(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)) != null)
+                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString().trim()));
 
-                        sp = ((Spinner) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i).trim()));
-                        if(sp != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
-                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString().trim()));
-
-                        sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i).trim()));
-                        if(sp != null && cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
-                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString().trim()));
-
-                        //Caerle encima con los valores de la RFC de Credito
-                        if(credito.size() > 0){
-                            sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
-                            if(sp != null && credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()) != null)
-                                sp.setSelection(VariablesGlobales.getIndex(sp,credito.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString()));
+                        if (listaCamposDinamicos.get(i).equals("W_CTE-IM_NOTIF_TYPE")) {
+                            if(((SolicitudAvisosEquipoFrioActivity)activity).getSupportActionBar().getSubtitle().toString().toLowerCase().contains("mant")) {
+                                if(((SolicitudAvisosEquipoFrioActivity)activity).getSupportActionBar().getSubtitle().toString().toLowerCase().contains("corr"))
+                                    sp.setSelection(VariablesGlobales.getIndex(sp, "T2"));
+                                if(((SolicitudAvisosEquipoFrioActivity)activity).getSupportActionBar().getSubtitle().toString().toLowerCase().contains("prev"))
+                                    sp.setSelection(VariablesGlobales.getIndex(sp, "T3"));
+                            }
+                            if(((SolicitudAvisosEquipoFrioActivity)activity).getSupportActionBar().getSubtitle().toString().toLowerCase().contains("instal")) {
+                                sp.setSelection(VariablesGlobales.getIndex(sp, "T4"));
+                            }
+                            if(((SolicitudAvisosEquipoFrioActivity)activity).getSupportActionBar().getSubtitle().toString().toLowerCase().contains("retiro")) {
+                                sp.setSelection(VariablesGlobales.getIndex(sp, "T5"));
+                            }
+                            sp.setEnabled(false);
                         }
+
+                        sp = ((Spinner) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
+                        if(sp != null)
+                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString().trim()));
+
+                        sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i)));
+                        if(sp != null)
+                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString().trim()));
                     } catch (Exception e2) {
                         try {
                             CheckBox check = ((CheckBox) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
@@ -4302,7 +4479,15 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
                         for(int x=0; x < contactos.size(); x++){
                             contacto = gson.fromJson(contactos.get(x), Contacto.class);
+                            contacto.setGbdat(contacto.getGbdat().replace("-",""));
+                            if(contacto.getGbdat().trim().replace("0","").length()==0)
+                                contacto.setGbdat("");
                             contactosSolicitud.add(contacto);
+                            try {
+                                contactosSolicitud_old.add((Contacto)contacto.clone());
+                            } catch (CloneNotSupportedException e) {
+                                e.printStackTrace();
+                            }
                         }
                         if(contactosSolicitud != null) {
                             tb_contactos.setDataAdapter(new ContactoTableAdapter(context, contactosSolicitud));
@@ -4311,10 +4496,23 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         break;
                     case "W_CTE-IMPUESTOS":
                         Impuesto impuesto=null;
-
+                        ArrayList<Impuesto> todos = mDBHelper.getImpuestosPais();
                         for(int x=0; x < impuestos.size(); x++){
+
                             impuesto = gson.fromJson(impuestos.get(x), Impuesto.class);
+                            for(int y=0; y < todos.size(); y++){
+                                if(todos.get(y).getTatyp().equals(impuestos.get(x).getAsJsonObject().get("W_CTE-TATYP").getAsString()) && todos.get(y).getTaxkd().equals(impuestos.get(x).getAsJsonObject().get("W_CTE-TAXKD").getAsString())){
+                                    impuesto.setVtext(todos.get(y).getVtext());
+                                    impuesto.setVtext2(todos.get(y).getVtext2());
+                                    break;
+                                }
+                            }
                             impuestosSolicitud.add(impuesto);
+                            try {
+                                impuestosSolicitud_old.add((Impuesto)impuesto.clone());
+                            } catch (CloneNotSupportedException e) {
+                                e.printStackTrace();
+                            }
                         }
                         if(impuestosSolicitud != null) {
                             tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(context, impuestosSolicitud));
@@ -4327,6 +4525,11 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         for(int x=0; x < interlocutores.size(); x++){
                             interlocutor = gson.fromJson(interlocutores.get(x), Interlocutor.class);
                             interlocutoresSolicitud.add(interlocutor);
+                            try {
+                                interlocutoresSolicitud_old.add((Interlocutor) interlocutor.clone());
+                            } catch (CloneNotSupportedException e) {
+                                e.printStackTrace();
+                            }
                         }
                         if(interlocutoresSolicitud != null) {
                             tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(context, interlocutoresSolicitud));
@@ -4339,6 +4542,11 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         for(int x=0; x < bancos.size(); x++){
                             banco = gson.fromJson(bancos.get(x), Banco.class);
                             bancosSolicitud.add(banco);
+                            try {
+                                bancosSolicitud_old.add((Banco)banco.clone());
+                            } catch (CloneNotSupportedException e) {
+                                e.printStackTrace();
+                            }
                         }
                         if(bancosSolicitud != null) {
                             tb_bancos.setDataAdapter(new BancoTableAdapter(context, bancosSolicitud));
@@ -4347,9 +4555,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         break;
                     case "W_CTE-VISITAS":
                         Visitas visita = null;
-                        int indiceReparto = 0;
-                        int indicePreventa = 0;
-                        int indiceEspecializada = 0;
+                        int indiceReparto = -1;
+                        int indicePreventa = -1;
+                        int indiceEspecializada = -1;
 
                         for(int x=0; x < visitas.size(); x++){
                             if(visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZDD")){
@@ -4362,8 +4570,26 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                 indiceEspecializada = x;
                             }
                             visita = gson.fromJson(visitas.get(x), Visitas.class);
+
+                            visita.setF_ico(visita.getF_ico().replace("-",""));
+                            visita.setF_fco(visita.getF_fco().replace("-",""));
+                            visita.setF_ini(visita.getF_ini().replace("-",""));
+                            visita.setF_fin(visita.getF_fin().replace("-",""));
+                            if(visita.getF_ico().trim().replace("0","").length()==0)
+                                visita.setF_ico("");
+                            if(visita.getF_fco().trim().replace("0","").length()==0)
+                                visita.setF_fco("");
+                            if(visita.getF_ini().trim().replace("0","").length()==0)
+                                visita.setF_ini("");
+                            if(visita.getF_fin().trim().replace("0","").length()==0)
+                                visita.setF_fin("");
+
                             visitasSolicitud.add(visita);
-                            visitasSolicitud_old.add(visita);
+                            try {
+                                visitasSolicitud_old.add((Visitas)visita.clone());
+                            } catch (CloneNotSupportedException e) {
+                                e.printStackTrace();
+                            }
                         }
                         if(visitasSolicitud != null) {
                             tb_visitas.setDataAdapter(new VisitasTableAdapter(context, visitasSolicitud));
@@ -4371,7 +4597,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         }
 
                         //Campos de las secuencias de la visita de preventa
-                        if(visitasSolicitud.size() > 0) {
+                        if(visitasSolicitud.size() > 0 && indicePreventa >= 0) {
                             //Al menos 1 dia de visita
                             TextInputEditText diaL = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_L"));
                             TextInputEditText diaK = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_K"));
@@ -4379,25 +4605,42 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             TextInputEditText diaJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_J"));
                             TextInputEditText diaV = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_V"));
                             TextInputEditText diaS = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_S"));
-                            if ( diaL != null) {
+                            if (diaL != null) {
                                 diaL.setText(visitasSolicitud_old.get(indicePreventa).getLun_de());
                             }
-                            if ( diaK != null) {
+                            if (diaK != null) {
                                 diaK.setText(visitasSolicitud_old.get(indicePreventa).getMar_de());
                             }
-                            if ( diaM != null) {
+                            if (diaM != null) {
                                 diaM.setText(visitasSolicitud_old.get(indicePreventa).getMier_de());
                             }
-                            if ( diaJ != null) {
+                            if (diaJ != null) {
                                 diaJ.setText(visitasSolicitud_old.get(indicePreventa).getJue_de());
                             }
-                            if ( diaV != null) {
+                            if (diaV != null) {
                                 diaV.setText(visitasSolicitud_old.get(indicePreventa).getVie_de());
                             }
-                            if ( diaS != null) {
+                            if (diaS != null) {
                                 diaS.setText(visitasSolicitud_old.get(indicePreventa).getSab_de());
                             }
+                        }else{
+                            CardView tituloV = ((CardView)mapeoVisitas.get("ZPV"));
+                            TextInputEditText diaL = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_L"));
+                            TextInputEditText diaK = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_K"));
+                            TextInputEditText diaM = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_M"));
+                            TextInputEditText diaJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_J"));
+                            TextInputEditText diaV = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_V"));
+                            TextInputEditText diaS = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_S"));
 
+                            tituloV.setVisibility(View.GONE);
+                            diaL.setVisibility(View.GONE);
+                            diaK.setVisibility(View.GONE);
+                            diaM.setVisibility(View.GONE);
+                            diaJ.setVisibility(View.GONE);
+                            diaV.setVisibility(View.GONE);
+                            diaS.setVisibility(View.GONE);
+                        }
+                        if(visitasSolicitud.size() > 0 && indiceEspecializada >= 0) {
                             //En caso de que tenga especializada
                             TextInputEditText diaEL = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_L"));
                             TextInputEditText diaEK = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_K"));
@@ -4423,6 +4666,22 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             if ( diaES != null) {
                                 diaES.setText(visitasSolicitud_old.get(indiceEspecializada).getSab_de());
                             }
+                        }else{
+                            CardView tituloV = ((CardView)mapeoVisitas.get("ZJV"));
+                            TextInputEditText diaEL = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_L"));
+                            TextInputEditText diaEK = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_K"));
+                            TextInputEditText diaEM = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_M"));
+                            TextInputEditText diaEJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_J"));
+                            TextInputEditText diaEV = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_V"));
+                            TextInputEditText diaES = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_S"));
+
+                            tituloV.setVisibility(View.GONE);
+                            diaEL.setVisibility(View.GONE);
+                            diaEK.setVisibility(View.GONE);
+                            diaEM.setVisibility(View.GONE);
+                            diaEJ.setVisibility(View.GONE);
+                            diaEV.setVisibility(View.GONE);
+                            diaES.setVisibility(View.GONE);
                         }
                         break;
                     case "W_CTE-ADJUNTOS":
@@ -4432,139 +4691,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             }
         }
 
-        //Campo de limite sugerido se debe calcular de manera manual.
-        valorsugerido = ((valorsugerido / 3) / 4) * 2.5;
-        MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-LIMSUG"));
-        if(tv != null){
-            tv.setText(String.format ("%,.2f", valorsugerido));
-        }
-
-        //Cliente NO tiene credito y se quiere aperturar - llenar los campos neccesarios con los campos por defecto en tabla ValidaCrecitod
-        if(subtitulo.toLowerCase().contains("apertura")) {
-            String tipo = "I";
-            if(subtitulo.toLowerCase().contains("informal"))
-                tipo = "I";
-            if(subtitulo.toLowerCase().contains("formal d"))
-                tipo = "D";
-            if(subtitulo.toLowerCase().contains("formal abc"))
-                tipo = "ABC";
-
-            String cuentacont = "";
-            String claseriesgo = "";
-            String tipocobro = "";
-            String clasedocven = "";
-            String clasicxc = "";
-            String condpago = "";
-            ArrayList<HashMap<String, String>> datosNuevoCredito = mDBHelper.getValidaCreditos(tipo);
-            if(cadenaCliente.trim().equals(VariablesGlobales.getCadenaRM())) {
-                cuentacont = datosNuevoCredito.get(0).get("cuentacont").trim();
-                claseriesgo = datosNuevoCredito.get(0).get("claseriesgo").trim();
-                tipocobro = datosNuevoCredito.get(0).get("tipocobro").trim();
-                clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
-                clasicxc = datosNuevoCredito.get(0).get("clasicxc").trim();
-                condpago = datosNuevoCredito.get(0).get("condpago").trim();
-            }else{
-                String errordesc="";
-                String meserr="";
-                if(cadenaCliente.length() > 0) {
-                    cuentacont = creditoCadena.get(0).getAsJsonObject().get("W_CTE-AKONT").getAsString();
-                    claseriesgo = "RR7";
-                    tipocobro = creditoCadena.get(0).getAsJsonObject().get("W_CTE-KVGR2").getAsString();
-                    clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
-                    clasicxc = creditoCadena.get(0).getAsJsonObject().get("W_CTE-PSON2").getAsString();
-                    condpago = creditoCadena.get(0).getAsJsonObject().get("W_CTE-ZTERM").getAsString();
-                }else{
-                    //Quitar y activar el error...!!!
-                    cuentacont = datosNuevoCredito.get(0).get("cuentacont").trim();
-                    claseriesgo = datosNuevoCredito.get(0).get("claseriesgo").trim();
-                    tipocobro = datosNuevoCredito.get(0).get("tipocobro").trim();
-                    clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
-                    clasicxc = datosNuevoCredito.get(0).get("clasicxc").trim();
-                    condpago = datosNuevoCredito.get(0).get("condpago").trim();
-                    /*errordesc += "Cadena Padre '"+cadenaCliente+"' no fue encontrada. No puede aperturar crédito!";
-                    Toasty.error(context.getApplicationContext(),errordesc).show();
-                    activity.finish();
-                    return;*/
-                }
-                if (cuentacont.trim().equals("") || tipocobro.trim().equals("") || condpago.trim().equals("") || clasicxc.trim().equals(""))
-                {
-                    if (cuentacont.trim().equals(""))
-                    {
-                        errordesc += "Cuenta Asociada. ";
-                    }
-                    if (tipocobro.trim().equals(""))
-                    {
-                        errordesc += "Tipo de Cobro. ";
-                    }
-                    if (condpago.trim().equals(""))
-                    {
-                        errordesc += "Condicion de Pago. ";
-                    }
-                    if (clasicxc.trim().equals(""))
-                    {
-                        errordesc += "Clasificacion CxC. ";
-                    }
-                    Toasty.error(context.getApplicationContext(),"Cadena Padre "+cadenaCliente+" sin datos necesarios para crédito: "+errordesc).show();
-                    activity.finish();
-                    return;
-                }
-            }
-            if ( (tipo.equals("ABC")) && ( !clasicxc.equals("A") && !clasicxc.equals("B") && !clasicxc.equals("C")))
-            {
-                Toasty.error(context.getApplicationContext(),"Cliente no se puede Aperturar con Credito Formal ABC!").show();
-                activity.finish();
-                return;
-            }
-            if (tipo.equals("D") && !clasicxc.equals("D"))
-            {
-                Toasty.error(context.getApplicationContext(),"Cliente no se puede Aperturar con Credito Formal D!").show();
-                activity.finish();
-                return;
-            }
-            if (tipo.equals("I") && !clasicxc.equals("I"))
-            {
-                Toasty.error(context.getApplicationContext(),"Cliente no se puede Aperturar con Credito Informal!").show();
-                activity.finish();
-                return;
-            }
-            //Campos para aperturas de credito
-            Spinner zzauart = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-ZZAUART");
-            if(zzauart != null) {
-                zzauart.setSelection(VariablesGlobales.getIndex(zzauart, clasedocven));
-            }
-
-            Spinner pson2 = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
-            if(pson2 != null) {
-                pson2.setSelection(VariablesGlobales.getIndex(pson2, clasicxc));
-            }
-
-            Spinner zterm = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTERM");
-            if(zterm != null) {
-                zterm.setSelection(VariablesGlobales.getIndex(zterm, condpago));
-            }
-
-            Spinner ctlpc = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CTLPC");
-            if(ctlpc != null) {
-                ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, claseriesgo));
-            }
-
-            Spinner kvgr2 = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-KVGR2");
-            if(kvgr2 != null) {
-                kvgr2.setSelection(VariablesGlobales.getIndex(kvgr2, tipocobro));
-            }
-            try {
-                Spinner akont = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-AKONT");
-                if (akont != null) {
-                    akont.setSelection(VariablesGlobales.getIndex(akont, cuentacont));
-                }
-            }catch(Exception e){
-                MaskedEditText akont = (MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-AKONT");
-                if (akont != null) {
-                    akont.setText(cuentacont);
-                }
-            }
-
-        }
     }
 
     private String getFileName(ContentResolver resolver, Uri uri) {
@@ -5052,6 +5178,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
+
             progressBar.setVisibility(View.GONE);
         }
 

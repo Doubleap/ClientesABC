@@ -75,6 +75,7 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.io.ByteArrayOutputStream;
@@ -250,6 +251,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             idForm = "";
             solicitudSeleccionada.clear();
             solicitudSeleccionadaOld.clear();
+            mapeoCamposDinamicos.clear();
+            mapeoCamposDinamicosEnca.clear();
+            mapeoVisitas.clear();
+            mapeoCamposDinamicosOld.clear();
             setTitle(codigoCliente+"-");
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             getSupportActionBar().setSubtitle(descripcion);
@@ -825,21 +830,24 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             if(nombre.equals("Datos Generales") || nombre.equals("Informacion General")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"D");
 
-            }
+            }else
             if(nombre.equals("Facturación")|| nombre.equals("Facturacion")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"F");
-            }
+            }else
             if(nombre.equals("Ventas")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"V");
-            }
+            }else
             if(nombre.equals("Marketing")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"M");
-            }
+            }else
             if(nombre.equals("Creditos") || nombre.equals("Créditos")  || nombre.equals("Crédito")  || nombre.equals("Credito")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"C");
-            }
+            }else
             if(nombre.equals("Adjuntos") || nombre.equals("Adicionales")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"Z");
+            }else
+            if(nombre.toLowerCase().contains("equipo") || nombre.toLowerCase().contains("frio")|| nombre.toLowerCase().contains("eq.")) {
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"E");
             }
             return view;
         }
@@ -1064,7 +1072,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     label.setPadding(0,0,0,0);
                     label.setLayoutParams(lpl);
 
-                    final Spinner combo = new Spinner(getContext(), Spinner.MODE_DROPDOWN);
+                    final SearchableSpinner combo = new SearchableSpinner(getContext(), null);
+                    combo.setTitle("Buscar");
+                    combo.setPositiveButton("Cerrar");
                     combo.setTag(campos.get(i).get("descr"));
                     TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
                     lp.setMargins(0, -10, 0, 25);
@@ -1084,8 +1094,18 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         }
                     }
 
-                    ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim());
+                    //Si son catalogos de equipo frio debo las columnas de ID y Descripcion estan en otros indice de columnas
 
+                    ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim());
+                    if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_causas") || campos.get(i).get("tabla").trim().toLowerCase().equals("ef_prioridades")){
+                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),3,4);
+                    }
+                    if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_clases")){
+                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),1,2);
+                    }
+                    if(campos.get(i).get("tabla").trim().toLowerCase().equals("sapdmateriales_pde")){
+                        opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim(),1,4);
+                    }
                     ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
                     int selectedIndex = 0;
                     int selectedIndexOld = 0;
@@ -1473,7 +1493,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                     // Drop down layout style - list view with radio button
                                     dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
-                                    zona_transporte.setAdapter(dataAdapterRuta);
+                                    if(zona_transporte != null)
+                                        zona_transporte.setAdapter(dataAdapterRuta);
                                 }
                                 ReplicarValorSpinner(parent,nombreCampo+"1",position);
                                 if(position == 0 && ((TextView) parent.getSelectedView()) != null)
@@ -1503,7 +1524,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                     // Drop down layout style - list view with radio button
                                     dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
-                                    zona_transporte.setAdapter(dataAdapterRuta);
+                                    if(zona_transporte != null)
+                                        zona_transporte.setAdapter(dataAdapterRuta);
                                 }
                                 ReplicarValorSpinner(parent,nombreCampo,position);
                                 if(position == 0 && ((TextView) parent.getSelectedView()) != null)

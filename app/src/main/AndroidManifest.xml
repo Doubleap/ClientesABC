@@ -79,6 +79,10 @@
             android:label="Solicitud de Crédito"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".actividades.SolicitudAvisosEquipoFrioActivity"
+            android:label="@string/title_activity_aviso"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".actividades.MantClienteActivity"
             android:label="@string/title_activity_mant_clientes"
             android:screenOrientation="portrait"

@@ -3,11 +3,17 @@ package proyecto.app.clientesabc.modelos;
 public class OpcionSpinner {
     private String id;
     private String name;
+    private String rel1;
     private int selected;
 
     public OpcionSpinner(String id, String name) {
         this.id = id;
         this.name = name;
+    }
+    public OpcionSpinner(String id, String name, String rel1) {
+        this.id = id;
+        this.name = name;
+        this.rel1 = rel1;
     }
     public OpcionSpinner(String id, String name, int selected) {
         this.id = id;
@@ -45,5 +51,13 @@ public class OpcionSpinner {
 
     public void setSelected(int selected) {
         this.selected = selected;
+    }
+
+    public String getRel1() {
+        return rel1;
+    }
+
+    public void setRel1(String rel1) {
+        this.rel1 = rel1;
     }
 }

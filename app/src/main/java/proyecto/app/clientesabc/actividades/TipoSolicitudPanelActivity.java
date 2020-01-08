@@ -62,12 +62,9 @@ public class TipoSolicitudPanelActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Bundle b = new Bundle();
-                //TODO seleccionar el tipo de solicitud por el UI
-                b.putString("tipoSolicitud", "1"); //id de solicitud
-                Intent intent = new Intent(view.getContext(),SolicitudActivity.class);
-                intent.putExtras(b); //Pase el parametro el Intent
-                startActivity(intent);
+                finish();
+                //intent = new Intent(getBaseContext(),PanelActivity.class);
+                //startActivity(intent);
             }
         });
 
@@ -226,7 +223,7 @@ public class TipoSolicitudPanelActivity extends AppCompatActivity {
             // - Obtener Elemento del data set en esta position
             // - Reemplazar aqui cualquier contenido dinamico dependiendo de algun valor de l dataset creado y o el contenido del dataset
             TextView codigo = holder.listView.findViewById(R.id.textViewHead);
-            TextView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
+            ImageView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
             codigo.setText(formListFiltered.get(position).get("descripcion") == null?"":formListFiltered.get(position).get("descripcion").trim());
 
             TextView num_nuevos = holder.listView.findViewById(R.id.txt_nuevos);

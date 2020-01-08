@@ -1,6 +1,7 @@
 package proyecto.app.clientesabc.actividades;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -26,16 +27,32 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.honeywell.aidc.AidcManager;
+import com.honeywell.aidc.BarcodeFailureEvent;
+import com.honeywell.aidc.BarcodeReadEvent;
+import com.honeywell.aidc.BarcodeReader;
+import com.honeywell.aidc.InvalidScannerNameException;
+import com.honeywell.aidc.ScannerNotClaimedException;
+import com.honeywell.aidc.ScannerUnavailableException;
+import com.honeywell.aidc.UnsupportedPropertyException;
+import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,6 +60,8 @@ import java.util.HashMap;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.modelos.OpcionSpinner;
+
 
 
 public class MantClienteActivity extends AppCompatActivity {
@@ -50,6 +69,8 @@ public class MantClienteActivity extends AppCompatActivity {
     private SearchView searchView;
     private MyAdapter mAdapter;
     private DataBaseHelper db;
+    private AidcManager manager;
+    private BarcodeReader reader;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -234,7 +255,7 @@ public class MantClienteActivity extends AppCompatActivity {
             codigo.setText(formListFiltered.get(position).get("codigo") == null?"":formListFiltered.get(position).get("codigo").trim());
             TextView nombre = holder.listView.findViewById(R.id.textViewDesc);
             nombre.setText(formListFiltered.get(position).get("nombre") == null?"":formListFiltered.get(position).get("nombre").trim());
-            TextView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
+            ImageView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
             TextView idfiscal = holder.listView.findViewById(R.id.idfiscal);
             idfiscal.setText(formListFiltered.get(position).get("idfiscal") == null?"":formListFiltered.get(position).get("idfiscal").trim());
             TextView correo = holder.listView.findViewById(R.id.correo);
@@ -334,12 +355,12 @@ public class MantClienteActivity extends AppCompatActivity {
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Cierre NO disponible de momento.").show();
                                     break;
                                 case R.id.credito:
-                                    showDialogFormulariosModificacion(codigoCliente,true, false);
-                                    //Toasty.info(getBaseContext(),"Funcionalidad de Credito NO disponible de momento.").show();
+                                    //showDialogFormulariosModificacion(codigoCliente,true, false);
+                                    Toasty.info(getBaseContext(),"Funcionalidad de Credito NO disponible de momento.").show();
                                     break;
                                 case R.id.equipofrio:
-                                    showDialogFormulariosModificacion(codigoCliente,false, true);
-                                    //Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
+                                    //showDialogFormulariosModificacion(codigoCliente,false, true);
+                                    Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
                                     break;
                                 case R.id.comollegar:
                                     String uri = "";
@@ -444,7 +465,6 @@ public class MantClienteActivity extends AppCompatActivity {
             }
         }
 
-
         String[] idformsTemp = new String[formulariosPermitidos.size()];
         String[] formsTemp = new String[formulariosPermitidos.size()];
         for(int x=0; x < formulariosPermitidos.size(); x++){
@@ -471,28 +491,7 @@ public class MantClienteActivity extends AppCompatActivity {
         builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
-                // user clicked OK, so save the mSelectedItems results somewhere
-                // or return them to the component that opened the dialog
-                int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
-                if(selectedPosition < 0){
-                    Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de modificación!").show();
-                }else {
-                    if (!forms[selectedPosition].toLowerCase().contains("credito") && !forms[selectedPosition].toLowerCase().contains("crédito")) {
-                        Bundle b = new Bundle();
-                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
-                        b.putString("codigoCliente", codigoCliente);
-                        intent = new Intent(getApplicationContext(), SolicitudModificacionActivity.class);
-                        intent.putExtras(b); //Pase el parametro el Intent
-                        startActivity(intent);
-                    } else {
-                        Bundle b = new Bundle();
-                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
-                        b.putString("codigoCliente", codigoCliente);
-                        intent = new Intent(getApplicationContext(), SolicitudCreditoActivity.class);
-                        intent.putExtras(b); //Pase el parametro el Intent
-                        startActivity(intent);
-                    }
-                }
+                //Solo para crearlo
             }
         });
 
@@ -517,25 +516,194 @@ public class MantClienteActivity extends AppCompatActivity {
                 if(selectedPosition < 0){
                     Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de modificación!").show();
                 }else {
-                    dialog.dismiss();
-                    if (!forms[selectedPosition].toLowerCase().contains("credito") && !forms[selectedPosition].toLowerCase().contains("crédito")) {
-                        Bundle b = new Bundle();
-                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
-                        b.putString("codigoCliente", codigoCliente);
-                        intent = new Intent(getApplicationContext(), SolicitudModificacionActivity.class);
-                        intent.putExtras(b); //Pase el parametro el Intent
-                        startActivity(intent);
-                    } else {
+                    if (forms[selectedPosition].toLowerCase().contains("credito") || forms[selectedPosition].toLowerCase().contains("crédito")) {
                         Bundle b = new Bundle();
                         b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
                         b.putString("codigoCliente", codigoCliente);
                         intent = new Intent(getApplicationContext(), SolicitudCreditoActivity.class);
                         intent.putExtras(b); //Pase el parametro el Intent
                         startActivity(intent);
+
+                    } else if(forms[selectedPosition].toLowerCase().contains("eq.") || forms[selectedPosition].toLowerCase().contains("frio") || forms[selectedPosition].toLowerCase().contains("equipo")) {
+                        if(forms[selectedPosition].toLowerCase().contains("instal")) {//Si es de instalacion no ocupa numero de maquina de equipo frio
+                            Bundle b = new Bundle();
+                            b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
+                            b.putString("codigoCliente", codigoCliente);
+                            intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
+                            intent.putExtras(b); //Pase el parametro el Intent
+                            startActivity(intent);
+                        }else{//Si NO es de instalacion se ocupa digitar o leer el equipo frio al que se le va a hacer el aviso.
+                            //TODO
+                            dialog.dismiss();
+                            displayDialogSeleccionarEquipoFrio(getApplicationContext(),idforms[selectedPosition],codigoCliente);
+                        }
+                    }
+                    else {
+                        Bundle b = new Bundle();
+                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
+                        b.putString("codigoCliente", codigoCliente);
+                        intent = new Intent(getApplicationContext(), SolicitudModificacionActivity.class);
+                        intent.putExtras(b); //Pase el parametro el Intent
+                        startActivity(intent);
                     }
                 }
             }
         });
+    }
+
+    public void displayDialogSeleccionarEquipoFrio(Context context, final String tipoSolicitud, final String codigoCliente) {
+        ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("sapDBaseInstalada",8,12, "kunnr='"+codigoCliente+"'");
+        if(opciones.size() == 1){
+            Toasty.warning(context, "El cliente no tiene equipo frio asignado!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final Dialog d=new Dialog(this);
+        d.setContentView(R.layout.seleccionar_equipo_frio_dialog_layout);
+
+        //INITIALIZE VIEWS
+        final TextView title = d.findViewById(R.id.title);
+        final SearchableSpinner equipoFrioSpinner = (SearchableSpinner) d.findViewById(R.id.equipoFrioSpinner);
+        equipoFrioSpinner.setTitle("Seleccione un equipo");
+        equipoFrioSpinner.setPositiveButton("Cerrar");
+        TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
+        lp.setMargins(0, -10, 0, 25);
+        equipoFrioSpinner.setPadding(0,0,0,0);
+        equipoFrioSpinner.setLayoutParams(lp);
+        equipoFrioSpinner.setPopupBackgroundResource(R.drawable.menu_item);
+        Button saveBtn= d.findViewById(R.id.saveBtn);
+
+        //SAVE, en este caso solo es aceptar, ir a a pintar el formulario correspondiente dependiendo del equipo frio seleccionado
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String codigoEquipoFrio = ((OpcionSpinner)equipoFrioSpinner.getSelectedItem()).getId();
+                try{
+                    d.dismiss();
+                    Bundle b = new Bundle();
+                    b.putString("tipoSolicitud", tipoSolicitud);
+                    b.putString("codigoCliente", codigoCliente);
+                    b.putString("codigoEquipoFrio", codigoEquipoFrio);
+                    intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
+                    intent.putExtras(b); //Pase el parametro el Intent
+                    startActivity(intent);
+                } catch(Exception e) {
+                    Toasty.error(v.getContext(), "No se pudo abrir la solicitud de aviso."+e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        //Para campos de seleccion de equipo frio del cliente para mantenimiento, cierre, retiro o cambio
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        for (int j = 0; j < opciones.size(); j++){
+            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+        }
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(this, R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable spinner_back = this.getResources().getDrawable(R.drawable.spinner_background, null);
+        equipoFrioSpinner.setBackground(spinner_back);
+        equipoFrioSpinner.setAdapter(dataAdapter);
+        equipoFrioSpinner.setSelection(0);
+
+        //Scanner
+        AidcManager.create(this, new AidcManager.CreatedCallback() {
+            @Override
+            public void onCreated(AidcManager aidcManager) {
+                manager = aidcManager;
+                try {
+                    reader = manager.createBarcodeReader();
+                    reader.setProperty(BarcodeReader.PROPERTY_CODE_39_ENABLED, true);
+                    reader.setProperty(BarcodeReader.PROPERTY_CODE_128_ENABLED, true);
+                    BarcodeReader.BarcodeListener barcodeListener = new BarcodeReader.BarcodeListener() {
+                        @Override
+                        public void onBarcodeEvent(final BarcodeReadEvent barcodeReadEvent) {
+                            // update UI to reflect the data
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(true/*barcodeReadEvent.getAimId().substring(1,2).equals("L")*/) {//Lectura a placa de equipo frio
+                                        String lecturaEquipoFrio = barcodeReadEvent.getBarcodeData();
+                                        try {
+                                            reader.softwareTrigger(false);
+                                            Toasty.warning(getBaseContext(), "Código "+lecturaEquipoFrio+" leido!", Toast.LENGTH_SHORT).show();
+                                            Bundle b = new Bundle();
+                                            b.putString("tipoSolicitud", tipoSolicitud);
+                                            b.putString("codigoCliente", codigoCliente);
+                                            b.putString("codigoEquipoFrio", lecturaEquipoFrio);
+                                            intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
+                                            intent.putExtras(b); //Pase el parametro el Intent
+                                            startActivity(intent);
+                                        } catch (ScannerNotClaimedException e) {
+                                            e.printStackTrace();
+                                        } catch (ScannerUnavailableException e) {
+                                            e.printStackTrace();
+                                        }
+
+                                    }
+                                }
+                            });
+                        }
+                        @Override
+                        public void onFailureEvent(BarcodeFailureEvent barcodeFailureEvent) {
+                            //Toasty.warning(getBaseContext(), "no se leyó el código", Toast.LENGTH_SHORT).show();
+                        }
+                    };
+                    reader.addBarcodeListener(barcodeListener);
+                } catch (InvalidScannerNameException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedPropertyException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        d.setOnKeyListener(new DialogInterface.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                    if ((keyCode == KeyEvent.KEYCODE_UNKNOWN)) {
+                        if(event.getAction() == KeyEvent.ACTION_DOWN){
+                            if(reader != null && event.getRepeatCount() == 0) {
+                                try {
+                                    reader.claim();
+                                    reader.aim(true);
+                                    reader.light(true);
+                                    reader.decode(true);
+                                } catch (ScannerNotClaimedException e) {
+                                    e.printStackTrace();
+                                } catch (ScannerUnavailableException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        if(event.getAction() == KeyEvent.ACTION_UP){
+                            if(reader != null) {
+                                try {
+                                    reader.aim(false);
+                                    reader.light(false);
+                                    reader.decode(false);
+                                    reader.release();
+                                } catch (ScannerNotClaimedException e) {
+                                    e.printStackTrace();
+                                } catch (ScannerUnavailableException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        return true;
+                    }
+                    return false;
+            }
+        });
+
+        //SHOW DIALOG
+        d.show();
+        Window window = d.getWindow();
+        if (window != null) {
+            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        }
     }
 
 }

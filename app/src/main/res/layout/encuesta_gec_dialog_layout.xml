@@ -22,6 +22,13 @@
             android:textColor="@color/white"
             android:textSize="20dp" />
         <!--INPUT VIEWS-->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="vertical"
+                android:layout_height="match_parent">
 <LinearLayout
     android:id="@+id/layoutDinamico"
     android:layout_width="match_parent"
@@ -38,5 +45,7 @@
             android:clickable="true"
             android:background="@color/colorPrimary"
             android:layout_marginTop="1dp"/>
+    </LinearLayout>
+</ScrollView>
     </LinearLayout>
 </android.support.v7.widget.CardView>

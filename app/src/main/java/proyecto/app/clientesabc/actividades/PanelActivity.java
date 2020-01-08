@@ -10,6 +10,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -55,6 +56,7 @@ public class PanelActivity extends AppCompatActivity {
     private TextView num_incompletos;
     private TextView num_modificados;
     private TextView num_total;
+    private FloatingActionButton resumen;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +85,14 @@ public class PanelActivity extends AppCompatActivity {
         num_incompletos = findViewById(R.id.num_incompletos);
         num_modificados = findViewById(R.id.num_modificados);
         num_total = findViewById(R.id.num_total);
+        resumen = findViewById(R.id.resumen);
+        resumen.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                intent = new Intent(getBaseContext(),TipoSolicitudPanelActivity.class);
+                startActivity(intent);
+            }
+        });
         DrawerLayout.LayoutParams lp = (DrawerLayout.LayoutParams) principal.getLayoutParams();
         lp.setMargins(0,0,0,0);
         principal.setLayoutParams(lp);
@@ -227,40 +237,42 @@ public class PanelActivity extends AppCompatActivity {
     }
     // we are setting onClickListener for each element
     private void setSingleEvent(GridLayout gridLayout) {
-        for(int i = 0; i<gridLayout.getChildCount();i++){
-            CardView cardView=(CardView)gridLayout.getChildAt(i);
-            final int finalI= i;
-            cardView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    switch(finalI) {
-                        case 0:
-                            VerSolicitudes("Nuevo");
-                            break;
-                        case 1:
-                            VerSolicitudes("Pendiente");
-                            break;
-                        case 2:
-                            VerSolicitudes("Incidencia");
-                            break;
-                        case 3:
-                            VerSolicitudes("Aprobado");
-                            break;
-                        case 4:
-                            VerSolicitudes("Rechazado");
-                            break;
-                        case 5:
-                            VerSolicitudes("Modificado");
-                            break;
-                        case 6:
-                            VerSolicitudes("Incompleto");
-                            break;
-                        case 7:
-                            VerSolicitudes();
-                            break;
+        for(int i = 0; i<gridLayout.getChildCount();i++) {
+            try {
+                CardView cardView = (CardView) gridLayout.getChildAt(i);
+                final int finalI = i;
+                cardView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        switch (finalI) {
+                            case 0:
+                                VerSolicitudes("Nuevo");
+                                break;
+                            case 1:
+                                VerSolicitudes("Pendiente");
+                                break;
+                            case 2:
+                                VerSolicitudes("Incidencia");
+                                break;
+                            case 3:
+                                VerSolicitudes("Aprobado");
+                                break;
+                            case 4:
+                                VerSolicitudes("Rechazado");
+                                break;
+                            case 5:
+                                VerSolicitudes("Modificado");
+                                break;
+                            case 6:
+                                VerSolicitudes("Incompleto");
+                                break;
+                            case 7:
+                                VerSolicitudes();
+                                break;
+                        }
                     }
-                }
-            });
+                });
+            }catch(Exception e){}
         }
     }
     public void VerSolicitudes() {

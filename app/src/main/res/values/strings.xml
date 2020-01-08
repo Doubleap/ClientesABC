@@ -20,6 +20,7 @@
     <string name="title_activity_comunicacion">Actualización de Datos</string>
     <string name="title_activity_firma">Firma Aceptación Cliente</string>
     <string name="title_activity_solicitud">Crear Solicitud</string>
+    <string name="title_activity_aviso">Avisos de Equipo frio</string>
 
     <string name="inicial">MAESTRO CLIENTES APP</string>
     <string name="welcome_back">Bienvenido</string>

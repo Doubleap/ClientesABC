@@ -879,6 +879,9 @@ public class ClienteActivity extends AppCompatActivity {
                     //combo.setPopupBackgroundResource(R.drawable.menu_item);
 
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim());
+                    if(opciones.size() == 0){
+                        opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim());
+                    }
 
                     ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
                     int selectedIndex = 0;

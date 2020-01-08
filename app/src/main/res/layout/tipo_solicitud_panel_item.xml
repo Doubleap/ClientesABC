@@ -197,15 +197,17 @@
             </FrameLayout>
                 </LinearLayout>
             </HorizontalScrollView>
-            <TextView
+            <ImageView
                 android:id="@+id/textViewOptions"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="20dp"
+                android:layout_marginTop="@dimen/margin_small"
+                android:text="Cancelar"
+                android:textAlignment="center"
+                android:layout_below="@+id/estado_text"
                 android:layout_alignParentRight="true"
-                android:layout_alignParentTop="true"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:text="&#8942;"
-                android:textAppearance="?android:textAppearanceLarge"/>
+                android:background="@drawable/icon_menu"
+                android:visibility="gone"/>
 
         </RelativeLayout>
 

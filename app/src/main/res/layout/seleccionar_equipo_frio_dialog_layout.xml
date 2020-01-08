@@ -3,61 +3,43 @@
     android:orientation="horizontal" android:layout_width="match_parent"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_margin="5dp"
-    card_view:cardElevation="15dp"
+    card_view:cardElevation="20dp"
     android:layout_height="wrap_content">
     <LinearLayout
         android:layout_width="match_parent"
         android:orientation="vertical"
         android:layout_height="match_parent">
-
         <TextView
             android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/botella_coca_header_der"
-            android:gravity="center"
-            android:paddingBottom="8dp"
             android:paddingTop="5dp"
-            android:text="Ejecucion de Encuesta Canales"
+            android:paddingBottom="8dp"
+            android:background="@drawable/header_curved_cc5"
+            android:text="Seleccionar o scanear equipo frio"
             android:textColor="@color/white"
-            android:textSize="20dp" />
+            android:textSize="20dp"
+            android:gravity="center"/>
         <!--INPUT VIEWS-->
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:orientation="vertical"
-                android:layout_height="match_parent">
         <android.support.v7.widget.AppCompatTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Grupo Isscom"
+            android:text="Equipo Frio"
             android:paddingLeft="5dp"/>
-        <android.widget.Spinner
-            android:id="@+id/grupoIsscomSpinner"
-            android:layout_height="wrap_content"
+        <com.toptoche.searchablespinnerlibrary.SearchableSpinner
+            android:id="@+id/equipoFrioSpinner"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_margin="5dp"
-            >
-        </android.widget.Spinner>
-<LinearLayout
-    android:id="@+id/layoutDinamico"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
-
-</LinearLayout>
+            ></com.toptoche.searchablespinnerlibrary.SearchableSpinner>
         <!--BUTTON-->
         <Button android:id="@+id/saveBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Ejecutar"
+            android:text="Aceptar"
             android:textColor="@color/white"
             android:clickable="true"
             android:background="@color/colorPrimary"
             android:layout_marginTop="1dp"/>
-            </LinearLayout>
-        </ScrollView>
     </LinearLayout>
 </android.support.v7.widget.CardView>
