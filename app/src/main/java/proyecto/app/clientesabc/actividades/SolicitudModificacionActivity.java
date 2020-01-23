@@ -705,6 +705,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
+                        Toasty.error(getBaseContext(), "Imagen seleccionada ya no existe en el dispositivo!").show();
+                        return;
                     }
                     try {
                         ContentResolver cR =  getContentResolver();
@@ -1203,6 +1205,36 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                         });
                     }
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-VWERK")){
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                Spinner zona_transporte = (Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE");
+                                String valor_centro_suministro = ((OpcionSpinner)combo.getSelectedItem()).getId().trim();
+                                ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
+                                // Creando el adaptador(opciones) para el comboBox deseado
+                                ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
+                                // Drop down layout style - list view with radio button
+                                dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
+                                if(zona_transporte != null) {
+                                    zona_transporte.setAdapter(dataAdapterRuta);
+                                    int selectedIndex = 0;
+                                    for (int j = 0; j < rutas_reparto.size(); j++) {
+                                        if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-LZONE") != null && solicitudSeleccionada.get(0).get("W_CTE-LZONE").trim().equals(rutas_reparto.get(j).getId())) {
+                                            zona_transporte.setSelection(j);
+                                            break;
+                                        }
+                                    }
+                                }
+                                if(position == 0)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                            }
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-KVGR5")){
                         //TODO aqui se debe cambiar si se quiere trabajar con diferentes tipos de 'PR'
                         if(solicitudSeleccionada.size() == 0) {
@@ -1493,8 +1525,16 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                     // Drop down layout style - list view with radio button
                                     dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
-                                    if(zona_transporte != null)
+                                    if(zona_transporte != null) {
                                         zona_transporte.setAdapter(dataAdapterRuta);
+                                        int selectedIndex = 0;
+                                        for (int j = 0; j < rutas_reparto.size(); j++) {
+                                            if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-LZONE") != null && solicitudSeleccionada.get(0).get("W_CTE-LZONE").trim().equals(rutas_reparto.get(j).getId())) {
+                                                zona_transporte.setSelection(j);
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
                                 ReplicarValorSpinner(parent,nombreCampo+"1",position);
                                 if(position == 0 && ((TextView) parent.getSelectedView()) != null)
@@ -1524,8 +1564,16 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                     // Drop down layout style - list view with radio button
                                     dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
-                                    if(zona_transporte != null)
+                                    if(zona_transporte != null) {
                                         zona_transporte.setAdapter(dataAdapterRuta);
+                                        int selectedIndex = 0;
+                                        for (int j = 0; j < rutas_reparto.size(); j++) {
+                                            if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-LZONE") != null && solicitudSeleccionada.get(0).get("W_CTE-LZONE").trim().equals(rutas_reparto.get(j).getId())) {
+                                                zona_transporte.setSelection(j);
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
                                 ReplicarValorSpinner(parent,nombreCampo,position);
                                 if(position == 0 && ((TextView) parent.getSelectedView()) != null)
@@ -1612,7 +1660,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     }
                     et.setMaxLines(1);
 
-                    if(campos.get(i).get("datatype").equals("char")) {
+                    if(campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("char")) {
 
                         et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("maxlength")) ) });
                         if(campos.get(i).get("campo").trim().equals("W_CTE-STCD3")){
@@ -1621,7 +1669,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         }else{
                             et.setInputType(InputType.TYPE_CLASS_TEXT);
                         }
-                    }else if(campos.get(i).get("datatype").equals("decimal")) {
+                    }else if(campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("decimal")) {
                         et.setInputType(InputType.TYPE_CLASS_NUMBER);
                         et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("numeric_precision")) ) });
                     }
@@ -3678,7 +3726,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         f_iniEditText.setText(seleccionado.getF_ini());
         f_finEditText.setText(seleccionado.getF_fin());
 
-        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont");
+        Spinner centro_suministro = (Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK");
+        String valor_centro_suministro = ((OpcionSpinner)centro_suministro.getSelectedItem()).getId().trim();
+        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(Objects.requireNonNull(context), R.layout.simple_spinner_item, rutas_reparto);
         // Drop down layout style - list view with radio button

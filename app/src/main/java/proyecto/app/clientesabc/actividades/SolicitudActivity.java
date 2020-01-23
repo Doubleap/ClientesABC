@@ -236,6 +236,7 @@ public class SolicitudActivity extends AppCompatActivity {
             GUID = mDBHelper.getGuiId();
             idForm = "";
             solicitudSeleccionada.clear();
+            mapeoCamposDinamicos.clear();
             setTitle("Solicitud Nuevo Cliente");
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             getSupportActionBar().setSubtitle(descripcion);
@@ -292,7 +293,6 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         return true;
                     case R.id.action_file:
-                        //Croperino.prepareGallery(SolicitudActivity.this);
                         intent = new Intent(Intent.ACTION_GET_CONTENT);
                         intent.setType("image/*");
                         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -781,7 +781,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         // respond to users whose devices do not support the crop action
                         catch (ActivityNotFoundException anfe) {
-                            Toasty.warning(this, "Este dispositivo no puede recortar la imagen!", Toasty.LENGTH_SHORT).show();;
+                            Toasty.warning(this, "Este dispositivo no puede recortar la imagen!", Toasty.LENGTH_SHORT).show();
                         }
                         //END CROP
                     } catch (IOException e) {
@@ -873,6 +873,8 @@ public class SolicitudActivity extends AppCompatActivity {
                         //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
+                        Toasty.error(getBaseContext(), "Imagen seleccionada ya no existe en el dispositivo!").show();
+                        return;
                     }
                     try {
                         ContentResolver cR =  getContentResolver();
@@ -1342,7 +1344,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                 ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                 // Drop down layout style - list view with radio button
                                 dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
-                                zona_transporte.setAdapter(dataAdapterRuta);
+                                if(zona_transporte != null) {
+                                    zona_transporte.setAdapter(dataAdapterRuta);
+                                    int selectedIndex = 0;
+                                    for (int j = 0; j < rutas_reparto.size(); j++) {
+                                        if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-LZONE") != null && solicitudSeleccionada.get(0).get("W_CTE-LZONE").trim().equals(rutas_reparto.get(j).getId())) {
+                                            zona_transporte.setSelection(j);
+                                            break;
+                                        }
+                                    }
+                                }
                                 if(position == 0)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
@@ -1518,7 +1529,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                     ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                     // Drop down layout style - list view with radio button
                                     dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
-                                    zona_transporte.setAdapter(dataAdapterRuta);
+                                    if(zona_transporte != null) {
+                                        zona_transporte.setAdapter(dataAdapterRuta);
+                                        int selectedIndex = 0;
+                                        for (int j = 0; j < rutas_reparto.size(); j++) {
+                                            if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-LZONE") != null && solicitudSeleccionada.get(0).get("W_CTE-LZONE").trim().equals(rutas_reparto.get(j).getId())) {
+                                                zona_transporte.setSelection(j);
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
 
                                 ReplicarValorSpinner(parent,nombreCampo+"1",position);
@@ -1549,7 +1569,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                     ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                     // Drop down layout style - list view with radio button
                                     dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
-                                    zona_transporte.setAdapter(dataAdapterRuta);
+                                    if(zona_transporte != null) {
+                                        zona_transporte.setAdapter(dataAdapterRuta);
+                                        int selectedIndex = 0;
+                                        for (int j = 0; j < rutas_reparto.size(); j++) {
+                                            if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-LZONE") != null && solicitudSeleccionada.get(0).get("W_CTE-LZONE").trim().equals(rutas_reparto.get(j).getId())) {
+                                                zona_transporte.setSelection(j);
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
                                 ReplicarValorSpinner(parent,nombreCampo,position);
                                 if(position == 0 && ((TextView) parent.getSelectedView()) != null)
@@ -1639,7 +1668,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     et.setMaxLines(1);
 
-                    if(campos.get(i).get("datatype").equals("char")) {
+                    if(campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("char")) {
 
                         et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("maxlength")) ) });
                         if(campos.get(i).get("campo").trim().equals("W_CTE-STCD3")){
@@ -1648,7 +1677,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         }else{
                             et.setInputType(InputType.TYPE_CLASS_TEXT);
                         }
-                    }else if(campos.get(i).get("datatype").equals("decimal")) {
+                    }else if(campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("decimal")) {
                         et.setInputType(InputType.TYPE_CLASS_NUMBER);
                         et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("numeric_precision")) ) });
                     }
@@ -2671,47 +2700,47 @@ public class SolicitudActivity extends AppCompatActivity {
                 byte[] image = adjuntosSolicitud.get(x).getImage();
                 //_bitmap.compress(Bitmap.CompressFormat.PNG, 50, image);
                 BitmapFactory.Options o = new BitmapFactory.Options();
-                o.inSampleSize = 1;
-                if (image.length > 200000)
-                    o.inSampleSize = 2;
-                if (image.length > 400000)
-                    o.inSampleSize = 4;
-                if (image.length > 500000)
-                    o.inSampleSize = 8;
-                Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length, o);
+            o.inSampleSize = 1;
+            if (image.length > 200000)
+                o.inSampleSize = 2;
+            if (image.length > 400000)
+                o.inSampleSize = 4;
+            if (image.length > 500000)
+                o.inSampleSize = 8;
+            Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length, o);
 
-                adjunto_image.setImageBitmap(imagen);
-                adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
+            adjunto_image.setImageBitmap(imagen);
+            adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
 
-                final int finalX = x;
-                adjunto_image.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
-                        //mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
-                    }
-                });
-                if (modificable) {
-                    adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View v) {
-                            DialogHandler appdialog = new DialogHandler();
-                            appdialog.Confirm((Activity) context, "Confirmación Borrado", "Esta seguro que quiere eliminar el archivo adjunto #" + finalX + "?", "Cancelar", "Eliminar", new EliminarAdjunto(context, activity, finalX));
-                            return false;
-                        }
-                    });
+            final int finalX = x;
+            adjunto_image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
+                    //mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
                 }
-            }else{
-                adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
-                adjunto_image.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.icon_file));
-                final int finalX = x;
-                adjunto_image.setOnClickListener(new View.OnClickListener() {
+            });
+            if (modificable) {
+                adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
-                    public void onClick(View v) {
-                        mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
+                    public boolean onLongClick(View v) {
+                        DialogHandler appdialog = new DialogHandler();
+                        appdialog.Confirm((Activity) context, "Confirmación Borrado", "Esta seguro que quiere eliminar el archivo adjunto #" + finalX + "?", "Cancelar", "Eliminar", new EliminarAdjunto(context, activity, finalX));
+                        return false;
                     }
                 });
             }
+        }else{
+            adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
+            adjunto_image.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.icon_file));
+            final int finalX = x;
+            adjunto_image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
+                }
+            });
+        }
             layout.addView(adjunto_image);
             myGallery.addView(layout);
         }
@@ -4354,7 +4383,7 @@ public class SolicitudActivity extends AppCompatActivity {
         cedulaValidada = true;
         MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
         String cedulaDigitada = texto.getText().toString().trim();
-        if(texto.getText().toString().trim().endsWith("-00"))
+        if(texto.getText().toString().trim().endsWith("-00") && tipoCedula.equals("C1"))
             idfiscal.setText(cedulaDigitada.substring(0,cedulaDigitada.length()-3).replaceFirst("^0+(?!$)", "").replace("-",""));
         else
             idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-",""));

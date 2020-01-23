@@ -60,6 +60,7 @@ import java.util.HashMap;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.modelos.EquipoFrio;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 
@@ -355,8 +356,8 @@ public class MantClienteActivity extends AppCompatActivity {
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Cierre NO disponible de momento.").show();
                                     break;
                                 case R.id.credito:
-                                    //showDialogFormulariosModificacion(codigoCliente,true, false);
-                                    Toasty.info(getBaseContext(),"Funcionalidad de Credito NO disponible de momento.").show();
+                                    showDialogFormulariosModificacion(codigoCliente,true, false);
+                                    //Toasty.info(getBaseContext(),"Funcionalidad de Credito NO disponible de momento.").show();
                                     break;
                                 case R.id.equipofrio:
                                     //showDialogFormulariosModificacion(codigoCliente,false, true);
@@ -517,6 +518,7 @@ public class MantClienteActivity extends AppCompatActivity {
                     Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de modificación!").show();
                 }else {
                     if (forms[selectedPosition].toLowerCase().contains("credito") || forms[selectedPosition].toLowerCase().contains("crédito")) {
+                        dialog.dismiss();
                         Bundle b = new Bundle();
                         b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
                         b.putString("codigoCliente", codigoCliente);
@@ -526,6 +528,7 @@ public class MantClienteActivity extends AppCompatActivity {
 
                     } else if(forms[selectedPosition].toLowerCase().contains("eq.") || forms[selectedPosition].toLowerCase().contains("frio") || forms[selectedPosition].toLowerCase().contains("equipo")) {
                         if(forms[selectedPosition].toLowerCase().contains("instal")) {//Si es de instalacion no ocupa numero de maquina de equipo frio
+                            dialog.dismiss();
                             Bundle b = new Bundle();
                             b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
                             b.putString("codigoCliente", codigoCliente);
@@ -539,6 +542,7 @@ public class MantClienteActivity extends AppCompatActivity {
                         }
                     }
                     else {
+                        dialog.dismiss();
                         Bundle b = new Bundle();
                         b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
                         b.putString("codigoCliente", codigoCliente);
@@ -628,14 +632,20 @@ public class MantClienteActivity extends AppCompatActivity {
                                         String lecturaEquipoFrio = barcodeReadEvent.getBarcodeData();
                                         try {
                                             reader.softwareTrigger(false);
-                                            Toasty.warning(getBaseContext(), "Código "+lecturaEquipoFrio+" leido!", Toast.LENGTH_SHORT).show();
-                                            Bundle b = new Bundle();
-                                            b.putString("tipoSolicitud", tipoSolicitud);
-                                            b.putString("codigoCliente", codigoCliente);
-                                            b.putString("codigoEquipoFrio", lecturaEquipoFrio);
-                                            intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
-                                            intent.putExtras(b); //Pase el parametro el Intent
-                                            startActivity(intent);
+                                            //Revisar si el codigo de equipo leido existe y es del cliente
+                                            EquipoFrio equipo = db.getEquipoFrioDB(codigoCliente,lecturaEquipoFrio);
+                                            if(equipo != null) {
+                                                Toasty.info(getBaseContext(), "Código " + lecturaEquipoFrio + " leido!", Toast.LENGTH_SHORT).show();
+                                                Bundle b = new Bundle();
+                                                b.putString("tipoSolicitud", tipoSolicitud);
+                                                b.putString("codigoCliente", codigoCliente);
+                                                b.putString("codigoEquipoFrio", lecturaEquipoFrio);
+                                                intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
+                                                intent.putExtras(b); //Pase el parametro el Intent
+                                                startActivity(intent);
+                                            }else{
+                                                Toasty.error(getBaseContext(), "Código " + lecturaEquipoFrio + " no existe para el cliente.", Toast.LENGTH_SHORT).show();
+                                            }
                                         } catch (ScannerNotClaimedException e) {
                                             e.printStackTrace();
                                         } catch (ScannerUnavailableException e) {

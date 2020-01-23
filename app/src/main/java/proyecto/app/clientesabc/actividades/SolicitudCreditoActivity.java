@@ -254,6 +254,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             idForm = "";
             solicitudSeleccionada.clear();
             solicitudSeleccionadaOld.clear();
+            mapeoCamposDinamicos.clear();
+            mapeoCamposDinamicosEnca.clear();
+            mapeoCamposDinamicosOld.clear();
             setTitle(codigoCliente+"-");
             subtitulo = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             tipoCreditoSAP = devolverTipoSolicitudSAP(subtitulo);
@@ -307,9 +310,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         intent = new Intent(Intent.ACTION_GET_CONTENT);
                         intent.setType("image/*");
                         intent.addCategory(Intent.CATEGORY_OPENABLE);
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
                         try {
-                            startActivityForResult(intent, 1);
-
+                            startActivityForResult(intent, 200);
                         } catch (ActivityNotFoundException e) {
                             Log.e("tag", getResources().getString(R.string.no_activity));
                         }
@@ -416,6 +419,10 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             numErrores++;
                             mensajeError += "- El cliente debe firmar las políticas de privacidad!\n";
                         }*/
+                        if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-KLIMK")).getText().toString().replace("0","").replace(".","").isEmpty()){
+                            numErrores++;
+                            mensajeError += "- Límite de créditos debe ser mayor a 0.00!\n";
+                        }
 
                         if(minAdjuntos > adjuntosSolicitud.size()){
                             numErrores++;
@@ -619,8 +626,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         options.inJustDecodeBounds = true;
 
                         BitmapFactory.decodeFile(file2.getAbsolutePath(), options);
-                        int imageHeight = options.outHeight;
-                        int imageWidth = options.outWidth;
+                        //int imageHeight = options.outHeight;
+                        //int imageWidth = options.outWidth;
                         /*CROP*/
                         try {
                             // call the standard crop action intent (the user device may not
@@ -630,6 +637,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             cropIntent.setDataAndType(mPhotoUri, "image/*");
                             // set crop properties
                             cropIntent.putExtra("crop", true);
+                            cropIntent.putExtra("scale", true);
                             // indicate aspect of desired crop
                             cropIntent.putExtra("aspectX", 1);
                             cropIntent.putExtra("aspectY", 1.33);
@@ -643,9 +651,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         }
                         // respond to users whose devices do not support the crop action
                         catch (ActivityNotFoundException anfe) {
-                            Toast toast = Toast
-                                    .makeText(this, "This device doesn't support the crop action!", Toast.LENGTH_SHORT);
-                            toast.show();
+                            Toasty.warning(this, "Este dispositivo no puede recortar la imagen!", Toasty.LENGTH_SHORT).show();
                         }
                         /*END CROP*/
                     } catch (IOException e) {
@@ -737,6 +743,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
+                        Toasty.error(getBaseContext(), "Imagen seleccionada ya no existe en el dispositivo!").show();
+                        return;
                     }
                     try {
                         ContentResolver cR =  getContentResolver();
@@ -1125,7 +1133,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             if(opciones.get(j).get("id").trim().equals(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim())){
                                 selectedIndex = j;
                             }
-                            if(opciones.get(j).get("id").trim().equals(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim())){
+                        }
+                        if(solicitudSeleccionadaOld.size() > 0){
+                            if(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo")) != null && opciones.get(j).get("id").trim().equals(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim())){
                                 selectedIndexOld = j;
                             }
                         }
@@ -1591,7 +1601,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     }
                     et.setMaxLines(1);
 
-                    if(campos.get(i).get("datatype").equals("char")) {
+                    if(campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("char")) {
 
                         et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("maxlength")) ) });
                         if(campos.get(i).get("campo").trim().equals("W_CTE-STCD3")){
@@ -1600,7 +1610,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         }else{
                             et.setInputType(InputType.TYPE_CLASS_TEXT);
                         }
-                    }else if(campos.get(i).get("datatype").equals("decimal")) {
+                    }else if(campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("decimal")) {
                         et.setInputType(InputType.TYPE_CLASS_NUMBER);
                         et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("numeric_precision")) ) });
                     }
@@ -2661,24 +2671,48 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             adjunto_image.setPadding(5,5,5,5);
 
             final String nombre_adjunto = adjuntosSolicitud.get(x).getName();
-            byte[] image = adjuntosSolicitud.get(x).getImage();
-            Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length);
-            adjunto_image.setImageBitmap(imagen);
+            if(adjuntosSolicitud.get(x).getImage() != null) {
+                byte[] image = adjuntosSolicitud.get(x).getImage();
+                //_bitmap.compress(Bitmap.CompressFormat.PNG, 50, image);
+                BitmapFactory.Options o = new BitmapFactory.Options();
+                o.inSampleSize = 1;
+                if (image.length > 200000)
+                    o.inSampleSize = 2;
+                if (image.length > 400000)
+                    o.inSampleSize = 4;
+                if (image.length > 500000)
+                    o.inSampleSize = 8;
+                Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length, o);
 
-            final int finalX = x;
-            adjunto_image.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
-                }
-            });
-            if(modificable) {
-                adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
+                adjunto_image.setImageBitmap(imagen);
+                adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
+
+                final int finalX = x;
+                adjunto_image.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public boolean onLongClick(View v) {
-                        DialogHandler appdialog = new DialogHandler();
-                        appdialog.Confirm((Activity) context, "Confirmación Borrado", "Esta seguro que quiere eliminar el archivo adjunto #"+finalX+"?", "Cancelar", "Eliminar", new EliminarAdjunto(context, activity, finalX));
-                        return false;
+                    public void onClick(View v) {
+                        mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
+                        //mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
+                    }
+                });
+                if (modificable) {
+                    adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            DialogHandler appdialog = new DialogHandler();
+                            appdialog.Confirm((Activity) context, "Confirmación Borrado", "Esta seguro que quiere eliminar el archivo adjunto #" + finalX + "?", "Cancelar", "Eliminar", new SolicitudActivity.EliminarAdjunto(context, activity, finalX));
+                            return false;
+                        }
+                    });
+                }
+            }else{
+                adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
+                adjunto_image.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.icon_file));
+                final int finalX = x;
+                adjunto_image.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
                     }
                 });
             }
@@ -3424,6 +3458,14 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         TextView adjunto_txt = d.findViewById(R.id.nombre);
         final String nombre_adjunto = adjunto.getName();
         byte[] image = adjunto.getImage();
+        BitmapFactory.Options o = new BitmapFactory.Options();
+        o.inSampleSize = 1;
+        if(image.length  > 200000)
+            o.inSampleSize = 2;
+        if(image.length  > 400000)
+            o.inSampleSize = 4;
+        if(image.length  > 500000)
+            o.inSampleSize = 8;
         Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length);
         adjunto_img.setImageBitmap(imagen);
         adjunto_txt.setText(adjunto.getName());
@@ -3862,8 +3904,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             if(tv != null){
                                 valor = tv.getText().toString();
                                 insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
-                                if(!listaCamposDinamicos.get(i).equals("W_CTE-NAME3")){
-                                    insertValuesOld.put("[W_CTE-NAME1]", valor);
+                                if(listaCamposDinamicos.get(i).equals("W_CTE-NAME3")){
+                                    insertValues.put("[W_CTE-NAME1]", valor);
                                 }
                             }
                             if(listaCamposDinamicos.get(i).equals("W_CTE-COMENTARIOS")) {
@@ -4097,7 +4139,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             }
             try {
                 //Datos que siemrpe deben ir cuando se crea por primera vez.
-                //TODO seccionar par pais el grupo de cuentas, talvez sacar de una tabla
+                //TODO seccionar por pais el grupo de cuentas, talvez sacar de una tabla
                 if(tipoSolicitud.equals("1"))
                     insertValues.put("[W_CTE-KTOKD]", "RCMA");
                 else{
@@ -4123,10 +4165,12 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     if(solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")) {
                         insertValues.put("[estado]", "Modificado");
                     }
+                    insertValues.put("[W_CTE-KUNNR]", codigoCliente);
                     long modifico = mDb.update("FormHvKof_solicitud", insertValues, "id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});
                     Toasty.success(getApplicationContext(), "Registro modificado con éxito", Toast.LENGTH_SHORT).show();
                 }else {
                     insertValues.put("[estado]", "Nuevo");
+                    insertValues.put("[W_CTE-KUNNR]", codigoCliente);
                     long inserto = mDb.insertOrThrow("FormHvKof_solicitud", null, insertValues);
 
                     insertValuesOld.put("[W_CTE-KUNNR]", codigoCliente);

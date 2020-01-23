@@ -34,7 +34,7 @@
         android:tint="@color/colorPrimary"
         android:backgroundTint="@color/sinFormularios"
         android:layout_margin="16dp" />
-    <android.support.design.widget.FloatingActionButton
+    <proyecto.app.clientesabc.clases.MovableFloatingActionButton
         android:id="@+id/fabBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

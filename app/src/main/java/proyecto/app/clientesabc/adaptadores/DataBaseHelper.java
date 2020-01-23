@@ -553,7 +553,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-KDGRP",cursor.getString(cursor.getColumnIndex("W_CTE-KDGRP")));
             solicitud.put("W_CTE-KKBER",cursor.getString(cursor.getColumnIndex("W_CTE-KKBER")));
             solicitud.put("W_CTE-KLABC",cursor.getString(cursor.getColumnIndex("W_CTE-KLABC")));
-            solicitud.put("W_CTE-KLIMK",cursor.getString(cursor.getColumnIndex("W_CTE-KLIMK")));
+            solicitud.put("W_CTE-KLIMK",String.format ("%.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-KLIMK"))));
             solicitud.put("W_CTE-KNKLI",cursor.getString(cursor.getColumnIndex("W_CTE-KNKLI")));
             solicitud.put("W_CTE-KTGRD",cursor.getString(cursor.getColumnIndex("W_CTE-KTGRD")));
             solicitud.put("W_CTE-KTOKD",cursor.getString(cursor.getColumnIndex("W_CTE-KTOKD")));
@@ -565,7 +565,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-KVGR5",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR5")));
             solicitud.put("W_CTE-LAND1",cursor.getString(cursor.getColumnIndex("W_CTE-LAND1")));
             solicitud.put("W_CTE-LIFNR",cursor.getString(cursor.getColumnIndex("W_CTE-LIFNR")));
-            solicitud.put("W_CTE-LIMSUG",cursor.getString(cursor.getColumnIndex("W_CTE-LIMSUG")));
+            solicitud.put("W_CTE-LIMSUG",String.format ("%.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-LIMSUG"))));
             solicitud.put("W_CTE-LOCATION",cursor.getString(cursor.getColumnIndex("W_CTE-LOCATION")));
             solicitud.put("W_CTE-LPRIO",cursor.getString(cursor.getColumnIndex("W_CTE-LPRIO")));
             solicitud.put("W_CTE-LZONE",cursor.getString(cursor.getColumnIndex("W_CTE-LZONE")));
@@ -676,7 +676,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-IM_MATERIAL",cursor.getString(cursor.getColumnIndex("W_CTE-IM_MATERIAL")));
             solicitud.put("W_CTE-IM_SERIALNO",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SERIALNO")));
             solicitud.put("W_CTE-IM_CAUSE_CODE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODE")));
+            solicitud.put("W_CTE-IM_CAUSE_CODEGRP",cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODEGRP")));
             solicitud.put("W_CTE-IM_D_CODE",String.format("%04d", Integer.parseInt(cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")))));
+            solicitud.put("W_CTE-IM_D_CODEGRP",cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODEGRP")));
             solicitud.put("W_CTE-IM_PRIORITY",cursor.getString(cursor.getColumnIndex("W_CTE-IM_PRIORITY")));
             solicitud.put("W_CTE-IM_SHORT_TEXT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")));
             solicitud.put("W_CTE-IM_TEXT_LINE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")));*/
@@ -855,7 +857,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-IM_MATERIAL",cursor.getString(cursor.getColumnIndex("W_CTE-IM_MATERIAL")));
             solicitud.put("W_CTE-IM_SERIALNO",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SERIALNO")));
             solicitud.put("W_CTE-IM_CAUSE_CODE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODE")));
-            solicitud.put("W_CTE-IM_D_CODE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")));
+            solicitud.put("W_CTE-IM_CAUSE_CODEGRP",cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODEGRP")));
+            solicitud.put("W_CTE-IM_D_CODE",String.format("%04d", Integer.parseInt(cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")))));
+            solicitud.put("W_CTE-IM_D_CODEGRP",cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODEGRP")));
             solicitud.put("W_CTE-IM_PRIORITY",cursor.getString(cursor.getColumnIndex("W_CTE-IM_PRIORITY")));
             solicitud.put("W_CTE-IM_SHORT_TEXT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")));
             solicitud.put("W_CTE-IM_TEXT_LINE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")));*/
@@ -869,8 +873,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getSolicitudes(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> formList = new ArrayList<>();
-        String query = "SELECT s.idform , s.id_solicitud, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, f.Descripcion, " +
-                "CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal " +
+        String query = "SELECT s.idform , s.id_solicitud, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME1] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, f.Descripcion, " +
+                "CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo " +
                 " FROM FormHVKOF_solicitud s  " +
                 " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) "+
                 " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) ";
@@ -885,6 +889,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("tipform",cursor.getString(5));
             user.put("tipo_solicitud",cursor.getString(6));
             user.put("id_fiscal",cursor.getString(7));
+            user.put("ind_credito",cursor.getString(8));
+            user.put("ind_modelo",cursor.getString(9));
             formList.add(user);
         }
         cursor.close();
@@ -901,7 +907,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             coma = ",";
         }
         params += ")";
-        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal " +
+        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo " +
                 " FROM FormHVKOF_solicitud s" +
                 " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) " +
                 " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) "+
@@ -917,6 +923,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("id_solicitud",cursor.getString(5));
             user.put("tipo_solicitud",cursor.getString(6));
             user.put("id_fiscal",cursor.getString(7));
+            user.put("ind_credito",cursor.getString(8));
+            user.put("ind_modelo",cursor.getString(9));
             formList.add(user);
         }
         cursor.close();
@@ -937,7 +945,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             parametros.add(tipform);
         }
 
-        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal " +
+        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo " +
                 " FROM FormHVKOF_solicitud s" +
                 " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) " +
                 " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) "+
@@ -954,6 +962,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("id_solicitud",cursor.getString(5));
             user.put("tipo_solicitud",cursor.getString(6));
             user.put("id_fiscal",cursor.getString(7));
+            user.put("ind_credito",cursor.getString(8));
+            user.put("ind_modelo",cursor.getString(9));
             formList.add(user);
         }
         cursor.close();
@@ -1205,7 +1215,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ArrayList<HashMap<String, String>> listaCatalogo = new ArrayList<>();
 
         // Select All Query
-        String selectQuery = "SELECT * " +
+        String selectQuery = "SELECT DISTINCT * " +
                 " FROM " + tabla +" WHERE 1=1";
 
         StringBuilder filtros = new StringBuilder();
@@ -1291,7 +1301,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ArrayList<HashMap<String, String>> listaCatalogo = new ArrayList<>();
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
         // Select All Query
-        String selectQuery = "SELECT * " +
+        String selectQuery = "SELECT DISTINCT * " +
                 " FROM " + tabla +" WHERE 1=1";
 
         StringBuilder filtros = new StringBuilder();
@@ -1480,7 +1490,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ArrayList<HashMap<String, String>> listaCatalogo = new ArrayList<>();
 
         // Select All Query
-        String selectQuery = "SELECT * " +
+        String selectQuery = "SELECT DISTINCT * " +
                 " FROM " + tabla +" WHERE 1=1";
         StringBuilder filtros = new StringBuilder();
 
@@ -1519,16 +1529,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             listaCatalogo.add(seleccione);
             // looping through all rows and adding to list
             if (cursor.moveToFirst()) {
-
                 do {
-                    HashMap<String,String> lista = new HashMap<>();
-                    lista.put("id",cursor.getString(columnaId).trim());//1era columna del query
-                    lista.put("descripcion",cursor.getString(columnaId).trim() + " - " + cursor.getString(columnaDesc));
-                    if(tabla.equals("sapdmateriales_pde")) {
-                        lista.put("id", cursor.getString(columnaId).trim().substring(10));
-                        lista.put("descripcion", cursor.getString(columnaId).trim().substring(10) + " - " + cursor.getString(columnaDesc));
+                    HashMap<String, String> lista = new HashMap<>();
+                    lista.put("id", cursor.getString(columnaId).trim());//1era columna del query
+                    lista.put("descripcion", cursor.getString(columnaId).trim() + " - " + cursor.getString(columnaDesc));
+                    if(!listaCatalogo.contains(lista)) {
+                        if (tabla.equals("sapdmateriales_pde")) {
+                            lista.put("id", cursor.getString(columnaId).trim().substring(10));
+                            lista.put("descripcion", cursor.getString(columnaId).trim().substring(10) + " - " + cursor.getString(columnaDesc));
+                        }
+                        listaCatalogo.add(lista);
                     }
-                    listaCatalogo.add(lista);
                 } while (cursor.moveToNext());
             }
             // closing connection
@@ -2046,11 +2057,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public EquipoFrio getEquipoFrioDB(String id_cliente, String id_equipo){
         //SQLiteDatabase db = this.getWritableDatabase();
-        EquipoFrio ef = new EquipoFrio();
+        EquipoFrio ef = null;
         String query = "SELECT * FROM sapDBaseInstalada WHERE KUNNR = ? AND  trim(EQUNR) = ?";
         Cursor cursor = mDataBase.rawQuery(query,new String[]{id_cliente, id_equipo});
 
         while (cursor.moveToNext()){
+            ef = new EquipoFrio();
             ef.setKdgrp(cursor.getString(cursor.getColumnIndex("KDGRP")).trim());
             ef.setBzirk(cursor.getString(cursor.getColumnIndex("BZIRK")).trim());
             ef.setKunnr(cursor.getString(cursor.getColumnIndex("KUNNR")).trim());
@@ -2509,23 +2521,27 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         mDataBase.execSQL(sqlUpdate);
     }
     public void EliminarSolicitud(String id_solicitud){
-        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete(VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete(VariablesGlobales.getTablaEncuestaGecSolicitud(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete(VariablesGlobales.getTablaEncuestaSolicitud(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete("FormHvKof_solicitud", "id_solicitud=?", new String[]{id_solicitud});
+        try {
+            mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete(VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete(VariablesGlobales.getTablaEncuestaGecSolicitud(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete(VariablesGlobales.getTablaEncuestaSolicitud(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete("FormHvKof_solicitud", "id_solicitud=?", new String[]{id_solicitud});
+            //tablas Old si eixsten
+            mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_OLD_HH(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_OLD_HH(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_OLD_HH(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_OLD_HH(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_OLD_HH(), "id_solicitud=?", new String[]{id_solicitud});
+            mDataBase.delete("FormHvKof_old_solicitud", "id_solicitud=?", new String[]{id_solicitud});
+        }catch(Exception e){
+            Toasty.warning(mContext,"Error al eliminar solicitud. "+e.getMessage()).show();
+        }
 
-        //tablas Old si eixsten
-        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_OLD_HH(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_OLD_HH(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_OLD_HH(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_OLD_HH(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_OLD_HH(), "id_solicitud=?", new String[]{id_solicitud});
-        mDataBase.delete("FormHvKof_solicitud_old", "id_solicitud=?", new String[]{id_solicitud});
     }
 
 
@@ -2579,4 +2595,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return descripcion;
     }
 
+    public ArrayList<HashMap<String,String>> CausasDeGrupo(String grupo) {
+        ArrayList<HashMap<String, String>> causas = getDatosCatalogo("cat_ef_causas", 3,4, "CODEGRUPPE = '"+grupo+"'");
+        return causas;
+    }
+    public ArrayList<HashMap<String,String>> SintomasDeGrupo(String grupo) {
+        ArrayList<HashMap<String, String>> sintomas = getDatosCatalogo("cat_ef_causas", 3,4, "CODEGRUPPE = '"+grupo+"'");
+        return sintomas;
+    }
 }

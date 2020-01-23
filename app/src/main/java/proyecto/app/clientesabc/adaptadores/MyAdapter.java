@@ -30,6 +30,8 @@ import java.util.HashMap;
 
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.actividades.SolicitudActivity;
+import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
+import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
 
@@ -123,55 +125,16 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         if(formListFiltered.get(position).get("idform") != null)
             idform.setText("("+formListFiltered.get(position).get("idform").trim()+")");
 
-        holder.listView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                /*Bundle b = new Bundle();
-                Intent intent;
-                b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
-                if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6")) {
-                    intent = new Intent(context, SolicitudActivity.class);
-                    intent.putExtras(b); //Pase el parametro el Intent
-                    context.startActivity(intent);
-                }else{
-                    intent = new Intent(context, SolicitudModificacionActivity.class);
-                    intent.putExtras(b); //Pase el parametro el Intent
-                    context.startActivity(intent);
-                }*/
-            }
-        });
         codigo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Bundle b = new Bundle();
-                Intent intent;
-                b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
-                if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6")) {
-                    intent = new Intent(context, SolicitudActivity.class);
-                    intent.putExtras(b); //Pase el parametro el Intent
-                    context.startActivity(intent);
-                }else{
-                    intent = new Intent(context, SolicitudModificacionActivity.class);
-                    intent.putExtras(b); //Pase el parametro el Intent
-                    context.startActivity(intent);
-                }
+                ModificarSolicitud(position);
             }
         });
         nombre.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Bundle b = new Bundle();
-                Intent intent;
-                b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
-                if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6")) {
-                    intent = new Intent(context, SolicitudActivity.class);
-                    intent.putExtras(b); //Pase el parametro el Intent
-                    context.startActivity(intent);
-                }else{
-                    intent = new Intent(context, SolicitudModificacionActivity.class);
-                    intent.putExtras(b); //Pase el parametro el Intent
-                    context.startActivity(intent);
-                }
+                ModificarSolicitud(position);
             }
         });
         textViewOptions.setOnClickListener(new View.OnClickListener() {
@@ -233,34 +196,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        Bundle b = new Bundle();
                         Intent intent = null;
                         switch (item.getItemId()) {
                             case R.id.detalle:
-                                //TODO enviar el tipo de formulario tambien a la solicitud
-                                //b.putString("tipoSolicitud", "1"); //id de solicitud
-                                b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
-                                if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6")) {
-                                    intent = new Intent(context, SolicitudActivity.class);
-                                    intent.putExtras(b); //Pase el parametro el Intent
-                                    context.startActivity(intent);
-                                }else{
-                                    intent = new Intent(context, SolicitudModificacionActivity.class);
-                                    intent.putExtras(b); //Pase el parametro el Intent
-                                    context.startActivity(intent);
-                                }
+                                ModificarSolicitud(position);
                                 break;
                             case R.id.modificar:
-                                b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
-                                if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6")) {
-                                    intent = new Intent(context, SolicitudActivity.class);
-                                    intent.putExtras(b); //Pase el parametro el Intent
-                                    context.startActivity(intent);
-                                }else{
-                                    intent = new Intent(context, SolicitudModificacionActivity.class);
-                                    intent.putExtras(b); //Pase el parametro el Intent
-                                    context.startActivity(intent);
-                                }
+                                ModificarSolicitud(position);
                                 break;
                             case R.id.incompleto:
                                 db.CambiarEstadoSolicitud(formListFiltered.get(position).get("id_solicitud").trim(),"Incompleto");
@@ -321,6 +263,33 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                 }
             };
             holder.listView.setOnClickListener(mOnClickListener);*/
+    }
+
+    private void ModificarSolicitud(int position) {
+        Bundle b = new Bundle();
+        Intent intent = null;
+        b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
+        b.putString("codigoCliente", formListFiltered.get(position).get("codigo").trim());
+
+        if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6") || formListFiltered.get(position).get("ind_modelo").trim().equals("I")) {
+            intent = new Intent(context, SolicitudActivity.class);
+            intent.putExtras(b); //Pase el parametro el Intent
+            context.startActivity(intent);
+        }else if(formListFiltered.get(position).get("ind_modelo").trim().equals("M") || formListFiltered.get(position).get("ind_modelo").trim().equals("B")){
+            if(formListFiltered.get(position).get("ind_credito").trim().equals("0")) {
+                intent = new Intent(context, SolicitudModificacionActivity.class);
+                intent.putExtras(b); //Pase el parametro el Intent
+                context.startActivity(intent);
+            }else if(formListFiltered.get(position).get("ind_credito").trim().equals("1")) {
+                intent = new Intent(context, SolicitudCreditoActivity.class);
+                intent.putExtras(b); //Pase el parametro el Intent
+                context.startActivity(intent);
+            }
+        }else if(formListFiltered.get(position).get("ind_modelo").trim().equals("E")){
+            intent = new Intent(context, SolicitudAvisosEquipoFrioActivity.class);
+            intent.putExtras(b); //Pase el parametro el Intent
+            context.startActivity(intent);
+        }
     }
 
     // Return the size of your dataset (invoked by the layout manager)

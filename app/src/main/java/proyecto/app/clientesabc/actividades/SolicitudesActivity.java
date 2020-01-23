@@ -31,13 +31,14 @@ import java.util.List;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.MyAdapter;
+import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
 
 
 public class SolicitudesActivity extends AppCompatActivity {
     DataBaseHelper db;
     private SearchView searchView;
     private MyAdapter mAdapter;
-    private FloatingActionButton fab;
+    private MovableFloatingActionButton fab;
     private FloatingActionButton fab1;
     private FloatingActionButton fab2;
     boolean isFABOpen = false;
@@ -72,6 +73,7 @@ public class SolicitudesActivity extends AppCompatActivity {
         fab = findViewById(R.id.fabBtn);
         fab1 = findViewById(R.id.filterBtn);
         fab2 = findViewById(R.id.addBtn);
+        fab1.hide();fab2.hide();
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -180,8 +182,10 @@ public class SolicitudesActivity extends AppCompatActivity {
 
     private void showFABMenu(){
         isFABOpen=true;
+        fab1.show();fab2.show();
         fab1.animate().translationY((float)-120.0);
         fab2.animate().translationY((float)-240.0);
+
         //fab3.animate().translationY(-getResources().getDimension(R.dimen.standard_155));
     }
     private void closeFABMenu(){
@@ -189,7 +193,7 @@ public class SolicitudesActivity extends AppCompatActivity {
         fab.animate().translationY(0);
         fab1.animate().translationY(0);
         fab2.animate().translationY(0);
-        //fab3.animate().translationY(0);
+        fab1.hide();fab2.hide();
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

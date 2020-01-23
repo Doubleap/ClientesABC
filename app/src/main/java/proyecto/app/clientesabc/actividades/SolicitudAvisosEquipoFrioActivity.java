@@ -254,6 +254,10 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             idForm = "";
             solicitudSeleccionada.clear();
             solicitudSeleccionadaOld.clear();
+            mapeoCamposDinamicos.clear();
+            mapeoCamposDinamicosEnca.clear();
+            mapeoVisitas.clear();
+            mapeoCamposDinamicosOld.clear();
             setTitle(codigoCliente+"-");
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             getSupportActionBar().setSubtitle(descripcion);
@@ -1094,10 +1098,15 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     }
 
                     //Si son catalogos de equipo frio debo las columnas de ID y Descripcion estan en otros indice de columnas
-
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim());
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_causas") || campos.get(i).get("tabla").trim().toLowerCase().equals("ef_prioridades")){
                         opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),3,4);
+                        if(campos.get(i).get("campo").trim().toLowerCase().equals("w_cte-im_cause_codegrp")){
+                            opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),2,2,"CODEGRUPPE like 'CS-%'");
+                        }
+                        if(campos.get(i).get("campo").trim().toLowerCase().equals("w_cte-im_d_codegrp")){
+                            opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),2,2,"CODEGRUPPE like 'CA-%'");
+                        }
                     }
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_clases")){
                         opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),1,2);
@@ -1202,30 +1211,32 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             }
                         });
                     }
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-KVGR5")){
-                        //TODO aqui se debe cambiar si se quiere trabajar con diferentes tipos de 'PR'
-                        if(solicitudSeleccionada.size() == 0) {
-                            combo.setSelection(VariablesGlobales.getIndex(combo, "PR"));
-                            combo.setEnabled(false);
-                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-                        }
+
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-IM_CAUSE_CODEGRP")){
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                CausasDeGrupo(parent);
                                 final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-                                /*if (solicitudSeleccionada.size() == 0) {
-                                    visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG", ""), opcion.getId());
-
-                                    tb_visitas.setDataAdapter(new VisitasTableAdapter(view.getContext(), visitasSolicitud));
-                                    if (tb_visitas.getLayoutParams() != null) {
-                                        tb_visitas.getLayoutParams().height = 50;
-                                        tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView ) * visitasSolicitud.size());
-                                    }
-                                }*/
                                 if(position == 0)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                             }
 
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-IM_D_CODEGRP")){
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                SintomasDeGrupo(parent);
+                                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                                if(position == 0)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                            }
                             @Override
                             public void onNothingSelected(AdapterView<?> parent) {
 
@@ -4702,6 +4713,71 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         String name = returnCursor.getString(nameIndex);
         returnCursor.close();
         return name;
+    }
+
+    private static void CausasDeGrupo(AdapterView<?> parent){
+        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+
+        ArrayList<HashMap<String, String>> causas = mDBHelper.CausasDeGrupo(opcion.getId());
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < causas.size(); j++){
+            listaopciones.add(new OpcionSpinner(causas.get(j).get("id"), causas.get(j).get("descripcion")));
+            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-IM_CAUSE_CODE").trim().equals(causas.get(j).get("id"))){
+                selectedIndex = j;
+            }
+        }
+
+        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-IM_CAUSE_CODE");
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        combo.setBackground(d);
+        combo.setAdapter(dataAdapter);
+        combo.setSelection(selectedIndex);
+        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
+            ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
+
+        if(!modificable){
+            combo.setEnabled(false);
+            combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+        }
+    }
+    private static void SintomasDeGrupo(AdapterView<?> parent){
+        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+
+        ArrayList<HashMap<String, String>> causas = mDBHelper.SintomasDeGrupo(opcion.getId());
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < causas.size(); j++){
+            listaopciones.add(new OpcionSpinner(causas.get(j).get("id"), causas.get(j).get("descripcion")));
+            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-IM_D_CODE").trim().equals(causas.get(j).get("id"))){
+                selectedIndex = j;
+            }
+        }
+
+        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-IM_D_CODE");
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        combo.setBackground(d);
+        combo.setAdapter(dataAdapter);
+        combo.setSelection(selectedIndex);
+        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
+            ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
+
+        if(!modificable){
+            combo.setEnabled(false);
+            combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+        }
     }
 
     private static void Provincias(AdapterView<?> parent){
