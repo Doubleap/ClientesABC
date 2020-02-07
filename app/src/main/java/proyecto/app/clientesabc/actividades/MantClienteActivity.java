@@ -360,6 +360,7 @@ public class MantClienteActivity extends AppCompatActivity {
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Credito NO disponible de momento.").show();
                                     break;
                                 case R.id.equipofrio:
+                                    //EQUIPO FRIO
                                     //showDialogFormulariosModificacion(codigoCliente,false, true);
                                     Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
                                     break;

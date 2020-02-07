@@ -1026,742 +1026,741 @@ public class SolicitudActivity extends AppCompatActivity {
             LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
 
             for (int i = 0; i < campos.size(); i++) {
-                ImageView btnAyuda = null;
-                //Creacion de seccion
-                if(!seccionAnterior.equals(campos.get(i).get("id_seccion").trim()) && !campos.get(i).get("id_seccion").trim().equals("99")) {
-                    CardView seccion_layout = new CardView(Objects.requireNonNull(getContext()));
+                    ImageView btnAyuda = null;
+                    //Creacion de seccion
+                    if (!seccionAnterior.equals(campos.get(i).get("id_seccion").trim()) && !campos.get(i).get("id_seccion").trim().equals("99")) {
+                        CardView seccion_layout = new CardView(Objects.requireNonNull(getContext()));
 
-                    TextView seccion_header = new TextView(getContext());
-                    seccion_header.setAllCaps(true);
-                    seccion_header.setText(campos.get(i).get("seccion").trim());
-                    seccion_header.setLayoutParams(tlp);
-                    seccion_header.setPadding(10, 0, 0, 0);
-                    seccion_header.setTextColor(getResources().getColor(R.color.white, null));
-                    seccion_header.setTextSize(10);
+                        TextView seccion_header = new TextView(getContext());
+                        seccion_header.setAllCaps(true);
+                        seccion_header.setText(campos.get(i).get("seccion").trim());
+                        seccion_header.setLayoutParams(tlp);
+                        seccion_header.setPadding(10, 0, 0, 0);
+                        seccion_header.setTextColor(getResources().getColor(R.color.white, null));
+                        seccion_header.setTextSize(10);
 
-                    //LinearLayout seccion_layout = new LinearLayout(getContext());
-                    LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                    hlp.setMargins(0, 25, 0, 15);
-                    seccion_layout.setLayoutParams(hlp);
-                    seccion_layout.setBackground(getResources().getDrawable(R.color.colorPrimary, null));
-                    seccion_layout.setPadding(5, 5, 5, 5);
-                    seccion_layout.addView(seccion_header);
+                        //LinearLayout seccion_layout = new LinearLayout(getContext());
+                        LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        hlp.setMargins(0, 25, 0, 15);
+                        seccion_layout.setLayoutParams(hlp);
+                        seccion_layout.setBackground(getResources().getDrawable(R.color.colorPrimary, null));
+                        seccion_layout.setPadding(5, 5, 5, 5);
+                        seccion_layout.addView(seccion_header);
 
-                    ll.addView(seccion_layout);
-                }
-                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("adjuntos")) {
-                    //Tipo ADJUNTOS
-                    DesplegarBloque(mDBHelper,ll,campos.get(i));
-                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
-                    if(campos.get(i).get("tabla_local").trim().length() > 0){
-                        listaCamposBloque.add(campos.get(i).get("campo").trim());
+                        ll.addView(seccion_layout);
                     }
-                }else
-                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("grid")) {
-                    //Tipo GRID o BLOQUE de Datos (Estos Datos requieren una tabla de la BD adicional a FORMHVKOF)
-                    //Bloques Disponibles [Contactos, Impuestos, Funciones Interlocutor, visitas, bancos, notificantes]
-                    DesplegarBloque(mDBHelper,ll,campos.get(i));
-                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
-                    if(campos.get(i).get("tabla_local").trim().length() > 0){
-                        listaCamposBloque.add(campos.get(i).get("campo").trim());
-                    }
-                }else
-                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("encuesta")) {
-                    //Encuesta Canales, se genera un checkbox que indicara si se ha realizado la encuesta de canales completa
-                    //Tipo CHECKBOX
-                    CheckBox checkbox = new CheckBox(getContext());
-                    checkbox.setText(campos.get(i).get("descr"));
-                    if(campos.get(i).get("sup").trim().length() > 0){
-                        checkbox.setVisibility(View.GONE);
-                    }
-                    if(campos.get(i).get("vis").trim().length() > 0){
-                        checkbox.setEnabled(false);
-                        //checkbox.setVisibility(View.GONE);
-                    }
-                    if(campos.get(i).get("dfaul").trim().length() > 0){
-                        checkbox.setChecked(true);
-                    }
-                    if(solicitudSeleccionada.size() > 0){
-                        checkbox.setChecked(true);
-                    }
-                    LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-                    checkbox.setLayoutParams(clp);
-                    checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_survey,null), null);
-
-                    ll.addView(checkbox);
-                    checkbox.setOnClickListener(new OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            displayDialogEncuestaCanales(getContext());
-                            if(((CheckBox) v).isChecked())
-                                ((CheckBox) v).setChecked(false);
-                            else
-                                ((CheckBox) v).setChecked(true);
+                    if (campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("adjuntos")) {
+                        //Tipo ADJUNTOS
+                        DesplegarBloque(mDBHelper, ll, campos.get(i));
+                        listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                        if (campos.get(i).get("tabla_local").trim().length() > 0) {
+                            listaCamposBloque.add(campos.get(i).get("campo").trim());
                         }
-                    });
-
-                    ColorStateList colorStateList = new ColorStateList(
-                            new int[][]{
-                                    new int[]{-android.R.attr.state_checked}, // unchecked
-                                    new int[]{android.R.attr.state_checked} , // checked
-                            },
-                            new int[]{
-                                    Color.parseColor("#110000"),
-                                    Color.parseColor("#00aa00"),
-                            }
-                    );
-
-                    CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
-
-                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
-                    mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
-                }else
-                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("encuesta_gec")) {
-                    //Encuesta gec, se genera un checkbox que indicara si se ha realizado la encuesta de canales completa
-                    //Tipo CHECKBOX
-                    final CheckBox checkbox = new CheckBox(getContext());
-                    checkbox.setText(campos.get(i).get("descr"));
-                    if(campos.get(i).get("sup").trim().length() > 0){
-                        checkbox.setVisibility(View.GONE);
-                    }
-                    if(campos.get(i).get("vis").trim().length() > 0){
-                        checkbox.setEnabled(false);
-                        //checkbox.setVisibility(View.GONE);
-                    }
-                    if(campos.get(i).get("dfaul").trim().length() > 0){
-                        checkbox.setChecked(true);
-                    }
-                    if(solicitudSeleccionada.size() > 0){
-                        checkbox.setChecked(true);
-                    }
-                    LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-                    checkbox.setLayoutParams(clp);
-                    checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_survey,null), null);
-                    ll.addView(checkbox);
-                    checkbox.setOnClickListener(new OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            displayDialogEncuestaGec(getContext());
-                            if(((CheckBox) v).isChecked())
-                                ((CheckBox) v).setChecked(false);
-                            else
-                                ((CheckBox) v).setChecked(true);
+                    } else if (campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("grid")) {
+                        //Tipo GRID o BLOQUE de Datos (Estos Datos requieren una tabla de la BD adicional a FORMHVKOF)
+                        //Bloques Disponibles [Contactos, Impuestos, Funciones Interlocutor, visitas, bancos, notificantes]
+                        DesplegarBloque(mDBHelper, ll, campos.get(i));
+                        listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                        if (campos.get(i).get("tabla_local").trim().length() > 0) {
+                            listaCamposBloque.add(campos.get(i).get("campo").trim());
                         }
-                    });
-
-                    ColorStateList colorStateList = new ColorStateList(
-                            new int[][]{
-                                    new int[]{-android.R.attr.state_checked}, // unchecked
-                                    new int[]{android.R.attr.state_checked} , // checked
-                            },
-                            new int[]{
-                                    Color.parseColor("#110000"),
-                                    Color.parseColor("#00aa00"),
-                            }
-                    );
-
-                    CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
-
-                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
-                    mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
-                }else
-                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("checkbox")) {
-                    //Tipo CHECKBOX
-                    CheckBox checkbox = new CheckBox(getContext());
-                    checkbox.setText(campos.get(i).get("descr"));
-                    if(campos.get(i).get("sup").trim().length() > 0){
-                        checkbox.setVisibility(View.GONE);
-                    }
-                    if(campos.get(i).get("vis").trim().length() > 0){
-                        checkbox.setEnabled(false);
-                        //checkbox.setVisibility(View.GONE);
-                    }
-                    if(campos.get(i).get("dfaul").trim().length() > 0){
-                        checkbox.setChecked(true);
-                    }
-
-                    ll.addView(checkbox);
-                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
-                    mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
-                    //Excepciones de visualizacion y configuracionde campos dados por la tabla ConfigCampos
-                    int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
-                    if(excepcion >= 0) {
-                        HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
-                            checkbox.setEnabled(false);
-                        }else if(configExcepcion.get("vis") != null){
-                            checkbox.setEnabled(true);
-                        }
-                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                    } else if (campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("encuesta")) {
+                        //Encuesta Canales, se genera un checkbox que indicara si se ha realizado la encuesta de canales completa
+                        //Tipo CHECKBOX
+                        CheckBox checkbox = new CheckBox(getContext());
+                        checkbox.setText(campos.get(i).get("descr"));
+                        if (campos.get(i).get("sup").trim().length() > 0) {
                             checkbox.setVisibility(View.GONE);
-                        }else if(configExcepcion.get("sup") != null){
-                            checkbox.setVisibility(View.VISIBLE);
                         }
-                    }
-                    if(solicitudSeleccionada.size() > 0){
-                        if(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
-                            checkbox.setChecked(true);
-                        if(!modificable){
+                        if (campos.get(i).get("vis").trim().length() > 0) {
                             checkbox.setEnabled(false);
+                            //checkbox.setVisibility(View.GONE);
                         }
-                    }
-                }else if (campos.get(i).get("tabla")!= null && campos.get(i).get("tabla").trim().length() > 0) {
-                    //Tipo ComboBox/SelectBox/Spinner
-                    TextView label = new TextView(getContext());
-                    label.setText(campos.get(i).get("descr"));
-                    label.setTextAppearance(R.style.AppTheme_TextFloatLabelAppearance);
-                    LinearLayout.LayoutParams lpl = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                    lpl.setMargins(35, 5, 0, 0);
-                    label.setPadding(0,0,0,0);
-                    label.setLayoutParams(lpl);
-
-                    final SearchableSpinner combo = new SearchableSpinner(getContext(), null);
-                    combo.setTag(campos.get(i).get("descr"));
-                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                    lp.setMargins(0, -10, 0, 25);
-                    combo.setPadding(0,0,0,0);
-                    combo.setLayoutParams(lp);
-                    combo.setPopupBackgroundResource(R.drawable.menu_item);
-                    if(campos.get(i).get("sup").trim().length() > 0){
-                        label.setVisibility(View.GONE);
-                        combo.setVisibility(View.GONE);
-                    }
-                    Drawable d = getResources().getDrawable(R.drawable.spinner_background, null);
-                    combo.setBackground(d);
-                    if(campos.get(i).get("vis").trim().length() > 0){
-                        if(!campos.get(i).get("campo").trim().equals("W_CTE-LZONE")) {
-                            combo.setEnabled(false);
-                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                        if (campos.get(i).get("dfaul").trim().length() > 0) {
+                            checkbox.setChecked(true);
                         }
-                    }
+                        if (solicitudSeleccionada.size() > 0) {
+                            checkbox.setChecked(true);
+                        }
+                        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        checkbox.setLayoutParams(clp);
+                        checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null, getResources().getDrawable(R.drawable.icon_survey, null), null);
 
-                    ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim());
-                    if(opciones.size() == 0){
-                        opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim());
-                    }
-
-                    ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-                    int selectedIndex = 0;
-                    String valorDefectoxRuta = PreferenceManager.getDefaultSharedPreferences(getContext()).getString(campos.get(i).get("campo").trim().replace("-","_"),"");
-                    for (int j = 0; j < opciones.size(); j++){
-                        listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
-                        if(solicitudSeleccionada.size() > 0){
-                            //valor de la solicitud seleccionada
-                            if(opciones.get(j).get("id").trim().equals(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim())){
-                                selectedIndex = j;
+                        ll.addView(checkbox);
+                        checkbox.setOnClickListener(new OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                displayDialogEncuestaCanales(getContext());
+                                if (((CheckBox) v).isChecked())
+                                    ((CheckBox) v).setChecked(false);
+                                else
+                                    ((CheckBox) v).setChecked(true);
                             }
-                        }else {
-                            if (campos.get(i).get("dfaul").trim().length() > 0 && opciones.get(j).get("id").trim().equals(campos.get(i).get("dfaul").trim())) {
-                                selectedIndex = j;
+                        });
+
+                        ColorStateList colorStateList = new ColorStateList(
+                                new int[][]{
+                                        new int[]{-android.R.attr.state_checked}, // unchecked
+                                        new int[]{android.R.attr.state_checked}, // checked
+                                },
+                                new int[]{
+                                        Color.parseColor("#110000"),
+                                        Color.parseColor("#00aa00"),
+                                }
+                        );
+
+                        CompoundButtonCompat.setButtonTintList(checkbox, colorStateList);
+
+                        listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                        mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
+                    } else if (campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("encuesta_gec")) {
+                        //Encuesta gec, se genera un checkbox que indicara si se ha realizado la encuesta de canales completa
+                        //Tipo CHECKBOX
+                        final CheckBox checkbox = new CheckBox(getContext());
+                        checkbox.setText(campos.get(i).get("descr"));
+                        if (campos.get(i).get("sup").trim().length() > 0) {
+                            checkbox.setVisibility(View.GONE);
+                        }
+                        if (campos.get(i).get("vis").trim().length() > 0) {
+                            checkbox.setEnabled(false);
+                            //checkbox.setVisibility(View.GONE);
+                        }
+                        if (campos.get(i).get("dfaul").trim().length() > 0) {
+                            checkbox.setChecked(true);
+                        }
+                        if (solicitudSeleccionada.size() > 0) {
+                            checkbox.setChecked(true);
+                        }
+                        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        checkbox.setLayoutParams(clp);
+                        checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null, getResources().getDrawable(R.drawable.icon_survey, null), null);
+                        ll.addView(checkbox);
+                        checkbox.setOnClickListener(new OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                displayDialogEncuestaGec(getContext());
+                                if (((CheckBox) v).isChecked())
+                                    ((CheckBox) v).setChecked(false);
+                                else
+                                    ((CheckBox) v).setChecked(true);
+                            }
+                        });
+
+                        ColorStateList colorStateList = new ColorStateList(
+                                new int[][]{
+                                        new int[]{-android.R.attr.state_checked}, // unchecked
+                                        new int[]{android.R.attr.state_checked}, // checked
+                                },
+                                new int[]{
+                                        Color.parseColor("#110000"),
+                                        Color.parseColor("#00aa00"),
+                                }
+                        );
+
+                        CompoundButtonCompat.setButtonTintList(checkbox, colorStateList);
+
+                        listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                        mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
+                    } else if (campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("checkbox")) {
+                        //Tipo CHECKBOX
+                        CheckBox checkbox = new CheckBox(getContext());
+                        checkbox.setText(campos.get(i).get("descr"));
+                        if (campos.get(i).get("sup").trim().length() > 0) {
+                            checkbox.setVisibility(View.GONE);
+                        }
+                        if (campos.get(i).get("vis").trim().length() > 0) {
+                            checkbox.setEnabled(false);
+                            //checkbox.setVisibility(View.GONE);
+                        }
+                        if (campos.get(i).get("dfaul").trim().length() > 0) {
+                            checkbox.setChecked(true);
+                        }
+
+                        ll.addView(checkbox);
+                        listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                        mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
+                        //Excepciones de visualizacion y configuracionde campos dados por la tabla ConfigCampos
+                        int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
+                        if (excepcion >= 0) {
+                            HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
+                            if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
+                                checkbox.setEnabled(false);
+                            } else if (configExcepcion.get("vis") != null) {
+                                checkbox.setEnabled(true);
+                            }
+                            if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                                checkbox.setVisibility(View.GONE);
+                            } else if (configExcepcion.get("sup") != null) {
+                                checkbox.setVisibility(View.VISIBLE);
                             }
                         }
-                        if(valorDefectoxRuta.trim().length() > 0 && opciones.get(j).get("id").trim().equals(valorDefectoxRuta.trim())){
-                            selectedIndex = j;
-                            if(!campos.get(i).get("campo").trim().equals("W_CTE-VWERK")) {
+                        if (solicitudSeleccionada.size() > 0) {
+                            if (solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
+                                checkbox.setChecked(true);
+                            if (!modificable) {
+                                checkbox.setEnabled(false);
+                            }
+                        }
+                    } else if (campos.get(i).get("tabla") != null && campos.get(i).get("tabla").trim().length() > 0) {
+                        //Tipo ComboBox/SelectBox/Spinner
+                        TextView label = new TextView(getContext());
+                        label.setText(campos.get(i).get("descr"));
+                        label.setTextAppearance(R.style.AppTheme_TextFloatLabelAppearance);
+                        LinearLayout.LayoutParams lpl = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        lpl.setMargins(35, 5, 0, 0);
+                        label.setPadding(0, 0, 0, 0);
+                        label.setLayoutParams(lpl);
+
+                        final SearchableSpinner combo = new SearchableSpinner(getContext(), null);
+                        combo.setTag(campos.get(i).get("descr"));
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        lp.setMargins(0, -10, 0, 25);
+                        combo.setPadding(0, 0, 0, 0);
+                        combo.setLayoutParams(lp);
+                        combo.setPopupBackgroundResource(R.drawable.menu_item);
+                        if (campos.get(i).get("sup").trim().length() > 0) {
+                            label.setVisibility(View.GONE);
+                            combo.setVisibility(View.GONE);
+                        }
+                        Drawable d = getResources().getDrawable(R.drawable.spinner_background, null);
+                        combo.setBackground(d);
+                        if (campos.get(i).get("vis").trim().length() > 0) {
+                            if (!campos.get(i).get("campo").trim().equals("W_CTE-LZONE")) {
                                 combo.setEnabled(false);
                                 combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
                             }
                         }
 
-                    }
-                    // Creando el adaptador(opciones) para el comboBox deseado
-                    ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, listaopciones);
-                    // Drop down layout style - list view with radio button
-                    dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-                    // attaching data adapter to spinner
-                    combo.setAdapter(dataAdapter);
-                    combo.setSelection(selectedIndex);
-
-                    //Campo de regimen fiscal, se debe cambiar el formato de cedula segun el tipo de cedula
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-KATR3")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                MaskedEditText cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD1");
-                                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-                                if(cedula != null){
-                                    //cedula.setFilters(new InputFilter[]{new RegexInputFilter("[A-Z-a-z]")});
-                                    if(opcion.getId().equals("C1")){
-                                        cedula.setMask("0#-####-####-00");
-                                    }
-                                    if(opcion.getId().equals("C2")){
-                                        cedula.setMask("#-###-######");
-                                    }
-                                    if(opcion.getId().equals("C3")){
-                                        cedula.setMask("##-####-####-##");
-                                    }
-                                    cedula.setOnFocusChangeListener(new OnFocusChangeListener() {
-                                        @Override
-                                        public void onFocusChange(View v, boolean hasFocus) {
-                                            if (!hasFocus) {
-                                                ValidarCedula(v,opcion.getId());
-                                            }
-                                        }
-                                    });
-                                }
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-
-                    if(solicitudSeleccionada.size() > 0){
-                        if(!modificable){
-                            combo.setEnabled(false);
-                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled,null));
+                        ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_" + campos.get(i).get("tabla").trim());
+                        if (opciones.size() == 0) {
+                            opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim());
                         }
-                    }
 
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-BZIRK")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                ArrayList<HashMap<String, String>> valores = mDBHelper.getValoresKOFSegunZonaVentas(((OpcionSpinner)combo.getSelectedItem()).getId());
-                                ((Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK")),valores.get(0).get("VWERK")));
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-VWERK")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Spinner zona_transporte = (Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE");
-                                String valor_centro_suministro = ((OpcionSpinner)combo.getSelectedItem()).getId().trim();
-                                ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
-                                // Creando el adaptador(opciones) para el comboBox deseado
-                                ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
-                                // Drop down layout style - list view with radio button
-                                dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
-                                if(zona_transporte != null) {
-                                    zona_transporte.setAdapter(dataAdapterRuta);
-                                    int selectedIndex = 0;
-                                    for (int j = 0; j < rutas_reparto.size(); j++) {
-                                        if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-LZONE") != null && solicitudSeleccionada.get(0).get("W_CTE-LZONE").trim().equals(rutas_reparto.get(j).getId())) {
-                                            zona_transporte.setSelection(j);
-                                            break;
-                                        }
-                                    }
+                        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+                        int selectedIndex = 0;
+                        String valorDefectoxRuta = PreferenceManager.getDefaultSharedPreferences(getContext()).getString(campos.get(i).get("campo").trim().replace("-", "_"), "");
+                        for (int j = 0; j < opciones.size(); j++) {
+                            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+                            if (solicitudSeleccionada.size() > 0) {
+                                //valor de la solicitud seleccionada
+                                if (opciones.get(j).get("id").trim().equals(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim())) {
+                                    selectedIndex = j;
                                 }
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                            } else {
+                                if (campos.get(i).get("dfaul").trim().length() > 0 && opciones.get(j).get("id").trim().equals(campos.get(i).get("dfaul").trim())) {
+                                    selectedIndex = j;
+                                }
                             }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                            if (valorDefectoxRuta.trim().length() > 0 && opciones.get(j).get("id").trim().equals(valorDefectoxRuta.trim())) {
+                                selectedIndex = j;
+                                if (!campos.get(i).get("campo").trim().equals("W_CTE-VWERK")) {
+                                    combo.setEnabled(false);
+                                    combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                                }
+                            }
 
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-KVGR5")){
-                        //TODO aqui se debe cambiar si se quiere trabajar con diferentes tipos de 'PR'
-                        if(solicitudSeleccionada.size() == 0) {
-                            combo.setSelection(VariablesGlobales.getIndex(combo, "PR"));
-                            combo.setEnabled(false);
-                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
                         }
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-                                if (solicitudSeleccionada.size() == 0) {
-                                    visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG", ""), opcion.getId());
+                        // Creando el adaptador(opciones) para el comboBox deseado
+                        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, listaopciones);
+                        // Drop down layout style - list view with radio button
+                        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+                        // attaching data adapter to spinner
+                        combo.setAdapter(dataAdapter);
+                        combo.setSelection(selectedIndex);
 
-                                    tb_visitas.setDataAdapter(new VisitasTableAdapter(view.getContext(), visitasSolicitud));
-                                    if (tb_visitas.getLayoutParams() != null) {
-                                        tb_visitas.getLayoutParams().height = 50;
-                                        tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView ) * visitasSolicitud.size());
-                                    }
-                                }
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("Provincia")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Provincias(parent);
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("Cantones")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Cantones(parent);
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-
-                    if(campos.get(i).get("llamado1").trim().contains("Distritos")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Distritos(parent);
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("DireccionCorta")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                DireccionCorta();
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("Canales(")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Canales(parent);
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("CanalesKof")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                CanalesKof(parent);
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("ImpuestoSegunUnidadNegocio")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                ImpuestoSegunUnidadNegocio(parent);
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-
-                    //label.addView(combo);
-                    ll.addView(label);
-                    ll.addView(combo);
-
-                    if(!listaCamposDinamicos.contains(campos.get(i).get("campo").trim())) {
-                        listaCamposDinamicos.add(campos.get(i).get("campo").trim());
-                        mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), combo);
-                    }else{
-                        //listaCamposDinamicos.add(campos.get(i).get("campo").trim()+"1");
-                        mapeoCamposDinamicos.put(campos.get(i).get("campo").trim()+"1", combo);
-                        //Replicar valores de campos duplicados en configuracion
-                        Spinner original = (Spinner) mapeoCamposDinamicos.get(campos.get(i).get("campo").trim());
-                        Spinner duplicado = (Spinner) mapeoCamposDinamicos.get(campos.get(i).get("campo").trim()+"1");
-                        final String nombreCampo = campos.get(i).get("campo").trim();
-                        final int indice = i;
-                        original.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                if(campos.get(indice).get("llamado1").contains("Provincia"))
-                                    Provincias(parent);
-                                if(campos.get(indice).get("llamado1").contains("Cantones"))
-                                    Cantones(parent);
-                                if(campos.get(indice).get("llamado1").contains("Distritos"))
-                                    Distritos(parent);
-
-                                if(nombreCampo.equals("W_CTE-VWERK")){
-                                    Spinner zona_transporte = (Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE");
-                                    String valor_centro_suministro = ((OpcionSpinner)parent.getSelectedItem()).getId().trim();
-                                    ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
-                                    // Creando el adaptador(opciones) para el comboBox deseado
-                                    ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
-                                    // Drop down layout style - list view with radio button
-                                    dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
-                                    if(zona_transporte != null) {
-                                        zona_transporte.setAdapter(dataAdapterRuta);
-                                        int selectedIndex = 0;
-                                        for (int j = 0; j < rutas_reparto.size(); j++) {
-                                            if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-LZONE") != null && solicitudSeleccionada.get(0).get("W_CTE-LZONE").trim().equals(rutas_reparto.get(j).getId())) {
-                                                zona_transporte.setSelection(j);
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                ReplicarValorSpinner(parent,nombreCampo+"1",position);
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                        duplicado.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                if(campos.get(indice).get("llamado1").contains("Provincia"))
-                                    Provincias(parent);
-                                if(campos.get(indice).get("llamado1").contains("Cantones"))
-                                    Cantones(parent);
-                                if(campos.get(indice).get("llamado1").contains("Distritos"))
-                                    Distritos(parent);
-
-                                if(nombreCampo.equals("W_CTE-VWERK")){
-                                    Spinner zona_transporte = (Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE");
-                                    String valor_centro_suministro = ((OpcionSpinner)parent.getSelectedItem()).getId().trim();
-                                    ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
-                                    // Creando el adaptador(opciones) para el comboBox deseado
-                                    ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
-                                    // Drop down layout style - list view with radio button
-                                    dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
-                                    if(zona_transporte != null) {
-                                        zona_transporte.setAdapter(dataAdapterRuta);
-                                        int selectedIndex = 0;
-                                        for (int j = 0; j < rutas_reparto.size(); j++) {
-                                            if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-LZONE") != null && solicitudSeleccionada.get(0).get("W_CTE-LZONE").trim().equals(rutas_reparto.get(j).getId())) {
-                                                zona_transporte.setSelection(j);
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                                ReplicarValorSpinner(parent,nombreCampo,position);
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
-                        listaCamposObligatorios.add(campos.get(i).get("campo").trim());
-                        OpcionSpinner op = new OpcionSpinner("","");
-                        if(combo.getOnItemSelectedListener() == null){
+                        //Campo de regimen fiscal, se debe cambiar el formato de cedula segun el tipo de cedula
+                        if (campos.get(i).get("campo").trim().equals("W_CTE-KATR3")) {
                             combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    final TextView opcion = (TextView) parent.getSelectedView();
-                                    if(position == 0 && opcion != null)
-                                        opcion.setError("El campo es obligatorio!");
+                                    MaskedEditText cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD1");
+                                    final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                                    if (cedula != null) {
+                                        //cedula.setFilters(new InputFilter[]{new RegexInputFilter("[A-Z-a-z]")});
+                                        if (opcion.getId().equals("C1")) {
+                                            cedula.setMask("0#-####-####-00");
+                                        }
+                                        if (opcion.getId().equals("C2")) {
+                                            cedula.setMask("#-###-######");
+                                        }
+                                        if (opcion.getId().equals("C3")) {
+                                            cedula.setMask("##-####-####-##");
+                                        }
+                                        cedula.setOnFocusChangeListener(new OnFocusChangeListener() {
+                                            @Override
+                                            public void onFocusChange(View v, boolean hasFocus) {
+                                                if (!hasFocus) {
+                                                    ValidarCedula(v, opcion.getId());
+                                                }
+                                            }
+                                        });
+                                    }
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
                                 @Override
                                 public void onNothingSelected(AdapterView<?> parent) {
-                                    Toasty.info(getContext(),"Nothing Selected").show();
+
                                 }
                             });
                         }
-                    }
-                    //Excepciones de visualizacion y configuracionde campos dados por la tabla ConfigCampos
-                    int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
-                    if(excepcion >= 0) {
-                        HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
-                            combo.setEnabled(false);
-                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-                        }else if(configExcepcion.get("vis") != null){
-                            combo.setEnabled(true);
-                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
+
+                        if (solicitudSeleccionada.size() > 0) {
+                            if (!modificable) {
+                                combo.setEnabled(false);
+                                combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                            }
                         }
-                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
-                            combo.setVisibility(View.GONE);
-                        }else if(configExcepcion.get("sup") != null){
-                            combo.setVisibility(View.VISIBLE);
-                        }
-                    }
-                } else {
-                    //Tipo EditText normal textbox
-                    TableRow fila = new TableRow(getContext());
-                    fila.setOrientation(TableRow.HORIZONTAL);
-                    fila.setWeightSum(10);
-                    fila.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,10f));
 
-                    final TextInputLayout label = new TextInputLayout(Objects.requireNonNull(getContext()));
-                    label.setHint(campos.get(i).get("descr"));
-                    //label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.white,null)));
-
-                    label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
-                    label.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
-
-                    //final TextInputEditText et = new TextInputEditText(getContext());
-                    final MaskedEditText et = new MaskedEditText(getContext(),null);
-
-                    et.setTag(campos.get(i).get("descr"));
-                    //et.setTextColor(getResources().getColor(R.color.colorTextView,null));
-                    //et.setBackgroundColor(getResources().getColor(R.color.black,null));
-                    //et.setHint(campos.get(i).get("descr"));
-                    if(campos.get(i).get("sup").trim().length() > 0){
-                        et.setVisibility(View.GONE);
-                        label.setVisibility(View.GONE);
-                    }
-                    // Atributos del Texto a crear
-                    //TableLayout.LayoutParams lp =  new TableLayout.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT,0.5f);
-                    TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5f);
-                    lp.setMargins(0, 15, 0, 15);
-
-                    et.setLayoutParams(lp);
-                    et.setPadding(20, 5, 20, 5);
-                    Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
-                    et.setBackground(d);
-                    if(campos.get(i).get("vis").trim().length() > 0){
-                        et.setEnabled(false);
-                        et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled,null));
-                        //et.setVisibility(View.GONE);
-                    }
-                    et.setMaxLines(1);
-
-                    if(campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("char")) {
-
-                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("maxlength")) ) });
-                        if(campos.get(i).get("campo").trim().equals("W_CTE-STCD3")){
-                            et.setInputType(InputType.TYPE_CLASS_NUMBER);
-                            et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( 18 ) });
-                        }else{
-                            et.setInputType(InputType.TYPE_CLASS_TEXT);
-                        }
-                    }else if(campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("decimal")) {
-                        et.setInputType(InputType.TYPE_CLASS_NUMBER);
-                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("numeric_precision")) ) });
-                    }
-
-
-                    InputFilter[] editFilters = et.getFilters();
-                    InputFilter[] newFilters = new InputFilter[editFilters.length + 1];
-                    System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
-                    newFilters[editFilters.length] = new InputFilter.AllCaps();
-                    et.setFilters(newFilters);
-                    et.setAllCaps(true);
-
-                    TableRow.LayoutParams textolp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 5f);
-                    TableRow.LayoutParams btnlp = new TableRow.LayoutParams(75, 75);
-                    if(campos.get(i).get("tooltip") != null){
-                        textolp.setMargins(0,0,25,0);
-                        label.setLayoutParams(textolp);
-                        btnAyuda = new ImageView(getContext());
-                        btnAyuda.setBackground(getResources().getDrawable(R.drawable.icon_ayuda,null));
-                        btnlp.setMargins(0,35,75,0);
-                        btnAyuda.setLayoutParams(btnlp);
-                        btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
-                        btnAyuda.setForegroundGravity(GRAVITY_CENTER);
-                        TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
-
-                    }
-                    if(campos.get(i).get("dfaul").trim().length() > 0){
-                        et.setText(campos.get(i).get("dfaul").trim());
-                    }
-                    //Le cae encima al valor default por el de la solicitud seleccionada
-                    if(solicitudSeleccionada.size() > 0){
-                        et.setText(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim());
-                        if(!modificable){
-                            et.setEnabled(false);
-                            et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled,null));
-                        }
-                    }
-                    //metodos configurados en tabla
-                    if(campos.get(i).get("llamado1").trim().contains("ReplicarValor")){
-                        String[] split = campos.get(i).get("llamado1").trim().split("'");
-                        if(split.length < 3)
-                            split = campos.get(i).get("llamado1").trim().split("`");
-                        if(split.length < 3)
-                            split = campos.get(i).get("llamado1").trim().split("\"");
-                        final String campoAReplicar = split[1];
-                        if(!campos.get(i).get("campo").trim().equals("W_CTE-NAME1") && !campos.get(i).get("campo").trim().equals("W_CTE-NAME2") && !campos.get(i).get("campo").trim().equals("W_CTE-HOUSE_NUM1")) {
-                            et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                        if (campos.get(i).get("campo").trim().equals("W_CTE-BZIRK")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
-                                public void onFocusChange(View v, boolean hasFocus) {
-                                    if (!hasFocus) {
-                                        ReplicarValor(v, campoAReplicar);
-                                    }
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    ArrayList<HashMap<String, String>> valores = mDBHelper.getValoresKOFSegunZonaVentas(((OpcionSpinner) combo.getSelectedItem()).getId());
+                                    ((Spinner) mapeoCamposDinamicos.get("W_CTE-VWERK")).setSelection(VariablesGlobales.getIndex(((Spinner) mapeoCamposDinamicos.get("W_CTE-VWERK")), valores.get(0).get("VWERK")));
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
                                 }
                             });
                         }
-                    }
+                        if (campos.get(i).get("campo").trim().equals("W_CTE-VWERK")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    Spinner zona_transporte = (Spinner) mapeoCamposDinamicos.get("W_CTE-LZONE");
+                                    String valor_centro_suministro = ((OpcionSpinner) combo.getSelectedItem()).getId().trim();
+                                    ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont", "vwerks='" + valor_centro_suministro + "'");
+                                    // Creando el adaptador(opciones) para el comboBox deseado
+                                    ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
+                                    // Drop down layout style - list view with radio button
+                                    dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
+                                    if (zona_transporte != null) {
+                                        zona_transporte.setAdapter(dataAdapterRuta);
+                                        int selectedIndex = 0;
+                                        for (int j = 0; j < rutas_reparto.size(); j++) {
+                                            if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-LZONE") != null && solicitudSeleccionada.get(0).get("W_CTE-LZONE").trim().equals(rutas_reparto.get(j).getId())) {
+                                                zona_transporte.setSelection(j);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
 
-                    //Crear campo para valor viejo exclusivo.
-                    if(campos.get(i).get("modificacion").trim().equals("2")){
-                        Button btnAyudai=null;
-                        TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 5f);
-                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75);
-                            textolp2.setMargins(0,0,5,0);
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("campo").trim().equals("W_CTE-KVGR5")) {
+                            //TODO aqui se debe cambiar si se quiere trabajar con diferentes tipos de 'PR'
+                            if (solicitudSeleccionada.size() == 0) {
+                                combo.setSelection(VariablesGlobales.getIndex(combo, "PR"));
+                                combo.setEnabled(false);
+                                combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                            }
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                                    if (solicitudSeleccionada.size() == 0) {
+                                        visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG", ""), opcion.getId());
+
+                                        tb_visitas.setDataAdapter(new VisitasTableAdapter(view.getContext(), visitasSolicitud));
+                                        if (tb_visitas.getLayoutParams() != null) {
+                                            tb_visitas.getLayoutParams().height = 50;
+                                            tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView) * visitasSolicitud.size());
+                                        }
+                                    }
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }
+                            if (campos.get(i).get("llamado1").trim().contains("Provincia")) {
+                                combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                        Provincias(parent);
+                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                            ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> parent) {
+
+                                    }
+                                });
+                            }
+                            if (campos.get(i).get("llamado1").trim().contains("Cantones")) {
+                                combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                        Cantones(parent);
+                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                            ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> parent) {
+
+                                    }
+                                });
+                            }
+
+                            if (campos.get(i).get("llamado1").trim().contains("Distritos")) {
+                                combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                        Distritos(parent);
+                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                            ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> parent) {
+
+                                    }
+                                });
+                            }
+                            if (campos.get(i).get("llamado1").trim().contains("DireccionCorta")) {
+                                combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                        DireccionCorta();
+                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                            ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> parent) {
+
+                                    }
+                                });
+                            }
+                            if (campos.get(i).get("llamado1").trim().contains("Canales(")) {
+                                combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                        Canales(parent);
+                                        if (position == 0)
+                                            ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> parent) {
+
+                                    }
+                                });
+                            }
+                            if (campos.get(i).get("llamado1").trim().contains("CanalesKof")) {
+                                combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                        CanalesKof(parent);
+                                        if (position == 0)
+                                            ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> parent) {
+
+                                    }
+                                });
+                            }
+                            if (campos.get(i).get("llamado1").trim().contains("ImpuestoSegunUnidadNegocio")) {
+                                combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                        ImpuestoSegunUnidadNegocio(parent);
+                                        if (position == 0)
+                                            ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> parent) {
+
+                                    }
+                                });
+                            }
+
+                        //label.addView(combo);
+                        ll.addView(label);
+                        ll.addView(combo);
+
+                        if (!listaCamposDinamicos.contains(campos.get(i).get("campo").trim())) {
+                            listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                            mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), combo);
+                        } else {
+                            //listaCamposDinamicos.add(campos.get(i).get("campo").trim()+"1");
+                            mapeoCamposDinamicos.put(campos.get(i).get("campo").trim() + "1", combo);
+                            //Replicar valores de campos duplicados en configuracion
+                            Spinner original = (Spinner) mapeoCamposDinamicos.get(campos.get(i).get("campo").trim());
+                            Spinner duplicado = (Spinner) mapeoCamposDinamicos.get(campos.get(i).get("campo").trim() + "1");
+                            final String nombreCampo = campos.get(i).get("campo").trim();
+                            final int indice = i;
+                            original.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    if (campos.get(indice).get("llamado1")!= null && campos.get(indice).get("llamado1").contains("Provincia"))
+                                        Provincias(parent);
+                                    if (campos.get(indice).get("llamado1")!= null && campos.get(indice).get("llamado1").contains("Cantones"))
+                                        Cantones(parent);
+                                    if (campos.get(indice).get("llamado1")!= null && campos.get(indice).get("llamado1").contains("Distritos"))
+                                        Distritos(parent);
+
+                                    if (nombreCampo.equals("W_CTE-VWERK")) {
+                                        Spinner zona_transporte = (Spinner) mapeoCamposDinamicos.get("W_CTE-LZONE");
+                                        String valor_centro_suministro = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont", "vwerks='" + valor_centro_suministro + "'");
+                                        // Creando el adaptador(opciones) para el comboBox deseado
+                                        ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
+                                        // Drop down layout style - list view with radio button
+                                        dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
+                                        if (zona_transporte != null) {
+                                            zona_transporte.setAdapter(dataAdapterRuta);
+                                            int selectedIndex = 0;
+                                            for (int j = 0; j < rutas_reparto.size(); j++) {
+                                                if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-LZONE") != null && solicitudSeleccionada.get(0).get("W_CTE-LZONE").trim().equals(rutas_reparto.get(j).getId())) {
+                                                    zona_transporte.setSelection(j);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    ReplicarValorSpinner(parent, nombreCampo + "1", position);
+                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                            duplicado.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    if (campos.get(indice).get("llamado1")!= null && campos.get(indice).get("llamado1").contains("Provincia"))
+                                        Provincias(parent);
+                                    if (campos.get(indice).get("llamado1")!= null && campos.get(indice).get("llamado1").contains("Cantones"))
+                                        Cantones(parent);
+                                    if (campos.get(indice).get("llamado1")!= null && campos.get(indice).get("llamado1").contains("Distritos"))
+                                        Distritos(parent);
+
+                                    if (nombreCampo.equals("W_CTE-VWERK")) {
+                                        Spinner zona_transporte = (Spinner) mapeoCamposDinamicos.get("W_CTE-LZONE");
+                                        String valor_centro_suministro = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont", "vwerks='" + valor_centro_suministro + "'");
+                                        // Creando el adaptador(opciones) para el comboBox deseado
+                                        ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
+                                        // Drop down layout style - list view with radio button
+                                        dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
+                                        if (zona_transporte != null) {
+                                            zona_transporte.setAdapter(dataAdapterRuta);
+                                            int selectedIndex = 0;
+                                            for (int j = 0; j < rutas_reparto.size(); j++) {
+                                                if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-LZONE") != null && solicitudSeleccionada.get(0).get("W_CTE-LZONE").trim().equals(rutas_reparto.get(j).getId())) {
+                                                    zona_transporte.setSelection(j);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    ReplicarValorSpinner(parent, nombreCampo, position);
+                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("obl") != null && campos.get(i).get("obl").trim().length() > 0) {
+                            listaCamposObligatorios.add(campos.get(i).get("campo").trim());
+                            OpcionSpinner op = new OpcionSpinner("", "");
+                            if (combo.getOnItemSelectedListener() == null) {
+                                combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                        final TextView opcion = (TextView) parent.getSelectedView();
+                                        if (position == 0 && opcion != null)
+                                            opcion.setError("El campo es obligatorio!");
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> parent) {
+                                        Toasty.info(getContext(), "Nothing Selected").show();
+                                    }
+                                });
+                            }
+                        }
+                        //Excepciones de visualizacion y configuracionde campos dados por la tabla ConfigCampos
+                        int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
+                        if (excepcion >= 0) {
+                            HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
+                            if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
+                                combo.setEnabled(false);
+                                combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                            } else if (configExcepcion.get("vis") != null) {
+                                combo.setEnabled(true);
+                                combo.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
+                            }
+                            if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                                combo.setVisibility(View.GONE);
+                            } else if (configExcepcion.get("sup") != null) {
+                                combo.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    } else {
+                        //Tipo EditText normal textbox
+                        TableRow fila = new TableRow(getContext());
+                        fila.setOrientation(TableRow.HORIZONTAL);
+                        fila.setWeightSum(10);
+                        fila.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 10f));
+
+                        final TextInputLayout label = new TextInputLayout(Objects.requireNonNull(getContext()));
+                        label.setHint(campos.get(i).get("descr"));
+                        //label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.white,null)));
+
+                        label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
+                        label.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
+
+                        //final TextInputEditText et = new TextInputEditText(getContext());
+                        final MaskedEditText et = new MaskedEditText(getContext(), null);
+
+                        et.setTag(campos.get(i).get("descr"));
+                        //et.setTextColor(getResources().getColor(R.color.colorTextView,null));
+                        //et.setBackgroundColor(getResources().getColor(R.color.black,null));
+                        //et.setHint(campos.get(i).get("descr"));
+                        if (campos.get(i).get("sup").trim().length() > 0) {
+                            et.setVisibility(View.GONE);
+                            label.setVisibility(View.GONE);
+                        }
+                        // Atributos del Texto a crear
+                        //TableLayout.LayoutParams lp =  new TableLayout.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT,0.5f);
+                        TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 5f);
+                        lp.setMargins(0, 15, 0, 15);
+
+                        et.setLayoutParams(lp);
+                        et.setPadding(20, 5, 20, 5);
+                        Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
+                        et.setBackground(d);
+                        if (campos.get(i).get("vis").trim().length() > 0) {
+                            et.setEnabled(false);
+                            et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
+                            //et.setVisibility(View.GONE);
+                        }
+                        et.setMaxLines(1);
+
+                        if (campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("char")) {
+
+                            et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("maxlength")))});
+                            if (campos.get(i).get("campo").trim().equals("W_CTE-STCD3")) {
+                                et.setInputType(InputType.TYPE_CLASS_NUMBER);
+                                et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(18)});
+                            } else {
+                                et.setInputType(InputType.TYPE_CLASS_TEXT);
+                            }
+                        } else if (campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("decimal")) {
+                            et.setInputType(InputType.TYPE_CLASS_NUMBER);
+                            et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("numeric_precision")))});
+                        }
+
+
+                        InputFilter[] editFilters = et.getFilters();
+                        InputFilter[] newFilters = new InputFilter[editFilters.length + 1];
+                        System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
+                        newFilters[editFilters.length] = new InputFilter.AllCaps();
+                        et.setFilters(newFilters);
+                        et.setAllCaps(true);
+
+                        TableRow.LayoutParams textolp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 5f);
+                        TableRow.LayoutParams btnlp = new TableRow.LayoutParams(75, 75);
+                        if (campos.get(i).get("tooltip") != null && campos.get(i).get("tooltip") != "") {
+                            textolp.setMargins(0, 0, 25, 0);
+                            label.setLayoutParams(textolp);
+                            btnAyuda = new ImageView(getContext());
+                            btnAyuda.setBackground(getResources().getDrawable(R.drawable.icon_ayuda, null));
+                            btnlp.setMargins(0, 35, 75, 0);
+                            btnAyuda.setLayoutParams(btnlp);
+                            btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                            btnAyuda.setForegroundGravity(GRAVITY_CENTER);
+                            TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+
+                        }
+                        if (campos.get(i).get("dfaul").trim().length() > 0) {
+                            et.setText(campos.get(i).get("dfaul").trim());
+                        }
+                        //Le cae encima al valor default por el de la solicitud seleccionada
+                        if (solicitudSeleccionada.size() > 0) {
+                            et.setText(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim());
+                            if (!modificable) {
+                                et.setEnabled(false);
+                                et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
+                            }
+                        }
+                        //metodos configurados en tabla
+                        if (campos.get(i).get("llamado1").trim().contains("ReplicarValor")) {
+                            String[] split = campos.get(i).get("llamado1").trim().split("'");
+                            if (split.length < 3)
+                                split = campos.get(i).get("llamado1").trim().split("`");
+                            if (split.length < 3)
+                                split = campos.get(i).get("llamado1").trim().split("\"");
+                            final String campoAReplicar = split[1];
+                            if (!campos.get(i).get("campo").trim().equals("W_CTE-NAME1") && !campos.get(i).get("campo").trim().equals("W_CTE-NAME2") && !campos.get(i).get("campo").trim().equals("W_CTE-HOUSE_NUM1")) {
+                                et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                                    @Override
+                                    public void onFocusChange(View v, boolean hasFocus) {
+                                        if (!hasFocus) {
+                                            ReplicarValor(v, campoAReplicar);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+
+                        //Crear campo para valor viejo exclusivo.
+                        if (campos.get(i).get("modificacion").trim().equals("2")) {
+                            Button btnAyudai = null;
+                            TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 5f);
+                            TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75);
+                            textolp2.setMargins(0, 0, 5, 0);
                             label.setLayoutParams(textolp2);
                             btnAyudai = new Button(getContext());
-                            btnAyudai.setBackground(getResources().getDrawable(R.drawable.icon_ver_viejo,null));
-                            btnlp2.setMargins(0,35,5,0);
+                            btnAyudai.setBackground(getResources().getDrawable(R.drawable.icon_ver_viejo, null));
+                            btnlp2.setMargins(0, 35, 5, 0);
                             btnAyudai.setLayoutParams(btnlp2);
                             btnAyudai.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                             btnAyudai.setForegroundGravity(GRAVITY_CENTER);
-                            btnAyudai.setOnTouchListener(new OnTouchListener()
-                            {
+                            btnAyudai.setOnTouchListener(new OnTouchListener() {
                                 @Override
-                                public boolean onTouch(View v, MotionEvent event)
-                                {
+                                public boolean onTouch(View v, MotionEvent event) {
                                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                                         label.setVisibility(View.GONE);
                                         et.setVisibility(View.GONE);
                                         return true;
-                                    }else if (event.getAction() == MotionEvent.ACTION_UP){
+                                    } else if (event.getAction() == MotionEvent.ACTION_UP) {
                                         label.setVisibility(View.VISIBLE);
                                         et.setVisibility(View.VISIBLE);
                                         return true;
-                                    }else if (event.getAction() == MotionEvent.ACTION_CANCEL){
+                                    } else if (event.getAction() == MotionEvent.ACTION_CANCEL) {
                                         label.setVisibility(View.VISIBLE);
                                         et.setVisibility(View.VISIBLE);
                                         return true;
@@ -1771,156 +1770,155 @@ public class SolicitudActivity extends AppCompatActivity {
                                     return false;
                                 }
                             });
-                        if(btnAyudai != null)
-                            fila.addView(btnAyudai);
-                    }
+                            if (btnAyudai != null)
+                                fila.addView(btnAyudai);
+                        }
 
-                    label.addView(et);
-                    fila.addView(label);
-                    if(btnAyuda != null)
-                        fila.addView(btnAyuda);
-                    ll.addView(fila);
+                        label.addView(et);
+                        fila.addView(label);
+                        if (btnAyuda != null)
+                            fila.addView(btnAyuda);
+                        ll.addView(fila);
 
 
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LAT") || campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LONG")){
-                        et.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.icon_location,null), null, null,null);
-                        et.setCompoundDrawablePadding(16);
-                        et.setInputType(InputType.TYPE_NUMBER_FLAG_SIGNED|InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                        if (campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LAT") || campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LONG")) {
+                            et.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.icon_location, null), null, null, null);
+                            et.setCompoundDrawablePadding(16);
+                            et.setInputType(InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
-                        et.setOnTouchListener(new OnTouchListener() {
-                            @Override
-                            public boolean onTouch(View v, MotionEvent event) {
-                                final int DRAWABLE_LEFT = 0;
-                                final int DRAWABLE_TOP = 1;
-                                final int DRAWABLE_RIGHT = 2;
-                                final int DRAWABLE_BOTTOM = 3;
+                            et.setOnTouchListener(new OnTouchListener() {
+                                @Override
+                                public boolean onTouch(View v, MotionEvent event) {
+                                    final int DRAWABLE_LEFT = 0;
+                                    final int DRAWABLE_TOP = 1;
+                                    final int DRAWABLE_RIGHT = 2;
+                                    final int DRAWABLE_BOTTOM = 3;
 
-                                if(event.getAction() == MotionEvent.ACTION_UP) {
-                                    if(event.getRawX() <= (et.getLeft() + et.getCompoundDrawables()[DRAWABLE_LEFT].getBounds().width())*2) {
-                                        Toasty.info(getContext(),"Refrescando ubicacion..").show();
-                                        LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
-                                        autoPineo.startLocationUpdates();
-                                        return true;
+                                    if (event.getAction() == MotionEvent.ACTION_UP) {
+                                        if (event.getRawX() <= (et.getLeft() + et.getCompoundDrawables()[DRAWABLE_LEFT].getBounds().width()) * 2) {
+                                            Toasty.info(getContext(), "Refrescando ubicacion..").show();
+                                            LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
+                                            autoPineo.startLocationUpdates();
+                                            return true;
+                                        }
+                                    }
+                                    return false;
+                                }
+                            });
+                            et.setText(et.getText().toString().replace(",", "."));
+                        }
+                        if (campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")) {
+                            et.setSingleLine(false);
+                            et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                            et.setMinLines(1);
+                            et.setMaxLines(5);
+                            et.setVerticalScrollBarEnabled(true);
+                            et.setMovementMethod(ScrollingMovementMethod.getInstance());
+                            et.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
+                            et.setGravity(INDICATOR_GRAVITY_TOP);
+                            if (solicitudSeleccionada.size() > 0 && (!solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incompleto"))) {
+                                et.setText("");
+                                RelativeLayout rl = new RelativeLayout(getContext());
+                                rl.setVerticalScrollBarEnabled(true);
+                                rl.startNestedScroll(1);
+
+                                CoordinatorLayout.LayoutParams rlp = new CoordinatorLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                rlp.setBehavior(new AppBarLayout.ScrollingViewBehavior(getContext(), null));
+
+                                rl.setLayoutParams(rlp);
+                                rl.requestLayout();
+
+                                tb_comentarios.setColumnCount(4);
+                                tb_comentarios.setHeaderBackgroundColor(getResources().getColor(R.color.colorHeaderTableView, null));
+                                tb_comentarios.setHeaderElevation(2);
+                                LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                tb_comentarios.setLayoutParams(hlp);
+
+                                if (solicitudSeleccionada.size() > 0) {
+                                    comentarios.clear();
+                                    comentarios = mDBHelper.getComentariosDB(idForm);
+                                }
+                                //Adaptadores
+                                if (comentarios != null) {
+                                    tb_comentarios.getLayoutParams().height = tb_comentarios.getLayoutParams().height + (comentarios.size() * alturaFilaTableView * 2);
+                                    tb_comentarios.setDataAdapter(new ComentarioTableAdapter(getContext(), comentarios));
+                                }
+                                String[] headers = ((ComentarioTableAdapter) tb_comentarios.getDataAdapter()).getHeaders();
+                                SimpleTableHeaderAdapter sta = new SimpleTableHeaderAdapter(getContext(), headers);
+                                sta.setPaddings(5, 15, 5, 15);
+                                sta.setTextSize(12);
+                                sta.setTextColor(getResources().getColor(R.color.white, null));
+                                sta.setTypeface(Typeface.BOLD);
+                                sta.setGravity(GRAVITY_CENTER);
+
+                                tb_comentarios.setHeaderAdapter(sta);
+                                tb_comentarios.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(getResources().getColor(R.color.white, null), getResources().getColor(R.color.backColor, null)));
+
+                                //Necesario para el nested scrolling del tableview
+                                final List<View> tocables = tb_comentarios.getFocusables(View.FOCUS_FORWARD);
+                                for (int x = 0; x < tocables.size(); x++) {
+                                    final int finalX = x;
+                                    tocables.get(x).setOnTouchListener(new OnTouchListener() {
+                                        @Override
+                                        public boolean onTouch(View v, MotionEvent event) {
+                                            v.getParent().requestDisallowInterceptTouchEvent(true);
+                                            v.getParent().getParent().requestDisallowInterceptTouchEvent(true);
+                                            return false;
+                                        }
+                                    });
+                                }
+                                rl.addView(tb_comentarios);
+                                ll.addView(rl);
+                            }
+                        }
+                        if (campos.get(i).get("campo").trim().equals("W_CTE-DATAB")) {
+                            Date c = Calendar.getInstance().getTime();
+                            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                            String fechaSistema = df.format(c);
+                            et.setText(fechaSistema);
+                        }
+                        if (campos.get(i).get("campo").trim().equals("W_CTE-SMTP_ADDR")) {
+                            et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                                @Override
+                                public void onFocusChange(View v, boolean hasFocus) {
+                                    if (!hasFocus) {
+                                        correoValidado = isValidEmail(v);
                                     }
                                 }
-                                return false;
+                            });
+                        }
+                        listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                        mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), et);
+                        if (campos.get(i).get("obl") != null && campos.get(i).get("obl").trim().length() > 0) {
+                            listaCamposObligatorios.add(campos.get(i).get("campo").trim());
+                            if (campos.get(i).get("dfaul").trim().length() == 0) {
+                                et.setError("El campo es obligatorio!");
                             }
-                        });
-                        et.setText(et.getText().toString().replace(",","."));
-                    }
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")){
-                        et.setSingleLine(false);
-                        et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-                        et.setMinLines(1);
-                        et.setMaxLines(5);
-                        et.setVerticalScrollBarEnabled(true);
-                        et.setMovementMethod(ScrollingMovementMethod.getInstance());
-                        et.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
-                        et.setGravity(INDICATOR_GRAVITY_TOP);
-                        if(solicitudSeleccionada.size() > 0 && (!solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Nuevo") && !solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incompleto"))) {
-                            et.setText("");
-                            RelativeLayout rl = new RelativeLayout(getContext());
-                            rl.setVerticalScrollBarEnabled(true);
-                            rl.startNestedScroll(1);
+                        }
+                        if (campos.get(i).get("tabla_local") != null && campos.get(i).get("tabla_local").trim().length() > 0) {
+                            listaCamposBloque.add(campos.get(i).get("campo").trim());
+                        }
 
-                            CoordinatorLayout.LayoutParams rlp = new CoordinatorLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                            rlp.setBehavior(new AppBarLayout.ScrollingViewBehavior(getContext(), null));
-
-                            rl.setLayoutParams(rlp);
-                            rl.requestLayout();
-
-                            tb_comentarios.setColumnCount(4);
-                            tb_comentarios.setHeaderBackgroundColor(getResources().getColor(R.color.colorHeaderTableView,null));
-                            tb_comentarios.setHeaderElevation(2);
-                            LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,  LinearLayout.LayoutParams.WRAP_CONTENT);
-                            tb_comentarios.setLayoutParams(hlp);
-
-                            if(solicitudSeleccionada.size() > 0){
-                                comentarios.clear();
-                                comentarios = mDBHelper.getComentariosDB(idForm);
+                        //Excepciones de visualizacion y configuracionde campos dados por la tabla ConfigCampos
+                        int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
+                        if (excepcion >= 0) {
+                            HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
+                            if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
+                                et.setEnabled(false);
+                                et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
+                            } else if (configExcepcion.get("vis") != null && configExcepcion.get("vis").trim() != "") {
+                                et.setEnabled(true);
+                                et.setBackground(getResources().getDrawable(R.drawable.textbackground, null));
                             }
-                            //Adaptadores
-                            if(comentarios != null) {
-                                tb_comentarios.getLayoutParams().height = tb_comentarios.getLayoutParams().height + (comentarios.size() * alturaFilaTableView*2);
-                                tb_comentarios.setDataAdapter(new ComentarioTableAdapter(getContext(), comentarios));
+                            if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                                et.setVisibility(View.GONE);
+                            } else if (configExcepcion.get("sup") != null) {
+                                et.setVisibility(View.VISIBLE);
                             }
-                            String[] headers = ((ComentarioTableAdapter) tb_comentarios.getDataAdapter()).getHeaders();
-                            SimpleTableHeaderAdapter sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                            sta.setPaddings(5,15,5,15);
-                            sta.setTextSize(12);
-                            sta.setTextColor(getResources().getColor(R.color.white,null));
-                            sta.setTypeface(Typeface.BOLD);
-                            sta.setGravity(GRAVITY_CENTER);
-
-                            tb_comentarios.setHeaderAdapter(sta);
-                            tb_comentarios.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(getResources().getColor(R.color.white,null), getResources().getColor(R.color.backColor,null)));
-
-                            //Necesario para el nested scrolling del tableview
-                            final List<View> tocables = tb_comentarios.getFocusables(View.FOCUS_FORWARD);
-                            for(int x=0; x < tocables.size(); x++) {
-                                final int finalX = x;
-                                tocables.get(x).setOnTouchListener(new OnTouchListener() {
-                                    @Override
-                                    public boolean onTouch(View v, MotionEvent event) {
-                                        v.getParent().requestDisallowInterceptTouchEvent(true);
-                                        v.getParent().getParent().requestDisallowInterceptTouchEvent(true);
-                                        return false;
-                                    }
-                                });
-                            }
-                            rl.addView(tb_comentarios);
-                            ll.addView(rl);
                         }
                     }
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-DATAB")){
-                        Date c = Calendar.getInstance().getTime();
-                        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                        String fechaSistema = df.format(c);
-                        et.setText(fechaSistema);
-                    }
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-SMTP_ADDR")) {
-                        et.setOnFocusChangeListener(new OnFocusChangeListener() {
-                            @Override
-                            public void onFocusChange(View v, boolean hasFocus) {
-                                if (!hasFocus) {
-                                    correoValidado = isValidEmail(v);
-                                }
-                            }
-                        });
-                    }
-                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
-                    mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), et);
-                    if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
-                        listaCamposObligatorios.add(campos.get(i).get("campo").trim());
-                        if(campos.get(i).get("dfaul").trim().length() == 0) {
-                            et.setError("El campo es obligatorio!");
-                        }
-                    }
-                    if(campos.get(i).get("tabla_local").trim().length() > 0){
-                        listaCamposBloque.add(campos.get(i).get("campo").trim());
-                    }
 
-                    //Excepciones de visualizacion y configuracionde campos dados por la tabla ConfigCampos
-                    int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
-                    if(excepcion >= 0) {
-                        HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
-                            et.setEnabled(false);
-                            et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
-                        }else if(configExcepcion.get("vis") != null){
-                            et.setEnabled(true);
-                            et.setBackground(getResources().getDrawable(R.drawable.textbackground, null));
-                        }
-                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
-                            et.setVisibility(View.GONE);
-                        }else if(configExcepcion.get("sup") != null){
-                            et.setVisibility(View.VISIBLE);
-                        }
-                    }
-                }
-
-                seccionAnterior = campos.get(i).get("id_seccion").trim();
-
+                    seccionAnterior = campos.get(i).get("id_seccion").trim();
             }
             //Si estan los campos de Latitud y Longitud, activar el pineo automatico (W_CTE-ZZCRMA_LAT,W_CTE-ZZCRMA_LONG)
             //Descomentar si se quiere PINEO Automatico de coordenadas al entrar a una solicitud de Inclusion
@@ -3314,6 +3312,15 @@ public class SolicitudActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         Toasty.error(v.getContext(), "Error Insertando Encuesta Canales", Toasty.LENGTH_SHORT).show();
                     }
+
+                    //Calcular Nivel Socioeconomico Planchado Segun el valor de su canal Pais
+                    if (PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_VKORG","").equals("0443")) {
+                        String NSEPCalculado = mDBHelper.AlgoritmoNSEP(valor_canales.get("W_CTE-ZZENT4").trim());
+                        Spinner nsepSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-KATR4");
+                        if(NSEPCalculado.trim().length() > 0)
+                            nsepSpinner.setSelection(VariablesGlobales.getIndex(nsepSpinner,NSEPCalculado.trim()));
+                    }
+
                     Toasty.success(v.getContext(), "Encuesta Canales ejecutada correctamente!", Toasty.LENGTH_SHORT).show();
                     d.dismiss();
                     CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA");

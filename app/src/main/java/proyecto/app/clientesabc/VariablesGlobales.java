@@ -8,6 +8,7 @@ import android.widget.Spinner;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 import proyecto.app.clientesabc.modelos.Visitas;
@@ -113,6 +114,26 @@ public class VariablesGlobales extends Application {
         }
 
         return secuencia;
+    }
+
+    public static String validarConexionDePreferencia(Context context){
+        String zeroTo255 = "([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])";
+        String IP_REGEXP = zeroTo255 + "\\." + zeroTo255 + "\\." + zeroTo255 + "\\." + zeroTo255;
+        Pattern IP_PATTERN = Pattern.compile(IP_REGEXP);
+        String retorno = "";
+        try {
+            if(!IP_PATTERN.matcher(PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()).matches())
+                return "La IP '"+PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()+"' es inválida. Revise los datos de comunicación.";
+        }catch (Exception e){
+            return "La IP '"+PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()+"' es inválida. Revise los datos de comunicación.";
+        }
+        try {
+            Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto","").trim());
+        }catch (Exception e){
+            return "El puerto '"+PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto","").trim()+"' es inválido. Revise los datos de comunicación.";
+        }
+
+        return retorno;
     }
 
     public static String getSociedad() {

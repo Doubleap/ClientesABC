@@ -34,6 +34,7 @@ import java.util.Locale;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 
 public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
     private WeakReference<Context> context;
@@ -54,7 +55,9 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
         try {
             publishProgress("Estableciendo comunicación...");
             System.out.println("Estableciendo comunicación para enviar archivos...");
-            socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip",""),Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto","")));
+            String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
+            if(mensaje.equals("")) {
+            socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip","").trim(),Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto","").trim()));
 
             System.out.println("Creando Streams de datos...");
             DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
@@ -145,6 +148,10 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
                     }
                 }
             }
+        }else{
+            xceptionFlag = true;
+            messageFlag = mensaje;
+        }
             publishProgress("Proceso Terminado...");
         } catch (IOException e) {
             xceptionFlag = true;

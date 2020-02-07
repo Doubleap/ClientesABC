@@ -19,6 +19,7 @@ import java.net.Socket;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 
 public class PruebaConexionServidor extends AsyncTask<Void,Void,Void> {
     private WeakReference<Context> context;
@@ -38,13 +39,18 @@ public class PruebaConexionServidor extends AsyncTask<Void,Void,Void> {
         //Solo enviamos los datos necesarios para que la sincronizacion sepa que traer
         try {
             System.out.println("Estableciendo comunicación");
-            socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip",""),Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto","")));
+            String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
+            if(mensaje.equals("")) {
+                socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", "").trim(), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "").trim()));
+                DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                dos.writeUTF("Prueba");
+                dos.flush();
 
-            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-            dos.writeUTF("Prueba");
-            dos.flush();
-
-            socket.close();
+                socket.close();
+            }else{
+                xceptionFlag = true;
+                messageFlag = mensaje;
+            }
         } catch (IOException e) {
             xceptionFlag = true;
             messageFlag = e.getMessage();

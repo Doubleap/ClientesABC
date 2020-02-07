@@ -271,7 +271,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         }else{
             correoValidado = true;
             cedulaValidada = true;
-            if(!tipoSolicitud.equals("1") && !tipoSolicitud.equals("6")){
+            if(!tipoSolicitud.equals("1") && !tipoSolicitud.equals("6") && !tipoSolicitud.equals("26") ){
                 firma = true;
             }
         }
@@ -411,10 +411,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         }
 
                         //Validacion de politica de privacidad firmada por el cliente.
-                        /*if(!firma){
+                        if(!firma && tipoSolicitud.equals("26")){
                             numErrores++;
-                            mensajeError += "- El cliente debe firmar las políticas de privacidad!\n";
-                        }*/
+                            mensajeError += "- El cliente nuevo debe firmar las políticas de privacidad!\n";
+                        }
                         //Validacion de correo
                         if(!correoValidado){
                             numErrores++;
@@ -1241,6 +1241,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             combo.setSelection(VariablesGlobales.getIndex(combo, "PR"));
                             combo.setEnabled(false);
                             combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                        }else{
+                            combo.setEnabled(false);
+                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
                         }
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
@@ -1265,107 +1268,113 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                         });
                     }
-                    if(campos.get(i).get("llamado1").trim().contains("Provincia")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Provincias(parent);
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
+                    if(campos.get(i).get("llamado1") != null) {
+                        if (campos.get(i).get("llamado1").trim().contains("Provincia")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    Provincias(parent);
+                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
 
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
 
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("Cantones")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Cantones(parent);
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("Cantones")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    Cantones(parent);
+                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
 
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
 
-                            }
-                        });
-                    }
+                                }
+                            });
+                        }
 
-                    if(campos.get(i).get("llamado1").trim().contains("Distritos")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Distritos(parent);
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
+                        if (campos.get(i).get("llamado1").trim().contains("Distritos")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    Distritos(parent);
+                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
 
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
 
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("DireccionCorta")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                DireccionCorta();
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("DireccionCorta")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    DireccionCorta();
+                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
 
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("Canales(")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Canales(parent);
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
 
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("CanalesKof")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                CanalesKof(parent);
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("Canales(")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    Canales(parent);
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
 
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("ImpuestoSegunUnidadNegocio")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                ImpuestoSegunUnidadNegocio(parent);
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
 
-                            }
-                        });
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("CanalesKof")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    CanalesKof(parent);
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("ImpuestoSegunUnidadNegocio")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    ImpuestoSegunUnidadNegocio(parent);
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }
                     }
                     //Campos de encabezado deben salir todos como deshabilitados en valor viejo
                     if(campos.get(i).get("modificacion").trim().equals("1") && campos.get(i).get("sup").trim().length() == 0){
@@ -1684,7 +1693,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                     TableRow.LayoutParams textolp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
                     TableRow.LayoutParams btnlp = new TableRow.LayoutParams(75, 75);
-                    if(campos.get(i).get("tooltip") != null){
+                    if(campos.get(i).get("tooltip") != null && campos.get(i).get("tooltip") != ""){
                         textolp.setMargins(0,0,25,0);
                         //label.setLayoutParams(textolp);
                         btnAyuda = new ImageView(getContext());
@@ -2010,7 +2019,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 ll.addView(label);
                 ll.addView(combo);
 
-                if(tipoSolicitud.equals("1") || tipoSolicitud.equals("6")) {
+                if(tipoSolicitud.equals("26")) {
                     //Check Box para la aceptacion de las politicas de privacidad
                     final CheckBox checkbox = new CheckBox(getContext());
                     checkbox.setText("Aceptar Politicas de Privacidad");
@@ -2353,25 +2362,38 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
                     int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZJV");
                     int indiceKafe = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZKV");
+                    int indiceTeleventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZTV");
                     int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
-                    int totalvp_preventa = 0;
+                    int totalvp_preventa = 1;
                     if(indicePreventa != -1){
                         totalvp_preventa++;
                     }
                     if(indiceEspecializada != -1){
                         totalvp_preventa++;
                     }
+                    if(indiceTeleventa != -1){
+                        totalvp_preventa++;
+                    }
                     if(visitasSolicitud.size() == 0){
-                        totalvp_preventa = 2;
+                        totalvp_preventa = 3;
                     }
                     String tipoVisitaActual = "ZPV";
                     for (int i = 0; i < totalvp_preventa; i++) {
-                        if(i==0)
-                            tipoVisitaActual = "ZPV";
-                        if(i==1)
-                            tipoVisitaActual = "ZJV";
-                        if(i==2)
-                            tipoVisitaActual = "ZKV";
+                        if(visitasSolicitud.size() == 0) {
+                            if (i == 0)
+                                tipoVisitaActual = "ZPV";
+                            if (i == 1)
+                                tipoVisitaActual = "ZJV";
+                            if (i == 2)
+                                tipoVisitaActual = "ZTV";
+                            if (i == 3)
+                                tipoVisitaActual = "ZKV";
+                        }else{
+                            tipoVisitaActual = visitasSolicitud.get(i).getVptyp().trim();
+                            if(tipoVisitaActual.equals("ZDD")){
+                                continue;
+                            }
+                        }
                         CardView seccion_visitas = new CardView(Objects.requireNonNull(getContext()));
                         mapeoVisitas.put(tipoVisitaActual,seccion_visitas);
 
@@ -2401,6 +2423,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         tr.setPadding(0, 0, 0, 0);
 
                         for (int x = 0; x < 6; x++) {
+
                             TextInputLayout label = new TextInputLayout(getContext());
                             label.setHint("" + diaLabel[x]);
                             label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
@@ -2427,12 +2450,18 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                             if(solicitudSeleccionada.size() > 0){
                                 int indiceActual = -1;
-                                if(i==0)
-                                    indiceActual = indicePreventa;
-                                if(i==1)
-                                    indiceActual = indiceEspecializada;
-                                if(i==2)
-                                    indiceActual = indiceKafe;
+                                if(visitasSolicitud.size() == 0) {
+                                    if(i==0)
+                                        indiceActual = indicePreventa;
+                                    if(i==1)
+                                        indiceActual = indiceEspecializada;
+                                    if(i==2)
+                                        indiceActual = indiceTeleventa;
+                                    if(i==3)
+                                        indiceActual = indiceKafe;
+                                }else{
+                                    indiceActual = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,tipoVisitaActual);
+                                }
                                 switch (x) {
                                     case 0:
                                         et.setText(visitasSolicitud.get(indiceActual).getLun_a());
@@ -3399,6 +3428,19 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         Toasty.error(v.getContext(), "Error Insertando Encuesta Canales", Toast.LENGTH_SHORT).show();
                     }
+
+                    try {
+                        //Calcular Nivel Socioeconomico Planchado Segun el valor de su canal Pais
+                        if (PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_VKORG", "").equals("0443")) {
+                            String NSEPCalculado = mDBHelper.AlgoritmoNSEP(valor_canales.get("W_CTE-ZZENT4").trim());
+                            Spinner nsepSpinner = (Spinner) mapeoCamposDinamicos.get("W_CTE-KATR4");
+                            if (NSEPCalculado.trim().length() > 0)
+                                nsepSpinner.setSelection(VariablesGlobales.getIndex(nsepSpinner, NSEPCalculado.trim()));
+                        }
+                    }catch (Exception e) {
+                        Toasty.error(v.getContext(), "No se pudo asignar el Nivel SocioEconomico Planchado. "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+
                     Toasty.success(v.getContext(), "Encuesta Canales ejecutada correctamente!", Toast.LENGTH_SHORT).show();
                     d.dismiss();
                     CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA");
@@ -4466,7 +4508,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     try {
                         Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
-                        sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString().trim()));
+                        if(sp != null)
+                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString().trim()));
 
                         sp = ((Spinner) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
                         if(sp != null)
@@ -4577,6 +4620,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         int indiceReparto = -1;
                         int indicePreventa = -1;
                         int indiceEspecializada = -1;
+                        int indiceTeleventa = -1;
 
                         for(int x=0; x < visitas.size(); x++){
                             if(visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZDD")){
@@ -4587,6 +4631,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                             if(visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZJV")){
                                 indiceEspecializada = x;
+                            }
+                            if(visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZTV")){
+                                indiceTeleventa = x;
                             }
                             visita = gson.fromJson(visitas.get(x), Visitas.class);
 
@@ -4701,6 +4748,49 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             diaEJ.setVisibility(View.GONE);
                             diaEV.setVisibility(View.GONE);
                             diaES.setVisibility(View.GONE);
+                        }
+                        if(visitasSolicitud.size() > 0 && indiceTeleventa >= 0) {
+                            //En caso de que tenga especializada
+                            TextInputEditText diaTL = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_L"));
+                            TextInputEditText diaTK = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_K"));
+                            TextInputEditText diaTM = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_M"));
+                            TextInputEditText diaTJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_J"));
+                            TextInputEditText diaTV = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_V"));
+                            TextInputEditText diaTS = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_S"));
+                            if ( diaTL != null) {
+                                diaTL.setText(visitasSolicitud_old.get(indiceTeleventa).getLun_de());
+                            }
+                            if ( diaTK != null) {
+                                diaTK.setText(visitasSolicitud_old.get(indiceTeleventa).getMar_de());
+                            }
+                            if ( diaTM != null) {
+                                diaTM.setText(visitasSolicitud_old.get(indiceTeleventa).getMier_de());
+                            }
+                            if ( diaTJ != null) {
+                                diaTJ.setText(visitasSolicitud_old.get(indiceTeleventa).getJue_de());
+                            }
+                            if ( diaTV != null) {
+                                diaTV.setText(visitasSolicitud_old.get(indiceTeleventa).getVie_de());
+                            }
+                            if ( diaTS != null) {
+                                diaTS.setText(visitasSolicitud_old.get(indiceTeleventa).getSab_de());
+                            }
+                        }else{
+                            CardView tituloT = ((CardView)mapeoVisitas.get("ZTV"));
+                            TextInputEditText diaTL = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_L"));
+                            TextInputEditText diaTK = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_K"));
+                            TextInputEditText diaTM = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_M"));
+                            TextInputEditText diaTJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_J"));
+                            TextInputEditText diaTV = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_V"));
+                            TextInputEditText diaTS = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_S"));
+
+                            tituloT.setVisibility(View.GONE);
+                            diaTL.setVisibility(View.GONE);
+                            diaTK.setVisibility(View.GONE);
+                            diaTM.setVisibility(View.GONE);
+                            diaTJ.setVisibility(View.GONE);
+                            diaTV.setVisibility(View.GONE);
+                            diaTS.setVisibility(View.GONE);
                         }
                         break;
                     case "W_CTE-ADJUNTOS":

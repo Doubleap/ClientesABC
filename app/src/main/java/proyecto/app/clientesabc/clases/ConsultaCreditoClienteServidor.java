@@ -27,6 +27,7 @@ import java.util.ArrayList;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
 
 public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayList<JsonArray>> {
@@ -54,41 +55,43 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
         try {
             publishProgress("Estableciendo comunicación...");
             System.out.println("Estableciendo comunicación para enviar archivos...");
-            socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip",""),Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto","")));
+            String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
+            if(mensaje.equals("")) {
+                socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", ""), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "")));
 
-            System.out.println("Creando Streams de datos...");
-            DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                System.out.println("Creando Streams de datos...");
+                DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+                DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 
-            //Comando String que indicara que se quiere realizar una Sincronizacion
-            publishProgress("Comunicacion establecida...");
-            dos.writeUTF("CreditoCliente");
-            dos.flush();
+                //Comando String que indicara que se quiere realizar una Sincronizacion
+                publishProgress("Comunicacion establecida...");
+                dos.writeUTF("CreditoCliente");
+                dos.flush();
 
-            dos.writeUTF(String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0'));
-            dos.flush();
+                dos.writeUTF(String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0'));
+                dos.flush();
 
-            dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_AREACREDITO",""));
-            dos.flush();
+                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_AREACREDITO", ""));
+                dos.flush();
 
-            dos.writeUTF(tipoCreditoSAP);
-            dos.flush();
+                dos.writeUTF(tipoCreditoSAP);
+                dos.flush();
 
-            dos.writeUTF("FIN");
-            dos.flush();
+                dos.writeUTF("FIN");
+                dos.flush();
 
-            //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la consulta para modificacion
-            long s = dis.readLong();
-            if(s < 0){
-                publishProgress("Error en Consulta Cliente...");
-                s = dis.readLong();
-                byte[] e = new byte[(int) s];
-                dis.readFully(e);
-                String error = new String(e);
-                xceptionFlag = true;
-                messageFlag = ""+error;
-            }else {
-                publishProgress("Procesando datos recibidos...");
+                //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la consulta para modificacion
+                long s = dis.readLong();
+                if (s < 0) {
+                    publishProgress("Error en Consulta Cliente...");
+                    s = dis.readLong();
+                    byte[] e = new byte[(int) s];
+                    dis.readFully(e);
+                    String error = new String(e);
+                    xceptionFlag = true;
+                    messageFlag = "" + error;
+                } else {
+                    publishProgress("Procesando datos recibidos...");
                 /*ORDEN DE ESTRUCTURAS SAP RECIBIDAS
                         String jsonCliente = 0;
                         String jsonNotaEntrega = 1;
@@ -102,14 +105,18 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
                         String jsonVisitas = 9;
                         String jsonCredito = 9;*/
 
-                //Toda la info de cliente
-                publishProgress("Recibiendo informacion..");
-                byte[] r = new byte[(int) s];
-                dis.readFully(r);
-                String jsoncliente = new String(r);
-                Gson gson = new Gson();
-                estructurasSAP.add(gson.fromJson(jsoncliente, JsonArray.class));
-                publishProgress("Procesando datos cliente..");
+                    //Toda la info de cliente
+                    publishProgress("Recibiendo informacion..");
+                    byte[] r = new byte[(int) s];
+                    dis.readFully(r);
+                    String jsoncliente = new String(r);
+                    Gson gson = new Gson();
+                    estructurasSAP.add(gson.fromJson(jsoncliente, JsonArray.class));
+                    publishProgress("Procesando datos cliente..");
+                }
+            }else{
+                xceptionFlag = true;
+                messageFlag = mensaje;
             }
             publishProgress("Proceso Terminado...");
         } catch (IOException e) {

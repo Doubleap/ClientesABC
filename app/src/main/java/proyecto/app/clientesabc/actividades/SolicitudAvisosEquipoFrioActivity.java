@@ -1243,107 +1243,113 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             }
                         });
                     }
-                    if(campos.get(i).get("llamado1").trim().contains("Provincia")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Provincias(parent);
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
+                    if(campos.get(i).get("llamado1") != null) {
+                        if (campos.get(i).get("llamado1").trim().contains("Provincia")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    Provincias(parent);
+                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
 
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
 
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("Cantones")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Cantones(parent);
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("Cantones")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    Cantones(parent);
+                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
 
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
 
-                            }
-                        });
-                    }
+                                }
+                            });
+                        }
 
-                    if(campos.get(i).get("llamado1").trim().contains("Distritos")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Distritos(parent);
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
+                        if (campos.get(i).get("llamado1").trim().contains("Distritos")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    Distritos(parent);
+                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
 
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
 
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("DireccionCorta")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                DireccionCorta();
-                                if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("DireccionCorta")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    DireccionCorta();
+                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
 
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("Canales(")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                Canales(parent);
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
 
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("CanalesKof")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                CanalesKof(parent);
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("Canales(")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    Canales(parent);
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
 
-                            }
-                        });
-                    }
-                    if(campos.get(i).get("llamado1").trim().contains("ImpuestoSegunUnidadNegocio")){
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                ImpuestoSegunUnidadNegocio(parent);
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
 
-                            }
-                        });
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("CanalesKof")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    CanalesKof(parent);
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("ImpuestoSegunUnidadNegocio")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    ImpuestoSegunUnidadNegocio(parent);
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }
                     }
                     //Campos de encabezado deben salir todos como deshabilitados en valor viejo
                     if(campos.get(i).get("modificacion").trim().equals("1") && campos.get(i).get("sup").trim().length() == 0){
@@ -1644,7 +1650,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
                     TableRow.LayoutParams textolp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
                     TableRow.LayoutParams btnlp = new TableRow.LayoutParams(75, 75);
-                    if(campos.get(i).get("tooltip") != null){
+                    if(campos.get(i).get("tooltip") != null && campos.get(i).get("tooltip") != ""){
                         textolp.setMargins(0,0,25,0);
                         //label.setLayoutParams(textolp);
                         btnAyuda = new ImageView(getContext());
