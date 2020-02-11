@@ -31,6 +31,7 @@ import java.net.Socket;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 
 public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
     private WeakReference<Context> context;
@@ -57,26 +58,26 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
         try {
             publishProgress("Estableciendo comunicación...");
             System.out.println("Estableciendo comunicación para enviar archivos...");
-            socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip",""),Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto","")));
-            //socket.setReuseAddress(true);
+            String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
+            if(mensaje.equals("")) {
+                socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", "").trim(), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "").trim()));
+                // Enviar archivo en socket
+                File myFile = new File(context.get().getDatabasePath("FAWM_ANDROID_2").getPath());
 
-            // Enviar archivo en socket
-            File myFile = new File(context.get().getDatabasePath("FAWM_ANDROID_2").getPath() );
+                System.out.println("Creando Streams de datos...");
+                DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+                DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 
-            System.out.println("Creando Streams de datos...");
-            DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                //Comando String que indicara que se quiere realizar una Sincronizacion
+                publishProgress("Comunicacion establecida...");
+                dos.writeUTF("Adjunto");
+                dos.flush();
 
-            //Comando String que indicara que se quiere realizar una Sincronizacion
-            publishProgress("Comunicacion establecida...");
-            dos.writeUTF("Adjunto");
-            dos.flush();
-
-            //Enviar ruta de folder donde se encuentra el adjunto con nombre del adjunto
-            //nombre = "F443\\2158\\2158.pdf";
-            nombre = tv_nombre.getText().toString();
-            dos.writeUTF(nombre);
-            dos.flush();
+                //Enviar ruta de folder donde se encuentra el adjunto con nombre del adjunto
+                //nombre = "F443\\2158\\2158.pdf";
+                nombre = tv_nombre.getText().toString();
+                dos.writeUTF(nombre);
+                dos.flush();
 
             /*//Enviar PAIS para folder donde se encuentra el adjunto
             dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_BUKRS",""));
@@ -85,29 +86,33 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
             dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_BUKRS",""));
             dos.flush();*/
 
-            dos.writeUTF("FIN");
-            dos.flush();
+                dos.writeUTF("FIN");
+                dos.flush();
 
-            //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
-            long s = dis.readLong();
-            if(s < 0){
-                publishProgress("Error en Sincronizacion...");
-                s = dis.readLong();
-                byte[] e = new byte[(int) s];
-                dis.readFully(e);
-                String error = new String(e);
-                xceptionFlag = true;
-                messageFlag = "Error: "+error;
-            }else {
-                publishProgress("Recibiendo datos...");
-                byte[] r = new byte[(int) s];
-                dis.readFully(r);
-                publishProgress("Procesando datos recibidos...");
-                if(nombre.toLowerCase().contains(".pdf")) {
-                    adjuntoArray = r;
-                }else {
-                    adjunto = BitmapFactory.decodeByteArray(r, 0, r.length);
+                //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
+                long s = dis.readLong();
+                if (s < 0) {
+                    publishProgress("Error en Sincronizacion...");
+                    s = dis.readLong();
+                    byte[] e = new byte[(int) s];
+                    dis.readFully(e);
+                    String error = new String(e);
+                    xceptionFlag = true;
+                    messageFlag = "Error: " + error;
+                } else {
+                    publishProgress("Recibiendo datos...");
+                    byte[] r = new byte[(int) s];
+                    dis.readFully(r);
+                    publishProgress("Procesando datos recibidos...");
+                    if (nombre.toLowerCase().contains(".pdf")) {
+                        adjuntoArray = r;
+                    } else {
+                        adjunto = BitmapFactory.decodeByteArray(r, 0, r.length);
+                    }
                 }
+            }else{
+                xceptionFlag = true;
+                messageFlag = mensaje;
             }
             publishProgress("Proceso Terminado...");
         } catch (IOException e) {

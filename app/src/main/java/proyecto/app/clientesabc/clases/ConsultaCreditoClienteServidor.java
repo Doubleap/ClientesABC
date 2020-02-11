@@ -57,7 +57,7 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
             System.out.println("Estableciendo comunicación para enviar archivos...");
             String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
             if(mensaje.equals("")) {
-                socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", ""), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "")));
+                socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", "").trim(), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "").trim()));
 
                 System.out.println("Creando Streams de datos...");
                 DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
