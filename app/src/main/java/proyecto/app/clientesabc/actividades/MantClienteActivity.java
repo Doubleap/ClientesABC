@@ -557,7 +557,7 @@ public class MantClienteActivity extends AppCompatActivity {
     }
 
     public void displayDialogSeleccionarEquipoFrio(Context context, final String tipoSolicitud, final String codigoCliente) {
-        ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("sapDBaseInstalada",8,12, "kunnr='"+codigoCliente+"'");
+        ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("sapDBaseInstalada",8,12,15, "kunnr='"+codigoCliente+"'");
         if(opciones.size() == 1){
             Toasty.warning(context, "El cliente no tiene equipo frio asignado!", Toast.LENGTH_SHORT).show();
             return;
@@ -582,6 +582,9 @@ public class MantClienteActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String codigoEquipoFrio = ((OpcionSpinner)equipoFrioSpinner.getSelectedItem()).getId();
+                if(codigoEquipoFrio.isEmpty()){
+                    Toasty.warning(v.getContext(), "Por favor seleccione un equipo frio!", Toast.LENGTH_SHORT).show();
+                }
                 try{
                     d.dismiss();
                     Bundle b = new Bundle();
@@ -634,13 +637,13 @@ public class MantClienteActivity extends AppCompatActivity {
                                         try {
                                             reader.softwareTrigger(false);
                                             //Revisar si el codigo de equipo leido existe y es del cliente
-                                            EquipoFrio equipo = db.getEquipoFrioDB(codigoCliente,lecturaEquipoFrio);
+                                            EquipoFrio equipo = db.getEquipoFrioDB(codigoCliente,lecturaEquipoFrio,false);
                                             if(equipo != null) {
                                                 Toasty.info(getBaseContext(), "Código " + lecturaEquipoFrio + " leido!", Toast.LENGTH_SHORT).show();
                                                 Bundle b = new Bundle();
                                                 b.putString("tipoSolicitud", tipoSolicitud);
                                                 b.putString("codigoCliente", codigoCliente);
-                                                b.putString("codigoEquipoFrio", lecturaEquipoFrio);
+                                                b.putString("codigoEquipoFrio", equipo.getEqunr().trim());
                                                 intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
                                                 intent.putExtras(b); //Pase el parametro el Intent
                                                 startActivity(intent);

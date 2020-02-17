@@ -1100,13 +1100,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim());
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_causas") || campos.get(i).get("tabla").trim().toLowerCase().equals("ef_prioridades")){
-                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),3,4);
+                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),3,4,null);
                     }
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_clases")){
-                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),1,2);
+                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),1,2,null);
                     }
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("sapdmateriales_pde")){
-                        opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim(),1,4);
+                        opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim(),1,4,null);
                     }
                     ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
                     int selectedIndex = 0;
@@ -3033,7 +3033,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         }
 
         //Para campos de seleccion para grid impuestos campo clave de impuesto
-        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_impstos",1,2, "tatyp='"+seleccionado.getTatyp()+"' AND taxkd='"+seleccionado.getTaxkd()+"'");
+        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_impstos",1,2,null, "tatyp='"+seleccionado.getTatyp()+"' AND taxkd='"+seleccionado.getTaxkd()+"'");
 
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
         int selectedIndexClave = 0;
@@ -3057,7 +3057,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
                 //Para campos de seleccion para grid bancos campo clasificacion fiscal
-                ArrayList<HashMap<String, String>> opcionesClasi = mDBHelper.getDatosCatalogo("cat_impstos",3,4,"tatyp='"+opcion.getId()+"'");
+                ArrayList<HashMap<String, String>> opcionesClasi = mDBHelper.getDatosCatalogo("cat_impstos",3,4,null,"tatyp='"+opcion.getId()+"'");
 
                 ArrayList<OpcionSpinner> listaopcionesClasi = new ArrayList<>();
                 int selectedIndexClasi = 0;
@@ -3085,7 +3085,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         });
 
         //Para campos de seleccion para grid bancos campo clasificacion fiscal
-        ArrayList<HashMap<String, String>> opcionesClasi = mDBHelper.getDatosCatalogo("cat_impstos",3,4,"tatyp='"+seleccionado.getTatyp()+"'");
+        ArrayList<HashMap<String, String>> opcionesClasi = mDBHelper.getDatosCatalogo("cat_impstos",3,4,null,"tatyp='"+seleccionado.getTatyp()+"'");
 
         ArrayList<OpcionSpinner> listaopcionesClasi = new ArrayList<>();
         int selectedIndexClasi = 0;

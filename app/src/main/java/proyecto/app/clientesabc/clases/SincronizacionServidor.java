@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.net.wifi.WifiManager;
@@ -143,50 +144,60 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                                     String sqlAttach = "ATTACH DATABASE '" + externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "FAWM_ANDROID_2_BACKUP' AS fromDB";
                                     mDataBase.execSQL(sqlAttach);
 
-                                    //Borrar Incidencias que fueron modificadas pero no han sido transmitidas
-                                    String sqlInsert = "DELETE FROM FormHVKOF_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "DELETE FROM encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "DELETE FROM encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "DELETE FROM grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "DELETE FROM grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "DELETE FROM grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "DELETE FROM grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "DELETE FROM grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "DELETE FROM adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
-                                    mDataBase.execSQL(sqlInsert);
+                                    //Validar que tenga tablas la base attachada
+                                    String sqlCountTables = "SELECT * FROM fromDB.sqlite_master WHERE type='table' AND name != 'android_metadata' AND name != 'sqlite_sequence'";
+                                    Cursor cursor = mDataBase.rawQuery(sqlCountTables,null);
+                                    if(cursor.getCount() > 0) {
+                                        //Borrar Incidencias que fueron modificadas pero no han sido transmitidas
+                                        String sqlInsert = "DELETE FROM FormHVKOF_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
+                                        mDataBase.execSQL(sqlInsert);
+                                        sqlInsert = "DELETE FROM encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
+                                        mDataBase.execSQL(sqlInsert);
+                                        sqlInsert = "DELETE FROM encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
+                                        mDataBase.execSQL(sqlInsert);
+                                        sqlInsert = "DELETE FROM grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
+                                        mDataBase.execSQL(sqlInsert);
+                                        sqlInsert = "DELETE FROM grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
+                                        mDataBase.execSQL(sqlInsert);
+                                        sqlInsert = "DELETE FROM grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
+                                        mDataBase.execSQL(sqlInsert);
+                                        sqlInsert = "DELETE FROM grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
+                                        mDataBase.execSQL(sqlInsert);
+                                        sqlInsert = "DELETE FROM grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
+                                        mDataBase.execSQL(sqlInsert);
+                                        sqlInsert = "DELETE FROM adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
+                                        mDataBase.execSQL(sqlInsert);
 
-                                    //Insertar registros del BACK UP realizado antes de sincornizar de la HH para no perder nuevos , modificados o incompletos
-                                    sqlInsert = "INSERT INTO FormHVKOF_solicitud SELECT * FROM fromDB.FormHVKOF_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "INSERT INTO encuesta_solicitud SELECT * FROM fromDB.encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "INSERT INTO encuesta_gec_solicitud SELECT * FROM fromDB.encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "INSERT INTO grid_contacto_solicitud SELECT * FROM fromDB.grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "INSERT INTO grid_bancos_solicitud SELECT * FROM fromDB.grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "INSERT INTO grid_impuestos_solicitud SELECT * FROM fromDB.grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "INSERT INTO grid_visitas_solicitud SELECT * FROM fromDB.grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "INSERT INTO grid_interlocutor_solicitud SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
-                                    mDataBase.execSQL(sqlInsert);
-                                    sqlInsert = "INSERT INTO adjuntos_solicitud SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
-                                    mDataBase.execSQL(sqlInsert);
+                                        try {
+                                            //Insertar registros del BACK UP realizado antes de sincornizar de la HH para no perder nuevos , modificados o incompletos
+                                            sqlInsert = "INSERT INTO FormHVKOF_solicitud SELECT * FROM fromDB.FormHVKOF_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
+                                            mDataBase.execSQL(sqlInsert);
+                                            sqlInsert = "INSERT INTO encuesta_solicitud SELECT * FROM fromDB.encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
+                                            mDataBase.execSQL(sqlInsert);
+                                            sqlInsert = "INSERT INTO encuesta_gec_solicitud SELECT * FROM fromDB.encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
+                                            mDataBase.execSQL(sqlInsert);
+                                            sqlInsert = "INSERT INTO grid_contacto_solicitud SELECT * FROM fromDB.grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
+                                            mDataBase.execSQL(sqlInsert);
+                                            sqlInsert = "INSERT INTO grid_bancos_solicitud SELECT * FROM fromDB.grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
+                                            mDataBase.execSQL(sqlInsert);
+                                            sqlInsert = "INSERT INTO grid_impuestos_solicitud SELECT * FROM fromDB.grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
+                                            mDataBase.execSQL(sqlInsert);
+                                            sqlInsert = "INSERT INTO grid_visitas_solicitud SELECT * FROM fromDB.grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
+                                            mDataBase.execSQL(sqlInsert);
+                                            sqlInsert = "INSERT INTO grid_interlocutor_solicitud SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
+                                            mDataBase.execSQL(sqlInsert);
+                                            sqlInsert = "INSERT INTO adjuntos_solicitud SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
+                                            mDataBase.execSQL(sqlInsert);
+                                        }catch (SQLiteException e) {
+                                            xceptionFlag = true;
+                                            messageFlag = "Bases de datos incompatibles. Intente de nuevo." + e.getMessage();
+                                            e.printStackTrace();
+                                        }
+                                    }
                                 }
                             } catch (IOException e) {
                                 xceptionFlag = true;
                                 messageFlag = "Error al actualizar la Base de Datos." + e.getMessage();
-                                ;
                                 e.printStackTrace();
                             } catch (SQLiteException e) {
                                 xceptionFlag = true;

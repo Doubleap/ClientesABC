@@ -67,6 +67,11 @@
             android:label="@string/title_activity_firma"
             android:screenOrientation="reverseLandscape" />
         <activity
+            android:name=".actividades.FirmaT4Activity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_firma_t4"
+            android:screenOrientation="reverseLandscape" />
+        <activity
             android:name=".actividades.SolicitudActivity"
             android:label="@string/title_activity_solicitud"
             android:screenOrientation="portrait" />

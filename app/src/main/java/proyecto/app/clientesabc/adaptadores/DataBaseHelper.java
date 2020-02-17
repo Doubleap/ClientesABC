@@ -67,7 +67,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         //File existente = new File(DB_PATH, DB_NAME);
         //existente.delete();
         //copyDataBase();
-}
+    }
 
     public void updateDataBase() throws IOException {
         backUpDataBase();
@@ -445,7 +445,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             cliente.put("W_CTE-ZZUNNEG",valorNoEncontrado);
             cliente.put("W_CTE-ZZZONACOST",cursor.getString(cursor.getColumnIndex("ZZZONACOST")) );
             cliente.put("W_CTE-ZZKEYACC",cursor.getString(cursor.getColumnIndex("ZKEYACC")) );
-            cliente.put("W_CTE-ZIBASE",cursor.getString(cursor.getColumnIndex("ZIBASE")) );
+            cliente.put("W_CTE-ZIBASE",removeLeadingZeroes(cursor.getString(cursor.getColumnIndex("ZIBASE"))) );
             cliente.put("W_CTE-ZADICI",valorNoEncontrado);
             cliente.put("W_CTE-ZZUDATE",valorNoEncontrado);
             cliente.put("W_CTE-AUFSD",cursor.getString(cursor.getColumnIndex("AUFSD")) );
@@ -651,7 +651,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-NOTIFICANTES",cursor.getString(cursor.getColumnIndex("W_CTE-NOTIFICANTES")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NOTIFICANTES")) : "" );
             solicitud.put("FECFIN",cursor.getString(cursor.getColumnIndex("FECFIN")) != null ? cursor.getString(cursor.getColumnIndex("FECFIN")) : "" );
             solicitud.put("W_CTE-ZZKEYACC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZKEYACC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZKEYACC")) : "" );
-            solicitud.put("W_CTE-ZIBASE",cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE")) : "" );
+            solicitud.put("W_CTE-ZIBASE",cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE")) != null ? removeLeadingZeroes(cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE"))) : "" );
             solicitud.put("W_CTE-ZADICI",cursor.getString(cursor.getColumnIndex("W_CTE-ZADICI")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZADICI")) : "" );
             solicitud.put("W_CTE-ZZUDATE",cursor.getString(cursor.getColumnIndex("W_CTE-ZZUDATE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZUDATE")) : "" );
             solicitud.put("W_CTE-AUFSD",cursor.getString(cursor.getColumnIndex("W_CTE-AUFSD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-AUFSD")) : "" );
@@ -677,11 +677,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-IM_SERIALNO",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SERIALNO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_SERIALNO")) : "" );
             solicitud.put("W_CTE-IM_CAUSE_CODE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODE")) : "" );
             solicitud.put("W_CTE-IM_CAUSE_CODEGRP",cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODEGRP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODEGRP")) : "" );
-            solicitud.put("W_CTE-IM_D_CODE",String.format("%04d", Integer.parseInt(cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")))) != null ? String.format("%04d", Integer.parseInt(cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")))) : "" );
+            solicitud.put("W_CTE-IM_D_CODE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")) : "" );
             solicitud.put("W_CTE-IM_D_CODEGRP",cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODEGRP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODEGRP")) : "" );
             solicitud.put("W_CTE-IM_PRIORITY",cursor.getString(cursor.getColumnIndex("W_CTE-IM_PRIORITY")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_PRIORITY")) : "" );
             solicitud.put("W_CTE-IM_SHORT_TEXT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) : "" );
             solicitud.put("W_CTE-IM_TEXT_LINE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) : "" );
+            solicitud.put("W_CTE-IM_NUM_AVISO",cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) : "" );
             formList.add(solicitud);
         }
 
@@ -833,7 +834,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("fuera_politica_monto",cursor.getString(cursor.getColumnIndex("fuera_politica_monto")) != null ? cursor.getString(cursor.getColumnIndex("fuera_politica_monto")) : "" );
             solicitud.put("W_CTE-NOTIFICANTES",cursor.getString(cursor.getColumnIndex("W_CTE-NOTIFICANTES")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NOTIFICANTES")) : "" );
             solicitud.put("W_CTE-ZZKEYACC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZKEYACC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZKEYACC")) : "" );
-            solicitud.put("W_CTE-ZIBASE",cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE")) : "" );
+            solicitud.put("W_CTE-ZIBASE",cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE")) != null ? removeLeadingZeroes(cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE"))) : "" );
             solicitud.put("W_CTE-ZADICI",cursor.getString(cursor.getColumnIndex("W_CTE-ZADICI")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZADICI")) : "" );
             solicitud.put("W_CTE-ZZUDATE",cursor.getString(cursor.getColumnIndex("W_CTE-ZZUDATE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZUDATE")) : "" );
             solicitud.put("W_CTE-AUFSD",cursor.getString(cursor.getColumnIndex("W_CTE-AUFSD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-AUFSD")) : "" );
@@ -858,12 +859,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-IM_SERIALNO",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SERIALNO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_SERIALNO")) : "" );
             solicitud.put("W_CTE-IM_CAUSE_CODE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODE")) : "" );
             solicitud.put("W_CTE-IM_CAUSE_CODEGRP",cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODEGRP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODEGRP")) : "" );
-            solicitud.put("W_CTE-IM_D_CODE",String.format("%04d", Integer.parseInt(cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")))) != null ? String.format("%04d", Integer.parseInt(cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")))) : "" );
+            solicitud.put("W_CTE-IM_D_CODE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")) : "" );
             solicitud.put("W_CTE-IM_D_CODEGRP",cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODEGRP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODEGRP")) : "" );
             solicitud.put("W_CTE-IM_PRIORITY",cursor.getString(cursor.getColumnIndex("W_CTE-IM_PRIORITY")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_PRIORITY")) : "" );
             solicitud.put("W_CTE-IM_SHORT_TEXT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) : "" );
             solicitud.put("W_CTE-IM_TEXT_LINE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) : "" );
-
+            solicitud.put("W_CTE-IM_NUM_AVISO",cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) : "" );
             formList.add(solicitud);
         }
         cursor.close();
@@ -1486,7 +1487,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
      * @param filtroAdicional : filtro deseado en formato de sql WHERE
      * @return listaCatalogo : Lista de datos del catalago de la tabla
      */
-    public ArrayList<HashMap<String, String>> getDatosCatalogo(String tabla, int columnaId, int columnaDesc, String... filtroAdicional){
+    public ArrayList<HashMap<String, String>> getDatosCatalogo(String tabla, int columnaId, int columnaDesc, Integer columnaAdicional, String... filtroAdicional){
         ArrayList<HashMap<String, String>> listaCatalogo = new ArrayList<>();
 
         // Select All Query
@@ -1498,9 +1499,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         for(String filtro : filtroAdicional){
             filtros.append(" AND ").append(filtro);
         }
-
-        //Crear Filtros Automaticos segun el pais
-
         //Si existe BUKRS en la tabla del catalago vamos a filtros por Sociedad
         if(existeColumna(tabla,"bukrs")){
             filtros.append(" AND bukrs = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")).append("'");
@@ -1532,7 +1530,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 do {
                     HashMap<String, String> lista = new HashMap<>();
                     lista.put("id", cursor.getString(columnaId).trim());//1era columna del query
-                    lista.put("descripcion", cursor.getString(columnaId).trim() + " - " + cursor.getString(columnaDesc));
+                    if(columnaAdicional == null) {
+                        lista.put("descripcion", cursor.getString(columnaId).trim() + " - " + cursor.getString(columnaDesc).trim());
+                    }else{
+                        lista.put("descripcion", cursor.getString(columnaId).trim() + " - " + cursor.getString(columnaDesc).trim()+ " ("+cursor.getString(columnaAdicional).trim()+ ") ");
+                    }
                     if(!listaCatalogo.contains(lista)) {
                         if (tabla.equals("sapdmateriales_pde")) {
                             lista.put("id", cursor.getString(columnaId).trim().substring(10));
@@ -2035,7 +2037,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             ef.setKdgrp(cursor.getString(cursor.getColumnIndex("KDGRP")).trim());
             ef.setBzirk(cursor.getString(cursor.getColumnIndex("BZIRK")).trim());
             ef.setKunnr(cursor.getString(cursor.getColumnIndex("KUNNR")).trim());
-            ef.setIbase(cursor.getString(cursor.getColumnIndex("IBASE")).trim());
+            ef.setIbase(removeLeadingZeroes(cursor.getString(cursor.getColumnIndex("IBASE")).trim()));
             ef.setInstance(cursor.getString(cursor.getColumnIndex("INSTANCE")).trim());
             ef.setObjecttyp(cursor.getString(cursor.getColumnIndex("OBJECTTYP")).trim());
             ef.setObjnr(cursor.getString(cursor.getColumnIndex("OBJNR")).trim());
@@ -2055,10 +2057,15 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return  equiposFriosList;
     }
 
-    public EquipoFrio getEquipoFrioDB(String id_cliente, String id_equipo){
+    public EquipoFrio getEquipoFrioDB(String id_cliente, String id_equipo, boolean codigoSAP){
         //SQLiteDatabase db = this.getWritableDatabase();
         EquipoFrio ef = null;
-        String query = "SELECT * FROM sapDBaseInstalada WHERE KUNNR = ? AND  trim(EQUNR) = ?";
+        String query  = "";
+        if(codigoSAP){
+            query = "SELECT * FROM sapDBaseInstalada WHERE KUNNR = ? AND  trim(EQUNR) = ?";
+        }else{
+            query = "SELECT * FROM sapDBaseInstalada WHERE KUNNR = ? AND  trim(SERGE) = ?";
+        }
         Cursor cursor = mDataBase.rawQuery(query,new String[]{id_cliente, id_equipo});
 
         while (cursor.moveToNext()){
@@ -2066,7 +2073,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             ef.setKdgrp(cursor.getString(cursor.getColumnIndex("KDGRP")).trim());
             ef.setBzirk(cursor.getString(cursor.getColumnIndex("BZIRK")).trim());
             ef.setKunnr(cursor.getString(cursor.getColumnIndex("KUNNR")).trim());
-            ef.setIbase(cursor.getString(cursor.getColumnIndex("IBASE")).trim());
+            ef.setIbase(removeLeadingZeroes(cursor.getString(cursor.getColumnIndex("IBASE")).trim()));
             ef.setInstance(cursor.getString(cursor.getColumnIndex("INSTANCE")).trim());
             ef.setObjecttyp(cursor.getString(cursor.getColumnIndex("OBJECTTYP")).trim());
             ef.setObjnr(cursor.getString(cursor.getColumnIndex("OBJNR")).trim());
@@ -2636,12 +2643,49 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public ArrayList<HashMap<String,String>> CausasDeGrupo(String grupo) {
-        ArrayList<HashMap<String, String>> causas = getDatosCatalogo("cat_ef_causas", 3,4, "CODEGRUPPE = '"+grupo+"'");
+    public ArrayList<HashMap<String,String>> CausasDeGrupo(String grupo, String clase_aviso) {
+        String masFiltros = "";
+        switch(clase_aviso){
+            case "T1":
+                break;
+            case "T2":
+            case "T3":
+            case "T5":
+                masFiltros = " AND KURZTEXT NOT LIKE '%INSTAL%'";
+                break;
+            case "T4":
+                masFiltros = " AND KURZTEXT LIKE '%INSTAL%'";
+                break;
+            case "T9":
+                break;
+        }
+        ArrayList<HashMap<String, String>> causas = getDatosCatalogo("cat_ef_causas", 3,4,null, "CODEGRUPPE = '"+grupo+"'"+masFiltros);
         return causas;
     }
-    public ArrayList<HashMap<String,String>> SintomasDeGrupo(String grupo) {
-        ArrayList<HashMap<String, String>> sintomas = getDatosCatalogo("cat_ef_causas", 3,4, "CODEGRUPPE = '"+grupo+"'");
+    public ArrayList<HashMap<String,String>> SintomasDeGrupo(String grupo, String clase_aviso) {
+        String masFiltros = "";
+        switch(clase_aviso){
+            case "T1":
+                break;
+            case "T2":
+            case "T3":
+            case "T5":
+                masFiltros = " AND KURZTEXT NOT LIKE '%INSTAL%'";
+                break;
+            case "T4":
+                masFiltros = " AND KURZTEXT LIKE '%INSTAL%'";
+                break;
+            case "T9":
+                break;
+            default:
+        }
+        ArrayList<HashMap<String, String>> sintomas = getDatosCatalogo("cat_ef_causas", 3,4,null, "CODEGRUPPE = '"+grupo+"'"+masFiltros);
         return sintomas;
+    }
+
+    public String removeLeadingZeroes(String str) {
+        String strPattern = "^0+(?!$)";
+        str = str.replaceAll(strPattern, "");
+        return str;
     }
 }

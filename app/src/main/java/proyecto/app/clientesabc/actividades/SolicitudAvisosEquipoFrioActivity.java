@@ -172,31 +172,11 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     static Uri mPhotoUri;
 
     @SuppressLint("StaticFieldLeak")
-    private static TableView<Contacto> tb_contactos;
-    @SuppressLint("StaticFieldLeak")
-    private static TableView<Impuesto> tb_impuestos;
-    @SuppressLint("StaticFieldLeak")
-    private static TableView<Interlocutor> tb_interlocutores;
-    @SuppressLint("StaticFieldLeak")
-    private static TableView<Banco> tb_bancos;
-    @SuppressLint("StaticFieldLeak")
-    private static TableView<Visitas> tb_visitas;
-    @SuppressLint("StaticFieldLeak")
     private static TableView<Adjuntos> tb_adjuntos;
     @SuppressLint("StaticFieldLeak")
     private static TableView<Comentario> tb_comentarios;
-    private static ArrayList<Contacto> contactosSolicitud;
-    private static ArrayList<Impuesto> impuestosSolicitud;
-    private static ArrayList<Banco> bancosSolicitud;
-    private static ArrayList<Interlocutor> interlocutoresSolicitud;
-    private static ArrayList<Visitas> visitasSolicitud;
     private static ArrayList<Adjuntos> adjuntosSolicitud;
     //Bloques de datos con valores sin modificar o viejos
-    private static ArrayList<Contacto> contactosSolicitud_old;
-    private static ArrayList<Impuesto> impuestosSolicitud_old;
-    private static ArrayList<Banco> bancosSolicitud_old;
-    private static ArrayList<Interlocutor> interlocutoresSolicitud_old;
-    private static ArrayList<Visitas> visitasSolicitud_old;
     private static ArrayList<Adjuntos> adjuntosSolicitud_old;
     private static ArrayList<Comentario> comentarios;
 
@@ -274,7 +254,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         }else{
             correoValidado = true;
             cedulaValidada = true;
-            if(!tipoSolicitud.equals("1") && !tipoSolicitud.equals("6")){
+            if(!tipoSolicitud.equals(getResources().getString(R.string.ID_FORM_INSTALACION_EQ)) && !tipoSolicitud.equals(getResources().getString(R.string.ID_FORM_CAMBIO_EQ))){
                 firma = true;
             }
         }
@@ -330,21 +310,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                                     numErrores++;
                                     mensajeError += "- "+tv.getTag()+"\n";
                                 }
-                                if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") || listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG")){
-                                    if(valor.equals("0")){
-                                        tv.setError("El campo "+tv.getTag()+" no puede ser 0!");
-                                        numErrores++;
-                                        mensajeError += "- "+tv.getTag()+"\n";
-                                    }
-                                    if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") && !ValidarCoordenadaY(tv)){
-                                        numErrores++;
-                                        mensajeError += "- Formato Coordenada Y invalido\n";
-                                    }
-                                    if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG") && !ValidarCoordenadaX(tv)){
-                                        numErrores++;
-                                        mensajeError += "- Formato Coordenada X invalido\n";
-                                    }
-                                }
                             }catch(Exception e){
                                 Spinner combo = ((Spinner) mapeoCamposDinamicos.get(listaCamposObligatorios.get(i)));
                                 if(combo.getSelectedItem() != null) {
@@ -364,66 +329,11 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                                 }
                             }
                         }
-                        //Validacion de bloques obligatorios
-                        //Validacion de encuestas ejecutadas
-                        CheckBox encuesta = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA");
-                        if(encuesta!= null && !encuesta.isChecked()){
+                        //Validacion de constancia firmada por el cliente.
+                        if(!firma){
                             numErrores++;
-                            mensajeError += "- Debe ejecutar la encuesta GEC!\n";
+                            mensajeError += "- El cliente debe firmar la constancia de solicitud de Instalacion!\n";
                         }
-                        CheckBox encuesta_gec = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
-                        if(encuesta_gec != null && !encuesta_gec.isChecked()){
-                            numErrores++;
-                            mensajeError += "- Debe ejecutar la encuesta de Canales!\n";
-                        }
-                        //Validar el campo de ruta de reparto del grid de visitas
-                        //int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPR");
-                        int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
-                        if(visitasSolicitud.size() > 0 && visitasSolicitud.get(indiceReparto).getRuta().trim().length() < 6){
-                            numErrores++;
-                            mensajeError += "- Falta ruta de reparto en planes de visita!\n";
-                        }
-                        if(visitasSolicitud.size() > 0) {
-                            //Al menos 1 dia de visita
-                            if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_L")) != null) {
-                                if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_L")).getText().toString().isEmpty())
-                                    if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_K")).getText().toString().isEmpty())
-                                        if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_M")).getText().toString().isEmpty())
-                                            if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_J")).getText().toString().isEmpty())
-                                                if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_V")).getText().toString().isEmpty())
-                                                    if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_S")).getText().toString().isEmpty()) {
-                                                        numErrores++;
-                                                        mensajeError += "- El cliente debe tener al menos 1 día de visita!\n";
-                                                    }
-                            }
-                            int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZJV");
-                            if(indiceEspecializada != -1){
-                                //Al menos 1 dia de visita
-                                if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_L")) != null) {
-                                    if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_L")).getText().toString().isEmpty())
-                                        if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_K")).getText().toString().isEmpty())
-                                            if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_M")).getText().toString().isEmpty())
-                                                if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_J")).getText().toString().isEmpty())
-                                                    if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_V")).getText().toString().isEmpty())
-                                                        if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_S")).getText().toString().isEmpty()) {
-                                                            numErrores++;
-                                                            mensajeError += "- El cliente debe tener al menos 1 día de visita especializada!\n";
-                                                        }
-                                }
-                            }
-                        }
-
-                        //Validacion de politica de privacidad firmada por el cliente.
-                        /*if(!firma){
-                            numErrores++;
-                            mensajeError += "- El cliente debe firmar las políticas de privacidad!\n";
-                        }*/
-                        //Validacion de correo
-                        if(!correoValidado){
-                            numErrores++;
-                            mensajeError += "- Formato de correo Inválido!\n";
-                        }
-
                         //Validacion de siguiente aprobador seleccionado
                         Spinner combo = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
                         if(combo.getSelectedItem() != null) {
@@ -444,7 +354,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
                         if(numErrores == 0) {
                             DialogHandler appdialog = new DialogHandler();
-                            appdialog.Confirm(SolicitudAvisosEquipoFrioActivity.this, "Confirmación Modificacion", "Esta seguro que desea guardar la solicitud de Modificacion?", "No", "Si", new GuardarFormulario(getBaseContext()));
+                            appdialog.Confirm(SolicitudAvisosEquipoFrioActivity.this, "Confirmación Solicitud Eq. Frio", "Esta seguro que desea guardar la solicitud de Equipo Frio?", "No", "Si", new GuardarFormulario(getBaseContext()));
                         }else{
                             Toasty.warning(getApplicationContext(), "Revise los Siguientes campos: \n"+mensajeError, Toast.LENGTH_LONG).show();
                         }
@@ -484,40 +394,12 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         }
 
         //Manejo de Bloques
-        tb_contactos = new TableView<>(this);
-        tb_contactos.addDataClickListener(new ContactoClickListener());
-        tb_contactos.addDataLongClickListener(new ContactoLongClickListener());
-        tb_impuestos = new TableView<>(this);
-        tb_impuestos.addDataClickListener(new ImpuestoClickListener());
-        //tb_impuestos.addDataLongClickListener(new ImpuestoLongClickListener());
-        tb_bancos = new TableView<>(this);
-        tb_bancos.addDataClickListener(new BancoClickListener());
-        tb_bancos.addDataLongClickListener(new BancoLongClickListener());
-        tb_interlocutores = new TableView<>(this);
-        tb_interlocutores.addDataClickListener(new InterlocutorClickListener());
-        //tb_interlocutores.addDataLongClickListener(new InterlocutorLongClickListener());
-        tb_visitas = new TableView<>(this);
-        tb_visitas.addDataClickListener(new VisitasClickListener());
-        //tb_visitas.addDataLongClickListener(new VisitasLongClickListener());
-
         tb_adjuntos = new TableView<>(this);
         tb_comentarios = new TableView<>(this);
-        //tb_adjuntos.addDataClickListener(new AdjuntosClickListener());
-        //tb_adjuntos.addDataLongClickListener(new AdjuntosLongClickListener());
-        contactosSolicitud = new ArrayList<>();
-        impuestosSolicitud = new ArrayList<>();
-        interlocutoresSolicitud = new ArrayList<>();
-        bancosSolicitud = new ArrayList<>();
-        visitasSolicitud = new ArrayList<>();
+
         adjuntosSolicitud = new ArrayList<>();
         comentarios = new ArrayList<>();
         //notificantesSolicitud = new ArrayList<Adjuntos>();
-
-        contactosSolicitud_old = new ArrayList<>();
-        impuestosSolicitud_old = new ArrayList<>();
-        interlocutoresSolicitud_old = new ArrayList<>();
-        bancosSolicitud_old = new ArrayList<>();
-        visitasSolicitud_old = new ArrayList<>();
         adjuntosSolicitud_old = new ArrayList<>();
 
     }
@@ -687,10 +569,10 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    CheckBox politica = (CheckBox) mapeoCamposDinamicos.get("politica");
-                    politica.setChecked(true);
+                    CheckBox constancia = (CheckBox) mapeoCamposDinamicos.get("constancia");
+                    constancia.setChecked(true);
                     firma = true;
-                    politica.setEnabled(false);
+                    constancia.setEnabled(false);
                     Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
                 }
                 break;
@@ -911,101 +793,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         listaCamposBloque.add(campos.get(i).get("campo").trim());
                     }
                 }else
-                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").replace(" ","").trim().toLowerCase().equals("encuesta")) {
-                    //Encuesta Canales, se genera un checkbox que indicara si se ha realizado la encuesta de canales completa
-                    //Tipo CHECKBOX
-                    CheckBox checkbox = new CheckBox(getContext());
-                    checkbox.setText(campos.get(i).get("descr"));
-                    if(campos.get(i).get("sup").trim().length() > 0){
-                        checkbox.setVisibility(View.GONE);
-                    }
-                    if(campos.get(i).get("vis").trim().length() > 0){
-                        checkbox.setEnabled(false);
-                        //checkbox.setVisibility(View.GONE);
-                    }
-
-                    if(solicitudSeleccionada.size() > 0){
-                        checkbox.setChecked(true);
-                    }
-                    LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-                    checkbox.setLayoutParams(clp);
-                    checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_survey,null), null);
-
-                    ll.addView(checkbox);
-                    checkbox.setOnClickListener(new OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            displayDialogEncuestaCanales(getContext());
-                            if(((CheckBox) v).isChecked())
-                                ((CheckBox) v).setChecked(false);
-                            else
-                                ((CheckBox) v).setChecked(true);
-                        }
-                    });
-
-                    ColorStateList colorStateList = new ColorStateList(
-                            new int[][]{
-                                    new int[]{-android.R.attr.state_checked}, // unchecked
-                                    new int[]{android.R.attr.state_checked} , // checked
-                            },
-                            new int[]{
-                                    Color.parseColor("#110000"),
-                                    Color.parseColor("#00aa00"),
-                            }
-                    );
-
-                    CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
-
-                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
-                    mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
-                }else
-                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("encuesta_gec")) {
-                    //Encuesta gec, se genera un checkbox que indicara si se ha realizado la encuesta de canales completa
-                    //Tipo CHECKBOX
-                    final CheckBox checkbox = new CheckBox(getContext());
-                    checkbox.setText(campos.get(i).get("descr"));
-                    if(campos.get(i).get("sup").trim().length() > 0){
-                        checkbox.setVisibility(View.GONE);
-                    }
-                    if(campos.get(i).get("vis").trim().length() > 0){
-                        checkbox.setEnabled(false);
-                        //checkbox.setVisibility(View.GONE);
-                    }
-
-                    if(solicitudSeleccionada.size() > 0){
-                        checkbox.setChecked(true);
-                    }
-                    LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-                    checkbox.setLayoutParams(clp);
-                    checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_survey,null), null);
-                    ll.addView(checkbox);
-                    checkbox.setOnClickListener(new OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            displayDialogEncuestaGec(getContext());
-                            if(((CheckBox) v).isChecked())
-                                ((CheckBox) v).setChecked(false);
-                            else
-                                ((CheckBox) v).setChecked(true);
-                        }
-                    });
-
-                    ColorStateList colorStateList = new ColorStateList(
-                            new int[][]{
-                                    new int[]{-android.R.attr.state_checked}, // unchecked
-                                    new int[]{android.R.attr.state_checked} , // checked
-                            },
-                            new int[]{
-                                    Color.parseColor("#110000"),
-                                    Color.parseColor("#00aa00"),
-                            }
-                    );
-
-                    CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
-
-                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
-                    mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
-                }else
                 if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("checkbox")) {
                     //Tipo CHECKBOX
                     TableRow fila = new TableRow(getContext());
@@ -1024,7 +811,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     CheckBox checkbox = new CheckBox(getContext());
                     checkbox.setLayoutParams(lp);
                     checkbox.setText(campos.get(i).get("descr"));
-                    if(campos.get(i).get("sup").trim().length() > 0){
+                    if(campos.get(i).get("sup").trim().length() > 0 || campos.get(i).get("modificacion").trim().equals("3") || campos.get(i).get("modificacion").trim().equals("4") || campos.get(i).get("modificacion").trim().equals("5")){
                         checkbox.setVisibility(View.GONE);
                     }
                     if(campos.get(i).get("vis").trim().length() > 0){
@@ -1045,7 +832,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         }else if(configExcepcion.get("vis") != null){
                             checkbox.setEnabled(true);
                         }
-                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X") || campos.get(i).get("modificacion").trim().equals("3") || campos.get(i).get("modificacion").trim().equals("4") || campos.get(i).get("modificacion").trim().equals("5")) {
                             checkbox.setVisibility(View.GONE);
                         }else if(configExcepcion.get("sup") != null){
                             checkbox.setVisibility(View.VISIBLE);
@@ -1084,7 +871,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     combo.setPadding(0,0,0,0);
                     combo.setLayoutParams(lp);
                     combo.setPopupBackgroundResource(R.drawable.menu_item);
-                    if(campos.get(i).get("sup").trim().length() > 0){
+                    if(campos.get(i).get("sup").trim().length() > 0 || campos.get(i).get("modificacion").trim().equals("3") || campos.get(i).get("modificacion").trim().equals("4") || campos.get(i).get("modificacion").trim().equals("5")){
                         label.setVisibility(View.GONE);
                         combo.setVisibility(View.GONE);
                     }
@@ -1100,19 +887,19 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     //Si son catalogos de equipo frio debo las columnas de ID y Descripcion estan en otros indice de columnas
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim());
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_causas") || campos.get(i).get("tabla").trim().toLowerCase().equals("ef_prioridades")){
-                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),3,4);
+                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),3,4,null);
                         if(campos.get(i).get("campo").trim().toLowerCase().equals("w_cte-im_cause_codegrp")){
-                            opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),2,2,"CODEGRUPPE like 'CS-%'");
+                            opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),2,2,null,"CODEGRUPPE like 'CS-%' AND CODEGRUPPE IN ('CS-CAENF','CS-CAPMX','CS-CAMQH')");
                         }
                         if(campos.get(i).get("campo").trim().toLowerCase().equals("w_cte-im_d_codegrp")){
-                            opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),2,2,"CODEGRUPPE like 'CA-%'");
+                            opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),2,2,null,"CODEGRUPPE like 'CA-%' AND CODEGRUPPE IN ('CA-ENFRI','CA-MAQHI','CA-POSTM')");
                         }
                     }
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_clases")){
-                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),1,2);
+                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),1,2,null);
                     }
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("sapdmateriales_pde")){
-                        opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim(),1,4);
+                        opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim(),1,4,null);
                     }
                     ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
                     int selectedIndex = 0;
@@ -1127,6 +914,10 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             }
                             if(solicitudSeleccionadaOld.size() > 0 && solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim())!= null && opciones.get(j).get("id").trim().equals(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim())){
                                 selectedIndexOld = j;
+                            }
+                        } else {
+                            if (campos.get(i).get("dfaul").trim().length() > 0 && opciones.get(j).get("id").trim().equals(campos.get(i).get("dfaul").trim())) {
+                                selectedIndex = j;
                             }
                         }
                         if(valorDefectoxRuta.trim().length() > 0 && opciones.get(j).get("id").trim().equals(valorDefectoxRuta.trim())){
@@ -1164,14 +955,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                                     if(opcion.getId().equals("C3")){
                                         cedula.setMask("##-####-####-##");
                                     }
-                                    cedula.setOnFocusChangeListener(new OnFocusChangeListener() {
-                                        @Override
-                                        public void onFocusChange(View v, boolean hasFocus) {
-                                            if (!hasFocus) {
-                                                ValidarCedula(v,opcion.getId());
-                                            }
-                                        }
-                                    });
                                 }
                                 if(position == 0)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
@@ -1212,11 +995,17 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         });
                     }
 
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-IM_CAUSE_CODEGRP")){
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-IM_CAUSE_CODEGRP") && !campos.get(i).get("modificacion").trim().equals("1")){
+                        final int finalI = i;
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                CausasDeGrupo(parent);
+                                String valorDefectoHijo = getValorDefectoCampo(campos,"W_CTE-IM_CAUSE_CODE");
+                                OpcionSpinner ClaseAviso = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicos.get("W_CTE-IM_NOTIF_TYPE")).getSelectedItem());
+                                String clase_aviso="";
+                                if(ClaseAviso != null)
+                                    clase_aviso = ClaseAviso.getId();
+                                CausasDeGrupo(parent,valorDefectoHijo,clase_aviso);
                                 final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
                                 if(position == 0)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
@@ -1228,11 +1017,18 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             }
                         });
                     }
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-IM_D_CODEGRP")){
+
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-IM_D_CODEGRP") && !campos.get(i).get("modificacion").trim().equals("1")){
+                        final int finalI1 = i;
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                SintomasDeGrupo(parent);
+                                String valorDefectoHijo = getValorDefectoCampo(campos,"W_CTE-IM_D_CODE");
+                                OpcionSpinner ClaseAviso = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicos.get("W_CTE-IM_NOTIF_TYPE")).getSelectedItem());
+                                String clase_aviso="";
+                                if(ClaseAviso != null)
+                                    clase_aviso = ClaseAviso.getId();
+                                SintomasDeGrupo(parent,valorDefectoHijo,clase_aviso);
                                 final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
                                 if(position == 0)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
@@ -1244,112 +1040,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         });
                     }
                     if(campos.get(i).get("llamado1") != null) {
-                        if (campos.get(i).get("llamado1").trim().contains("Provincia")) {
-                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    Provincias(parent);
-                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                                }
 
-                                @Override
-                                public void onNothingSelected(AdapterView<?> parent) {
-
-                                }
-                            });
-                        }
-                        if (campos.get(i).get("llamado1").trim().contains("Cantones")) {
-                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    Cantones(parent);
-                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                                }
-
-                                @Override
-                                public void onNothingSelected(AdapterView<?> parent) {
-
-                                }
-                            });
-                        }
-
-                        if (campos.get(i).get("llamado1").trim().contains("Distritos")) {
-                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    Distritos(parent);
-                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                                }
-
-                                @Override
-                                public void onNothingSelected(AdapterView<?> parent) {
-
-                                }
-                            });
-                        }
-                        if (campos.get(i).get("llamado1").trim().contains("DireccionCorta")) {
-                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    DireccionCorta();
-                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                                }
-
-                                @Override
-                                public void onNothingSelected(AdapterView<?> parent) {
-
-                                }
-                            });
-                        }
-                        if (campos.get(i).get("llamado1").trim().contains("Canales(")) {
-                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    Canales(parent);
-                                    if (position == 0)
-                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                                }
-
-                                @Override
-                                public void onNothingSelected(AdapterView<?> parent) {
-
-                                }
-                            });
-                        }
-                        if (campos.get(i).get("llamado1").trim().contains("CanalesKof")) {
-                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    CanalesKof(parent);
-                                    if (position == 0)
-                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                                }
-
-                                @Override
-                                public void onNothingSelected(AdapterView<?> parent) {
-
-                                }
-                            });
-                        }
-                        if (campos.get(i).get("llamado1").trim().contains("ImpuestoSegunUnidadNegocio")) {
-                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    ImpuestoSegunUnidadNegocio(parent);
-                                    if (position == 0)
-                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                                }
-
-                                @Override
-                                public void onNothingSelected(AdapterView<?> parent) {
-
-                                }
-                            });
-                        }
                     }
                     //Campos de encabezado deben salir todos como deshabilitados en valor viejo
                     if(campos.get(i).get("modificacion").trim().equals("1") && campos.get(i).get("sup").trim().length() == 0){
@@ -1357,6 +1048,14 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_old,null));
                         listaCamposDinamicosEnca.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicosEnca.put(campos.get(i).get("campo").trim(),combo);
+                        //Campos especificos de Equipo frio que no deben salir en la HH pero si llevar valor para crear el aviso correspondiente
+                        if(campos.get(i).get("campo").trim().equals("W_CTE-IM_D_CODEGRP")
+                            || campos.get(i).get("campo").trim().equals("W_CTE-IM_D_CODE")
+                            || campos.get(i).get("campo").trim().equals("W_CTE-IM_CAUSE_CODEGRP")
+                            || campos.get(i).get("campo").trim().equals("W_CTE-IM_CAUSE_CODE")){
+                            label.setVisibility(View.GONE);
+                            combo.setVisibility(View.GONE);
+                        }
                     }
 
                     final Spinner combo_old = new Spinner(getContext(), Spinner.MODE_DROPDOWN);
@@ -1417,53 +1116,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         if(btnAyudai != null)
                             fila.addView(btnAyudai);
 
-                        if(campos.get(i).get("llamado1").trim().contains("Provincia")){
-                            combo_old.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    ProvinciasOld(parent);
-                                    if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                                }
-
-                                @Override
-                                public void onNothingSelected(AdapterView<?> parent) {
-
-                                }
-                            });
-                        }
-                        if(campos.get(i).get("llamado1").trim().contains("Cantones")){
-                            combo_old.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    CantonesOld(parent);
-                                    if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                                }
-
-                                @Override
-                                public void onNothingSelected(AdapterView<?> parent) {
-
-                                }
-                            });
-                        }
-
-                        if(campos.get(i).get("llamado1").trim().contains("Distritos")){
-                            combo_old.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    DistritosOld(parent);
-                                    if(position == 0 && ((TextView) parent.getSelectedView()) != null)
-                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                                }
-
-                                @Override
-                                public void onNothingSelected(AdapterView<?> parent) {
-
-                                }
-                            });
-                        }
-
                         mapeoCamposDinamicosOld.put(campos.get(i).get("campo").trim(),combo_old);
                     }
 
@@ -1483,7 +1135,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     if(!listaCamposDinamicos.contains(campos.get(i).get("campo").trim())) {
                         listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), combo);
-                    }else{
+                    }else if(campos.get(i).get("campo").trim() != "1"){
                         //listaCamposDinamicos.add(campos.get(i).get("campo").trim()+"1");
                         mapeoCamposDinamicos.put(campos.get(i).get("campo").trim()+"1", combo);
                         //Replicar valores de campos duplicados en configuracion
@@ -1491,16 +1143,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         Spinner duplicado = (Spinner) mapeoCamposDinamicos.get(campos.get(i).get("campo").trim()+"1");
                         final String nombreCampo = campos.get(i).get("campo").trim();
                         final int indice = i;
-                        original.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        /*original.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                if(campos.get(indice).get("llamado1").contains("Provincia"))
-                                    Provincias(parent);
-                                if(campos.get(indice).get("llamado1").contains("Cantones"))
-                                    Cantones(parent);
-                                if(campos.get(indice).get("llamado1").contains("Distritos"))
-                                    Distritos(parent);
-
                                 if(nombreCampo.equals("W_CTE-VWERK")){
                                     Spinner zona_transporte = (Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE");
                                     String valor_centro_suministro = ((OpcionSpinner)parent.getSelectedItem()).getId().trim();
@@ -1524,13 +1169,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         duplicado.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                if(campos.get(indice).get("llamado1").contains("Provincia"))
-                                    Provincias(parent);
-                                if(campos.get(indice).get("llamado1").contains("Cantones"))
-                                    Cantones(parent);
-                                if(campos.get(indice).get("llamado1").contains("Distritos"))
-                                    Distritos(parent);
-
                                 if(nombreCampo.equals("W_CTE-VWERK")){
                                     Spinner zona_transporte = (Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE");
                                     String valor_centro_suministro = ((OpcionSpinner)parent.getSelectedItem()).getId().trim();
@@ -1550,7 +1188,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             public void onNothingSelected(AdapterView<?> parent) {
 
                             }
-                        });
+                        });*/
                     }
                     if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
                         listaCamposObligatorios.add(campos.get(i).get("campo").trim());
@@ -1582,7 +1220,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             combo.setEnabled(true);
                             combo.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
                         }
-                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X") || campos.get(i).get("modificacion").trim().equals("3") || campos.get(i).get("modificacion").trim().equals("4") || campos.get(i).get("modificacion").trim().equals("5")) {
                             combo.setVisibility(View.GONE);
                         }else if(configExcepcion.get("sup") != null){
                             combo.setVisibility(View.VISIBLE);
@@ -1606,7 +1244,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     //et.setTextColor(getResources().getColor(R.color.colorTextView,null));
                     //et.setBackgroundColor(getResources().getColor(R.color.black,null));
                     //et.setHint(campos.get(i).get("descr"));
-                    if(campos.get(i).get("sup").trim().length() > 0){
+                    if(campos.get(i).get("sup").trim().length() > 0 || campos.get(i).get("modificacion").trim().equals("3") || campos.get(i).get("modificacion").trim().equals("4") || campos.get(i).get("modificacion").trim().equals("5")){
                         et.setVisibility(View.GONE);
                         label.setVisibility(View.GONE);
                     }
@@ -1661,9 +1299,13 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         btnAyuda.setForegroundGravity(GRAVITY_CENTER);
                         TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
                     }
+                    if (campos.get(i).get("dfaul").trim().length() > 0) {
+                        et.setText(campos.get(i).get("dfaul").trim());
+                    }
                     //Le cae encima al valor default por el de la solicitud seleccionada
                     if(solicitudSeleccionada.size() > 0){
-                        et.setText(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim());
+                        if(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()) != null)
+                            et.setText(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim());
                         if(!modificable){
                             et.setEnabled(false);
                             et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled,null));
@@ -1911,7 +1553,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             et.setEnabled(true);
                             et.setBackground(getResources().getDrawable(R.drawable.textbackground, null));
                         }
-                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X") || campos.get(i).get("modificacion").trim().equals("3") || campos.get(i).get("modificacion").trim().equals("4") || campos.get(i).get("modificacion").trim().equals("5")) {
                             et.setVisibility(View.GONE);
                         }else if(configExcepcion.get("sup") != null){
                             et.setVisibility(View.VISIBLE);
@@ -1976,10 +1618,10 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 ll.addView(label);
                 ll.addView(combo);
 
-                if(tipoSolicitud.equals("1") || tipoSolicitud.equals("6")) {
-                    //Check Box para la aceptacion de las politicas de privacidad
+                if(tipoSolicitud.equals(getResources().getString(R.string.ID_FORM_INSTALACION_EQ)) || tipoSolicitud.equals(getResources().getString(R.string.ID_FORM_CAMBIO_EQ))) {
+                    //Check Box para la contancia de del cliente
                     final CheckBox checkbox = new CheckBox(getContext());
-                    checkbox.setText("Aceptar Politicas de Privacidad");
+                    checkbox.setText("Constancia del cliente");
                     if (solicitudSeleccionada.size() > 0) {
                         checkbox.setChecked(true);
                         checkbox.setEnabled(false);
@@ -2014,13 +1656,13 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     );
 
                     CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
-                    mapeoCamposDinamicos.put("politica",checkbox);
+                    mapeoCamposDinamicos.put("constancia",checkbox);
                 }
             }
         }
 
         private void Aceptacion(View v) {
-            Intent intent = new Intent(getContext(),FirmaActivity.class);
+            Intent intent = new Intent(getContext(),FirmaT4Activity.class);
             getActivity().startActivityForResult(intent,100);
         }
 
@@ -2074,581 +1716,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             params.setBehavior(new AppBarLayout.ScrollingViewBehavior(getContext(), null));
 
             switch(campo.get("campo").trim()){
-                case "W_CTE-CONTACTOS":
-                    //bloque_contacto = tb_contactos;
-                    if(modificable) {
-                        seccion_header.setOnClickListener(new OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                displayDialogContacto(getContext(), null);
-                            }
-                        });
-                        btnAddBloque.setOnClickListener(new OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                displayDialogContacto(getContext(), null);
-                            }
-                        });
-                    }
-                    tb_contactos.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
-                    hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
-
-                    tb_contactos.setLayoutParams(hlp);
-
-                    if(solicitudSeleccionada.size() > 0){
-                        contactosSolicitud.clear();
-                        contactosSolicitud_old.clear();
-                        contactosSolicitud = mDBHelper.getContactosDB(idSolicitud);
-                        contactosSolicitud_old = mDBHelper.getContactosOldDB(idSolicitud);
-                    }
-                    //Adaptadores
-                    if(contactosSolicitud != null) {
-                        ContactoTableAdapter stda = new ContactoTableAdapter(getContext(), contactosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        tb_contactos.setDataAdapter(stda);
-                        tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height+(contactosSolicitud.size()*(alturaFilaTableView));
-                    }
-
-                    headers = ((ContactoTableAdapter)tb_contactos.getDataAdapter()).getHeaders();
-                    sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                    sta.setPaddings(10,5,10,5);
-                    sta.setTextSize(12);
-                    sta.setTextColor(getResources().getColor(R.color.white,null));
-                    sta.setTypeface(Typeface.BOLD);
-                    sta.setGravity(GRAVITY_CENTER);
-
-                    tb_contactos.setHeaderAdapter(sta);
-                    tb_contactos.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
-
-                    rl.addView(tb_contactos);
-                    ll.addView(rl);
-                    break;
-                case "W_CTE-IMPUESTOS":
-                    TableView<Impuesto> bloque_impuesto;
-                    tb_impuestos.removeDataClickListener(null);
-                    tb_impuestos.removeDataLongClickListener(null);
-                    bloque_impuesto = tb_impuestos;
-                    btnAddBloque.setVisibility(INVISIBLE);
-                    /*seccion_header.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            displayDialogImpuesto(getContext(),null);
-                        }
-                    });
-                    btnAddBloque.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            displayDialogImpuesto(getContext(),null);
-                        }
-                    });*/
-                    bloque_impuesto.setColumnCount(4);
-                    bloque_impuesto.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
-                    bloque_impuesto.setHeaderElevation(2);
-                    hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
-                    bloque_impuesto.setLayoutParams(hlp);
-
-                    if(solicitudSeleccionada.size() > 0){
-                        impuestosSolicitud.clear();
-                        impuestosSolicitud_old.clear();
-                        impuestosSolicitud = mDBHelper.getImpuestosDB(idSolicitud);
-                        impuestosSolicitud_old = mDBHelper.getImpuestosOldDB(idSolicitud);
-                    }
-                    //Adaptadores
-                    if(impuestosSolicitud != null) {
-                        tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(getContext(), impuestosSolicitud));
-                        tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height+(impuestosSolicitud.size()*(alturaFilaTableView));
-                    }
-                    headers = ((ImpuestoTableAdapter)bloque_impuesto.getDataAdapter()).getHeaders();
-                    sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                    sta.setPaddings(10,5,10,5);
-                    sta.setTextSize(12);
-                    sta.setTextColor(getResources().getColor(R.color.white,null));
-                    sta.setTypeface(Typeface.BOLD);
-                    sta.setGravity(GRAVITY_CENTER);
-
-                    bloque_impuesto.setHeaderAdapter(sta);
-                    bloque_impuesto.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
-
-                    rl.addView(bloque_impuesto);
-                    ll.addView(rl);
-                    break;
-                case "W_CTE-INTERLOCUTORES":
-                    TableView<Interlocutor> bloque_interlocutor;
-                    bloque_interlocutor = tb_interlocutores;
-                    btnAddBloque.setVisibility(INVISIBLE);
-                    /*btnAddBloque.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            displayDialogInterlocutor(getContext(),null);
-                        }
-                    });*/
-                    seccion_header.setOnClickListener(new OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            //displayDialogInterlocutor(getContext(),null);
-                        }
-                    });
-                    bloque_interlocutor.setColumnCount(3);
-                    bloque_interlocutor.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
-                    bloque_interlocutor.setHeaderElevation(2);
-                    hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
-                    bloque_interlocutor.setLayoutParams(hlp);
-
-
-                    //ArrayList<Interlocutor> listaInterlocutores = db.getInterlocutoresPais();
-                    //interlocutoresSolicitud.addAll(listaInterlocutores);
-                    if(solicitudSeleccionada.size() > 0){
-                        interlocutoresSolicitud.clear();
-                        interlocutoresSolicitud_old.clear();
-                        interlocutoresSolicitud = mDBHelper.getInterlocutoresDB(idSolicitud);
-                        interlocutoresSolicitud_old = mDBHelper.getInterlocutoresOldDB(idSolicitud);
-                    }
-                    //Adaptadores
-                    if(interlocutoresSolicitud != null) {
-                        //if(tipoSolicitud.equals("1") || tipoSolicitud.equals("6")) {
-                            tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height + (interlocutoresSolicitud.size() * alturaFilaTableView);
-                            tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(getContext(), interlocutoresSolicitud));
-                        //}
-                    }
-                    headers = ((InterlocutorTableAdapter)bloque_interlocutor.getDataAdapter()).getHeaders();
-                    sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                    sta.setPaddings(10,5,10,5);
-                    sta.setTextSize(12);
-                    sta.setTextColor(getResources().getColor(R.color.white,null));
-                    sta.setTypeface(Typeface.BOLD);
-                    sta.setGravity(GRAVITY_CENTER);
-
-                    bloque_interlocutor.setHeaderAdapter(sta);
-                    bloque_interlocutor.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
-
-                    rl.addView(bloque_interlocutor);
-                    ll.addView(rl);
-                    break;
-                case "W_CTE-BANCOS":
-                    TableView<Banco> bloque_banco;
-                    bloque_banco = tb_bancos;
-                    if(modificable) {
-                        btnAddBloque.setOnClickListener(new OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                displayDialogBancos(getContext(), null);
-                            }
-                        });
-                        seccion_header.setOnClickListener(new OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                displayDialogBancos(getContext(), null);
-                            }
-                        });
-                    }
-                    bloque_banco.setColumnCount(5);
-                    bloque_banco.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
-                    bloque_banco.setHeaderElevation(2);
-                    hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
-                    bloque_banco.setLayoutParams(hlp);
-
-                    if(solicitudSeleccionada.size() > 0){
-                        bancosSolicitud.clear();
-                        bancosSolicitud_old.clear();
-                        bancosSolicitud = mDBHelper.getBancosDB(idSolicitud);
-                        bancosSolicitud_old = mDBHelper.getBancosOldDB(idSolicitud);
-                    }
-                    //Adaptadores
-                    if(bancosSolicitud != null) {
-                        BancoTableAdapter stda = new BancoTableAdapter(getContext(), bancosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        bloque_banco.setDataAdapter(stda);
-                        tb_bancos.getLayoutParams().height = tb_bancos.getLayoutParams().height + (bancosSolicitud.size() * alturaFilaTableView);
-                    }
-                    headers = ((BancoTableAdapter)bloque_banco.getDataAdapter()).getHeaders();
-                    sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                    sta.setPaddings(10,5,10,5);
-                    sta.setTextSize(12);
-                    sta.setTextColor(getResources().getColor(R.color.white,null));
-                    sta.setTypeface(Typeface.BOLD);
-                    sta.setGravity(GRAVITY_CENTER);
-
-                    bloque_banco.setHeaderAdapter(sta);
-                    bloque_banco.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
-
-                    rl.addView(bloque_banco);
-                    ll.addView(rl);
-                    break;
-                case "W_CTE-VISITAS":
-                    tb_visitas.setColumnCount(4);
-                    tb_visitas.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
-                    tb_visitas.setHeaderElevation(1);
-                    hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
-                    tb_visitas.setLayoutParams(hlp);
-                    btnAddBloque.setVisibility(INVISIBLE);
-                    if(solicitudSeleccionada.size() > 0){
-                        visitasSolicitud.clear();
-                        visitasSolicitud_old.clear();
-                        visitasSolicitud = mDBHelper.getVisitasDB(idSolicitud);
-                        visitasSolicitud_old = mDBHelper.getVisitasOldDB(idSolicitud);
-                    }else{
-
-                    }
-                    //Adaptadores
-                    if(visitasSolicitud != null) {
-                        VisitasTableAdapter stda = new VisitasTableAdapter(getContext(), visitasSolicitud);
-                        stda.setGravity(GRAVITY_CENTER);
-                        tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+(visitasSolicitud.size()*alturaFilaTableView);
-                        tb_visitas.setDataAdapter(stda);
-                    }
-                    headers = ((VisitasTableAdapter)tb_visitas.getDataAdapter()).getHeaders();
-                    sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                    sta.setPaddings(10,5,10,5);
-                    sta.setTextSize(12);
-                    sta.setTextColor(getResources().getColor(R.color.white,null));
-                    sta.setTypeface(Typeface.BOLD);
-                    sta.setGravity(GRAVITY_CENTER);
-
-                    tb_visitas.setHeaderAdapter(sta);
-                    tb_visitas.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
-                    rl.addView(tb_visitas);
-                    ll.addView(rl);
-                    //Textos de dias de visita
-                    //Desplegar textos para las secuencias de los dias de visita de la preventa.
-                    //TODO Generar segun la Modalidad de venta seleccionada para usuarios tipo jefe de ventas y no preventas
-                    final String[] diaLabel = {"L","K","M","J","V","S","D"};
-                    int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
-                    int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZJV");
-                    int indiceKafe = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZKV");
-                    int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
-                    int totalvp_preventa = 0;
-                    if(indicePreventa != -1){
-                        totalvp_preventa++;
-                    }
-                    if(indiceEspecializada != -1){
-                        totalvp_preventa++;
-                    }
-                    if(visitasSolicitud.size() == 0){
-                        totalvp_preventa = 2;
-                    }
-                    String tipoVisitaActual = "ZPV";
-                    for (int i = 0; i < totalvp_preventa; i++) {
-                        if(i==0)
-                            tipoVisitaActual = "ZPV";
-                        if(i==1)
-                            tipoVisitaActual = "ZJV";
-                        if(i==2)
-                            tipoVisitaActual = "ZKV";
-                        CardView seccion_visitas = new CardView(Objects.requireNonNull(getContext()));
-                        mapeoVisitas.put(tipoVisitaActual,seccion_visitas);
-
-                        TextView header_visitas = new TextView(getContext());
-                        header_visitas.setAllCaps(true);
-                        header_visitas.setText("Dias de Visita Preventa "+tipoVisitaActual);
-                        header_visitas.setLayoutParams(tlp);
-                        header_visitas.setPadding(10, 0, 0, 0);
-                        header_visitas.setTextColor(getResources().getColor(R.color.white, null));
-                        header_visitas.setTextSize(10);
-
-                        LinearLayout.LayoutParams hlpv = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
-                        hlpv.setMargins(0, 25, 0, 15);
-                        seccion_visitas.setLayoutParams(hlpv);
-                        seccion_visitas.setBackground(getResources().getDrawable(R.color.colorPrimary, null));
-                        seccion_visitas.setPadding(5, 5, 5, 5);
-
-                        seccion_visitas.addView(header_visitas);
-                        ll.addView(seccion_visitas);
-
-                        TableLayout v_ll = new TableLayout(getContext());
-                        LinearLayout.LayoutParams hlpll = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                        v_ll.setOrientation(LinearLayout.HORIZONTAL);
-                        v_ll.setLayoutParams(hlpll);
-                        TableRow tr = new TableRow(getContext());
-                        tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 6f));
-                        tr.setPadding(0, 0, 0, 0);
-
-                        for (int x = 0; x < 6; x++) {
-                            TextInputLayout label = new TextInputLayout(getContext());
-                            label.setHint("" + diaLabel[x]);
-                            label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
-                            label.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
-                            label.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f));
-                            label.setPadding(0, 0, 0, 0);
-
-                            final TextInputEditText et = new TextInputEditText(getContext());
-                            mapeoCamposDinamicos.put(tipoVisitaActual + "_" + diaLabel[x], et);
-                            et.setMaxLines(1);
-                            et.setTextSize(16);
-
-                            et.setInputType(InputType.TYPE_CLASS_NUMBER);
-                            et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(4)});
-                            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                            lp.setMargins(0, 10, 10, 10);
-                            et.setPadding(1, 0, 1, 0);
-
-                            et.setLayoutParams(lp);
-                            if (!modificable || !PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","").equals(tipoVisitaActual)) {
-                                et.setEnabled(false);
-                                et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
-                            }
-
-                            if(solicitudSeleccionada.size() > 0){
-                                int indiceActual = -1;
-                                if(i==0)
-                                    indiceActual = indicePreventa;
-                                if(i==1)
-                                    indiceActual = indiceEspecializada;
-                                if(i==2)
-                                    indiceActual = indiceKafe;
-                                switch (x) {
-                                    case 0:
-                                        et.setText(visitasSolicitud.get(indiceActual).getLun_a());
-                                        break;
-                                    case 1:
-                                        et.setText(visitasSolicitud.get(indiceActual).getMar_a());
-                                        break;
-                                    case 2:
-                                        et.setText(visitasSolicitud.get(indiceActual).getMier_a());
-                                        break;
-                                    case 3:
-                                        et.setText(visitasSolicitud.get(indiceActual).getJue_a());
-                                        break;
-                                    case 4:
-                                        et.setText(visitasSolicitud.get(indiceActual).getVie_a());
-                                        break;
-                                    case 5:
-                                        et.setText(visitasSolicitud.get(indiceActual).getSab_a());
-                                        break;
-                                    case 6:
-                                        et.setText(visitasSolicitud.get(indiceActual).getDom_a());
-                                        break;
-                                }
-                            }
-
-                            //et.setPadding(20, 5, 20, 5);
-                            Drawable d = getResources().getDrawable(R.drawable.textbackground_min_padding, null);
-                            et.setBackground(d);
-                            final int finalX = x;
-                            et.setOnFocusChangeListener(new OnFocusChangeListener() {
-                                @Override
-                                public void onFocusChange(View v, boolean hasFocus) {
-
-                                    int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZPV");
-                                    int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
-
-                                    final int finalIndicePreventa = indicePreventa;
-                                    final int finalIndiceReparto = indiceReparto;
-                                    if (!hasFocus) {
-                                        int diaReparto = 0;
-                                        if ((finalX + 1) > 5) {
-                                            diaReparto = ((finalX + 1) - 6);
-                                        } else {
-                                            diaReparto = (finalX + 1);
-                                        }
-                                        Visitas visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
-                                        Visitas visitaReparto = visitasSolicitud.get(finalIndiceReparto);
-                                        if (!((TextView) v).getText().toString().equals("") && Integer.valueOf(((TextView) v).getText().toString()) > 1440) {
-                                            switch (finalX) {
-                                                case 0:
-                                                    visitaPreventa.setLun_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaPreventa.setLun_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                                case 1:
-                                                    visitaPreventa.setMar_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaPreventa.setMar_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                                case 2:
-                                                    visitaPreventa.setMier_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaPreventa.setMier_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                                case 3:
-                                                    visitaPreventa.setJue_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaPreventa.setJue_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                                case 4:
-                                                    visitaPreventa.setVie_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaPreventa.setVie_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                                case 5:
-                                                    visitaPreventa.setSab_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaPreventa.setSab_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                                case 6:
-                                                    visitaPreventa.setDom_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaPreventa.setDom_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                            }
-                                            switch (diaReparto) {
-                                                case 0:
-                                                    visitaReparto.setLun_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaReparto.setLun_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                                case 1:
-                                                    visitaReparto.setMar_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaReparto.setMar_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                                case 2:
-                                                    visitaReparto.setMier_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaReparto.setMier_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                                case 3:
-                                                    visitaReparto.setJue_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaReparto.setJue_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                                case 4:
-                                                    visitaReparto.setVie_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaReparto.setVie_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                                case 5:
-                                                    visitaReparto.setSab_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaReparto.setSab_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                                case 6:
-                                                    visitaReparto.setDom_a(getResources().getString(R.string.max_secuencia));
-                                                    visitaReparto.setDom_de(getResources().getString(R.string.max_secuencia));
-                                                    break;
-                                            }
-                                            ((TextView) v).setText(getResources().getString(R.string.max_secuencia));
-                                            Toasty.warning(getContext(), R.string.error_max_secuencia).show();
-                                        }
-
-                                        //Si el valor es vacio, borrar si existe el dia
-                                        if (((TextView) v).getText().toString().trim().equals("")) {
-                                            switch (finalX) {
-                                                case 0:
-                                                    visitaPreventa.setLun_a("");
-                                                    visitaPreventa.setLun_de("");
-                                                    break;
-                                                case 1:
-                                                    visitaPreventa.setMar_a("");
-                                                    visitaPreventa.setMar_de("");
-                                                    break;
-                                                case 2:
-                                                    visitaPreventa.setMier_a("");
-                                                    visitaPreventa.setMier_de("");
-                                                    break;
-                                                case 3:
-                                                    visitaPreventa.setJue_a("");
-                                                    visitaPreventa.setJue_de("");
-                                                    break;
-                                                case 4:
-                                                    visitaPreventa.setVie_a("");
-                                                    visitaPreventa.setVie_de("");
-                                                    break;
-                                                case 5:
-                                                    visitaPreventa.setSab_a("");
-                                                    visitaPreventa.setSab_de("");
-                                                    break;
-                                                case 6:
-                                                    visitaPreventa.setDom_a("");
-                                                    visitaPreventa.setDom_de("");
-                                                    break;
-                                            }
-                                            switch (diaReparto) {
-                                                case 0:
-                                                    visitaReparto.setLun_a("");
-                                                    visitaReparto.setLun_de("");
-                                                    break;
-                                                case 1:
-                                                    visitaReparto.setMar_a("");
-                                                    visitaReparto.setMar_de("");
-                                                    break;
-                                                case 2:
-                                                    visitaReparto.setMier_a("");
-                                                    visitaReparto.setMier_de("");
-                                                    break;
-                                                case 3:
-                                                    visitaReparto.setJue_a("");
-                                                    visitaReparto.setJue_de("");
-                                                    break;
-                                                case 4:
-                                                    visitaReparto.setVie_a("");
-                                                    visitaReparto.setVie_de("");
-                                                    break;
-                                                case 5:
-                                                    visitaReparto.setSab_a("");
-                                                    visitaReparto.setSab_de("");
-                                                    break;
-                                                case 6:
-                                                    visitaReparto.setDom_a("");
-                                                    visitaReparto.setDom_de("");
-                                                    break;
-                                            }
-                                        } else {
-                                            String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView) v).getText().toString());
-                                            switch (finalX) {
-                                                case 0:
-                                                    visitaPreventa.setLun_a(secuenciaSAP);
-                                                    visitaPreventa.setLun_de(secuenciaSAP);
-                                                    break;
-                                                case 1:
-                                                    visitaPreventa.setMar_a(secuenciaSAP);
-                                                    visitaPreventa.setMar_de(secuenciaSAP);
-                                                    break;
-                                                case 2:
-                                                    visitaPreventa.setMier_a(secuenciaSAP);
-                                                    visitaPreventa.setMier_de(secuenciaSAP);
-                                                    break;
-                                                case 3:
-                                                    visitaPreventa.setJue_a(secuenciaSAP);
-                                                    visitaPreventa.setJue_de(secuenciaSAP);
-                                                    break;
-                                                case 4:
-                                                    visitaPreventa.setVie_a(secuenciaSAP);
-                                                    visitaPreventa.setVie_de(secuenciaSAP);
-                                                    break;
-                                                case 5:
-                                                    visitaPreventa.setSab_a(secuenciaSAP);
-                                                    visitaPreventa.setSab_de(secuenciaSAP);
-                                                    break;
-                                                case 6:
-                                                    visitaPreventa.setDom_a(secuenciaSAP);
-                                                    visitaPreventa.setDom_de(secuenciaSAP);
-                                                    break;
-                                            }
-                                            switch (diaReparto) {
-                                                case 0:
-                                                    visitaReparto.setLun_a(secuenciaSAP);
-                                                    visitaReparto.setLun_de(secuenciaSAP);
-                                                    break;
-                                                case 1:
-                                                    visitaReparto.setMar_a(secuenciaSAP);
-                                                    visitaReparto.setMar_de(secuenciaSAP);
-                                                    break;
-                                                case 2:
-                                                    visitaReparto.setMier_a(secuenciaSAP);
-                                                    visitaReparto.setMier_de(secuenciaSAP);
-                                                    break;
-                                                case 3:
-                                                    visitaReparto.setJue_a(secuenciaSAP);
-                                                    visitaReparto.setJue_de(secuenciaSAP);
-                                                    break;
-                                                case 4:
-                                                    visitaReparto.setVie_a(secuenciaSAP);
-                                                    visitaReparto.setVie_de(secuenciaSAP);
-                                                    break;
-                                                case 5:
-                                                    visitaReparto.setSab_a(secuenciaSAP);
-                                                    visitaReparto.setSab_de(secuenciaSAP);
-                                                    break;
-                                                case 6:
-                                                    visitaReparto.setDom_a(secuenciaSAP);
-                                                    visitaReparto.setDom_de(secuenciaSAP);
-                                                    break;
-                                            }
-                                        }
-
-                                    }
-                                    RecalcularDiasDeReparto(getContext());
-                                }
-                            });
-                            tr.addView(label);
-                            label.addView(et);
-                        }
-
-                        v_ll.addView(tr);
-                        ll.addView(v_ll);
-                    }
-                break;
                 case "W_CTE-ADJUNTOS":
                     tb_adjuntos.setColumnCount(3);
                     tb_adjuntos.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
@@ -2824,697 +1891,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         }
     }
-    //Pruebas para seccion de bloques
-    public static void displayDialogContacto(Context context, final Contacto seleccionado) {
-        final Dialog d=new Dialog(context);
-        d.setContentView(R.layout.contacto_dialog_layout);
-        //ArrayList<HashMap<String, String>> columnMeta =  mDBHelper.getMetaData(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH());
-        //INITIALIZE VIEWS
-        final TextView title = d.findViewById(R.id.title);
-        final TextInputEditText name1EditText = d.findViewById(R.id.name1EditTxt);
-        final TextInputEditText namevEditText = d.findViewById(R.id.namevEditTxt);
-        final TextInputEditText telf1EditText = d.findViewById(R.id.telf1EditTxt);
-        final Spinner funcionSpinner = d.findViewById(R.id.funcionSpinner);
-        Button saveBtn= d.findViewById(R.id.saveBtn);
-        if(seleccionado != null){
-            saveBtn.setText(R.string.texto_modificar);
-            title.setText(String.format(context.getResources().getString(R.string.palabras_2), context.getResources().getString(R.string.texto_modificar), context.getResources().getString(R.string.texto_contacto)));
-        }
-        //SAVE
-        saveBtn.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(seleccionado != null)
-                    contactosSolicitud.remove(seleccionado);
-                Contacto nuevoContacto = new Contacto();
-                nuevoContacto.setName1(name1EditText.getText().toString());
-                nuevoContacto.setNamev(namevEditText.getText().toString());
-                nuevoContacto.setTelf1(telf1EditText.getText().toString());
-                nuevoContacto.setPafkt(((OpcionSpinner)funcionSpinner.getSelectedItem()).getId());
-                nuevoContacto.setCountry(PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_LAND1",""));
-
-                if(!nuevoContacto.validarObligatorios()){
-                    Toasty.warning(v.getContext(), "Todos los campos son obligatorios!").show();
-                    return;
-                }
-                try {
-                    contactosSolicitud.add(nuevoContacto);
-                    name1EditText.setText("");
-                    namevEditText.setText("");
-                    telf1EditText.setText("");
-                    funcionSpinner.setSelection(0);
-                    if(contactosSolicitud != null) {
-                        tb_contactos.setDataAdapter(new ContactoTableAdapter(v.getContext(), contactosSolicitud));
-                        if(seleccionado == null)
-                            tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height+alturaFilaTableView;
-                        d.dismiss();
-                    }
-                }catch(Exception e){
-                    Toasty.error(v.getContext(), "No se pudo salvar el contacto").show();
-                }
-            }
-        });
-        if(!modificable){
-            saveBtn.setEnabled(false);
-            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.boton_transparente,null));
-        }else{
-            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.colorPrimary,null));
-        }
-
-        //Para campos de seleccion para grid bancos
-        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_tpfkt");
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndex = 0;
-        for (int j = 0; j < opciones.size(); j++){
-            if(seleccionado != null && opciones.get(j).get("id").equals(seleccionado.getPafkt())){
-                selectedIndex = j;
-            }
-            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
-        }
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
-        funcionSpinner.setBackground(spinner_back);
-        funcionSpinner.setAdapter(dataAdapter);
-
-        if(seleccionado != null){
-            name1EditText.setText(seleccionado.getName1());
-            namevEditText.setText(seleccionado.getNamev());
-            telf1EditText.setText(seleccionado.getTelf1());
-            funcionSpinner.setSelection(selectedIndex);
-        }
-
-        //SHOW DIALOG
-        d.show();
-        Window window = d.getWindow();
-        if (window != null) {
-            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        }
-    }
-
-    public void displayDialogImpuesto(Context context, final Impuesto seleccionado) {
-        final Dialog d=new Dialog(context);
-        d.setContentView(R.layout.impuesto_dialog_layout);
-
-        //INITIALIZE VIEWS
-        final TextView title = d.findViewById(R.id.title);
-        final Spinner claveSpinner= d.findViewById(R.id.claveSpinner);
-        claveSpinner.setEnabled(false);
-        final Spinner clasiSpinner= d.findViewById(R.id.clasiSpinner);
-        Button saveBtn= d.findViewById(R.id.saveBtn);
-        if(seleccionado != null){
-            saveBtn.setText(R.string.texto_modificar);
-            title.setText(String.format(context.getResources().getString(R.string.palabras_2), context.getResources().getString(R.string.texto_modificar), context.getResources().getString(R.string.texto_impuesto)));
-        }
-        //SAVE
-        saveBtn.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(seleccionado != null)
-                    impuestosSolicitud.remove(seleccionado);
-                Impuesto nuevoImpuesto = new Impuesto();
-                nuevoImpuesto.setTatyp(((OpcionSpinner)claveSpinner.getSelectedItem()).getId());
-                nuevoImpuesto.setVtext(((OpcionSpinner)claveSpinner.getSelectedItem()).getName());
-                nuevoImpuesto.setTaxkd(((OpcionSpinner)clasiSpinner.getSelectedItem()).getId());
-                nuevoImpuesto.setVtext2(((OpcionSpinner)clasiSpinner.getSelectedItem()).getName());
-                impuestosSolicitud.add(nuevoImpuesto);
-
-                if(!nuevoImpuesto.validarObligatorios()){
-                    Toasty.warning(v.getContext(), "Todos los campos son obligatorios!").show();
-                    return;
-                }
-                try{
-                    claveSpinner.setSelection(0);
-                    clasiSpinner.setSelection(0);
-                    if(impuestosSolicitud != null) {
-                        tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(v.getContext(), impuestosSolicitud));
-                        if(seleccionado == null)
-                            tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height+alturaFilaTableView;
-                        d.dismiss();
-                    }
-                } catch(Exception e) {
-                    Toasty.error(v.getContext(), "No se pudo salvar el impuesto. "+e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-        if(!modificable){
-            saveBtn.setEnabled(false);
-            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.boton_transparente,null));
-        }else{
-            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.colorPrimary,null));
-        }
-
-        //Para campos de seleccion para grid impuestos campo clave de impuesto
-        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_impstos",1,2, "tatyp='"+seleccionado.getTatyp()+"' AND taxkd='"+seleccionado.getTaxkd()+"'");
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndexClave = 0;
-        for (int j = 0; j < opciones.size(); j++){
-            if(seleccionado != null && opciones.get(j).get("id").equals(seleccionado.getTatyp())){
-                selectedIndexClave = j;
-            }
-            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
-        }
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
-        claveSpinner.setBackground(spinner_back);
-        claveSpinner.setAdapter(dataAdapter);
-
-        claveSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-                //Para campos de seleccion para grid bancos campo clasificacion fiscal
-                ArrayList<HashMap<String, String>> opcionesClasi = mDBHelper.getDatosCatalogo("cat_impstos",3,4,"tatyp='"+opcion.getId()+"'");
-
-                ArrayList<OpcionSpinner> listaopcionesClasi = new ArrayList<>();
-                int selectedIndexClasi = 0;
-                for (int j = 0; j < opcionesClasi.size(); j++){
-                    if(seleccionado != null && opcionesClasi.get(j).get("id").equals(seleccionado.getTaxkd())){
-                        selectedIndexClasi = j;
-                    }
-                    listaopcionesClasi.add(new OpcionSpinner(opcionesClasi.get(j).get("id"), opcionesClasi.get(j).get("descripcion")));
-                }
-                // Creando el adaptador(opcionesClasi) para el comboBox deseado
-                ArrayAdapter<OpcionSpinner> dataAdapterClasi = new ArrayAdapter<>(view.getContext(), R.layout.simple_spinner_item, listaopcionesClasi);
-                // Drop down layout style - list view with radio button
-                dataAdapterClasi.setDropDownViewResource(R.layout.spinner_item);
-                // attaching data adapter to spinner
-                Drawable spinner_back_clasi = view.getContext().getResources().getDrawable(R.drawable.spinner_underlined, null);
-                clasiSpinner.setBackground(spinner_back_clasi);
-                clasiSpinner.setAdapter(dataAdapterClasi);
-                clasiSpinner.setSelection(selectedIndexClasi);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-
-        //Para campos de seleccion para grid bancos campo clasificacion fiscal
-        ArrayList<HashMap<String, String>> opcionesClasi = mDBHelper.getDatosCatalogo("cat_impstos",3,4,"tatyp='"+seleccionado.getTatyp()+"'");
-
-        ArrayList<OpcionSpinner> listaopcionesClasi = new ArrayList<>();
-        int selectedIndexClasi = 0;
-        for (int j = 0; j < opcionesClasi.size(); j++){
-            if(seleccionado != null && opcionesClasi.get(j).get("id").equals(seleccionado.getTaxkd())){
-                selectedIndexClasi = j;
-            }
-            listaopcionesClasi.add(new OpcionSpinner(opcionesClasi.get(j).get("id"), opcionesClasi.get(j).get("descripcion")));
-        }
-        // Creando el adaptador(opcionesClasi) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapterClasi = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopcionesClasi);
-        // Drop down layout style - list view with radio button
-        dataAdapterClasi.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable spinner_back_clasi = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
-        clasiSpinner.setBackground(spinner_back_clasi);
-        clasiSpinner.setAdapter(dataAdapterClasi);
-
-
-        if(seleccionado != null){
-            claveSpinner.setSelection(selectedIndexClave);
-            clasiSpinner.setSelection(selectedIndexClasi);
-        }
-        //SHOW DIALOG
-        d.show();
-        Window window = d.getWindow();
-        if (window != null) {
-            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        }
-    }
-
-    public void displayDialogInterlocutor(Context context, final Interlocutor seleccionado) {
-        final Dialog d=new Dialog(context);
-        d.setContentView(R.layout.interlocutor_dialog_layout);
-        d.setTitle("+ Nuevo Interlocutor");
-
-        //INITIALIZE VIEWS
-        final TextView title = d.findViewById(R.id.title);
-        final TextInputEditText nameEditText= d.findViewById(R.id.nameEditTxt);
-        final TextInputEditText propellantEditTxt= d.findViewById(R.id.propEditTxt);
-        final TextInputEditText destEditTxt= d.findViewById(R.id.destEditTxt);
-        Button saveBtn= d.findViewById(R.id.saveBtn);
-        if(seleccionado != null){
-            saveBtn.setText(R.string.texto_modificar);
-            title.setText(String.format(context.getResources().getString(R.string.palabras_2), context.getResources().getString(R.string.texto_modificar), context.getResources().getString(R.string.texto_interlocutor)));
-            if(seleccionado.getParvw().trim().equals("AG")){
-                Toasty.warning(context,"La funcion de interlocutor 'Solicitante' NO puede ser modificada!").show();
-            }
-        }
-        //SAVE
-        saveBtn.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Interlocutor nuevoInterlocutor = new Interlocutor();
-                nuevoInterlocutor.setName1(nameEditText.getText().toString());
-                nuevoInterlocutor.setKunn2(propellantEditTxt.getText().toString());
-                nuevoInterlocutor.setVtext(destEditTxt.getText().toString());
-                interlocutoresSolicitud.add(nuevoInterlocutor);
-                try{
-                    nameEditText.setText("");
-                    propellantEditTxt.setText("");
-                    destEditTxt.setText("");
-                    if(interlocutoresSolicitud != null) {
-                        tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(v.getContext(), interlocutoresSolicitud));
-                        if(seleccionado == null)
-                            tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height+alturaFilaTableView;
-                        d.dismiss();
-                    }
-                } catch(Exception e) {
-                    Toasty.error(v.getContext(), "No se pudo salvar el interlocutor. "+e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        if(!modificable){
-            saveBtn.setEnabled(false);
-            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.boton_transparente,null));
-        }else{
-            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.colorPrimary,null));
-        }
-
-        if(seleccionado != null){
-            nameEditText.setText(seleccionado.getParvw());
-            nameEditText.setEnabled(false);
-            propellantEditTxt.setText(seleccionado.getVtext());
-            propellantEditTxt.setEnabled(false);
-            destEditTxt.setText(seleccionado.getKunn2());
-        }
-
-        //SHOW DIALOG
-        d.show();
-        Window window = d.getWindow();
-        if (window != null) {
-            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        }
-    }
-
-    public static void displayDialogBancos(Context context, final Banco seleccionado) {
-        final Dialog d=new Dialog(context);
-        d.setContentView(R.layout.banco_dialog_layout);
-
-        //INITIALIZE VIEWS
-        final TextView title = d.findViewById(R.id.title);
-        final Spinner bancoSpinner = d.findViewById(R.id.bancoSpinner);
-        final Spinner paisSpinner= d.findViewById(R.id.paisSpinner);
-        final TextInputEditText cuentaEditTxt= d.findViewById(R.id.cuentaEditTxt);
-        final TextInputEditText claveEditTxt= d.findViewById(R.id.claveEditTxt);
-        final TextInputEditText titularEditTxt= d.findViewById(R.id.titularEditTxt);
-        final TextInputEditText tipoEditTxt= d.findViewById(R.id.tipoEditTxt);
-        final TextInputEditText montoMaximoEditTxt= d.findViewById(R.id.montoMaximoEditTxt);
-        Button saveBtn= d.findViewById(R.id.saveBtn);
-        if(seleccionado != null){
-            saveBtn.setText(R.string.texto_modificar);
-            title.setText(String.format(context.getString(R.string.palabras_2),context.getString(R.string.texto_modificar),context.getString(R.string.texto_cuenta_bancaria)));
-        }
-        //SAVE
-        saveBtn.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(seleccionado != null)
-                    bancosSolicitud.remove(seleccionado);
-                Banco nuevoBanco = new Banco();
-                nuevoBanco.setBankl(((OpcionSpinner)bancoSpinner.getSelectedItem()).getId());
-                nuevoBanco.setBanks(((OpcionSpinner)paisSpinner.getSelectedItem()).getId());
-                nuevoBanco.setBankn(cuentaEditTxt.getText().toString());
-                nuevoBanco.setBkont(claveEditTxt.getText().toString());
-                nuevoBanco.setKoinh(titularEditTxt.getText().toString());
-                nuevoBanco.setBvtyp(tipoEditTxt.getText().toString());
-                nuevoBanco.setBkref(montoMaximoEditTxt.getText().toString());
-                bancosSolicitud.add(nuevoBanco);
-
-                if(!nuevoBanco.validarObligatorios()){
-                    Toasty.warning(v.getContext(), "Todos los campos son obligatorios!").show();
-                    return;
-                }
-
-                try {
-                    bancoSpinner.setSelection(0);
-                    paisSpinner.setSelection(0);
-                    cuentaEditTxt.setText("");
-                    claveEditTxt.setText("");
-                    titularEditTxt.setText("");
-                    tipoEditTxt.setText("");
-                    montoMaximoEditTxt.setText("");
-                    if(bancosSolicitud != null) {
-                        tb_bancos.setDataAdapter(new BancoTableAdapter(v.getContext(), bancosSolicitud));
-                        if(seleccionado == null)
-                            tb_bancos.getLayoutParams().height = tb_bancos.getLayoutParams().height+alturaFilaTableView;
-                        d.dismiss();
-                    }
-                } catch (Exception e ) {
-                    Toasty.error(v.getContext(), "No se pudo salvar el banco. "+e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        if(!modificable){
-            saveBtn.setEnabled(false);
-            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.boton_transparente,null));
-        }else{
-            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.colorPrimary,null));
-        }
-        //Para campos de seleccion para grid bancos
-        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_zesdvt_00566");
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndex = 0;
-        for (int j = 0; j < opciones.size(); j++){
-            if(seleccionado != null && opciones.get(j).get("id").equals(seleccionado.getBankl())){
-                selectedIndex = j;
-            }
-            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
-        }
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
-        bancoSpinner.setBackground(spinner_back);
-        bancoSpinner.setAdapter(dataAdapter);
-
-        ArrayList<HashMap<String, String>> opcionesP = mDBHelper.getDatosCatalogo("cat_t005");
-
-        ArrayList<OpcionSpinner> listaopcionesP = new ArrayList<>();
-        int selectedIndexP = 0;
-        for (int j = 0; j < opcionesP.size(); j++){
-            if(seleccionado != null && opcionesP.get(j).get("id").equals(seleccionado.getBanks())){
-                selectedIndexP = j;
-            }
-            listaopcionesP.add(new OpcionSpinner(opcionesP.get(j).get("id"), opcionesP.get(j).get("descripcion")));
-        }
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapterP = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopcionesP);
-        dataAdapterP.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        paisSpinner.setBackground(spinner_back);
-        paisSpinner.setAdapter(dataAdapterP);
-
-        if(seleccionado != null){
-            bancoSpinner.setSelection(selectedIndex);
-            paisSpinner.setSelection(selectedIndexP);
-            cuentaEditTxt.setText(seleccionado.getBankn());
-            claveEditTxt.setText(seleccionado.getBkont());
-            titularEditTxt.setText(seleccionado.getKoinh());
-            tipoEditTxt.setText(seleccionado.getBvtyp());
-            montoMaximoEditTxt.setText(seleccionado.getBkref());
-        }
-
-        //SHOW DIALOG
-        d.show();
-        Window window = d.getWindow();
-        if (window != null) {
-            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        }
-    }
-    @SuppressWarnings("unchecked")
-    public static void displayDialogEncuestaCanales(final Context context) {
-        final Dialog d=new Dialog(context);
-        d.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                //Toasty.info(context,"Dialogo Dismissed!").show();
-            }
-        });
-        d.setContentView(R.layout.encuesta_canales_dialog_layout);
-
-        //INITIALIZE VIEWS
-        final TextView title = d.findViewById(R.id.title);
-        final Spinner grupoIsscomSpinner = d.findViewById(R.id.grupoIsscomSpinner);
-
-        grupoIsscomSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @SuppressLint("ResourceType")
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-                LinearLayout layout = d.findViewById(R.id.layoutDinamico);
-                layout.removeAllViews();
-
-                RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                params1.setMargins(10,10,10,10);
-                ArrayList<HashMap<String, String>> preguntas = mDBHelper.getPreguntasSegunGrupo(opcion.getId());
-                ArrayList<HashMap<String, String>> respuestas = mDBHelper.getRespuestasEncuesta(GUID);
-
-                for (int j = 0; j < preguntas.size(); j++){
-                    int selected = 0;
-                    Spinner pregunta = new Spinner(d.getContext());
-                    ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
-
-                    TextView label_pregunta = new TextView(d.getContext());
-                    label_pregunta.setText(String.format(d.getContext().getResources().getString(R.string.label_pregunta), preguntas.get(j).get("zid_quest"), preguntas.get(j).get("text")));
-                    //label_pregunta.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark,null));
-                    layout.addView(label_pregunta,params1);
-                    ArrayList<HashMap<String, String>> opcionesxpregunta = mDBHelper.getOpcionesPreguntaGrupo(opcion.getId(),preguntas.get(j).get("zid_quest"));
-                    for (int i = 0; i < opcionesxpregunta.size(); i++) {
-                        OpcionSpinner op = new OpcionSpinner(opcionesxpregunta.get(i).get("zid_resp"), opcionesxpregunta.get(i).get("zid_resp")+" - "+opcionesxpregunta.get(i).get("text"));
-                        if (respuestas.size() > 0 && respuestas.get(0) != null && opcionesxpregunta.get(i).get("zid_resp").equals(respuestas.get(0).get("col" + (j + 1)))
-                                && (respuestas.get(0).get("id_grupo")).equals(String.valueOf(position))) {
-                            op.setSelected(i);
-                            selected = i;
-                        }
-                        misOpciones.add(op);
-                    }
-
-                    ArrayAdapter<OpcionSpinner> dataAdapterP = new ArrayAdapter<>(context, R.layout.simple_spinner_item, misOpciones);
-                    dataAdapterP.setDropDownViewResource(R.layout.spinner_item);
-                    // attaching data adapter to spinner
-                    Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
-                    pregunta.setBackground(spinner_back);
-                    pregunta.setAdapter(dataAdapterP);
-
-                    pregunta.setId(j+1);
-                    pregunta.setSelection(selected);
-                    layout.addView(pregunta,params1);
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                Toasty.warning(context,"Seleccion el Grupo Isscom para generar la encuesta.").show();
-            }
-        });
-
-        Button saveBtn= d.findViewById(R.id.saveBtn);
-        //SAVE
-        saveBtn.setOnClickListener(new OnClickListener() {
-            @SuppressLint("ResourceType")
-            @Override
-            public void onClick(View v) {
-                try {
-                    //Si existe una encuesta realizada se borrara y se guardara la nueva generada (Solo 1 encuesta x cliente permitida)
-                    int del = mDb.delete(VariablesGlobales.getTablaEncuestaSolicitud(), "id_solicitud = ?", new String[]{GUID});
-                    //Guardar la encuesta generada en la Base de datos
-                    ContentValues encuestaValues = new ContentValues();
-
-                    encuestaValues.put("id_solicitud", GUID);
-                    Spinner s = d.findViewById(R.id.grupoIsscomSpinner);
-                    String valorg = ((OpcionSpinner)s.getSelectedItem()).getId();
-                    encuestaValues.put("id_Grupo", valorg);
-                    s = d.findViewById(1);
-                    String valor1 = s != null ? ((OpcionSpinner)s.getSelectedItem()).getId() : null;
-                    encuestaValues.put("col1", valor1 );
-                    s = d.findViewById(2);
-                    String valor2 = s != null ? ((OpcionSpinner)s.getSelectedItem()).getId() : null;
-                    encuestaValues.put("col2", valor2 );
-                    s = d.findViewById(3);
-                    String valor3 = s != null ? ((OpcionSpinner)s.getSelectedItem()).getId() : null;
-                    encuestaValues.put("col3", valor3 );
-                    s = d.findViewById(4);
-                    String valor4 = s != null ? ((OpcionSpinner)s.getSelectedItem()).getId() : null;
-                    encuestaValues.put("col4", valor4 );
-                    s = d.findViewById(5);
-                    String valor5 = s != null ? ((OpcionSpinner)s.getSelectedItem()).getId() : null;
-                    encuestaValues.put("col5", valor5 );
-                    s = d.findViewById(6);
-                    String valor6 = s != null ? ((OpcionSpinner) s.getSelectedItem()).getId() : null;
-                    encuestaValues.put("col6", valor6 );
-
-                    HashMap<String, String> valor_canales = mDBHelper.getValoresSegunEncuestaRealizada(valorg, valor1, valor2, valor3, valor4, valor5, valor6);
-
-                    //Asignar valores de canales segun respuesta obtenida
-                    Spinner zzent3Spinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZENT3");
-                    zzent3Spinner.setSelection(VariablesGlobales.getIndex(zzent3Spinner,valor_canales.get("W_CTE-ZZENT3").trim()));
-
-                    Spinner zzent4Spinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZENT4");
-                    zzent4Spinner.setSelection(VariablesGlobales.getIndex(zzent4Spinner,valor_canales.get("W_CTE-ZZENT4").trim()));
-
-                    Spinner zzcanalSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZCANAL");
-                    zzcanalSpinner.setSelection(VariablesGlobales.getIndex(zzcanalSpinner,valor_canales.get("W_CTE-ZZCANAL").trim()));
-
-                    Spinner ztpocanalSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTPOCANAL");
-                    ztpocanalSpinner.setSelection(VariablesGlobales.getIndex(ztpocanalSpinner,valor_canales.get("W_CTE-ZTPOCANAL").trim()));
-
-                    Spinner zgpocanalSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZGPOCANAL");
-                    zgpocanalSpinner.setSelection(VariablesGlobales.getIndex(zgpocanalSpinner,valor_canales.get("W_CTE-ZGPOCANAL").trim()));
-
-                    Spinner pson3Spinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-PSON3");
-                    pson3Spinner.setSelection(VariablesGlobales.getIndex(pson3Spinner,valor_canales.get("W_CTE-PSON3").trim()));
-
-                    try {
-                        mDb.insert(VariablesGlobales.getTablaEncuestaSolicitud(), null, encuestaValues);
-                    } catch (Exception e) {
-                        Toasty.error(v.getContext(), "Error Insertando Encuesta Canales", Toast.LENGTH_SHORT).show();
-                    }
-                    Toasty.success(v.getContext(), "Encuesta Canales ejecutada correctamente!", Toast.LENGTH_SHORT).show();
-                    d.dismiss();
-                    CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA");
-                    ejecutada.setChecked(true);
-                } catch (Exception e) {
-                    Toasty.error(v.getContext(), "No se pudo salvar la encuesta. "+e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        if(!modificable){
-            saveBtn.setEnabled(false);
-            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.boton_transparente));
-        }else{
-            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.colorPrimary));
-        }
-
-        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_grupo_isscom");
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndex = 0;
-        for (int j = 0; j < opciones.size(); j++){
-            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
-        }
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
-        grupoIsscomSpinner.setBackground(spinner_back);
-        grupoIsscomSpinner.setAdapter(dataAdapter);
-        ArrayList<HashMap<String, String>> respuestas = mDBHelper.getRespuestasEncuesta(GUID);
-        if(respuestas.size() > 0){
-            grupoIsscomSpinner.setSelection(VariablesGlobales.getIndex(grupoIsscomSpinner,respuestas.get(0).get("id_grupo").trim()));
-        }
-
-        //SHOW DIALOG
-        d.show();
-        Window window = d.getWindow();
-        if (window != null) {
-            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        }
-    }
-
-    public static void displayDialogEncuestaGec(final Context context) {
-        final Dialog d=new Dialog(context);
-        d.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                //Toasty.info(context,"Dialogo Dismissed!").show();
-            }
-        });
-        d.setContentView(R.layout.encuesta_gec_dialog_layout);
-
-        //INITIALIZE VIEWS
-        final TextView title = d.findViewById(R.id.title);
-        LinearLayout layout = d.findViewById(R.id.layoutDinamico);
-        layout.removeAllViews();
-
-        RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        params1.setMargins(10,10,10,10);
-        final ArrayList<HashMap<String, String>> preguntas = mDBHelper.getPreguntasGec();
-        final ArrayList<HashMap<String, String>> respuestas = mDBHelper.getEncuestaGec(GUID);
-
-        for (int j = 0; j < preguntas.size(); j++){
-            TextInputEditText monto = new TextInputEditText(d.getContext());
-            monto.setInputType(InputType.TYPE_CLASS_NUMBER);
-            ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
-
-            TextView label_pregunta = new TextView(d.getContext());
-            label_pregunta.setText(String.format(d.getContext().getResources().getString(R.string.label_pregunta), preguntas.get(j).get("zid_quest"), preguntas.get(j).get("text")));
-            //label_pregunta.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark,null));
-            layout.addView(label_pregunta,params1);
-
-            //revisar si ya se ha realizado una encuesta para la solicitud, para poder mostrar las respuestas existentes.
-            if(respuestas.size() > 0){
-                monto.setText(respuestas.get(j).get("monto"));
-            }
-            monto.setId(j+1);
-            layout.addView(monto,params1);
-        }
-
-        Button saveBtn= d.findViewById(R.id.saveBtn);
-        //SAVE
-        saveBtn.setOnClickListener(new OnClickListener() {
-            @SuppressLint("ResourceType")
-            @Override
-            public void onClick(View v) {
-                try{
-                    //Si existe una encuesta realizada se borrara y se guardara la nueva generada (Solo 1 encuesta x cliente permitida)
-                    //Guardar la encuesta generada en la Base de datos
-                    int del = mDb.delete(VariablesGlobales.getTablaEncuestaGecSolicitud(), "id_solicitud = ?", new String[]{GUID});
-                    ContentValues encuestaValues = new ContentValues();
-                    Integer suma_montos = 0;
-                    for (int j = 0; j < preguntas.size(); j++){
-                        TextInputEditText monto = d.findViewById(j+1);
-                        encuestaValues.clear();
-                        //encuestaValues.put("id_encuesta_gec", GUID);
-                        encuestaValues.put("id_solicitud", GUID);
-                        encuestaValues.put("zid_grupo", (j+1));
-                        encuestaValues.put("zid_quest", (j+1));
-                        encuestaValues.put("monto", monto.getText().toString());
-                        if(!monto.getText().toString().trim().equals("")){
-                            suma_montos += Integer.valueOf(monto.getText().toString());
-                        }else{
-                            Toasty.error(v.getContext(), "Por favor llene todos los campos de la encuesta.", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        try {
-                            mDb.insert(VariablesGlobales.getTablaEncuestaGecSolicitud(), null, encuestaValues);
-                        } catch (Exception e) {
-                            Toasty.error(v.getContext(), "Error Insertando Encuesta Canales (Registro #"+j+")", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                    String valor_gec = mDBHelper.getGecSegunEncuestaRealizada(suma_montos);
-                    //Asignar los valores de los canales segun las respuestas obtenidas
-                    Spinner gecSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
-                    gecSpinner.setSelection(VariablesGlobales.getIndex(gecSpinner,valor_gec));
-
-                    Toasty.success(v.getContext(), "Encuesta GEC ejecutada correctamente!", Toast.LENGTH_SHORT).show();
-                    d.dismiss();
-                    CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
-                    ejecutada.setChecked(true);
-                } catch(Exception e) {
-                    Toasty.error(v.getContext(), "No se pudo salvar la encuesta gec. "+e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        if(!modificable){
-            saveBtn.setEnabled(false);
-        }
-
-        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_grupo_isscom");
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndex = 0;
-        for (int j = 0; j < opciones.size(); j++){
-            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
-        }
-
-        //SHOW DIALOG
-        d.show();
-        Window window = d.getWindow();
-        if (window != null) {
-            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        }
-    }
-
     public static void mostrarAdjunto(Context context, Adjuntos adjunto) {
         final Dialog d = new Dialog(context);
         d.setContentView(R.layout.adjunto_layout);
@@ -3561,394 +1937,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
     }
 
-    private class ContactoClickListener implements TableDataClickListener<Contacto> {
-        @Override
-        public void onDataClicked(int rowIndex, Contacto seleccionado) {
-            displayDialogContacto(SolicitudAvisosEquipoFrioActivity.this,seleccionado);
-        }
-    }
-    //Listeners de Bloques de datos
-    private class ContactoLongClickListener implements TableDataLongClickListener<Contacto> {
-        @Override
-        public boolean onDataLongClicked(int rowIndex, Contacto seleccionado) {
-            DialogHandler appdialog = new DialogHandler();
-
-            appdialog.Confirm(SolicitudAvisosEquipoFrioActivity.this, "Confirmación Borrado", "Esta seguro que quiere eliminar el contacto "+seleccionado.getName1() + " " +seleccionado.getNamev()+"?",
-                    "Cancelar", "Eliminar", new EliminarContacto(getBaseContext(), rowIndex));
-            return true;
-        }
-    }
-    public static class EliminarContacto implements Runnable {
-        private Context context;
-        private int rowIndex;
-        public EliminarContacto(Context context, int rowIndex) {
-            this.context = context;
-            this.rowIndex = rowIndex;
-        }
-        public void run() {
-            Contacto seleccionado = contactosSolicitud.get(rowIndex);
-            String salida = seleccionado.getName1() + " " + seleccionado.getNamev()+" ha sido eliminado.";
-            contactosSolicitud.remove(rowIndex);
-            tb_contactos.setDataAdapter(new ContactoTableAdapter(context, contactosSolicitud));
-            tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height-alturaFilaTableView;
-            Toasty.info(context, salida, Toast.LENGTH_SHORT).show();
-        }
-    }
-    private class ImpuestoClickListener implements TableDataClickListener<Impuesto> {
-        @Override
-        public void onDataClicked(int rowIndex, Impuesto seleccionado) {
-            displayDialogImpuesto(SolicitudAvisosEquipoFrioActivity.this,seleccionado);
-        }
-    }
-    private class ImpuestoLongClickListener implements TableDataLongClickListener<Impuesto> {
-        @Override
-        public boolean onDataLongClicked(int rowIndex, Impuesto seleccionado) {
-            String salida = seleccionado.getVtext() + " " + seleccionado.getVtext2();
-            impuestosSolicitud.remove(rowIndex);
-            tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(getBaseContext(), impuestosSolicitud));
-            tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height-alturaFilaTableView;
-            Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
-            return true;
-        }
-    }
-
-    private class BancoClickListener implements TableDataClickListener<Banco> {
-        @Override
-        public void onDataClicked(int rowIndex, Banco seleccionado) {
-            displayDialogBancos(SolicitudAvisosEquipoFrioActivity.this,seleccionado);
-        }
-    }
-    private class BancoLongClickListener implements TableDataLongClickListener<Banco> {
-        @Override
-        public boolean onDataLongClicked(int rowIndex, Banco seleccionado) {
-            DialogHandler appdialog = new DialogHandler();
-            appdialog.Confirm(SolicitudAvisosEquipoFrioActivity.this, "Confirmación Borrado", "Esta seguro que quiere eliminar el banco "+seleccionado.getBankn()+"?",
-                    "Cancelar", "Eliminar", new EliminarBanco(getBaseContext(), rowIndex));
-            return true;
-        }
-    }
-    public static class EliminarBanco implements Runnable {
-        private Context context;
-        private int rowIndex;
-        public EliminarBanco(Context context, int rowIndex) {
-            this.context = context;
-            this.rowIndex = rowIndex;
-        }
-        public void run() {
-            Banco seleccionado = bancosSolicitud.get(rowIndex);
-            String salida = seleccionado.getBankn() + " " + seleccionado.getBanks();
-            bancosSolicitud.remove(rowIndex);
-            tb_bancos.setDataAdapter(new BancoTableAdapter(context, bancosSolicitud));
-            tb_bancos.getLayoutParams().height = tb_bancos.getLayoutParams().height-alturaFilaTableView;
-            Toasty.info(context, salida, Toast.LENGTH_SHORT).show();
-        }
-    }
-    private class InterlocutorClickListener implements TableDataClickListener<Interlocutor> {
-        @Override
-        public void onDataClicked(int rowIndex, Interlocutor seleccionado) {
-            displayDialogInterlocutor(SolicitudAvisosEquipoFrioActivity.this,seleccionado);
-        }
-    }
-    private class InterlocutorLongClickListener implements TableDataLongClickListener<Interlocutor> {
-        @Override
-        public boolean onDataLongClicked(int rowIndex, Interlocutor seleccionado) {
-            String salida = seleccionado.getName1() + " " + seleccionado.getKunn2();
-            interlocutoresSolicitud.remove(rowIndex);
-            tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(getBaseContext(), interlocutoresSolicitud));
-            tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height-alturaFilaTableView;
-            Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
-            return true;
-        }
-    }
-    private class VisitasClickListener implements TableDataClickListener<Visitas> {
-        @Override
-        public void onDataClicked(int rowIndex, Visitas seleccionado) {
-            DetallesVisitPlan(SolicitudAvisosEquipoFrioActivity.this, seleccionado);
-        }
-    }
-    @SuppressWarnings("unchecked")
-    private void DetallesVisitPlan(final Context context, final Visitas seleccionado) {
-        final Dialog d = new Dialog(context);
-        d.setContentView(R.layout.visita_dialog_layout);
-        final boolean reparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_BZIRK",""), seleccionado.getVptyp());
-
-        final boolean permite_modificar = PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_TIPORUTA","ZPV").toString().equals(seleccionado.getVptyp());
-
-        final TextView title = d.findViewById(R.id.title);
-        final Spinner kvgr4Spinner = d.findViewById(R.id.kvgr4Spinner);
-        final TextInputEditText f_icoEditText = d.findViewById(R.id.f_icoEditTxt);
-        final TextInputEditText f_fcoEditText = d.findViewById(R.id.f_fcoEditTxt);
-        final TextInputEditText f_iniEditText = d.findViewById(R.id.f_iniEditTxt);
-        final TextInputEditText f_finEditText = d.findViewById(R.id.f_finEditTxt);
-        final Spinner fcalidSpinner = d.findViewById(R.id.fcalidSpinner);
-        final TextView ruta_reparto_label = d.findViewById(R.id.ruta_reparto_label);
-        final Spinner ruta_reparto = d.findViewById(R.id.ruta_reparto);
-        Button saveBtn= d.findViewById(R.id.saveBtn);
-        title.setText(String.format(context.getString(R.string.palabras_2),context.getString(R.string.label_vp),seleccionado.getVptyp()));
-
-        kvgr4Spinner.setSelection(((ArrayAdapter<CharSequence>)kvgr4Spinner.getAdapter()).getPosition(seleccionado.getKvgr4()));
-        f_icoEditText.setText(seleccionado.getF_ico());
-        f_fcoEditText.setText(seleccionado.getF_fco());
-        f_iniEditText.setText(seleccionado.getF_ini());
-        f_finEditText.setText(seleccionado.getF_fin());
-
-        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont");
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(Objects.requireNonNull(context), R.layout.simple_spinner_item, rutas_reparto);
-        // Drop down layout style - list view with radio button
-        dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
-        ruta_reparto.setAdapter(dataAdapterRuta);
-        ruta_reparto.setSelection(VariablesGlobales.getIndex(ruta_reparto, seleccionado.getRuta()));
-
-        if(!reparto){
-            ruta_reparto.setVisibility(View.GONE);
-            ruta_reparto_label.setVisibility(View.GONE);
-        }
-        /*if(reparto){
-            kvgr4Spinner.setVisibility(GONE);
-            f_icoEditText.setVisibility(GONE);
-            f_fcoEditText.setVisibility(GONE);
-            f_iniEditText.setVisibility(GONE);
-            f_finEditText.setVisibility(GONE);
-        }*/
-
-        EditTextDatePicker prueba = new EditTextDatePicker(context, f_icoEditText,"yyyymmdd");
-        EditTextDatePicker prueba2 = new EditTextDatePicker(context, f_fcoEditText,"yyyymmdd");
-        EditTextDatePicker prueba3 = new EditTextDatePicker(context, f_iniEditText,"yyyymmdd");
-        EditTextDatePicker prueba4 = new EditTextDatePicker(context, f_finEditText,"yyyymmdd");
-
-        //Catalogo quemado de frecuencia semanal
-        int selectedIndex = 0;
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        listaopciones.add(new OpcionSpinner("1","Cada semana"));
-        listaopciones.add(new OpcionSpinner("2","Cada 2 semanas"));
-        listaopciones.add(new OpcionSpinner("3","Cada 3 semanas"));
-        listaopciones.add(new OpcionSpinner("4","Cada 4 semanas"));
-        listaopciones.add(new OpcionSpinner("5","Cada 5 semanas"));
-        listaopciones.add(new OpcionSpinner("6","Cada 6 semanas"));
-        listaopciones.add(new OpcionSpinner("8","Cada 8 semanas"));
-        listaopciones.add(new OpcionSpinner("10","Cada 10 semanas"));
-
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones);
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_background, null);
-        fcalidSpinner.setBackground(spinner_back);
-        fcalidSpinner.setAdapter(dataAdapter);
-        fcalidSpinner.setSelection(selectedIndex);
-
-        //SAVE
-        saveBtn.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Setear ruta segun el tipo de visita ZPV, ZDD, etc
-                if( reparto ){
-                    seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
-                    ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
-                }else{
-                    seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_RUTAHH",""));
-                }
-                //seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
-                seleccionado.setKvgr4(kvgr4Spinner.getSelectedItem().toString().trim());
-                seleccionado.setF_ini(f_iniEditText.getText().toString());
-                seleccionado.setF_fin(f_finEditText.getText().toString());
-                seleccionado.setF_ico(f_icoEditText.getText().toString());
-                seleccionado.setF_fco(f_fcoEditText.getText().toString());
-                seleccionado.setFcalid(((OpcionSpinner)fcalidSpinner.getSelectedItem()).getId());
-
-                //Replicar los cambios en setF_ico, setF_fco
-                for(int x=0; x < visitasSolicitud.size(); x++){
-                    Visitas vp = visitasSolicitud.get(x);
-                    vp.setF_ico(f_icoEditText.getText().toString());
-                    vp.setF_fco(f_fcoEditText.getText().toString());
-                }
-
-                //RECALCULAR DIAS DE VISITA
-                RecalcularDiasDeReparto(context);
-
-                tb_visitas.setDataAdapter(new VisitasTableAdapter(v.getContext(), visitasSolicitud));
-                try {
-                    d.dismiss();
-                }catch(Exception e){
-                    Toasty.error(v.getContext(), "No se pudo salvar la configuracion").show();
-                }
-            }
-        });
-
-        if(!permite_modificar && !reparto){
-            kvgr4Spinner.setEnabled(false);
-            f_icoEditText.setEnabled(false);
-            f_fcoEditText.setEnabled(false);
-            f_iniEditText.setEnabled(false);
-            f_finEditText.setEnabled(false);
-            fcalidSpinner.setEnabled(false);
-            ruta_reparto.setEnabled(false);
-            saveBtn.setVisibility(View.GONE);
-        }
-
-        d.show();
-    }
-
-    private static void RecalcularDiasDeReparto(Context context) {
-        int numplanes = visitasSolicitud.size();
-        //Iterrar sobre todos los planes de la modalida de venta seleccionada
-        for (int y = 0 ; y < numplanes; y++) {
-            Visitas vp = visitasSolicitud.get(y);
-            //Revisar si el VP es una ruta de reparto para ser borrada y recalculada
-            if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BZIRK",""), vp.getVptyp())) {
-                vp.setLun_de("");
-                vp.setLun_a("");
-                vp.setMar_de("");
-                vp.setMar_a("");
-                vp.setMier_de("");
-                vp.setMier_a("");
-                vp.setJue_de("");
-                vp.setJue_a("");
-                vp.setVie_de("");
-                vp.setVie_a("");
-                vp.setSab_de("");
-                vp.setSab_a("");
-            }
-        }
-        //Recalcular los dias de visita del(os) reparto segun las preventas existentes nuevas determinadas
-        //Se recorren la cantidad de visit plans para obtener la data de cada uno especifico
-        Visitas rep = null;
-        Visitas rep_old = null;
-        for (int y = 0 ; y < numplanes; y++) {
-            Visitas vp = visitasSolicitud.get(y);
-
-            //Si no es tipo de reparto debemos tomar en cuenta para calcular su reparto
-            boolean esReparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BZIRK",""), vp.getVptyp());
-
-            if(!esReparto){
-                Spinner metodo = ((Spinner)mapeoCamposDinamicos.get("W_CTE-KVGR5"));
-                String rutaReparto = mDBHelper.RutaRepartoAsociada(((OpcionSpinner)metodo.getSelectedItem()).getId(), vp.getVptyp());
-                for (int x = 0; x < visitasSolicitud.size(); x++) {
-                    if (rutaReparto.equals(visitasSolicitud.get(x).getVptyp())) {
-                        rep = visitasSolicitud.get(x);
-                        break;
-                    }
-                }
-                for (int x = 0; x < visitasSolicitud_old.size(); x++) {
-                    if (rutaReparto.equals(visitasSolicitud_old.get(x).getVptyp())) {
-                        rep_old = visitasSolicitud_old.get(x);
-                        break;
-                    }
-                }
-                int diasParaReparto = 1;
-                if(vp.getKvgr4() != null)
-                    diasParaReparto = Integer.valueOf(vp.getKvgr4().replace("DA",""));
-                TextInputEditText vp_Lunes = ((TextInputEditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_L"));
-                TextInputEditText vp_Martes = ((TextInputEditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_K"));
-                TextInputEditText vp_Miercoles = ((TextInputEditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_M"));
-                TextInputEditText vp_Jueves = ((TextInputEditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_J"));
-                TextInputEditText vp_Viernes = ((TextInputEditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_V"));
-                TextInputEditText vp_Sabado = ((TextInputEditText) mapeoCamposDinamicos.get(vp.getVptyp()+"_S"));
-
-                String l = vp_Lunes.getText().toString().isEmpty()? null : vp_Lunes.getText().toString();
-                String m = vp_Martes.getText().toString().isEmpty()? null : vp_Martes.getText().toString();
-                String k = vp_Miercoles.getText().toString().isEmpty()? null : vp_Miercoles.getText().toString();
-                String j = vp_Jueves.getText().toString().isEmpty()? null : vp_Jueves.getText().toString();
-                String v = vp_Viernes.getText().toString().isEmpty()? null : vp_Viernes.getText().toString();
-                String s = vp_Sabado.getText().toString().isEmpty()? null : vp_Sabado.getText().toString();
-
-                asignarDiaReparto(diasParaReparto, 1, l, rep, rep_old);
-                asignarDiaReparto(diasParaReparto, 2, m, rep, rep_old);
-                asignarDiaReparto(diasParaReparto, 3, k, rep, rep_old);
-                asignarDiaReparto(diasParaReparto, 4, j, rep, rep_old);
-                asignarDiaReparto(diasParaReparto, 5, v, rep, rep_old);
-                asignarDiaReparto(diasParaReparto, 6, s, rep, rep_old);
-
-            }
-
-        }
-    }
-
-    public static void asignarDiaReparto(int metodo, int diaPreventa, String secuencia, Visitas vp_reparto, Visitas vp_reparto_old){
-        if(secuencia != null && secuencia.trim().length() > 0){
-            int diaReparto;
-            if ((diaPreventa+metodo) > 6) {
-                diaReparto = ((diaPreventa+metodo) - 6);
-            } else {
-                diaReparto = (diaPreventa+metodo);
-            }
-            int hours = Integer.valueOf(secuencia) / 60; //since both are ints, you get an int
-            int minutes = Integer.valueOf(secuencia) % 60;
-            String h = String.format(Locale.getDefault(),"%02d", hours);
-            String m = String.format(Locale.getDefault(),"%02d", minutes);
-            String secuenciaSAP = h+m;
-            switch(diaReparto){
-                case 1:
-                    if(vp_reparto_old == null || vp_reparto_old.getLun_a().trim().length() == 0) {
-                        vp_reparto.setLun_a(secuenciaSAP);
-                        vp_reparto.setLun_de(secuenciaSAP);
-                    }else{
-                        vp_reparto.setLun_a(vp_reparto_old.getLun_a());
-                        vp_reparto.setLun_de(vp_reparto_old.getLun_a());
-                    }
-                    break;
-                case 2:
-                    if(vp_reparto_old == null || vp_reparto_old.getMar_a().trim().length() == 0) {
-                        vp_reparto.setMar_a(secuenciaSAP);
-                        vp_reparto.setMar_de(secuenciaSAP);
-                    }else{
-                        vp_reparto.setMar_a(vp_reparto_old.getMar_a());
-                        vp_reparto.setMar_de(vp_reparto_old.getMar_a());
-                    }
-                    break;
-                case 3:
-                    if(vp_reparto_old == null || vp_reparto_old.getMier_a().trim().length() == 0) {
-                        vp_reparto.setMier_a(secuenciaSAP);
-                        vp_reparto.setMier_de(secuenciaSAP);
-                    }
-                    else{
-                        vp_reparto.setMier_a(vp_reparto_old.getMier_a());
-                        vp_reparto.setMier_de(vp_reparto_old.getMier_de());
-                    }
-                    break;
-                case 4:
-                    if(vp_reparto_old == null || vp_reparto_old.getJue_a().trim().length() == 0) {
-                        vp_reparto.setJue_a(secuenciaSAP);
-                        vp_reparto.setJue_de(secuenciaSAP);
-                    }else{
-                        vp_reparto.setJue_a(vp_reparto_old.getJue_a());
-                        vp_reparto.setJue_de(vp_reparto_old.getJue_de());
-                    }
-                    break;
-                case 5:
-                    if(vp_reparto_old == null || vp_reparto_old.getVie_a().trim().length() == 0) {
-                        vp_reparto.setVie_a(secuenciaSAP);
-                        vp_reparto.setVie_de(secuenciaSAP);
-                    }else{
-                        vp_reparto.setVie_a(vp_reparto_old.getVie_a());
-                        vp_reparto.setVie_de(vp_reparto_old.getVie_de());
-                    }
-                    break;
-                case 6:
-                    if(vp_reparto_old == null || vp_reparto_old.getSab_a().trim().length() == 0) {
-                        vp_reparto.setSab_a(secuenciaSAP);
-                        vp_reparto.setSab_de(secuenciaSAP);
-                    }else{
-                        vp_reparto.setSab_a(vp_reparto_old.getSab_a());
-                        vp_reparto.setSab_de(vp_reparto_old.getSab_de());
-                    }
-                    break;
-            }
-        }
-    }
-
-    private class VisitasLongClickListener implements TableDataLongClickListener<Visitas> {
-        @Override
-        public boolean onDataLongClicked(int rowIndex, Visitas seleccionado) {
-            String salida = seleccionado.getVptyp() + " " + seleccionado.getRuta();
-            visitasSolicitud.remove(rowIndex);
-            tb_visitas.setDataAdapter(new VisitasTableAdapter(getBaseContext(), visitasSolicitud));
-            tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height-alturaFilaTableView;
-            Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
-            return true;
-        }
-    }
-
     public static class EliminarAdjunto implements Runnable {
         private Context context;
         private Activity activity;
@@ -3959,10 +1947,10 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             this.rowIndex = rowIndex;
         }
         public void run() {
-            if(adjuntosSolicitud.get(rowIndex).getName().contains("PoliticaPrivacidad")) {
-                CheckBox politica = (CheckBox) mapeoCamposDinamicos.get("politica");
-                politica.setChecked(false);
-                politica.setEnabled(true);
+            if(adjuntosSolicitud.get(rowIndex).getName().contains("Constancia")) {
+                CheckBox constancia = (CheckBox) mapeoCamposDinamicos.get("constancia");
+                constancia.setChecked(false);
+                constancia.setEnabled(true);
                 firma = false;
             }
             adjuntosSolicitud.remove(rowIndex);
@@ -3987,8 +1975,10 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                     try {
                         MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
-                        String valor = tv.getText().toString();
-
+                        String valor = "";
+                        if(tv != null) {
+                            valor = tv.getText().toString();
+                        }
                         if(!listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                             insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
                             tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
@@ -4014,9 +2004,11 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         try {
                             Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
-                            String valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
-                            insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
-
+                            String valor="";
+                            if(sp != null) {
+                                valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
+                                insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                            }
                             sp = ((Spinner) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
                             if(sp != null) {
                                 valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
@@ -4059,247 +2051,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     }
                 }else{//Revisar que tipo de bloque es para guardarlo en el lugar correcto.
                     switch(listaCamposDinamicos.get(i)){
-                        case "W_CTE-CONTACTOS":
-                            ContentValues contactoValues = new ContentValues();
-                            ContentValues contactoValuesOld = new ContentValues();
-                            if (solicitudSeleccionada.size() > 0) {
-                                mDb.delete(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), "id_solicitud=?", new String[]{GUID});
-                                mDb.delete(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_OLD_HH(), "id_solicitud=?", new String[]{GUID});
-                            }
-                            for (int c = 0; c < contactosSolicitud.size(); c++) {
-                                contactoValues.put("id_solicitud", NextId);
-                                contactoValues.put("name1", contactosSolicitud.get(c).getName1());
-                                contactoValues.put("namev", contactosSolicitud.get(c).getNamev());
-                                contactoValues.put("telf1", contactosSolicitud.get(c).getTelf1());
-                                contactoValues.put("house_num1", contactosSolicitud.get(c).getHouse_num1());
-                                contactoValues.put("street", contactosSolicitud.get(c).getStreet());
-                                contactoValues.put("gbdat", contactosSolicitud.get(c).getGbdat());
-                                contactoValues.put("country", contactosSolicitud.get(c).getCountry());
-                                contactoValues.put("pafkt", contactosSolicitud.get(c).getPafkt());
-                                try {
-                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH(), null, contactoValues);
-                                    contactoValues.clear();
-                                } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud Nuevo", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-
-                            for (int c = 0; c < contactosSolicitud_old.size(); c++) {
-                                contactoValuesOld.put("id_solicitud", NextId);
-                                contactoValuesOld.put("name1", contactosSolicitud_old.get(c).getName1());
-                                contactoValuesOld.put("namev", contactosSolicitud_old.get(c).getNamev());
-                                contactoValuesOld.put("telf1", contactosSolicitud_old.get(c).getTelf1());
-                                contactoValuesOld.put("house_num1", contactosSolicitud_old.get(c).getHouse_num1());
-                                contactoValuesOld.put("street", contactosSolicitud_old.get(c).getStreet());
-                                contactoValuesOld.put("gbdat", contactosSolicitud_old.get(c).getGbdat());
-                                contactoValuesOld.put("country", contactosSolicitud_old.get(c).getCountry());
-                                contactoValuesOld.put("pafkt", contactosSolicitud_old.get(c).getPafkt());
-                                try {
-                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_OLD_HH(), null, contactoValuesOld);
-                                    contactoValuesOld.clear();
-                                } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Contacto de Solicitud Actual", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-
-                            break;
-                        case "W_CTE-IMPUESTOS":
-                            ContentValues impuestoValues = new ContentValues();
-                            ContentValues impuestoValuesOld = new ContentValues();
-                            int del;
-                            if (solicitudSeleccionada.size() > 0) {
-                                del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), "id_solicitud=?", new String[]{GUID});
-                                del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_OLD_HH(), "id_solicitud=?", new String[]{GUID});
-                            }
-                            for (int c = 0; c < impuestosSolicitud.size(); c++) {
-                                impuestoValues.put("id_solicitud", NextId);
-                                impuestoValues.put("vtext", impuestosSolicitud.get(c).getVtext());
-                                impuestoValues.put("vtext2", impuestosSolicitud.get(c).getVtext2());
-                                impuestoValues.put("tatyp", impuestosSolicitud.get(c).getTatyp());
-                                impuestoValues.put("taxkd", impuestosSolicitud.get(c).getTaxkd());
-                                try {
-                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_HH(), null, impuestoValues);
-                                    impuestoValues.clear();
-                                } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud Nuevo", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                            if (solicitudSeleccionadaOld.size() > 0) {
-                                del = mDb.delete(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_OLD_HH(), "id_solicitud=?", new String[]{GUID});
-                            }
-                            for (int c = 0; c < impuestosSolicitud_old.size(); c++) {
-                                impuestoValuesOld.put("id_solicitud", NextId);
-                                impuestoValuesOld.put("vtext", impuestosSolicitud_old.get(c).getVtext());
-                                impuestoValuesOld.put("vtext2", impuestosSolicitud_old.get(c).getVtext2());
-                                impuestoValuesOld.put("tatyp", impuestosSolicitud_old.get(c).getTatyp());
-                                impuestoValuesOld.put("taxkd", impuestosSolicitud_old.get(c).getTaxkd());
-                                try {
-                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_IMPUESTO_OLD_HH(), null, impuestoValuesOld);
-                                    impuestoValuesOld.clear();
-                                } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Impuesto de Solicitud Nuevo", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-
-                            break;
-                        case "W_CTE-INTERLOCUTORES":
-                            ContentValues interlocutorValues = new ContentValues();
-                            if (solicitudSeleccionada.size() > 0) {
-                                mDb.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), "id_solicitud=?", new String[]{GUID});
-                            }
-                            for (int c = 0; c < interlocutoresSolicitud.size(); c++) {
-                                interlocutorValues.put("id_solicitud", NextId);
-                                interlocutorValues.put("parvw", interlocutoresSolicitud.get(c).getParvw());
-                                interlocutorValues.put("kunn2", interlocutoresSolicitud.get(c).getKunn2());
-                                interlocutorValues.put("name1", interlocutoresSolicitud.get(c).getName1());
-                                interlocutorValues.put("vtext", interlocutoresSolicitud.get(c).getVtext());
-
-                                try {
-                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_HH(), null, interlocutorValues);
-                                    interlocutorValues.clear();
-                                } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Interlocutor de Solicitud Nueva", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                            //valroes OLD
-                            ContentValues interlocutorValuesOld = new ContentValues();
-                            if (solicitudSeleccionadaOld.size() > 0) {
-                                mDb.delete(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_OLD_HH(), "id_solicitud=?", new String[]{GUID});
-                            }
-                            for (int c = 0; c < interlocutoresSolicitud_old.size(); c++) {
-                                interlocutorValuesOld.put("id_solicitud", NextId);
-                                interlocutorValuesOld.put("parvw", interlocutoresSolicitud_old.get(c).getParvw());
-                                interlocutorValuesOld.put("kunn2", interlocutoresSolicitud_old.get(c).getKunn2());
-                                interlocutorValuesOld.put("name1", interlocutoresSolicitud_old.get(c).getName1());
-                                interlocutorValuesOld.put("vtext", interlocutoresSolicitud_old.get(c).getVtext());
-
-                                try {
-                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_INTERLOCUTOR_OLD_HH(), null, interlocutorValuesOld);
-                                    interlocutorValuesOld.clear();
-                                } catch (Exception e) {
-                                    Toasty.error(getApplicationContext(), "Error Insertando Interlocutor de Solicitud Actual", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-
-                            break;
-                        case "W_CTE-BANCOS":
-                            ContentValues bancoValues = new ContentValues();
-                            try {
-                                if (solicitudSeleccionada.size() > 0) {
-                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), "id_solicitud=?", new String[]{GUID});
-                                }
-                                for (int c = 0; c < bancosSolicitud.size(); c++) {
-                                    bancoValues.put("id_solicitud", NextId);
-                                    bancoValues.put("bankl", bancosSolicitud.get(c).getBankl());
-                                    bancoValues.put("bankn", bancosSolicitud.get(c).getBankn());
-                                    bancoValues.put("banks", bancosSolicitud.get(c).getBanks());
-                                    bancoValues.put("bkont", bancosSolicitud.get(c).getBkont());
-                                    bancoValues.put("bkref", bancosSolicitud.get(c).getBkref());
-                                    bancoValues.put("bvtyp", bancosSolicitud.get(c).getBvtyp());
-                                    bancoValues.put("koinh", bancosSolicitud.get(c).getKoinh());
-                                    bancoValues.put("task", bancosSolicitud.get(c).getTask());
-                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_BANCO_HH(), null, bancoValues);
-                                    bancoValues.clear();
-                                }
-                            } catch (Exception e) {
-                                Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud Nueva", Toast.LENGTH_SHORT).show();
-                            }
-                            //Valores OLD
-                            ContentValues bancoValuesOld = new ContentValues();
-                            try {
-                                if (solicitudSeleccionadaOld.size() > 0) {
-                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_BANCO_OLD_HH(), "id_solicitud=?", new String[]{GUID});
-                                }
-                                for (int c = 0; c < bancosSolicitud_old.size(); c++) {
-                                    bancoValuesOld.put("id_solicitud", NextId);
-                                    bancoValuesOld.put("bankl", bancosSolicitud_old.get(c).getBankl());
-                                    bancoValuesOld.put("bankn", bancosSolicitud_old.get(c).getBankn());
-                                    bancoValuesOld.put("banks", bancosSolicitud_old.get(c).getBanks());
-                                    bancoValuesOld.put("bkont", bancosSolicitud_old.get(c).getBkont());
-                                    bancoValuesOld.put("bkref", bancosSolicitud_old.get(c).getBkref());
-                                    bancoValuesOld.put("bvtyp", bancosSolicitud_old.get(c).getBvtyp());
-                                    bancoValuesOld.put("koinh", bancosSolicitud_old.get(c).getKoinh());
-                                    bancoValuesOld.put("task", bancosSolicitud_old.get(c).getTask());
-                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_BANCO_OLD_HH(), null, bancoValuesOld);
-                                    bancoValuesOld.clear();
-                                }
-                            } catch (Exception e) {
-                                Toasty.error(getApplicationContext(), "Error Insertando Bancos de Solicitud Actual", Toast.LENGTH_SHORT).show();
-                            }
-                            break;
-                        case "W_CTE-VISITAS":
-                            ContentValues visitaValues = new ContentValues();
-                            try {
-                                if (solicitudSeleccionada.size() > 0) {
-                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), "id_solicitud=?", new String[]{GUID});
-                                }
-                                for (int c = 0; c < visitasSolicitud.size(); c++) {
-                                    visitaValues.put("id_solicitud", NextId);
-                                    visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
-                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
-                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
-                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
-                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
-                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
-                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
-                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
-                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
-                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
-                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
-                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
-                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
-                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
-                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
-                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
-                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
-                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
-                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
-                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
-
-                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
-                                    visitaValues.clear();
-                                }
-                            } catch (Exception e) {
-                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud Nueva", Toast.LENGTH_SHORT).show();
-                            }
-                            //OLD
-                            ContentValues visitaValuesOld = new ContentValues();
-                            try {
-                                if (solicitudSeleccionada.size() > 0) {
-                                    mDb.delete(VariablesGlobales.getTABLA_BLOQUE_VISITA_OLD_HH(), "id_solicitud=?", new String[]{GUID});
-                                }
-                                for (int c = 0; c < visitasSolicitud_old.size(); c++) {
-                                    visitaValuesOld.put("id_solicitud", NextId);
-                                    visitaValuesOld.put("ruta", visitasSolicitud_old.get(c).getRuta());
-                                        visitaValuesOld.put("kvgr4", visitasSolicitud_old.get(c).getKvgr4());
-                                        visitaValuesOld.put("vptyp", visitasSolicitud_old.get(c).getVptyp());
-                                        visitaValuesOld.put("f_frec", visitasSolicitud_old.get(c).getF_frec());
-                                        visitaValuesOld.put("lun_de", visitasSolicitud_old.get(c).getLun_de());
-                                        visitaValuesOld.put("mar_de", visitasSolicitud_old.get(c).getMar_de());
-                                        visitaValuesOld.put("mier_de", visitasSolicitud_old.get(c).getMier_de());
-                                        visitaValuesOld.put("jue_de", visitasSolicitud_old.get(c).getJue_de());
-                                        visitaValuesOld.put("vie_de", visitasSolicitud_old.get(c).getVie_de());
-                                        visitaValuesOld.put("sab_de", visitasSolicitud_old.get(c).getSab_de());
-                                        visitaValuesOld.put("lun_a", visitasSolicitud_old.get(c).getLun_a());
-                                        visitaValuesOld.put("mar_a", visitasSolicitud_old.get(c).getMar_a());
-                                        visitaValuesOld.put("mier_a", visitasSolicitud_old.get(c).getMier_a());
-                                        visitaValuesOld.put("jue_a", visitasSolicitud_old.get(c).getJue_a());
-                                        visitaValuesOld.put("vie_a", visitasSolicitud_old.get(c).getVie_a());
-                                        visitaValuesOld.put("sab_a", visitasSolicitud_old.get(c).getSab_a());
-                                        visitaValuesOld.put("f_ico", visitasSolicitud_old.get(c).getF_ico());
-                                        visitaValuesOld.put("f_fco", visitasSolicitud_old.get(c).getF_fco());
-                                        visitaValuesOld.put("f_ini", visitasSolicitud_old.get(c).getF_ini());
-                                        visitaValuesOld.put("f_fin", visitasSolicitud_old.get(c).getF_fin());
-                                        visitaValuesOld.put("fcalid", visitasSolicitud_old.get(c).getFcalid());
-
-                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_OLD_HH(), null, visitaValuesOld);
-                                    visitaValuesOld.clear();
-                                }
-                            } catch (Exception e) {
-                                Toasty.error(getApplicationContext(), "Error Insertando Visitas de Solicitud Actual", Toast.LENGTH_SHORT).show();
-                            }
-                            break;
                         case "W_CTE-ADJUNTOS":
                             ContentValues adjuntoValues = new ContentValues();
                             try {
@@ -4400,8 +2151,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         bancos = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Bancos");
         visitas = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Visitas");
 
-        if(codigoEquipoFrio != null){
-            EquipoFrio equipo = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio);
+        if(codigoEquipoFrio != null) {
+            EquipoFrio equipo = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
             MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_EQUIPMENT"));
             tv.setText(codigoEquipoFrio);
             MaskedEditText tvs = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_SERIALNO"));
@@ -4410,6 +2161,62 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             tvm.setSelection(VariablesGlobales.getIndex(tvm, equipo.getMatnr()));
             MaskedEditText tvp = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_PARTNER"));
             tvp.setText(codigoCliente);
+
+            //Valores Enca si estan presentes
+            MaskedEditText tve = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_EQUIPMENT"));
+            if (tve != null)
+                tve.setText(codigoEquipoFrio);
+            MaskedEditText tvse = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_SERIALNO"));
+            if (tvse != null)
+                tvse.setText(equipo.getSernr());
+            SearchableSpinner tvme = ((SearchableSpinner) mapeoCamposDinamicosEnca.get("W_CTE-IM_MATERIAL"));
+            if (tvme != null)
+                tvme.setSelection(VariablesGlobales.getIndex(tvme, equipo.getMatnr()));
+            MaskedEditText tvpe = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_PARTNER"));
+            if (tvpe != null)
+                tvpe.setText(codigoCliente);
+            if (tipoSolicitud.equals(context.getResources().getString(R.string.ID_FORM_CAMBIO_EQ))) {
+                String grupoCausa = "";
+                String grupoSintoma = "";
+                String codigoCausa = "";
+                String codigoSintoma = "";
+                if (equipo.getEqart().contains("ENF")) {
+                    grupoCausa = "CS-CAENF";
+                    grupoSintoma = "CA-ENFRI";
+                    codigoCausa = "0580";
+                    codigoSintoma = "0270";
+                }else
+                if (equipo.getEqart().contains("POS") || equipo.getEqart().contains("PMX") ) {
+                    grupoCausa = "CS-CAPMX";
+                    grupoSintoma = "CA-POSTM";
+                    codigoCausa = "0640";
+                    codigoSintoma = "0360";
+                }else
+                if (equipo.getEqart().contains("MAQ") || equipo.getEqart().contains("MQ")) {
+                    grupoCausa = "CS-CAMQH";
+                    grupoSintoma = "CA-MAQHI";
+                    codigoCausa = "0080";
+                    codigoSintoma = "0260";
+                } else {
+                    grupoCausa = "CS-CAENF";
+                    grupoSintoma = "CA-ENFRI";
+                    codigoCausa = "0580";
+                    codigoSintoma = "0270";
+                }
+
+                SearchableSpinner dcodegrpe = ((SearchableSpinner) mapeoCamposDinamicosEnca.get("W_CTE-IM_D_CODEGRP"));
+                if (dcodegrpe != null)
+                    dcodegrpe.setSelection(VariablesGlobales.getIndex(dcodegrpe, grupoSintoma));
+                SearchableSpinner causecodegrpe = ((SearchableSpinner) mapeoCamposDinamicosEnca.get("W_CTE-IM_CAUSE_CODEGRP"));
+                if (causecodegrpe != null)
+                    causecodegrpe.setSelection(VariablesGlobales.getIndex(causecodegrpe, grupoCausa));
+                SearchableSpinner dcodee = ((SearchableSpinner) mapeoCamposDinamicosEnca.get("W_CTE-IM_D_CODE"));
+                if (dcodee != null)
+                    dcodee.setSelection(VariablesGlobales.getIndex(dcodee, codigoSintoma));
+                SearchableSpinner causecodee = ((SearchableSpinner) mapeoCamposDinamicosEnca.get("W_CTE-IM_CAUSE_CODE"));
+                if (causecodee != null)
+                    causecodee.setSelection(VariablesGlobales.getIndex(causecodee, codigoCausa));
+            }
         }
         //Titulo deseado
         activity.setTitle(activity.getTitle()+cliente.get(0).getAsJsonObject().get("W_CTE-NAME1").getAsString());
@@ -4418,30 +2225,45 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                 try {
                     MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
-                    if(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)) != null)
-                        tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString());
-                    if (listaCamposDinamicos.get(i).equals("W_CTE-IM_DESCRIPT")) {
-                        tv.setText(((SolicitudAvisosEquipoFrioActivity)activity).getSupportActionBar().getSubtitle());
-                        tv.setSingleLine(false);
-                        tv.setEnabled(false);
-                    }
-                    if (listaCamposDinamicos.get(i).equals("W_CTE-PO_BOX") && tv.getText().toString().trim().equals("")) {
-                        tv.setText(".");
-                    }
-                    if (listaCamposDinamicos.get(i).equals("W_CTE-IM_PARTNER")) {
-                        tv.setText(codigoCliente);
-                        tv.setVisibility(View.GONE);
-                        ((TextInputLayout)tv.getParent().getParent()).setVisibility(View.GONE);
+                    if(tv!= null) {
+                        if (cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)) != null) {
+                            tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString());
+                            if (listaCamposDinamicos.get(i).equals("W_CTE-PO_BOX") && tv.getText().toString().trim().equals("")) {
+                                tv.setText(".");
+                            }
+
+                            if (listaCamposDinamicos.get(i).equals("W_CTE-ZIBASE")) {
+                                String valorSinCeros = removeLeadingZeroes(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString());
+                                tv.setText(valorSinCeros);
+                            }
+                        }
+                        if (listaCamposDinamicos.get(i).equals("W_CTE-IM_SHORT_TEXT")) {
+                            tv.setText(((SolicitudAvisosEquipoFrioActivity) activity).getSupportActionBar().getSubtitle());
+                            tv.setSingleLine(false);
+                            tv.setEnabled(false);
+                        }
+                        if (listaCamposDinamicos.get(i).equals("W_CTE-IM_PARTNER")) {
+                            tv.setText(codigoCliente);
+                            tv.setVisibility(View.GONE);
+                            ((TextInputLayout) tv.getParent().getParent()).setVisibility(View.GONE);
+                        }
                     }
 
                     tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i).trim()));
                     if(tv != null) {
                         tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
+                        if (listaCamposDinamicos.get(i).equals("W_CTE-ZIBASE")) {
+                            String valorSinCeros = removeLeadingZeroes(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString());
+                            tv.setText(valorSinCeros);
+                        }
                     }
                     tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i).trim()));
                     if(tv != null) {
                         tv.setText(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i).trim()).getAsString());
-
+                        if (listaCamposDinamicos.get(i).equals("W_CTE-ZIBASE")) {
+                            String valorSinCeros = removeLeadingZeroes(cliente.get(0).getAsJsonObject().get(listaCamposDinamicos.get(i)).getAsString());
+                            tv.setText(valorSinCeros);
+                        }
                     }
 
                 } catch (Exception e) {
@@ -4459,6 +2281,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             }
                             if(((SolicitudAvisosEquipoFrioActivity)activity).getSupportActionBar().getSubtitle().toString().toLowerCase().contains("instal")) {
                                 sp.setSelection(VariablesGlobales.getIndex(sp, "T4"));
+                            }
+                            if(((SolicitudAvisosEquipoFrioActivity)activity).getSupportActionBar().getSubtitle().toString().toLowerCase().contains("cambio")) {
+                                sp.setSelection(VariablesGlobales.getIndex(sp, "T9"));
                             }
                             if(((SolicitudAvisosEquipoFrioActivity)activity).getSupportActionBar().getSubtitle().toString().toLowerCase().contains("retiro")) {
                                 sp.setSelection(VariablesGlobales.getIndex(sp, "T5"));
@@ -4491,216 +2316,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             }else{//Revisar que tipo de bloque es para guardarlo en el lugar correcto.
                 Gson gson = new Gson();
                 switch(listaCamposDinamicos.get(i)){
-                    case "W_CTE-CONTACTOS":
-                        Contacto contacto=null;
-
-                        for(int x=0; x < contactos.size(); x++){
-                            contacto = gson.fromJson(contactos.get(x), Contacto.class);
-                            contacto.setGbdat(contacto.getGbdat().replace("-",""));
-                            if(contacto.getGbdat().trim().replace("0","").length()==0)
-                                contacto.setGbdat("");
-                            contactosSolicitud.add(contacto);
-                            try {
-                                contactosSolicitud_old.add((Contacto)contacto.clone());
-                            } catch (CloneNotSupportedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        if(contactosSolicitud != null) {
-                            tb_contactos.setDataAdapter(new ContactoTableAdapter(context, contactosSolicitud));
-                            tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height+(alturaFilaTableView*contactosSolicitud.size());
-                        }
-                        break;
-                    case "W_CTE-IMPUESTOS":
-                        Impuesto impuesto=null;
-                        ArrayList<Impuesto> todos = mDBHelper.getImpuestosPais();
-                        for(int x=0; x < impuestos.size(); x++){
-
-                            impuesto = gson.fromJson(impuestos.get(x), Impuesto.class);
-                            for(int y=0; y < todos.size(); y++){
-                                if(todos.get(y).getTatyp().equals(impuestos.get(x).getAsJsonObject().get("W_CTE-TATYP").getAsString()) && todos.get(y).getTaxkd().equals(impuestos.get(x).getAsJsonObject().get("W_CTE-TAXKD").getAsString())){
-                                    impuesto.setVtext(todos.get(y).getVtext());
-                                    impuesto.setVtext2(todos.get(y).getVtext2());
-                                    break;
-                                }
-                            }
-                            impuestosSolicitud.add(impuesto);
-                            try {
-                                impuestosSolicitud_old.add((Impuesto)impuesto.clone());
-                            } catch (CloneNotSupportedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        if(impuestosSolicitud != null) {
-                            tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(context, impuestosSolicitud));
-                            tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height+(alturaFilaTableView*impuestosSolicitud.size());
-                        }
-                        break;
-                    case "W_CTE-INTERLOCUTORES":
-                        Interlocutor interlocutor=null;
-
-                        for(int x=0; x < interlocutores.size(); x++){
-                            interlocutor = gson.fromJson(interlocutores.get(x), Interlocutor.class);
-                            interlocutoresSolicitud.add(interlocutor);
-                            try {
-                                interlocutoresSolicitud_old.add((Interlocutor) interlocutor.clone());
-                            } catch (CloneNotSupportedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        if(interlocutoresSolicitud != null) {
-                            tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(context, interlocutoresSolicitud));
-                            tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height+(alturaFilaTableView*interlocutoresSolicitud.size());
-                        }
-                        break;
-                    case "W_CTE-BANCOS":
-                        Banco banco = null;
-
-                        for(int x=0; x < bancos.size(); x++){
-                            banco = gson.fromJson(bancos.get(x), Banco.class);
-                            bancosSolicitud.add(banco);
-                            try {
-                                bancosSolicitud_old.add((Banco)banco.clone());
-                            } catch (CloneNotSupportedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        if(bancosSolicitud != null) {
-                            tb_bancos.setDataAdapter(new BancoTableAdapter(context, bancosSolicitud));
-                            tb_bancos.getLayoutParams().height = tb_bancos.getLayoutParams().height+(alturaFilaTableView*bancosSolicitud.size());
-                        }
-                        break;
-                    case "W_CTE-VISITAS":
-                        Visitas visita = null;
-                        int indiceReparto = -1;
-                        int indicePreventa = -1;
-                        int indiceEspecializada = -1;
-
-                        for(int x=0; x < visitas.size(); x++){
-                            if(visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZDD")){
-                                indiceReparto = x;
-                            }
-                            if(visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZPV")){
-                                indicePreventa = x;
-                            }
-                            if(visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZJV")){
-                                indiceEspecializada = x;
-                            }
-                            visita = gson.fromJson(visitas.get(x), Visitas.class);
-
-                            visita.setF_ico(visita.getF_ico().replace("-",""));
-                            visita.setF_fco(visita.getF_fco().replace("-",""));
-                            visita.setF_ini(visita.getF_ini().replace("-",""));
-                            visita.setF_fin(visita.getF_fin().replace("-",""));
-                            if(visita.getF_ico().trim().replace("0","").length()==0)
-                                visita.setF_ico("");
-                            if(visita.getF_fco().trim().replace("0","").length()==0)
-                                visita.setF_fco("");
-                            if(visita.getF_ini().trim().replace("0","").length()==0)
-                                visita.setF_ini("");
-                            if(visita.getF_fin().trim().replace("0","").length()==0)
-                                visita.setF_fin("");
-
-                            visitasSolicitud.add(visita);
-                            try {
-                                visitasSolicitud_old.add((Visitas)visita.clone());
-                            } catch (CloneNotSupportedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        if(visitasSolicitud != null) {
-                            tb_visitas.setDataAdapter(new VisitasTableAdapter(context, visitasSolicitud));
-                            tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+(alturaFilaTableView*visitasSolicitud.size());
-                        }
-
-                        //Campos de las secuencias de la visita de preventa
-                        if(visitasSolicitud.size() > 0 && indicePreventa >= 0) {
-                            //Al menos 1 dia de visita
-                            TextInputEditText diaL = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_L"));
-                            TextInputEditText diaK = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_K"));
-                            TextInputEditText diaM = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_M"));
-                            TextInputEditText diaJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_J"));
-                            TextInputEditText diaV = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_V"));
-                            TextInputEditText diaS = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_S"));
-                            if (diaL != null) {
-                                diaL.setText(visitasSolicitud_old.get(indicePreventa).getLun_de());
-                            }
-                            if (diaK != null) {
-                                diaK.setText(visitasSolicitud_old.get(indicePreventa).getMar_de());
-                            }
-                            if (diaM != null) {
-                                diaM.setText(visitasSolicitud_old.get(indicePreventa).getMier_de());
-                            }
-                            if (diaJ != null) {
-                                diaJ.setText(visitasSolicitud_old.get(indicePreventa).getJue_de());
-                            }
-                            if (diaV != null) {
-                                diaV.setText(visitasSolicitud_old.get(indicePreventa).getVie_de());
-                            }
-                            if (diaS != null) {
-                                diaS.setText(visitasSolicitud_old.get(indicePreventa).getSab_de());
-                            }
-                        }else{
-                            CardView tituloV = ((CardView)mapeoVisitas.get("ZPV"));
-                            TextInputEditText diaL = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_L"));
-                            TextInputEditText diaK = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_K"));
-                            TextInputEditText diaM = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_M"));
-                            TextInputEditText diaJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_J"));
-                            TextInputEditText diaV = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_V"));
-                            TextInputEditText diaS = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_S"));
-
-                            tituloV.setVisibility(View.GONE);
-                            diaL.setVisibility(View.GONE);
-                            diaK.setVisibility(View.GONE);
-                            diaM.setVisibility(View.GONE);
-                            diaJ.setVisibility(View.GONE);
-                            diaV.setVisibility(View.GONE);
-                            diaS.setVisibility(View.GONE);
-                        }
-                        if(visitasSolicitud.size() > 0 && indiceEspecializada >= 0) {
-                            //En caso de que tenga especializada
-                            TextInputEditText diaEL = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_L"));
-                            TextInputEditText diaEK = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_K"));
-                            TextInputEditText diaEM = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_M"));
-                            TextInputEditText diaEJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_J"));
-                            TextInputEditText diaEV = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_V"));
-                            TextInputEditText diaES = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_S"));
-                            if ( diaEL != null) {
-                                diaEL.setText(visitasSolicitud_old.get(indiceEspecializada).getLun_de());
-                            }
-                            if ( diaEK != null) {
-                                diaEK.setText(visitasSolicitud_old.get(indiceEspecializada).getMar_de());
-                            }
-                            if ( diaEM != null) {
-                                diaEM.setText(visitasSolicitud_old.get(indiceEspecializada).getMier_de());
-                            }
-                            if ( diaEJ != null) {
-                                diaEJ.setText(visitasSolicitud_old.get(indiceEspecializada).getJue_de());
-                            }
-                            if ( diaEV != null) {
-                                diaEV.setText(visitasSolicitud_old.get(indiceEspecializada).getVie_de());
-                            }
-                            if ( diaES != null) {
-                                diaES.setText(visitasSolicitud_old.get(indiceEspecializada).getSab_de());
-                            }
-                        }else{
-                            CardView tituloV = ((CardView)mapeoVisitas.get("ZJV"));
-                            TextInputEditText diaEL = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_L"));
-                            TextInputEditText diaEK = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_K"));
-                            TextInputEditText diaEM = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_M"));
-                            TextInputEditText diaEJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_J"));
-                            TextInputEditText diaEV = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_V"));
-                            TextInputEditText diaES = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_S"));
-
-                            tituloV.setVisibility(View.GONE);
-                            diaEL.setVisibility(View.GONE);
-                            diaEK.setVisibility(View.GONE);
-                            diaEM.setVisibility(View.GONE);
-                            diaEJ.setVisibility(View.GONE);
-                            diaEV.setVisibility(View.GONE);
-                            diaES.setVisibility(View.GONE);
-                        }
-                        break;
                     case "W_CTE-ADJUNTOS":
 
                         break;
@@ -4721,16 +2336,17 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         return name;
     }
 
-    private static void CausasDeGrupo(AdapterView<?> parent){
+    private static void CausasDeGrupo(AdapterView<?> parent, String valorDefectoHijo, String clase_aviso){
         final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-
-        ArrayList<HashMap<String, String>> causas = mDBHelper.CausasDeGrupo(opcion.getId());
+        ArrayList<HashMap<String, String>> causas = mDBHelper.CausasDeGrupo(opcion.getId(),clase_aviso);
 
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
         int selectedIndex = 0;
         for (int j = 0; j < causas.size(); j++){
             listaopciones.add(new OpcionSpinner(causas.get(j).get("id"), causas.get(j).get("descripcion")));
             if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-IM_CAUSE_CODE").trim().equals(causas.get(j).get("id"))){
+                selectedIndex = j;
+            }else if(valorDefectoHijo.equals(causas.get(j).get("id"))){
                 selectedIndex = j;
             }
         }
@@ -4745,24 +2361,22 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
         combo.setSelection(selectedIndex);
-        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
-            ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
-
         if(!modificable){
             combo.setEnabled(false);
             combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
         }
     }
-    private static void SintomasDeGrupo(AdapterView<?> parent){
+    private static void SintomasDeGrupo(AdapterView<?> parent, String valorDefectoHijo, String clase_aviso){
         final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-
-        ArrayList<HashMap<String, String>> causas = mDBHelper.SintomasDeGrupo(opcion.getId());
+        ArrayList<HashMap<String, String>> sintomas = mDBHelper.SintomasDeGrupo(opcion.getId(),clase_aviso);
 
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
         int selectedIndex = 0;
-        for (int j = 0; j < causas.size(); j++){
-            listaopciones.add(new OpcionSpinner(causas.get(j).get("id"), causas.get(j).get("descripcion")));
-            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-IM_D_CODE").trim().equals(causas.get(j).get("id"))){
+        for (int j = 0; j < sintomas.size(); j++){
+            listaopciones.add(new OpcionSpinner(sintomas.get(j).get("id"), sintomas.get(j).get("descripcion")));
+            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-IM_D_CODE").trim().equals(sintomas.get(j).get("id"))){
+                selectedIndex = j;
+            }else if(valorDefectoHijo.equals(sintomas.get(j).get("id"))){
                 selectedIndex = j;
             }
         }
@@ -4777,324 +2391,11 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
         combo.setSelection(selectedIndex);
-        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
-            ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
-
         if(!modificable){
             combo.setEnabled(false);
             combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
         }
     }
-
-    private static void Provincias(AdapterView<?> parent){
-        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-
-        ArrayList<HashMap<String, String>> provincias = mDBHelper.Provincias(opcion.getId());
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndex = 0;
-        for (int j = 0; j < provincias.size(); j++){
-            listaopciones.add(new OpcionSpinner(provincias.get(j).get("id"), provincias.get(j).get("descripcion")));
-            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-REGION").trim().equals(provincias.get(j).get("id"))){
-                selectedIndex = j;
-            }
-        }
-
-        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
-        combo.setAdapter(dataAdapter);
-        combo.setSelection(selectedIndex);
-        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
-            ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
-        DireccionCorta();
-        if(!modificable){
-            combo.setEnabled(false);
-            combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-        }
-
-    }
-    private static void Cantones(AdapterView<?> parent){
-        Spinner pais = (Spinner)mapeoCamposDinamicos.get("W_CTE-LAND1");
-        final OpcionSpinner opcionpais = (OpcionSpinner) pais.getSelectedItem();
-        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-        ArrayList<HashMap<String, String>> cantones = mDBHelper.Cantones(opcionpais.getId(),opcion.getId());
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndex = 0;
-        for (int j = 0; j < cantones.size(); j++){
-            listaopciones.add(new OpcionSpinner(cantones.get(j).get("id"), cantones.get(j).get("descripcion")));
-            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-CITY1").trim().equals(cantones.get(j).get("id"))){
-                selectedIndex = j;
-            }
-        }
-        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-CITY1");
-
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
-        combo.setAdapter(dataAdapter);
-        if(solicitudSeleccionada.size() > 0)
-            combo.setSelection(selectedIndex);
-        if(combo.getCount() > 1 && cliente != null)
-            combo.setSelection(VariablesGlobales.getIndex(combo,cliente.get(0).getAsJsonObject().get("W_CTE-CITY1").getAsString().trim()));
-        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
-            ((TextView) combo.getSelectedView()).setError("El campo es obligatorio!");
-        DireccionCorta();
-        if(!modificable){
-            combo.setEnabled(false);
-            combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-        }
-    }
-
-    private static void Distritos(AdapterView<?> parent){
-        Spinner provincia = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
-        final OpcionSpinner opcionprovincia = (OpcionSpinner) provincia.getSelectedItem();
-        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-        ArrayList<HashMap<String, String>> distritos = mDBHelper.Distritos(opcionprovincia.getId(),opcion.getId());
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndex = 0;
-        for (int j = 0; j < distritos.size(); j++){
-            listaopciones.add(new OpcionSpinner(distritos.get(j).get("id"), distritos.get(j).get("descripcion")));
-            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-STR_SUPPL3").trim().equals(distritos.get(j).get("id"))){
-                selectedIndex = j;
-            }
-        }
-        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-STR_SUPPL3");
-
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
-        combo.setAdapter(dataAdapter);
-        if(solicitudSeleccionada.size() > 0)
-            combo.setSelection(selectedIndex);
-        if(combo.getCount() > 1 && cliente != null)
-            combo.setSelection(VariablesGlobales.getIndex(combo,cliente.get(0).getAsJsonObject().get("W_CTE-STR_SUPPL3").getAsString().trim()));
-        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
-            ((TextView) combo.getSelectedView()).setError("El campo es obligatorio!");
-        DireccionCorta();
-        if(!modificable){
-            combo.setEnabled(false);
-            combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-        }
-    }
-
-    private static void ProvinciasOld(AdapterView<?> parent){
-        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-
-        ArrayList<HashMap<String, String>> provincias = mDBHelper.Provincias(opcion.getId());
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndex = 0;
-        for (int j = 0; j < provincias.size(); j++){
-            listaopciones.add(new OpcionSpinner(provincias.get(j).get("id"), provincias.get(j).get("descripcion")));
-            if(solicitudSeleccionadaOld.size() > 0 && solicitudSeleccionadaOld.get(0).get("W_CTE-REGION").trim().equals(provincias.get(j).get("id"))){
-                selectedIndex = j;
-            }
-        }
-
-        Spinner combo = (Spinner)mapeoCamposDinamicosOld.get("W_CTE-REGION");
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
-        combo.setAdapter(dataAdapter);
-        if(solicitudSeleccionadaOld.size() > 0)
-            combo.setSelection(selectedIndex);
-        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
-            ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
-        DireccionCorta();
-        if(!modificable){
-            combo.setEnabled(false);
-            combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-        }
-
-    }
-    private static void CantonesOld(AdapterView<?> parent){
-        Spinner pais = (Spinner)mapeoCamposDinamicosOld.get("W_CTE-LAND1");
-        final OpcionSpinner opcionpais = (OpcionSpinner) pais.getSelectedItem();
-        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-        ArrayList<HashMap<String, String>> cantones = mDBHelper.Cantones(opcionpais.getId(),opcion.getId());
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndex = 0;
-        for (int j = 0; j < cantones.size(); j++){
-            listaopciones.add(new OpcionSpinner(cantones.get(j).get("id"), cantones.get(j).get("descripcion")));
-            if(solicitudSeleccionadaOld.size() > 0 && solicitudSeleccionadaOld.get(0).get("W_CTE-CITY1").trim().equals(cantones.get(j).get("id"))){
-                selectedIndex = j;
-            }
-        }
-        Spinner combo = (Spinner)mapeoCamposDinamicosOld.get("W_CTE-CITY1");
-
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
-        combo.setAdapter(dataAdapter);
-        if(solicitudSeleccionada.size() > 0)
-            combo.setSelection(selectedIndex);
-        if(combo.getCount() > 1 && cliente != null)
-            combo.setSelection(VariablesGlobales.getIndex(combo,cliente.get(0).getAsJsonObject().get("W_CTE-CITY1").getAsString().trim()));
-        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
-            ((TextView) combo.getSelectedView()).setError("El campo es obligatorio!");
-        DireccionCorta();
-        if(!modificable){
-            combo.setEnabled(false);
-            combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-        }
-    }
-
-    private static void DistritosOld(AdapterView<?> parent){
-        Spinner provincia = (Spinner)mapeoCamposDinamicosOld.get("W_CTE-REGION");
-        final OpcionSpinner opcionprovincia = (OpcionSpinner) provincia.getSelectedItem();
-        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-        ArrayList<HashMap<String, String>> distritos = mDBHelper.Distritos(opcionprovincia.getId(),opcion.getId());
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndex = 0;
-        for (int j = 0; j < distritos.size(); j++){
-            listaopciones.add(new OpcionSpinner(distritos.get(j).get("id"), distritos.get(j).get("descripcion")));
-            if(solicitudSeleccionadaOld.size() > 0 && solicitudSeleccionadaOld.get(0).get("W_CTE-STR_SUPPL3").trim().equals(distritos.get(j).get("id"))){
-                selectedIndex = j;
-            }
-        }
-        Spinner combo = (Spinner)mapeoCamposDinamicosOld.get("W_CTE-STR_SUPPL3");
-
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
-        combo.setAdapter(dataAdapter);
-        if(solicitudSeleccionadaOld.size() > 0)
-            combo.setSelection(selectedIndex);
-        if(combo.getCount() > 1 && cliente != null)
-            combo.setSelection(VariablesGlobales.getIndex(combo,cliente.get(0).getAsJsonObject().get("W_CTE-STR_SUPPL3").getAsString().trim()));
-        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
-            ((TextView) combo.getSelectedView()).setError("El campo es obligatorio!");
-        DireccionCorta();
-        if(!modificable){
-            combo.setEnabled(false);
-            combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-        }
-    }
-
-    private static void  DireccionCorta() {
-        MaskedEditText home = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-HOME_CITY");
-
-        MaskedEditText dir = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-STREET");
-        MaskedEditText dirF = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-LOCATION");
-        Spinner prov = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
-        Spinner cant = (Spinner)mapeoCamposDinamicos.get("W_CTE-CITY1");
-        Spinner dist = (Spinner)mapeoCamposDinamicos.get("W_CTE-STR_SUPPL3");
-        OpcionSpinner p = (OpcionSpinner)prov.getSelectedItem();
-        OpcionSpinner c = (OpcionSpinner)cant.getSelectedItem();
-        OpcionSpinner d = (OpcionSpinner)dist.getSelectedItem();
-        if(d != null && !d.getId().isEmpty())
-            home.setText(d.getName().trim().split("-")[1]);
-
-        StringBuilder dircorta = new StringBuilder();
-        if (dir != null) {
-            if (prov != null && p != null && !p.getId().equals("")) {
-                if(!p.getId().isEmpty())
-                    dircorta.append(p.getName().trim().split("- ")[1]);
-            }
-            if (cant != null && c != null && !c.getId().equals("")) {
-                if(!c.getId().isEmpty())
-                    dircorta.append(c.getName().trim().split("-")[1]);
-            }
-            if (dist != null && d != null &&  !d.getId().equals("")) {
-                if(!d.getId().isEmpty())
-                    dircorta.append(d.getName().trim().split("-")[1]);
-            }
-            dir.setText(dircorta.toString().toUpperCase(Locale.getDefault()));
-            dirF.setText(dircorta.toString().toUpperCase(Locale.getDefault()));
-        }
-    }
-
-    private static void Canales(AdapterView<?> parent){
-        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-        ArrayList<HashMap<String, String>> canales = mDBHelper.Canales(opcion.getId());
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndex = 0;
-        for (int j = 0; j < canales.size(); j++){
-            listaopciones.add(new OpcionSpinner(canales.get(j).get("id"), canales.get(j).get("descripcion")));
-        }
-        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZGPOCANAL");
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
-        combo.setAdapter(dataAdapter);
-    }
-    private static void CanalesKof(AdapterView<?> parent){
-        Spinner grupo_canal = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTPOCANAL");
-        final OpcionSpinner opciongrupocanal = (OpcionSpinner) grupo_canal.getSelectedItem();
-        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-        ArrayList<HashMap<String, String>> distritos = mDBHelper.CanalesKOF(PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_VKORG",""),opciongrupocanal.getId(),opcion.getId());
-
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        int selectedIndex = 0;
-        for (int j = 0; j < distritos.size(); j++){
-            listaopciones.add(new OpcionSpinner(distritos.get(j).get("id"), distritos.get(j).get("descripcion")));
-        }
-        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZCANAL");
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
-        combo.setAdapter(dataAdapter);
-    }
-    private static void  ImpuestoSegunUnidadNegocio(AdapterView<?> parent) {
-        if (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F443")) {
-            int indice=-1;
-            for (int x = 0; x < tb_impuestos.getDataAdapter().getCount(); x++) {
-                if (tb_impuestos.getDataAdapter().getData().get(x).getTatyp().equals("MWCR")) {
-                    indice = x;
-                    break;
-                }
-            }
-            final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-            if(indice != -1) {
-                if (opcion.getId().equals("MA")) {
-                    tb_impuestos.getDataAdapter().getData().get(indice).setTaxkd("2");
-                } else {
-                    tb_impuestos.getDataAdapter().getData().get(indice).setTaxkd("1");
-                }
-                tb_impuestos.getDataAdapter().notifyDataSetChanged();
-            }
-        }
-    }
-
     private static void ReplicarValor(View v, String campo){
         TextView desde = (TextView)v;
         TextView hasta = (TextView)mapeoCamposDinamicos.get(campo);
@@ -5104,99 +2405,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         Spinner desde = (Spinner)v;
         Spinner hasta = (Spinner)mapeoCamposDinamicos.get(campo);
         hasta.setSelection(selection);
-    }
-    private static boolean ValidarCedula(View v, String tipoCedula){
-        TextView texto = (TextView)v;
-        String cedula = "";
-        switch(tipoCedula){
-            case "C1":
-                cedula = "[0][1-9]-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-[0-9]{2}";
-                break;
-            case "C2":
-                cedula = "((3-[0-9]{3,3}-[0-9]{6,6})|(4-000-[0-9]{6,6}))";
-                break;
-            case "C3":
-                cedula = "([1-9][0-9])-[0-9]{4,4}-[0-9]{4,4}-[0-9]{2,2}";
-                break;
-        }
-        Pattern pattern = Pattern.compile(cedula);
-        Matcher matcher = pattern.matcher(texto.getText());
-        if (!matcher.matches()) {
-            texto.setError("Formato Regimen "+tipoCedula+" invalido!");
-            cedulaValidada = false;
-            return false;
-        }
-        cedulaValidada = true;
-        MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
-        String cedulaDigitada = texto.getText().toString().trim();
-        if(texto.getText().toString().trim().endsWith("-00"))
-            idfiscal.setText(cedulaDigitada.substring(0,cedulaDigitada.length()-3).replaceFirst("^0+(?!$)", "").replace("-",""));
-        else
-            idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-",""));
-        idfiscal.setError(null);
-        idfiscal.clearFocus();
-        Toasty.success(texto.getContext(),"Formato Regimen "+tipoCedula+" valido!").show();
-        return true;
-    }
-    private static boolean ValidarCedula(String v, String tipoCedula){
-        String texto = v;
-        String cedula = "";
-        switch(tipoCedula){
-            case "C1":
-                cedula = "[0][1-9]-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-[0-9]{2}";
-                break;
-            case "C2":
-                cedula = "((3-[0-9]{3,3}-[0-9]{6,6})|(4-000-[0-9]{6,6}))";
-                break;
-            case "C3":
-                cedula = "([1-9][0-9])-[0-9]{4,4}-[0-9]{4,4}-[0-9]{2,2}";
-                break;
-        }
-        Pattern pattern = Pattern.compile(cedula);
-        Matcher matcher = pattern.matcher(texto);
-        if (!matcher.matches()) {
-            cedulaValidada = false;
-            return false;
-        }
-        cedulaValidada = true;
-        return true;
-    }
-    private static boolean ValidarCoordenadaY(View v){
-        TextView texto = (TextView)v;
-        String coordenadaY = "^[-]?(([8-9]|[1][0-2])(\\.\\d{5,12}+)?)";
-        Pattern pattern = Pattern.compile(coordenadaY);
-        Matcher matcher = pattern.matcher(texto.getText().toString().trim());
-        if (!matcher.matches()) {
-            texto.setError("Formato Coordenada Y "+texto.getText().toString().trim()+" invalido!");
-            return false;
-        }
-        //Toasty.success(texto.getContext(),"Formato Coordenada Y "+valor+" valido!").show();
-        return true;
-    }
-    private static boolean ValidarCoordenadaX(View v){
-        TextView texto = (TextView)v;
-        String coordenadaX = "^[-](([8][2-6])(\\.\\d{5,12}+)?)";
-        Pattern pattern = Pattern.compile(coordenadaX);
-        Matcher matcher = pattern.matcher(texto.getText().toString().trim());
-        if (!matcher.matches()) {
-            texto.setError("Formato Coordenada X "+ texto.getText().toString().trim()+" invalido!");
-            return false;
-        }
-        //Toasty.success(texto.getContext(),"Formato Coordenada X "+valor+" valido!").show();
-        return true;
-    }
-
-    private static boolean ValidarCliente(View v){
-        TextView texto = (TextView)v;
-        String coordenadaY = "^[-]?(([8-9]|[1][0-2])(\\.\\d{5,12}+)?)";
-        Pattern pattern = Pattern.compile(coordenadaY);
-        Matcher matcher = pattern.matcher(texto.getText().toString().trim());
-        if (!matcher.matches()) {
-            texto.setError("Formato Coordenada Y "+texto.getText().toString().trim()+" invalido!");
-            return false;
-        }
-        //Toasty.success(texto.getContext(),"Formato Coordenada Y "+valor+" valido!").show();
-        return true;
     }
 
     /*CORRER EN NUEVO THREAD Para poder mostrar avance o loading image*/
@@ -5288,5 +2496,21 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             }
         }
         return -1; // Not found.
+    }
+    public static String removeLeadingZeroes(String str) {
+        String strPattern = "^0+(?!$)";
+        str = str.replaceAll(strPattern, "");
+        return str;
+    }
+    public static String getValorDefectoCampo(ArrayList<HashMap<String, String>> campos,String campo){
+        String valorDefectoHijo="";
+        for(HashMap hm :campos){
+            if(hm.get("campo").toString().trim().equals(campo))
+            {
+                valorDefectoHijo = hm.get("dfaul").toString().trim();
+                break;
+            }
+        }
+        return valorDefectoHijo;
     }
 }
