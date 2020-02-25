@@ -227,11 +227,17 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
             try {
                 Intent intent;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    //Uri packageURI = Uri.parse("package:proyecto.app.clientesabc");
+                    //Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
+                    //context.get().startActivity(uninstallIntent);
                     Uri apkUri = FileProvider.getUriForFile(context.get(), BuildConfig.APPLICATION_ID + ".fileprovider", file);
                     intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
                     intent.setData(apkUri);
                     intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 } else {
+                    //Uri packageURI = Uri.parse("package:proyecto.app.clientesabc");
+                    //Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
+                    //context.get().startActivity(uninstallIntent);
                     Uri apkUri = Uri.fromFile(file);
                     intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
                     intent.setDataAndType(apkUri, "application/vnd.android.package-archive");

@@ -126,9 +126,6 @@
             android:name=".actividades.ClienteActivity"
             android:label="@string/title_activity_cliente"
             android:screenOrientation="portrait" />
-        <activity
-            android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
-            android:theme="@style/Base.Theme.AppCompat" />
         <activity android:name=".actividades.EscanearActivity"
             android:label="@string/title_activity_scanner"></activity>
         <activity android:name=".actividades.ScannerActivity"

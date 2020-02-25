@@ -2491,15 +2491,18 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             Drawable d = getResources().getDrawable(R.drawable.textbackground_min_padding, null);
                             et.setBackground(d);
                             final int finalX = x;
+                            et.setTag(tipoVisitaActual);
                             et.setOnFocusChangeListener(new OnFocusChangeListener() {
                                 @Override
                                 public void onFocusChange(View v, boolean hasFocus) {
 
-                                    int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZPV");
+                                    int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, v.getTag().toString());
                                     int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
+                                    //int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZJV");
 
                                     final int finalIndicePreventa = indicePreventa;
                                     final int finalIndiceReparto = indiceReparto;
+
                                     if (!hasFocus) {
                                         int diaReparto = 0;
                                         if ((finalX + 1) > 5) {
@@ -2509,6 +2512,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         }
                                         Visitas visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
                                         Visitas visitaReparto = visitasSolicitud.get(finalIndiceReparto);
+                                        //Visitas visitaEspecializada = visitasSolicitud.get(finalIndiceEspecializada);
                                         if (!((TextView) v).getText().toString().equals("") && Integer.valueOf(((TextView) v).getText().toString()) > 1440) {
                                             switch (finalX) {
                                                 case 0:
