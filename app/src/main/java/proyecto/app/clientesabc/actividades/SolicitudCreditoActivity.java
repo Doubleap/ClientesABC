@@ -1750,6 +1750,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                 et.setEnabled(false);
                                 et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled,null));
                             }
+                            /*if(campos.get(i).get("campo").trim().contains("DMBTR") || campos.get(i).get("campo").trim().contains("LIMSUG")){
+                                et_old.setText(String.format ("%,.2f", solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim()));
+                            }*/
                         }
                     }
 
@@ -1793,6 +1796,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     if(campos.get(i).get("campo").trim().equals("W_CTE-KLIMK")){
                         et.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
                     }
+
                     if(campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")){
                         et.setSingleLine(false);
                         et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
@@ -3913,6 +3917,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                 if(listaCamposDinamicos.get(i).equals("W_CTE-NAME3")){
                                     insertValues.put("[W_CTE-NAME1]", valor);
                                 }
+                                if(listaCamposDinamicos.get(i).contains("DMBTR") || listaCamposDinamicos.get(i).contains("LIMSUG")) {
+                                    insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor.replace(",",""));
+                                }
                             }
                             if(listaCamposDinamicos.get(i).equals("W_CTE-COMENTARIOS")) {
                                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
@@ -3921,6 +3928,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                     insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
                                 else
                                     insertValues.put("[" + listaCamposDinamicos.get(i) + "]", comentarios.get(0).getComentario()+"("+dateFormat.format(date)+"): "+valor);
+                            }
+                            if(listaCamposDinamicos.get(i).contains("DMBTR") || listaCamposDinamicos.get(i).contains("LIMSUG")) {
+                                insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor.replace(",",""));
                             }
                         }
                     } catch (Exception e) {

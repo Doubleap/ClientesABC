@@ -530,9 +530,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-DATAB",cursor.getString(cursor.getColumnIndex("W_CTE-DATAB")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DATAB")) : "" );
             solicitud.put("W_CTE-DATBI",cursor.getString(cursor.getColumnIndex("W_CTE-DATBI")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DATBI")) : "" );
             solicitud.put("W_CTE-DBRTG",cursor.getString(cursor.getColumnIndex("W_CTE-DBRTG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DBRTG")) : "" );
-            solicitud.put("W_CTE-DMBTR1",cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR1")) : "" );
-            solicitud.put("W_CTE-DMBTR2",cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR2")) : "" );
-            solicitud.put("W_CTE-DMBTR3",cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR3")) : "" );
+            solicitud.put("W_CTE-DMBTR1",String.format ("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-DMBTR1"))) );
+            solicitud.put("W_CTE-DMBTR2",String.format ("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-DMBTR2"))) );
+            solicitud.put("W_CTE-DMBTR3",String.format ("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-DMBTR3"))) );
             solicitud.put("W_CTE-FAX_EXTENS",cursor.getString(cursor.getColumnIndex("W_CTE-FAX_EXTENS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FAX_EXTENS")) : "" );
             solicitud.put("W_CTE-FAX_NUMBER",cursor.getString(cursor.getColumnIndex("W_CTE-FAX_NUMBER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FAX_NUMBER")) : "" );
             solicitud.put("W_CTE-FDGRV",cursor.getString(cursor.getColumnIndex("W_CTE-FDGRV")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FDGRV")) : "" );
@@ -565,7 +565,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-KVGR5",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR5")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR5")) : "" );
             solicitud.put("W_CTE-LAND1",cursor.getString(cursor.getColumnIndex("W_CTE-LAND1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LAND1")) : "" );
             solicitud.put("W_CTE-LIFNR",cursor.getString(cursor.getColumnIndex("W_CTE-LIFNR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LIFNR")) : "" );
-            solicitud.put("W_CTE-LIMSUG",cursor.getString(cursor.getColumnIndex("W_CTE-LIMSUG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LIMSUG")) : "" );
+            solicitud.put("W_CTE-LIMSUG",String.format ("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-LIMSUG"))) );
             solicitud.put("W_CTE-LOCATION",cursor.getString(cursor.getColumnIndex("W_CTE-LOCATION")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LOCATION")) : "" );
             solicitud.put("W_CTE-LPRIO",cursor.getString(cursor.getColumnIndex("W_CTE-LPRIO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LPRIO")) : "" );
             solicitud.put("W_CTE-LZONE",cursor.getString(cursor.getColumnIndex("W_CTE-LZONE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LZONE")) : "" );
@@ -714,9 +714,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-DATAB",cursor.getString(cursor.getColumnIndex("W_CTE-DATAB")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DATAB")) : "" );
             solicitud.put("W_CTE-DATBI",cursor.getString(cursor.getColumnIndex("W_CTE-DATBI")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DATBI")) : "" );
             solicitud.put("W_CTE-DBRTG",cursor.getString(cursor.getColumnIndex("W_CTE-DBRTG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DBRTG")) : "" );
-            solicitud.put("W_CTE-DMBTR1",cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR1")) : "" );
-            solicitud.put("W_CTE-DMBTR2",cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR2")) : "" );
-            solicitud.put("W_CTE-DMBTR3",cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DMBTR3")) : "" );
+            solicitud.put("W_CTE-DMBTR1",String.format ("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-DMBTR1"))) );
+            solicitud.put("W_CTE-DMBTR2",String.format ("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-DMBTR2"))) );
+            solicitud.put("W_CTE-DMBTR3",String.format ("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-DMBTR3"))) );
             solicitud.put("W_CTE-FAX_EXTENS",cursor.getString(cursor.getColumnIndex("W_CTE-FAX_EXTENS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FAX_EXTENS")) : "" );
             solicitud.put("W_CTE-FAX_NUMBER",cursor.getString(cursor.getColumnIndex("W_CTE-FAX_NUMBER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FAX_NUMBER")) : "" );
             solicitud.put("W_CTE-FDGRV",cursor.getString(cursor.getColumnIndex("W_CTE-FDGRV")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FDGRV")) : "" );
@@ -749,7 +749,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-KVGR5",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR5")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR5")) : "" );
             solicitud.put("W_CTE-LAND1",cursor.getString(cursor.getColumnIndex("W_CTE-LAND1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LAND1")) : "" );
             solicitud.put("W_CTE-LIFNR",cursor.getString(cursor.getColumnIndex("W_CTE-LIFNR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LIFNR")) : "" );
-            solicitud.put("W_CTE-LIMSUG",cursor.getString(cursor.getColumnIndex("W_CTE-LIMSUG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LIMSUG")) : "" );
+            solicitud.put("W_CTE-LIMSUG",String.format ("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-LIMSUG"))) );
             solicitud.put("W_CTE-LOCATION",cursor.getString(cursor.getColumnIndex("W_CTE-LOCATION")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LOCATION")) : "" );
             solicitud.put("W_CTE-LPRIO",cursor.getString(cursor.getColumnIndex("W_CTE-LPRIO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LPRIO")) : "" );
             solicitud.put("W_CTE-LZONE",cursor.getString(cursor.getColumnIndex("W_CTE-LZONE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LZONE")) : "" );
