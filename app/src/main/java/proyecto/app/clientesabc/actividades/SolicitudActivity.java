@@ -45,9 +45,11 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.TooltipCompat;
+import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
@@ -1273,7 +1275,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    MaskedEditText cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD1");
+                                    final MaskedEditText cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD1");
                                     final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
                                     if (cedula != null) {
                                         //cedula.setFilters(new InputFilter[]{new RegexInputFilter("[A-Z-a-z]")});
@@ -1286,6 +1288,62 @@ public class SolicitudActivity extends AppCompatActivity {
                                         if (opcion.getId().equals("C3")) {
                                             cedula.setMask("##-####-####-##");
                                         }
+                                        if (opcion.getId().startsWith("N")) {
+                                            cedula.setMask("AAAAAAAAAAAAAA");
+                                        }
+                                        if (opcion.getId().equals("P1")) {
+                                            cedula.addTextChangedListener(new TextWatcher() {
+                                                @Override
+                                                public void afterTextChanged(Editable s) { }
+                                                @Override
+                                                public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+                                                @Override
+                                                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                                    if(s.toString().equals("")){
+                                                        cedula.setMask("");
+                                                    }
+                                                    if(s.toString().equals("N")){
+                                                        cedula.setMask("N-####-######");
+                                                    }
+                                                    if(s.toString().equals("NA")){
+                                                        cedula.setMask("NA-##-####-#####");
+                                                    }
+                                                    if(s.toString().equals("P")){
+                                                        cedula.setMask("PE-####-#####");
+                                                    }
+                                                }
+                                            });
+                                        }
+                                        if (opcion.getId().equals("P2")) {
+                                            cedula.setMask("AAAAAAAAAAAAAAAA");
+                                        }
+                                        if (opcion.getId().equals("P3")) {
+                                            cedula.setMask("E-####-######");
+                                        }
+                                        if (opcion.getId().equals("GT CF")) {
+                                            cedula.setMask("CF");
+                                            cedula.setText("CF");
+                                        }
+                                        if (opcion.getId().equals("GT NIT")) {
+                                            cedula.setMask("##-#");
+                                            cedula.addTextChangedListener(new TextWatcher() {
+                                                @Override
+                                                public void afterTextChanged(Editable s) { }
+                                                @Override
+                                                public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+                                                @Override
+                                                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                                    if(s.toString().length() >= 2 && s.toString().length() <= 8 && !s.toString().contains("-")){
+                                                        String cantidad="";
+                                                        for(int x = 0; x < count; x++){
+                                                            cantidad += "#";
+                                                        }
+                                                        cedula.setMask(cantidad+"-#");
+                                                    }
+                                                }
+                                            });
+                                        }
+
                                         cedula.setOnFocusChangeListener(new OnFocusChangeListener() {
                                             @Override
                                             public void onFocusChange(View v, boolean hasFocus) {
@@ -2119,11 +2177,11 @@ public class SolicitudActivity extends AppCompatActivity {
                     ll.addView(rl);
                     break;
                 case "W_CTE-IMPUESTOS":
-                    de.codecrafters.tableview.TableView<Impuesto> bloque_impuesto;
-                    tb_impuestos.removeDataClickListener(null);
-                    tb_impuestos.removeDataLongClickListener(null);
-                    bloque_impuesto = tb_impuestos;
-                    btnAddBloque.setVisibility(INVISIBLE);
+                        de.codecrafters.tableview.TableView<Impuesto> bloque_impuesto;
+                        tb_impuestos.removeDataClickListener(null);
+                        tb_impuestos.removeDataLongClickListener(null);
+                        bloque_impuesto = tb_impuestos;
+                        btnAddBloque.setVisibility(INVISIBLE);
                     /*seccion_header.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -2136,36 +2194,38 @@ public class SolicitudActivity extends AppCompatActivity {
                             displayDialogImpuesto(getContext(),null);
                         }
                     });*/
-                    bloque_impuesto.setColumnCount(4);
-                    bloque_impuesto.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
-                    bloque_impuesto.setHeaderElevation(2);
-                    hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
-                    bloque_impuesto.setLayoutParams(hlp);
+                    if(bloque_impuesto.getParent() != null) {
+                        bloque_impuesto.setColumnCount(4);
+                        bloque_impuesto.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary, null));
+                        bloque_impuesto.setHeaderElevation(2);
+                        hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
+                        bloque_impuesto.setLayoutParams(hlp);
 
-                    ArrayList<Impuesto> listaImpuestos = db.getImpuestosPais();
-                    impuestosSolicitud.addAll(listaImpuestos);
-                    if(solicitudSeleccionada.size() > 0){
-                        impuestosSolicitud.clear();
-                        impuestosSolicitud = mDBHelper.getImpuestosDB(idSolicitud);
+                        ArrayList<Impuesto> listaImpuestos = db.getImpuestosPais();
+                        impuestosSolicitud.addAll(listaImpuestos);
+                        if (solicitudSeleccionada.size() > 0) {
+                            impuestosSolicitud.clear();
+                            impuestosSolicitud = mDBHelper.getImpuestosDB(idSolicitud);
+                        }
+                        //Adaptadores
+                        if (impuestosSolicitud != null) {
+                            tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(getContext(), impuestosSolicitud));
+                            tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height + (impuestosSolicitud.size() * (alturaFilaTableView));
+                        }
+                        headers = ((ImpuestoTableAdapter) bloque_impuesto.getDataAdapter()).getHeaders();
+                        sta = new SimpleTableHeaderAdapter(getContext(), headers);
+                        sta.setPaddings(10, 5, 10, 5);
+                        sta.setTextSize(12);
+                        sta.setTextColor(getResources().getColor(R.color.white, null));
+                        sta.setTypeface(Typeface.BOLD);
+                        sta.setGravity(GRAVITY_CENTER);
+
+                        bloque_impuesto.setHeaderAdapter(sta);
+                        bloque_impuesto.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
+
+                        rl.addView(bloque_impuesto);
+                        ll.addView(rl);
                     }
-                    //Adaptadores
-                    if(impuestosSolicitud != null) {
-                        tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(getContext(), impuestosSolicitud));
-                        tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height+(impuestosSolicitud.size()*(alturaFilaTableView));
-                    }
-                    headers = ((ImpuestoTableAdapter)bloque_impuesto.getDataAdapter()).getHeaders();
-                    sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                    sta.setPaddings(10,5,10,5);
-                    sta.setTextSize(12);
-                    sta.setTextColor(getResources().getColor(R.color.white,null));
-                    sta.setTypeface(Typeface.BOLD);
-                    sta.setGravity(GRAVITY_CENTER);
-
-                    bloque_impuesto.setHeaderAdapter(sta);
-                    bloque_impuesto.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
-
-                    rl.addView(bloque_impuesto);
-                    ll.addView(rl);
                     break;
                 case "W_CTE-INTERLOCUTORES":
                     de.codecrafters.tableview.TableView<Interlocutor> bloque_interlocutor;
@@ -4366,19 +4426,68 @@ public class SolicitudActivity extends AppCompatActivity {
     private static boolean ValidarCedula(View v, String tipoCedula){
         TextView texto = (TextView)v;
         String cedula = "";
-        switch(tipoCedula){
-            case "C1":
-                if(texto.getText().toString().trim().length()==12 ){
-                    texto.setText(texto.getText()+"-00");
+        switch(PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS","")) {
+            case "F443"://Costa Rica
+                switch (tipoCedula) {
+                    case "C1":
+                        if (texto.getText().toString().trim().length() == 12) {
+                            texto.setText(texto.getText() + "-00");
+                        }
+                        cedula = "[0][1-9]-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-00";
+                        break;
+                    case "C2":
+                        cedula = "((3-[0-9]{3,3}-[0-9]{6,6})|(4-000-[0-9]{6,6}))";
+                        break;
+                    case "C3":
+                        cedula = "([1-9][0-9])-[0-9]{4,4}-[0-9]{4,4}-[0-9]{2,2}";
+                        break;
                 }
-                cedula = "[0][1-9]-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-00";
+            break;
+            case "F445"://Nicaragua
+                if (texto.getText().toString().trim().length() < 3) {
+                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+                    cedulaValidada = false;
+                    return true;
+                }
+                if (texto.getText().toString().trim().length() < 14) {
+                    String padded = "00000000000000".substring(texto.getText().toString().trim().length()) + texto.getText().toString().trim();
+                    texto.setText(padded);
+                }
+                cedula = "[0-9A-Z-]{14,14}";
                 break;
-            case "C2":
-                cedula = "((3-[0-9]{3,3}-[0-9]{6,6})|(4-000-[0-9]{6,6}))";
+
+            case "F451"://Panama
+                switch (tipoCedula) {
+                    case "P1":
+                        if(texto.getText().toString().trim().startsWith("NA-")){
+                            cedula = "NA-([0][1-9]|[1][0-2])-[0-9]{4,4}-[0-9]{5,5}";
+                        }
+                        if(texto.getText().toString().trim().startsWith("PE-")){
+                            cedula = "PE-[0-9]{4,4}-[0-9]{5,5}";
+                        }
+                        if(texto.getText().toString().trim().startsWith("N-")){
+                            cedula = "N-[0-9]{4,4}-[0-9]{6,6}";
+                        }
+                        break;
+                    case "P2":
+                        cedula = "[0-9a-zA-Z]{16,16}";
+                        break;
+                    case "P3":
+                        cedula = "E-[0-9]{4,4}-[0-9]{6,6}";
+                        break;
+                }
                 break;
-            case "C3":
-                cedula = "([1-9][0-9])-[0-9]{4,4}-[0-9]{4,4}-[0-9]{2,2}";
-                break;
+            case "F446"://GT Embocem
+            case "1657"://Volcanes
+            case "1658"://Abasa
+                switch (tipoCedula) {
+                    case "G1":
+                        cedula = "CF";
+                        break;
+                    case "G2":
+                        cedula = "[0-9][0-9]{1,7}-[0-9]";
+                        break;
+                }
         }
         Pattern pattern = Pattern.compile(cedula);
         Matcher matcher = pattern.matcher(texto.getText());
@@ -4388,14 +4497,16 @@ public class SolicitudActivity extends AppCompatActivity {
             return true;
         }
         cedulaValidada = true;
-        MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
-        String cedulaDigitada = texto.getText().toString().trim();
-        if(texto.getText().toString().trim().endsWith("-00") && tipoCedula.equals("C1"))
-            idfiscal.setText(cedulaDigitada.substring(0,cedulaDigitada.length()-3).replaceFirst("^0+(?!$)", "").replace("-",""));
-        else
-            idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-",""));
-        idfiscal.setError(null);
-        idfiscal.clearFocus();
+        if(PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS","").equals("F443")) {
+            MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
+            String cedulaDigitada = texto.getText().toString().trim();
+            if (texto.getText().toString().trim().endsWith("-00") && tipoCedula.equals("C1"))
+                idfiscal.setText(cedulaDigitada.substring(0, cedulaDigitada.length() - 3).replaceFirst("^0+(?!$)", "").replace("-", ""));
+            else
+                idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-", ""));
+            idfiscal.setError(null);
+            idfiscal.clearFocus();
+        }
         Toasty.success(texto.getContext(),"Formato Regimen "+tipoCedula+" valido!").show();
         return true;
     }

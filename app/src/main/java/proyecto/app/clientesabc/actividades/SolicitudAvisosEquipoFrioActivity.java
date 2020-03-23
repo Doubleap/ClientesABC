@@ -75,6 +75,7 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
@@ -823,21 +824,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     ll.addView(fila);
                     listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                     mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
-                    //Excepciones de visualizacion y configuracion de campos dados por la tabla ConfigCampos
-                    int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
-                    if(excepcion >= 0) {
-                        HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
-                            checkbox.setEnabled(false);
-                        }else if(configExcepcion.get("vis") != null){
-                            checkbox.setEnabled(true);
-                        }
-                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X") || campos.get(i).get("modificacion").trim().equals("3") || campos.get(i).get("modificacion").trim().equals("4") || campos.get(i).get("modificacion").trim().equals("5")) {
-                            checkbox.setVisibility(View.GONE);
-                        }else if(configExcepcion.get("sup") != null){
-                            checkbox.setVisibility(View.VISIBLE);
-                        }
-                    }
+
                     if(solicitudSeleccionada.size() > 0){
                         if(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
                             checkbox.setChecked(true);
@@ -1534,9 +1521,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), et);
                     if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0 && !campos.get(i).get("modificacion").equals("1") ){
                         listaCamposObligatorios.add(campos.get(i).get("campo").trim());
-                        //if(cliente != null && cliente.get(campos.get(i).get("campo")) != null && cliente.get(campos.get(i).get("campo").trim()).getAsString().length() == 0) {
-                            //et.setError("El campo es obligatorio!");
-                        //}
+                        if(et.getText().toString().trim().length() == 0) {
+                            et.setError("El campo es obligatorio!");
+                        }
                     }
                     if(campos.get(i).get("tabla_local").trim().length() > 0){
                         listaCamposBloque.add(campos.get(i).get("campo").trim());
@@ -1561,6 +1548,22 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     }
                     //if(cliente != null && cliente.get(campos.get(i).get("campo")) != null)
                         //et.setText(cliente.get(campos.get(i).get("campo").trim()).getAsString());
+                }
+                int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
+                if(excepcion >= 0) {
+                    HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
+                    if (configExcepcion.get("opc").equals("1") || configExcepcion.get("opc").equals("X")) {
+                        if (listaCamposObligatorios.contains(campos.get(i).get("campo").trim())) {
+                        }
+                        listaCamposObligatorios.remove(campos.get(i).get("campo").trim());
+                    }
+                    if (configExcepcion.get("obl").equals("1") || configExcepcion.get("obl").equals("X")) {
+                        listaCamposObligatorios.add(campos.get(i).get("campo").trim());
+                    } else if (configExcepcion.get("obl") != null) {
+                        if (listaCamposObligatorios.contains(campos.get(i).get("campo").trim())) {
+                        }
+                        listaCamposObligatorios.remove(campos.get(i).get("campo").trim());
+                    }
                 }
 
                 seccionAnterior = campos.get(i).get("id_seccion").trim();
@@ -2093,17 +2096,18 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("userMC",""));
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
                 Date date = new Date();
-                //ContentValues initialValues = new ContentValues();
-                insertValues.put("[FECCRE]", dateFormat.format(date));
 
-                //mDBHelper.getWritableDatabase().insert("FormHvKof_solicitud", null, insertValues);
                 if(solicitudSeleccionada.size() > 0){
                     if(solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia")) {
                         insertValues.put("[estado]", "Modificado");
                     }
                     long modifico = mDb.update("FormHvKof_solicitud", insertValues, "id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});
+                    if(solicitudSeleccionadaOld.size() > 0) {
+                        long modifico2 = mDb.update("FormHvKof_old_solicitud", insertValuesOld, "id_solicitud = ?", new String[]{solicitudSeleccionadaOld.get(0).get("id_solicitud")});
+                    }
                     Toasty.success(getApplicationContext(), "Registro modificado con éxito", Toast.LENGTH_SHORT).show();
                 }else {
+                    insertValues.put("[FECCRE]", dateFormat.format(date));
                     insertValues.put("[estado]", "Nuevo");
                     long inserto = mDb.insertOrThrow("FormHvKof_solicitud", null, insertValues);
 
@@ -2322,7 +2326,80 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 }
             }
         }
+        //Estrucutura de telefonos y faxes
+        if (telefonos.size() > 0) {
+            for (int i = 0; i < telefonos.size(); i++) {
+                //Telefono principal
+                if (telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals("1")) {
+                    MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER"));
+                    if (tv != null)
+                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
 
+                    tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TEL_EXTENS"));
+                    if (tv != null)
+                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_EXTENS").getAsString());
+
+                    tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-TEL_NUMBER"));
+                    if (tv != null)
+                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+
+                    tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-TEL_EXTENS"));
+                    if (tv != null)
+                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_EXTENS").getAsString());
+
+                    tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-TEL_NUMBER"));
+                    if (tv != null)
+                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+
+                    tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-TEL_EXTENS"));
+                    if (tv != null)
+                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_EXTENS").getAsString());
+                }
+                //Telefono Celular
+                if (telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals("3")) {
+                    MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER2"));
+                    if (tv != null)
+                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+
+                    tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-TEL_NUMBER2"));
+                    if (tv != null)
+                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+
+                    tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-TEL_NUMBER2"));
+                    if (tv != null)
+                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+
+                }
+                //Telefono adicional
+                if (telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals(" ") || telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals("")) {
+                    MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER3"));
+                    if (tv != null)
+                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+
+                    tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-TEL_NUMBER3"));
+                    if (tv != null)
+                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+
+                    tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-TEL_NUMBER3"));
+                    if (tv != null)
+                        tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+
+                }
+            }
+        }
+            if (faxes.size() > 0) {
+                MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-FAX_NUMBER"));
+                if(tv != null) {
+                    tv.setText(faxes.get(0).getAsJsonObject().get("W_CTE-FAX_NUMBER").getAsString());
+                    tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-FAX_EXTENS"));
+                    tv.setText(faxes.get(0).getAsJsonObject().get("W_CTE-FAX_EXTENS").getAsString());
+
+                    tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-FAX_NUMBER"));
+                    tv.setText(faxes.get(0).getAsJsonObject().get("W_CTE-FAX_NUMBER").getAsString());
+                    tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-FAX_EXTENS"));
+                    tv.setText(faxes.get(0).getAsJsonObject().get("W_CTE-FAX_EXTENS").getAsString());
+                }
+            }
     }
 
     private String getFileName(ContentResolver resolver, Uri uri) {

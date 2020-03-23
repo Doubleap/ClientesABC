@@ -670,6 +670,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
             //CAMPOS PARA AVISOS DE EQUIPO FRIO
 
+            solicitud.put("W_CTE-IM_EQUIPMENT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) : "" );
             solicitud.put("W_CTE-IM_PARTNER",cursor.getString(cursor.getColumnIndex("W_CTE-IM_PARTNER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_PARTNER")) : "" );
             solicitud.put("W_CTE-IM_NOTIF_TYPE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_NOTIF_TYPE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NOTIF_TYPE")) : "" );
             solicitud.put("W_CTE-IM_DESCRIPT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_DESCRIPT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_DESCRIPT")) : "" );
@@ -852,6 +853,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
             //CAMPOS PARA AVISOS DE EQUIPO FRIO
 
+            solicitud.put("W_CTE-IM_EQUIPMENT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) : "" );
             solicitud.put("W_CTE-IM_PARTNER",cursor.getString(cursor.getColumnIndex("W_CTE-IM_PARTNER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_PARTNER")) : "" );
             solicitud.put("W_CTE-IM_NOTIF_TYPE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_NOTIF_TYPE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NOTIF_TYPE")) : "" );
             solicitud.put("W_CTE-IM_DESCRIPT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_DESCRIPT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_DESCRIPT")) : "" );
@@ -1124,27 +1126,27 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
-                " WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"' " +
+                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' " +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 "UNION " +
                 "SELECT DISTINCT c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION " +
                 "FROM configuracion c " +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(cc.panta) = ( " +
-                " Select cc2.panta FROM configCampos cc2 WHERE trim(c.campo) = trim(cc2.CAMPO) AND cc2.bukrs = 'F443' and cc2.ktokd = '"+KTOKD+"' AND cc2.panta != c.panta LIMIT 1 " +
-                " ) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"' and c.campo NOT IN ( " +
-                " SELECT DISTINCT c.campo " +
+                " Select trim(cc2.panta) FROM configCampos cc2 WHERE trim(c.campo) = trim(cc2.CAMPO) AND trim(cc2.bukrs) = 'F443' and trim(cc2.ktokd) = '"+KTOKD+"' AND trim(cc2.panta) != trim(c.panta) LIMIT 1 " +
+                " ) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"' and trim(c.campo) NOT IN ( " +
+                " SELECT DISTINCT trim(c.campo) " +
                 " FROM configuracion c " +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"')\n" +
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
-                " WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"' " +
+                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' " +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 " )) " +
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
                 "                LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 "                LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
-                "                WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"' " +
+                "                WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' " +
                 "                AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 ") T " +
                 " ORDER BY T.panta, T.orden_seccion, T.orden_hh";

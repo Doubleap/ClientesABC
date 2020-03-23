@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
@@ -69,8 +70,19 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                 DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
                 DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 
-                //Comando String que indicara que se quiere realizar una Sincronizacion
                 publishProgress("Comunicacion establecida...");
+                //Enviar pais de procedencia
+                /*dos.writeUTF(VariablesGlobales.getSociedad());
+                dos.flush();
+                //Version con la que quiere transmitir
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
+                dos.flush();
+                //Enviar Ruta que se quiere sincronizar
+                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
+                dos.flush();*/
+
+                //Comando String que indicara que se quiere realizar una Sincronizacion
                 dos.writeUTF("Sincronizacion");
                 dos.flush();
                 //Enviar Ruta que se quiere sincronizar

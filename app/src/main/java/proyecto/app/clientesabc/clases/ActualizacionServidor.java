@@ -65,6 +65,20 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
 
             //Comando String que indicara que se quiere realizar una Sincronizacion
             publishProgress("Comunicacion establecida...");
+            //Enviar Pais de procedencia
+            /*dos.writeUTF(VariablesGlobales.getSociedad());
+            dos.flush();
+            //Version con la que quiere transmitir
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
+            dos.flush();
+            dos.writeUTF(VariablesGlobales.getSociedad());
+            dos.flush();
+            //Enviar Ruta que se quiere sincronizar
+            dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
+            dos.flush();
+            */
+
             dos.writeUTF("Actualizacion");
             dos.flush();
 
@@ -74,7 +88,7 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
             //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
             long s = dis.readLong();
             if(s < 0){
-                publishProgress("Iniciando descarga...");
+                publishProgress("No se pudo descargar...");
                 s = dis.readLong();
                 byte[] e = new byte[(int) s];
                 dis.readFully(e);

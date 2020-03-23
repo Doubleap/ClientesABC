@@ -285,7 +285,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         listaCamposBloque.clear();
         listaCamposObligatorios.clear();
 
-
         configExcepciones = mDBHelper.getConfigExcepciones(tipoSolicitud);
 
         //Setear Eventos de Elementos del bottom navigation
