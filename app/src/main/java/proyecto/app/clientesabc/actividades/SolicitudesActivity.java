@@ -7,22 +7,23 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.androidbuts.multispinnerfilter.KeyPairBoolData;
+import com.androidbuts.multispinnerfilter.MultiSpinnerListener;
 import com.androidbuts.multispinnerfilter.MultiSpinnerSearch;
-import com.androidbuts.multispinnerfilter.SpinnerListener;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,6 +56,7 @@ public class SolicitudesActivity extends AppCompatActivity {
         }
         db = new DataBaseHelper(this);
         ArrayList<HashMap<String, String>> formList;
+        ArrayList<HashMap<String, String>> filteredFormList;
         if(estado != null && tipform != null)
             formList = db.getSolicitudes(estado,tipform);
         else if(estado != null)
@@ -105,7 +107,7 @@ public class SolicitudesActivity extends AppCompatActivity {
 
         Drawable d = getResources().getDrawable(R.drawable.header_curved_cc5,null);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("Mis Solicitudes");
+        toolbar.setTitle("Mis Solicitudes ("+mAdapter.getItemCount()+")");
         /*if(estado != null && tipform != null)
             toolbar.setSubtitle("Filtro: "+estado+" / "+tipform);
         else if(estado != null)
@@ -136,19 +138,19 @@ public class SolicitudesActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String filtroEstado = "";
                 String filtroForm = "";
-
+                dialog.hide();
             }
         });
         //Spinner 1
         final List<KeyPairBoolData> list = db.getEstadosCatalogoParaMultiSpinner();
-        estadoSpinner.setItems(list,-1,  new SpinnerListener() {
+        estadoSpinner.setItems(list,  new MultiSpinnerListener() {
             @Override
             public void onItemsSelected(List<KeyPairBoolData> items) {
                 String multiFiltro = "";
                 String coma = "";
                 for(int i=0; i<items.size(); i++) {
                     if(items.get(i).isSelected()) {
-                        multiFiltro += coma+items.get(i).getId();
+                        multiFiltro += coma+items.get(i).getName();
                         coma = ",";
                        //Toasty.info(getApplicationContext(), i + " : "+ items.get(i).getName()).show();
                     }
@@ -161,14 +163,14 @@ public class SolicitudesActivity extends AppCompatActivity {
         estadoSpinner.setColorSeparation(true);
         //Spinner 2
         final List<KeyPairBoolData> list2 = db.getTiposFormularioParaMultiSpinner();
-        tipoSolicitudSpinner.setItems(list2,-1,  new SpinnerListener() {
+        tipoSolicitudSpinner.setItems(list2,new MultiSpinnerListener() {
             @Override
             public void onItemsSelected(List<KeyPairBoolData> items) {
                 String multiFiltro = "";
                 String coma = "";
                 for(int i=0; i<items.size(); i++) {
                     if(items.get(i).isSelected()) {
-                        multiFiltro += coma+items.get(i).getId();
+                        multiFiltro += coma+items.get(i).getName();
                         coma = ",";
                         //Toasty.info(getApplicationContext(), i + " : "+ items.get(i).getName()).show();
                     }
@@ -226,10 +228,10 @@ public class SolicitudesActivity extends AppCompatActivity {
                     return false;
                 }
             });
-            searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
-            TextView textView = searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
-            ImageView searchBtn = searchView.findViewById(android.support.v7.appcompat.R.id.search_button);
-            ImageView searchCloseBtn = searchView.findViewById(android.support.v7.appcompat.R.id.search_close_btn);
+            searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+            TextView textView = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+            ImageView searchBtn = searchView.findViewById(androidx.appcompat.R.id.search_button);
+            ImageView searchCloseBtn = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
             textView.setTextColor(getResources().getColor(R.color.white,null));
             searchBtn.setColorFilter(getResources().getColor(R.color.white,null));
             searchCloseBtn.setColorFilter(getResources().getColor(R.color.white,null));

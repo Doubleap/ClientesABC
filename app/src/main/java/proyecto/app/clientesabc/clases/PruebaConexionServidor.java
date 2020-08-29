@@ -16,8 +16,11 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 
@@ -43,6 +46,17 @@ public class PruebaConexionServidor extends AsyncTask<Void,Void,Void> {
             if(mensaje.equals("")) {
                 socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", "").trim(), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "").trim()));
                 DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                //Enviar Pais de procedencia
+                dos.writeUTF(VariablesGlobales.getSociedad());
+                dos.flush();
+                //Version con la que quiere transmitir
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
+                dos.flush();
+                //Enviar Ruta que se quiere sincronizar
+                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
+                dos.flush();
+
                 dos.writeUTF("Prueba");
                 dos.flush();
 
@@ -78,7 +92,7 @@ public class PruebaConexionServidor extends AsyncTask<Void,Void,Void> {
     protected void onPreExecute() {
         super.onPreExecute();
         AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
-        builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion
+        builder.setCancelable(false); // Si quiere que el usuario espere por el proceso completo por obligacion
         builder.setView(R.layout.layout_loading_dialog);
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
@@ -88,7 +102,9 @@ public class PruebaConexionServidor extends AsyncTask<Void,Void,Void> {
             }
         });
         dialog = builder.create();
-        dialog.show();
+        if(!activity.get().isFinishing()) {
+            dialog.show();
+        }
     }
     @Override
     protected void onPostExecute(Void aVoid) {
@@ -99,7 +115,13 @@ public class PruebaConexionServidor extends AsyncTask<Void,Void,Void> {
         else{
             Toasty.error(context.get(),"No se pudo conectar a servidor."+messageFlag,Toast.LENGTH_LONG).show();
         }
-        dialog.dismiss();
+        try {
+            dialog.dismiss();
+        } catch (final IllegalArgumentException e) {
+            // Do nothing.
+        } catch (final Exception e) {
+            // Do nothing.
+        }
         if(dialog.isShowing())
             dialog.hide();
     }

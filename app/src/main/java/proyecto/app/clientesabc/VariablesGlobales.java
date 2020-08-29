@@ -16,10 +16,13 @@ import proyecto.app.clientesabc.modelos.Visitas;
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
 
+    private static String nombrePais = "Costa Rica";
     private static String sociedad = "F443";
     private static String orgvta = "0443";
     private static String land1 = "CR";
     private static String cadenaRM = "0000160000";
+    private static String ktokd = "RCMA";
+
     private static String TABLA_BLOQUE_CONTACTO_HH = "grid_contacto_solicitud";
     private static String TABLA_BLOQUE_BANCO_HH = "grid_bancos_solicitud";
     private static String TABLA_BLOQUE_IMPUESTO_HH = "grid_impuestos_solicitud";
@@ -158,7 +161,7 @@ public class VariablesGlobales extends Application {
         try {
             Integer.parseInt(usuarioHH);
             padded = "00000000".substring(usuarioHH.length()) + usuarioHH;
-            usuarioMC = PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_LAND1",getLand1())+padded;
+            usuarioMC = getLand1()+padded;
         }catch (NumberFormatException ne){
             usuarioMC = usuarioHH;
         }
@@ -251,5 +254,21 @@ public class VariablesGlobales extends Application {
 
     public static void setCadenaRM(String cadenaRM) {
         VariablesGlobales.cadenaRM = cadenaRM;
+    }
+
+    public static String getKtokd() {
+        return ktokd;
+    }
+
+    public static void setKtokd(String ktokd) {
+        VariablesGlobales.ktokd = ktokd;
+    }
+
+    public static String getNombrePais() {
+        return nombrePais;
+    }
+
+    public static void setNombrePais(String nombrePais) {
+        VariablesGlobales.nombrePais = nombrePais;
     }
 }

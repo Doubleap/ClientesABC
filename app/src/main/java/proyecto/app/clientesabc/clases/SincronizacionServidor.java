@@ -28,7 +28,9 @@ import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
@@ -37,7 +39,7 @@ import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
-import static android.support.v4.content.ContextCompat.startActivity;
+import static androidx.core.content.ContextCompat.startActivity;
 
 public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
     private WeakReference<Context> context;
@@ -72,7 +74,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
 
                 publishProgress("Comunicacion establecida...");
                 //Enviar pais de procedencia
-                /*dos.writeUTF(VariablesGlobales.getSociedad());
+                dos.writeUTF(VariablesGlobales.getSociedad());
                 dos.flush();
                 //Version con la que quiere transmitir
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -80,14 +82,14 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                 dos.flush();
                 //Enviar Ruta que se quiere sincronizar
                 dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
-                dos.flush();*/
+                dos.flush();
 
                 //Comando String que indicara que se quiere realizar una Sincronizacion
                 dos.writeUTF("Sincronizacion");
                 dos.flush();
                 //Enviar Ruta que se quiere sincronizar
-                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
-                dos.flush();
+                /*dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
+                dos.flush();*/
 
                 dos.writeUTF("FIN");
                 dos.flush();
@@ -207,11 +209,11 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                                         }
                                     }
                                 }
-                            } catch (IOException e) {
+                            } /*catch (IOException e) {
                                 xceptionFlag = true;
                                 messageFlag = "Error al actualizar la Base de Datos." + e.getMessage();
                                 e.printStackTrace();
-                            } catch (SQLiteException e) {
+                            }*/ catch (SQLiteException e) {
                                 xceptionFlag = true;
                                 messageFlag = "Error con Sqlite al actualizar la Base de Datos." + e.getMessage();
                                 e.printStackTrace();
@@ -230,7 +232,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
         } catch (IOException e) {
             xceptionFlag = true;
             if(e.getMessage() == null)
-                messageFlag = "Posible ruta de venta inválida. Revise los datos de comunicación.";
+                messageFlag = "Posible ruta de venta inválida. Revise los datos de comunicación."+e.getMessage();
             else
                 messageFlag = e.getMessage();
             e.printStackTrace();
@@ -262,7 +264,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
     protected void onPreExecute() {
         super.onPreExecute();
         AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
-        builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
+        builder.setCancelable(false); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
         builder.setView(R.layout.layout_loading_dialog);
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
@@ -272,22 +274,32 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
             }
         });
         dialog = builder.create();
-        dialog.show();
+        if(!activity.get().isFinishing()) {
+            dialog.show();
+        }
     }
     @Override
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
+
         if (!xceptionFlag){
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             Date date = new Date();
             PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("ultimaSincronizacion", dateFormat.format(date)).apply();
             PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("ultimaRutaSincronizada", PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH","")).apply();
+            GenerarNotificaciones();
             Toasty.success(context.get(),"Sincronizacion Exitosa!!",Toast.LENGTH_LONG).show();
         }
         else{
             Toasty.error(context.get(),"Sincronizacion Fallida. "+messageFlag,Toast.LENGTH_LONG).show();
         }
-        dialog.dismiss();
+        try {
+            dialog.dismiss();
+        } catch (final IllegalArgumentException e) {
+            // Do nothing.
+        } catch (final Exception e) {
+            // Do nothing.
+        }
         if(dialog.isShowing()) {
             dialog.hide();
         }
@@ -298,6 +310,31 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
         startActivity(context.get(), intent, null);
         activity.get().overridePendingTransition(0, 0);
     }
+
+    private void GenerarNotificaciones() {
+        DataBaseHelper db = new DataBaseHelper(context.get());
+        ArrayList<HashMap<String, String>> clientList = db.getNotificaciones();
+        Notificacion notificacion = new Notificacion(context.get());
+        for(int x = 0; x < clientList.size(); x++){
+            switch(clientList.get(x).get("estado")){
+                case "Aprobado":
+                    notificacion.crearNotificacion(Integer.parseInt(clientList.get(x).get("id").toString()),clientList.get(x).get("titulo").trim(), clientList.get(x).get("mensaje").trim(), R.drawable.logo_mc, R.drawable.icon_add_client, R.color.aprobados);
+                    break;
+                case "Rechazado":
+                    notificacion.crearNotificacion(Integer.parseInt(clientList.get(x).get("id").toString()),clientList.get(x).get("titulo").trim(), clientList.get(x).get("mensaje").trim(), R.drawable.logo_mc, R.drawable.icon_close, R.color.rechazado);
+                    break;
+                case "Incidencia":
+                    notificacion.crearNotificacion(Integer.parseInt(clientList.get(x).get("id").toString()),clientList.get(x).get("titulo").trim(), clientList.get(x).get("mensaje").trim(), R.drawable.logo_mc, R.drawable.icon_info_title, R.color.devuelto);
+                    break;
+                case "Actualizacion":
+                    notificacion.crearNotificacion(Integer.parseInt(clientList.get(x).get("id").toString()),clientList.get(x).get("titulo").trim(), clientList.get(x).get("mensaje").trim(), R.drawable.logo_mc, R.drawable.icon_update, R.color.pendientes);
+                    break;
+                default:
+                    notificacion.crearNotificacion(Integer.parseInt(clientList.get(x).get("id").toString()),clientList.get(x).get("titulo").trim(), clientList.get(x).get("mensaje").trim(), R.drawable.logo_mc, R.drawable.icon_about, R.color.pendientes);
+            }
+        }
+    }
+
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifimanager.setWifiEnabled(true);

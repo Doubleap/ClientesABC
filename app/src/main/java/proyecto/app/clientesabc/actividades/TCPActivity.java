@@ -12,11 +12,7 @@ import android.graphics.drawable.Drawable;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.design.internal.BottomNavigationMenuView;
-import android.support.design.widget.BottomNavigationView;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatButton;
+import androidx.annotation.NonNull;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -26,6 +22,12 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.appcompat.widget.Toolbar;
+
+import com.google.android.material.bottomnavigation.BottomNavigationMenuView;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -51,7 +53,7 @@ import proyecto.app.clientesabc.clases.TransmisionServidor;
 import proyecto.app.clientesabc.modelos.Conexion;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
-import static android.support.design.widget.TabLayout.GRAVITY_CENTER;
+import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
 
 public class TCPActivity extends AppCompatActivity
 {
@@ -81,6 +83,7 @@ public class TCPActivity extends AppCompatActivity
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
+        setTheme(R.style.AppThemeNoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tcp);
 
@@ -123,11 +126,11 @@ public class TCPActivity extends AppCompatActivity
         ruta_text = findViewById(R.id.txtRuta);
         ruta_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("W_CTE_RUTAHH",""));
         tv_conexiones = findViewById(R.id.tv_conexiones);
-        tv_conexiones.setColumnCount(3);
+        tv_conexiones.setColumnCount(4);
         tv_conexiones.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
         tv_conexiones.setHeaderElevation(2);
         int height = 75;
-        list_conexiones = getConexionesFromSharedPreferences();
+        list_conexiones = getConexionesFromSharedPreferences(TCPActivity.this);
 
         if(list_conexiones == null) {
             list_conexiones = new ArrayList<Conexion>();
@@ -165,6 +168,9 @@ public class TCPActivity extends AppCompatActivity
                     //Realizar una prueba de conexion para validar los datos ingresados
                     WeakReference<Context> weakRef = new WeakReference<Context>(TCPActivity.this);
                     WeakReference<Activity> weakRefA = new WeakReference<Activity>(TCPActivity.this);
+                    ip_text.setText(ip_text.getText().toString().trim());
+                    puerto_text.setText(puerto_text.getText().toString().trim());
+                    ruta_text.setText(ruta_text.getText().toString().trim());
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("tipo_conexion",((OpcionSpinner)tipo_conexion.getSelectedItem()).getId()).apply();
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
@@ -235,25 +241,31 @@ public class TCPActivity extends AppCompatActivity
 
         bottomNavigation.getMenu().getItem(2).setEnabled(!deshabilitarTransmision);
         bottomNavigation.getMenu().getItem(2).setVisible(!deshabilitarTransmision);
+        /**/
+        Drawable d = getResources().getDrawable(R.drawable.botella_coca_header_der,null);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
+        toolbar.setTitle("Configuración de Comunicación");
+        toolbar.setBackground(d);
     }
 
     private boolean validarConexion(){
         boolean retorno = true;
         if(ip_text.getText().toString().trim().isEmpty()){
-            Toasty.warning(getBaseContext(),"Por favor digite una direccion IP válida.");
+            Toasty.warning(getBaseContext(),"Por favor digite una direccion IP válida.").show();
             retorno = false;
         }
         if(puerto_text.getText().toString().trim().isEmpty()){
-            Toasty.warning(getBaseContext(),"Por favor digite un puerto válido.");
+            Toasty.warning(getBaseContext(),"Por favor digite un puerto válido.").show();
             retorno = false;
         }
         if(ruta_text.getText().toString().trim().isEmpty()){
-            Toasty.warning(getBaseContext(),"Por favor digite una ruta de venta válida.");
+            Toasty.warning(getBaseContext(),"Por favor digite una ruta de venta válida.").show();
             retorno = false;
         }
         return retorno;
     }
-
+//Ingreso de Nueva conexiion
     private void showInputDialog() {
         final Dialog d=new Dialog(this);
         d.setContentView(R.layout.new_conexion_layout);
@@ -290,7 +302,7 @@ public class TCPActivity extends AppCompatActivity
                     nuevaConexion.setIp(ip.getText().toString());
                     nuevaConexion.setPuerto(puerto.getText().toString());
                     nuevaConexion.setTipo(tipo.getSelectedItem().toString());
-                    AgregarNuevaConexion(nuevaConexion);
+                    AgregarNuevaConexion(TCPActivity.this, nuevaConexion);
                     tv_conexiones.setDataAdapter(new ConexionTableAdapter(v.getContext(), list_conexiones));
                     //tv_conexiones.getLayoutParams().height = tv_conexiones.getLayoutParams().height + (75);
                     d.dismiss();
@@ -302,12 +314,66 @@ public class TCPActivity extends AppCompatActivity
         });
         d.show();
     }
+//Modificacion de conexion
+    public static void showInputDialog(final Context context, final Conexion conexion) {
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
+        d.setContentView(R.layout.edit_conexion_layout);
+
+        LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+// Set up the input
+        final Spinner tipo = d.findViewById(R.id.tipoSpinner);
+        final EditText ip = d.findViewById(R.id.ipEditTxt);
+        final EditText puerto = d.findViewById(R.id.puertoTxt);
+        final Button saveBtn = d.findViewById(R.id.saveBtn);
+        //final EditText ruta = findViewById(R.id.rutaTxt);
+
+        ArrayList<OpcionSpinner> listatipos = new ArrayList<>();
+        OpcionSpinner opWifi = new OpcionSpinner("wifi","WiFi");
+        OpcionSpinner opGPRS = new OpcionSpinner("gprs","GPRS");
+        //OpcionSpinner opLocal = new OpcionSpinner("local","Local");
+        listatipos.add(opWifi);
+        listatipos.add(opGPRS);
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listatipos);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
+        tipo.setBackground(spinner_back);
+        tipo.setAdapter(dataAdapter);
+
+//Setear valores de la conexion seleccionado
+        tipo.setSelection(VariablesGlobales.getIndex(tipo,conexion.getTipo()));
+        ip.setText(conexion.getIp());
+        puerto.setText(conexion.getPuerto());
+
+// Set up the buttons
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!ip.getText().toString().trim().isEmpty() && !puerto.getText().toString().trim().isEmpty() && !tipo.getSelectedItem().toString().trim().isEmpty()) {
+                    //Conexion nuevaConexion = new Conexion();
+                    conexion.setIp(ip.getText().toString());
+                    conexion.setPuerto(puerto.getText().toString());
+                    conexion.setTipo(tipo.getSelectedItem().toString());
+                    //AgregarNuevaConexion(context, nuevaConexion);
+                    tv_conexiones.setDataAdapter(new ConexionTableAdapter(v.getContext(), list_conexiones));
+                    //tv_conexiones.getLayoutParams().height = tv_conexiones.getLayoutParams().height + (75);
+                    d.dismiss();
+                    Toasty.info(context, "Se han guardado las preferencias de conexion", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toasty.warning(context, "Todos los campos son obligatorios para la conexión.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        d.show();
+    }
 
     //Conexiones de preferencia
-    private ArrayList<Conexion> getConexionesFromSharedPreferences(){
+    public static ArrayList<Conexion> getConexionesFromSharedPreferences(Context context){
         ArrayList<Conexion> productFromShared = new ArrayList<>();
         Gson gson = new Gson();
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(TCPActivity.this);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         String jsonPreferences = sharedPref.getString("Conexiones", "");
 
         Type type = new TypeToken<ArrayList<Conexion>>() {}.getType();
@@ -327,28 +393,47 @@ public class TCPActivity extends AppCompatActivity
         editor.commit();
     }
 
-    private void AgregarNuevaConexion(Conexion conexion){
-        list_conexiones.add(conexion);
-        //tv_conexiones.getLayoutParams().height = tv_conexiones.getLayoutParams().height+(75);
-        Gson gson = new Gson();
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(TCPActivity.this);
-
-        String jsonSaved = sharedPref.getString("Conexiones", "");
-        String jsonNewproductToAdd = gson.toJson(conexion);
-
-        JSONArray jsonArrayProduct= new JSONArray();
-        try {
-            if(jsonSaved.length()!=0){
-                jsonArrayProduct = new JSONArray(jsonSaved);
-            }
-            jsonArrayProduct.put(new JSONObject(jsonNewproductToAdd));
-        } catch (JSONException e) {
-            e.printStackTrace();
+    public static void AgregarNuevaConexion(Context context, Conexion conexion){
+        if(list_conexiones == null) {
+            list_conexiones = new ArrayList<Conexion>();
         }
-        //SAVE NEW ARRAY
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("Conexiones", jsonArrayProduct.toString());
-        editor.commit();
+        if(!ConexionDuplicada(context, conexion)) {
+            list_conexiones.add(conexion);
+            //tv_conexiones.getLayoutParams().height = tv_conexiones.getLayoutParams().height+(75);
+            Gson gson = new Gson();
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+
+            String jsonSaved = sharedPref.getString("Conexiones", "");
+            String jsonNewproductToAdd = gson.toJson(conexion);
+
+            JSONArray jsonArrayProduct = new JSONArray();
+            try {
+                if (jsonSaved.length() != 0) {
+                    jsonArrayProduct = new JSONArray(jsonSaved);
+                }
+                jsonArrayProduct.put(new JSONObject(jsonNewproductToAdd));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            //SAVE NEW ARRAY
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString("Conexiones", jsonArrayProduct.toString());
+            editor.commit();
+        }
+    }
+
+    private static boolean ConexionDuplicada(Context context, Conexion n) {
+        ArrayList<Conexion> listaPreferencia = getConexionesFromSharedPreferences(context);
+        boolean retorno = false;
+        if(listaPreferencia != null) {
+            for (int x = 0; x < listaPreferencia.size(); x++) {
+                if (((Conexion) listaPreferencia.get(x)).equals(n)) {
+                    retorno = true;
+                    break;
+                }
+            }
+        }
+        return retorno;
     }
 
     private class ConexionClickListener implements TableDataClickListener<Conexion> {
@@ -367,7 +452,7 @@ public class TCPActivity extends AppCompatActivity
         public boolean onDataLongClicked(int rowIndex, Conexion seleccionado) {
             Gson gson = new Gson();
             String salida = seleccionado.getIp() + ":" + seleccionado.getPuerto()+" ha sido eliminado.";
-            list_conexiones = getConexionesFromSharedPreferences();
+            list_conexiones = getConexionesFromSharedPreferences(TCPActivity.this);
             list_conexiones.remove(rowIndex);
             tv_conexiones.setDataAdapter(new ConexionTableAdapter(getBaseContext(), list_conexiones));
 

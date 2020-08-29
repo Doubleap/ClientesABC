@@ -7,17 +7,22 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
 import de.codecrafters.tableview.TableDataAdapter;
+import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.actividades.TCPActivity;
 import proyecto.app.clientesabc.modelos.Conexion;
 
 public class ConexionTableAdapter extends TableDataAdapter<Conexion> {
 
-    private static String[] headers = new String[]{"Ip", "Puerto", "Tipo"};
+    private static Context context;
+    private static String[] headers = new String[]{"Ip", "Puerto", "Tipo", "Accion"};
     private static final String LOG_TAG = TableDataAdapter.class.getName();
+    ArrayList<Conexion> data;
 
     private int paddingLeft = 5;
     private int paddingTop = 20;
@@ -30,10 +35,25 @@ public class ConexionTableAdapter extends TableDataAdapter<Conexion> {
 
     public ConexionTableAdapter(Context context, ArrayList<Conexion> data) {
         super(context, data);
+        this.context = context;
+        this.data = data;
     }
 
     @Override
     public View getCellView(final int rowIndex, final int columnIndex, final ViewGroup parentView) {
+
+        if(columnIndex+1 == headers.length){
+            final ImageView accion_editar = new ImageView(getContext());
+            accion_editar.setImageDrawable(getResources().getDrawable(R.drawable.icon_edit,null));
+            accion_editar.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    TCPActivity.showInputDialog(context, data.get(rowIndex));
+                }
+            });
+            return accion_editar;
+        }
+
         final TextView textView = new TextView(getContext());
         textView.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
         textView.setTypeface(textView.getTypeface(), typeface);
@@ -148,6 +168,5 @@ public class ConexionTableAdapter extends TableDataAdapter<Conexion> {
     public void setTextColor(final int textColor) {
         this.textColor = textColor;
     }
-
 
 }

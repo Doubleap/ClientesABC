@@ -35,7 +35,7 @@ import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
-import static android.support.v4.content.ContextCompat.startActivity;
+import static androidx.core.content.ContextCompat.startActivity;
 
 public class TransmisionServidor extends AsyncTask<Void,String,Void> {
 
@@ -43,7 +43,6 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
     private WeakReference<ListView> listView;
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
-    private String destinationAddress="192.168.0.10";
     private String filePath;
     private String wholePath;
     private String id_solicitud;
@@ -61,7 +60,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
         this.filePath = path;
         this.wholePath = fullPath;
         this.id_solicitud = id_solicitud;
-        mDBHelper = new DataBaseHelper(context.get());
+        mDBHelper = new DataBaseHelper(this.context.get());
     }
 
     @Override
@@ -79,7 +78,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
         errorFlag = "Transmision NO pudo realizarse.";
 
         try {
-            //Validar si existen solicitudes para indicar que no ya todas las solicitudes sen transmitido con exito
+            //Validar si existen solicitudes para indicar que no ya todas las solicitudes se han transmitido con exito
             //mDBHelper.RestaurarEstadosSolicitudesTransmitidas();
             int cantidad = mDBHelper.CantidadSolicitudesTransmision();
             //int cantidad = 1;
@@ -95,13 +94,13 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                     //File myFile = new File("/data/user/0/proyecto.app.clientesabc/databases/", "FAWM_ANDROID_2");
                     //files.add(myFile);
 
-                    SQLiteDatabase mDataBase = SQLiteDatabase.openDatabase("/data/user/0/proyecto.app.clientesabc/databases/TRANSMISION_" + PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), null, SQLiteDatabase.CREATE_IF_NECESSARY);
+                    SQLiteDatabase mDataBase = SQLiteDatabase.openDatabase(context.get().getDatabasePath("TRANSMISION_").getPath() + PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), null, SQLiteDatabase.CREATE_IF_NECESSARY);
 
                     //Crear una base de datos solo para los datos que deben ser transmitidos
                     publishProgress("Extrayendo datos...");
                     String sqlDrop = "DROP TABLE IF EXISTS 'FormHvKof_solicitud';DROP TABLE IF EXISTS 'FormHvKof_old_solicitud';DROP TABLE IF EXISTS 'encuesta_solicitud';DROP TABLE IF EXISTS 'encuesta_gec_solicitud';DROP TABLE IF EXISTS 'grid_contacto_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_solicitud';DROP TABLE IF EXISTS 'grid_bancos_solicitud';DROP TABLE IF EXISTS 'grid_visitas_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_solicitud';DROP TABLE IF EXISTS 'adjuntos_solicitud';" +
                             "DROP TABLE IF EXISTS 'grid_contacto_old_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_old_solicitud';DROP TABLE IF EXISTS 'grid_bancos_old_solicitud';DROP TABLE IF EXISTS 'grid_visitas_old_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_old_solicitud';";
-                    String sqlAttach = "ATTACH DATABASE '/data/user/0/proyecto.app.clientesabc/databases/FAWM_ANDROID_2' AS fromDB";
+                    String sqlAttach = "ATTACH DATABASE '"+context.get().getDatabasePath("FAWM_ANDROID_2").getPath()+"' AS fromDB";
                     String[] droptables = sqlDrop.split(";");
                     for (String query : droptables) {
                         mDataBase.execSQL(query);
@@ -170,7 +169,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
 
                     publishProgress("Enviando datos...");
                     //Enviar Pais de procedencia
-                    /*dos.writeUTF(VariablesGlobales.getSociedad());
+                    dos.writeUTF(VariablesGlobales.getSociedad());
                     dos.flush();
                     //Version con la que quiere transmitir
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -178,13 +177,13 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                     dos.flush();
                     //Enviar Ruta que se quiere sincronizar
                     dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
-                    dos.flush();*/
+                    dos.flush();
                     //Comando String que indicara que se queire realizar Sincronizacion/Transmision
                     dos.writeUTF("Transmision");
                     dos.flush();
                     //Enviar Ruta que se quiere transmitir
-                    dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
-                    dos.flush();
+                    /*dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
+                    dos.flush();*/
 
                     //cantidad de archivos a enviar al servidor
                     dos.writeInt(files.size());
@@ -232,7 +231,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                         dis.readFully(e);
                         String error = new String(e);
                         xceptionFlag = true;
-                        errorFlag = "Error: " + error;
+                        errorFlag = "Transmisión Fallida. Error: " + error;
                     } else {
                         publishProgress("Respuesta recibida...");
                         byte[] r = new byte[(int) s];
@@ -289,7 +288,9 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
         });
         builder.setView(R.layout.layout_loading_dialog);
         dialog = builder.create();
-        dialog.show();
+        if(!activity.get().isFinishing()) {
+            dialog.show();
+        }
 
     }
     @Override
@@ -302,11 +303,17 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             Date date = new Date();
             PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("ultimaTransmision", dateFormat.format(date)).apply();
-            Toasty.success(context.get(),"Transmision Finalizada Correctamente!!",Toast.LENGTH_LONG).show();
+            Toasty.success(context.get(),"Transmision Finalizada Correctamente!",Toast.LENGTH_LONG).show();
             //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
             mDBHelper.ActualizarEstadosSolicitudesTransmitidas(solicitudes_procesadas);
         }
-        dialog.dismiss();
+        try {
+            dialog.dismiss();
+        } catch (final IllegalArgumentException e) {
+            // Do nothing.
+        } catch (final Exception e) {
+            // Do nothing.
+        }
         if(dialog.isShowing())
             dialog.hide();
         //activity.get().recreate();

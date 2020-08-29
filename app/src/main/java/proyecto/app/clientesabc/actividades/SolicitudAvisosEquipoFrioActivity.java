@@ -26,25 +26,23 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.TabLayout;
-import android.support.design.widget.TextInputEditText;
-import android.support.design.widget.TextInputLayout;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.CompoundButtonCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.TooltipCompat;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.appcompat.widget.TooltipCompat;
+import androidx.cardview.widget.CardView;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.widget.CompoundButtonCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -62,20 +60,23 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
-import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
@@ -96,49 +97,32 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import de.codecrafters.tableview.TableView;
-import de.codecrafters.tableview.listeners.TableDataClickListener;
-import de.codecrafters.tableview.listeners.TableDataLongClickListener;
 import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
 import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.Animaciones.CubeTransformer;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
-import proyecto.app.clientesabc.adaptadores.BancoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.ComentarioTableAdapter;
-import proyecto.app.clientesabc.adaptadores.ContactoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
-import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
-import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
-import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
 import proyecto.app.clientesabc.clases.AdjuntoServidor;
 import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.FileHelper;
 import proyecto.app.clientesabc.modelos.Adjuntos;
-import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
-import proyecto.app.clientesabc.modelos.Contacto;
-import proyecto.app.clientesabc.modelos.EditTextDatePicker;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
-import proyecto.app.clientesabc.modelos.Impuesto;
-import proyecto.app.clientesabc.modelos.Interlocutor;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
-import proyecto.app.clientesabc.modelos.Visitas;
 
-import static android.support.design.widget.TabLayout.GRAVITY_CENTER;
-import static android.support.design.widget.TabLayout.INDICATOR_GRAVITY_TOP;
-import static android.support.design.widget.TabLayout.INVISIBLE;
-import static android.support.design.widget.TabLayout.OnClickListener;
-import static android.support.design.widget.TabLayout.OnFocusChangeListener;
-import static android.support.design.widget.TabLayout.OnTouchListener;
-import static android.support.design.widget.TabLayout.TEXT_ALIGNMENT_CENTER;
+import static android.view.View.TEXT_ALIGNMENT_CENTER;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
+import static com.google.android.material.tabs.TabLayout.GRAVITY_FILL;
+import static com.google.android.material.tabs.TabLayout.INDICATOR_GRAVITY_TOP;
 
 public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
@@ -202,7 +186,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         modificable = true;
         correoValidado = true;
         cedulaValidada = true;
-
+        FrameLayout f = findViewById(R.id.background);
+        //f.getBackground().setAlpha(40);
         Bundle b = getIntent().getExtras();
         if(b != null) {
             tipoSolicitud = b.getString("tipoSolicitud");
@@ -219,9 +204,15 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
         getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.botella_coca_header_der,null));
 
-
+        cliente = null;
         if(idSolicitud != null){
             setTitle("Solicitud");
+            solicitudSeleccionada.clear();
+            solicitudSeleccionadaOld.clear();
+            mapeoCamposDinamicos.clear();
+            mapeoCamposDinamicosEnca.clear();
+            mapeoVisitas.clear();
+            mapeoCamposDinamicosOld.clear();
             solicitudSeleccionada = mDBHelper.getSolicitud(idSolicitud);
             solicitudSeleccionadaOld = mDBHelper.getSolicitudOld(idSolicitud);
             tipoSolicitud = solicitudSeleccionada.get(0).get("TIPFORM");
@@ -251,6 +242,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     ||solicitudSeleccionada.get(0).get("ESTADO").equals("Rechazado")
                     ||solicitudSeleccionada.get(0).get("ESTADO").equals("Aprobado")){
                 modificable = false;
+            }
+            if(solicitudSeleccionadaOld.size() == 0){
+                Toasty.error(this,"No se encontraron los datos de encabezado.").show();
             }
         }else{
             correoValidado = true;
@@ -433,13 +427,14 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
             case 1:
                 if (resultCode == RESULT_OK) {
                     Uri uri = null;
                     if (data != null)
                         uri = data.getData();
-                    if(uri == null){
+                    if (uri == null) {
                         uri = mPhotoUri;
                     }
                     InputStream iStream = null;
@@ -450,23 +445,23 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                     try {
-                        ContentResolver cR =  getContentResolver();
+                        ContentResolver cR = getContentResolver();
                         String type = cR.getType(uri);
                         String name = getFileName(cR, uri);
                         byte[] inputData = getBytes(iStream);
                         File file = null;
                         try {
-                            file = new File( Environment.getExternalStorageDirectory().getAbsolutePath());
+                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
                             if (!file.exists()) {
                                 file.createNewFile();
                             }
-                            FileOutputStream fos = new FileOutputStream(file+"//"+name);
+                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
                             fos.write(inputData);
                             fos.close();
                         } catch (Exception e) {
                             Log.e("thumbnail", e.getMessage());
                         }
-                        File file2 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
+                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
 
 
                         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -503,7 +498,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         }
                         /*END CROP*/
                     } catch (IOException e) {
-                        Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
+                        Toasty.error(getBaseContext(), "Error al asociar el documento a la solicitud").show();
                         e.printStackTrace();
                     }
                 }
@@ -513,7 +508,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     Uri uri = null;
                     if (data != null)
                         uri = data.getData();
-                    if(uri == null){
+                    if (uri == null) {
                         uri = mPhotoUri;
                     }
                     InputStream iStream = null;
@@ -523,15 +518,15 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                     try {
-                        ContentResolver cR =  getContentResolver();
+                        ContentResolver cR = getContentResolver();
                         MimeTypeMap mime = MimeTypeMap.getSingleton();
                         String type = cR.getType(uri);
                         String name = getFileName(cR, uri);
                         byte[] inputData = getBytes(iStream);
                         mDBHelper.addAdjuntoSolicitud(type, name, inputData);
-                        Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
+                        Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
                     } catch (IOException e) {
-                        Toasty.error(getBaseContext(),"Error al adjuntar el documento a la solicitud").show();
+                        Toasty.error(getBaseContext(), "Error al adjuntar el documento a la solicitud").show();
                         e.printStackTrace();
                     }
 
@@ -582,7 +577,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     Uri uri = null;
                     if (data != null)
                         uri = data.getData();
-                    if(uri == null){
+                    if (uri == null) {
                         uri = mPhotoUri;
                     }
                     InputStream iStream = null;
@@ -593,23 +588,23 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                     try {
-                        ContentResolver cR =  getContentResolver();
+                        ContentResolver cR = getContentResolver();
                         String type = cR.getType(uri);
                         String name = getFileName(cR, uri);
                         byte[] inputData = getBytes(iStream);
                         File file = null;
                         try {
-                            file = new File( Environment.getExternalStorageDirectory().getAbsolutePath());
+                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
                             if (!file.exists()) {
                                 file.createNewFile();
                             }
-                            FileOutputStream fos = new FileOutputStream(file+"//"+name);
+                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
                             fos.write(inputData);
                             fos.close();
                         } catch (Exception e) {
                             Log.e("thumbnail", e.getMessage());
                         }
-                        File file2 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
+                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
                         file2 = FileHelper.saveBitmapToFile(file2);
 
                         byte[] bytesArray = new byte[(int) file2.length()];
@@ -633,12 +628,12 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudAvisosEquipoFrioActivity.this);
 
                         //Intento de borrar el archivo que se guarda automatico en Pictures
-                        File file3 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//Pictures//"+name);
+                        File file3 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//Pictures//" + name);
                         file3.delete();
 
-                        Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
+                        Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
                     } catch (IOException e) {
-                        Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
+                        Toasty.error(getBaseContext(), "Error al asociar el documento a la solicitud").show();
                         e.printStackTrace();
                     }
                 }
@@ -661,11 +656,13 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     public static class ViewPagerAdapter extends FragmentPagerAdapter {
 
         private ArrayList<String> title = new ArrayList<>();
+        private Context context;
 
-        private ViewPagerAdapter(FragmentManager manager) {
+        private ViewPagerAdapter(FragmentManager manager, Context c) {
             super(manager);
             List<String> pestanas = mDBHelper.getPestanasFormulario(tipoSolicitud);
             title.addAll(pestanas);
+            context = c;
         }
 
         @Override
@@ -710,6 +707,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             // Inflate the layout for this fragment
             View view = inflater.inflate(R.layout.pagina_formulario, container, false);
+            ViewPager viewPager = (ViewPager) container;
             LinearLayout ll = view.findViewById(R.id.miPagina);
             String nombre = Objects.requireNonNull(Objects.requireNonNull(((ViewPager) container).getAdapter()).getPageTitle(position)).toString().trim();
 
@@ -734,6 +732,11 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             }else
             if(nombre.toLowerCase().contains("equipo") || nombre.toLowerCase().contains("frio")|| nombre.toLowerCase().contains("eq.")) {
                 LlenarPestana(mDBHelper, ll, tipoSolicitud,"E");
+            }
+            try {
+                viewPager.setPageTransformer(true, (ViewPager.PageTransformer) new CubeTransformer());
+            }catch(Exception e){
+
             }
             return view;
         }
@@ -834,7 +837,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             checkbox.setEnabled(false);
                         }
                     }
-                }else if (campos.get(i).get("tabla")!= null && campos.get(i).get("tabla").trim().length() > 0) {
+                }else if (campos.get(i).get("tabla")!= null && campos.get(i).get("tabla").replace(" ","").trim().length() > 0) {
                     //Tipo ComboBox/SelectBox/Spinner
                     TableRow fila = new TableRow(getContext());
                     fila.setOrientation(TableRow.HORIZONTAL);
@@ -1064,7 +1067,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         btnAyudai.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                         btnAyudai.setForegroundGravity(GRAVITY_CENTER);
 
-                        btnAyudai.setOnTouchListener(new OnTouchListener()
+                        btnAyudai.setOnTouchListener(new View.OnTouchListener()
                         {
                             @Override
                             public boolean onTouch(View v, MotionEvent event)
@@ -1222,6 +1225,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
                     final TextInputLayout label = new TextInputLayout(Objects.requireNonNull(getContext()));
                     label.setHint(campos.get(i).get("descr"));
+                    label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.colorTextView,null)));
                     label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
                     label.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
 
@@ -1251,14 +1255,25 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     }
                     et.setMaxLines(1);
 
-                    if(campos.get(i).get("datatype").equals("char")) {
-
-                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("maxlength")) ) });
+                    if(campos.get(i).get("datatype").contains("char")) {
                         if(campos.get(i).get("campo").trim().equals("W_CTE-STCD3")){
                             et.setInputType(InputType.TYPE_CLASS_NUMBER);
                             et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( 18 ) });
                         }else{
                             et.setInputType(InputType.TYPE_CLASS_TEXT);
+                        }
+                        if (Integer.valueOf(campos.get(i).get("maxlength")) > 0) {
+                            et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("maxlength")))});
+                            if(Integer.valueOf(campos.get(i).get("maxlength")) >= 40){
+                                et.setSingleLine(false);
+                                et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                                et.setMinLines(1);
+                                et.setMaxLines(5);
+                                et.setVerticalScrollBarEnabled(true);
+                                et.setMovementMethod(ScrollingMovementMethod.getInstance());
+                                et.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
+                                et.setGravity(INDICATOR_GRAVITY_TOP);
+                            }
                         }
                     }else if(campos.get(i).get("datatype").equals("decimal")) {
                         et.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -1307,7 +1322,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             split = campos.get(i).get("llamado1").trim().split("\"");
                         final String campoAReplicar = split[1];
                         if(!campos.get(i).get("campo").trim().equals("W_CTE-NAME1") && !campos.get(i).get("campo").trim().equals("W_CTE-NAME2") && !campos.get(i).get("campo").trim().equals("W_CTE-HOUSE_NUM1")) {
-                            et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                            et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                                 @Override
                                 public void onFocusChange(View v, boolean hasFocus) {
                                     if (!hasFocus) {
@@ -1358,7 +1373,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             btnAyudai.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                             btnAyudai.setForegroundGravity(GRAVITY_CENTER);
 
-                        btnAyudai.setOnTouchListener(new OnTouchListener()
+                        btnAyudai.setOnTouchListener(new View.OnTouchListener()
                             {
                                 @Override
                                 public boolean onTouch(View v, MotionEvent event)
@@ -1418,7 +1433,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         et.setCompoundDrawablePadding(16);
                         et.setInputType(InputType.TYPE_NUMBER_FLAG_SIGNED|InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
-                        et.setOnTouchListener(new OnTouchListener() {
+                        et.setOnTouchListener(new View.OnTouchListener() {
                             @Override
                             public boolean onTouch(View v, MotionEvent event) {
                                 final int DRAWABLE_LEFT = 0;
@@ -1487,7 +1502,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             final List<View> tocables = tb_comentarios.getFocusables(View.FOCUS_FORWARD);
                             for(int x=0; x < tocables.size(); x++) {
                                 final int finalX = x;
-                                tocables.get(x).setOnTouchListener(new OnTouchListener() {
+                                tocables.get(x).setOnTouchListener(new View.OnTouchListener() {
                                     @Override
                                     public boolean onTouch(View v, MotionEvent event) {
                                         v.getParent().requestDisallowInterceptTouchEvent(true);
@@ -1508,7 +1523,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         et.setText(fechaSistema);
                     }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-SMTP_ADDR")) {
-                        et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                        et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                             @Override
                             public void onFocusChange(View v, boolean hasFocus) {
                                 if (!hasFocus) {
@@ -1595,7 +1610,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 combo.setLayoutParams(lp);
                 combo.setPopupBackgroundResource(R.drawable.menu_item);
 
-                ArrayList<OpcionSpinner> opciones = db.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_Flujo = "+tipoSolicitud);
+                String id_flujo = db.getIdFlujoDeTipoSolicitud(tipoSolicitud);
+
+                ArrayList<OpcionSpinner> opciones = db.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_Flujo = "+id_flujo);
 
                 // Creando el adaptador(opciones) para el comboBox deseado
                 ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, opciones);
@@ -1636,7 +1653,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     checkbox.setLayoutParams(clp);
                     checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_privacy,null), null);
                     ll.addView(checkbox);
-                    checkbox.setOnClickListener(new OnClickListener() {
+                    checkbox.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             Aceptacion(v);
@@ -1733,7 +1750,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             adjuntosSolicitud = mDBHelper.getAdjuntosServidor(idForm);
                     }
                     if(modificable) {
-                        btnAddBloque.setOnClickListener(new OnClickListener() {
+                        btnAddBloque.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
 
@@ -1829,7 +1846,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
 
                 final int finalX = x;
-                adjunto_image.setOnClickListener(new OnClickListener() {
+                adjunto_image.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
@@ -1849,7 +1866,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             }else{
                 adjunto_image.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.icon_about));
                 final int finalX = x;
-                adjunto_image.setOnClickListener(new OnClickListener() {
+                adjunto_image.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
@@ -1864,7 +1881,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
     //Pruebas para seccion de bloques
     public static void displayDialogMessage(Context context, String mensaje) {
-        final Dialog d=new Dialog(context);
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setContentView(R.layout.message_dialog_layout);
         //INITIALIZE VIEWS
         final TextView title = d.findViewById(R.id.title);
@@ -1874,13 +1891,13 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         title.setText("Mensaje de sistema");
         message.setText(mensaje);
         //SAVE
-        saveBtn.setOnClickListener(new OnClickListener() {
+        saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 d.dismiss();
             }
         });
-        cancelBtn.setOnClickListener(new OnClickListener() {
+        cancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 d.dismiss();
@@ -1895,8 +1912,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         }
     }
     public static void mostrarAdjunto(Context context, Adjuntos adjunto) {
-        final Dialog d = new Dialog(context);
-        d.setContentView(R.layout.adjunto_layout);
+        final Dialog d = new Dialog(context, R.style.MyAlertDialogThemeAttachment);
+        d.setContentView(R.layout.adjunto_layout_zoom);
         ImageView adjunto_img = d.findViewById(R.id.imagen);
         TextView adjunto_txt = d.findViewById(R.id.nombre);
         final String nombre_adjunto = adjunto.getName();
@@ -1913,8 +1930,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     }
 
     public static void mostrarAdjuntoServidor(Context context, Activity activity, Adjuntos adjunto) {
-        final Dialog d = new Dialog(context);
-        d.setContentView(R.layout.adjunto_layout);
+        final Dialog d = new Dialog(context, R.style.MyAlertDialogThemeAttachment);
+        d.setContentView(R.layout.adjunto_layout_zoom);
         ImageView adjunto_img = d.findViewById(R.id.imagen);
         TextView adjunto_txt = d.findViewById(R.id.nombre);
         adjunto_txt.setText(adjunto.getName());
@@ -2078,12 +2095,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             }
             try {
                 //Datos que siemrpe deben ir cuando se crea por primera vez.
-                //TODO seccionar par pais el grupo de cuentas, talvez sacar de una tabla
-                if(tipoSolicitud.equals("1"))
-                    insertValues.put("[W_CTE-KTOKD]", "RCMA");
-                else{
-                    insertValues.put("[W_CTE-KTOKD]", "RCMA");
-                }
+                insertValues.put("[W_CTE-KTOKD]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_KTOKD",""));
                 Spinner sp = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
                 String id_aprobador = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
                 insertValues.put("[W_CTE-KUNNR]", codigoCliente);
@@ -2100,6 +2112,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 if(solicitudSeleccionada.size() > 0){
                     if(solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia")) {
                         insertValues.put("[estado]", "Modificado");
+                        insertValuesOld.put("[estado]", "Modificado");
                     }
                     long modifico = mDb.update("FormHvKof_solicitud", insertValues, "id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});
                     if(solicitudSeleccionadaOld.size() > 0) {
@@ -2133,7 +2146,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             } catch (Exception e) {
                 Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_LONG).show();
             }
-
         }
     }
 
@@ -2161,8 +2173,13 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             tv.setText(codigoEquipoFrio);
             MaskedEditText tvs = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_SERIALNO"));
             tvs.setText(equipo.getSernr());
-            SearchableSpinner tvm = ((SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-IM_MATERIAL"));
-            tvm.setSelection(VariablesGlobales.getIndex(tvm, equipo.getMatnr()));
+            try {
+                SearchableSpinner tvm = ((SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-IM_MATERIAL"));
+                tvm.setSelection(VariablesGlobales.getIndex(tvm, equipo.getMatnr()));
+            }catch(Exception e){
+                MaskedEditText tvm = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_MATERIAL"));
+                tvm.setText(equipo.getMatnr());
+            }
             MaskedEditText tvp = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_PARTNER"));
             tvp.setText(codigoCliente);
 
@@ -2173,9 +2190,14 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             MaskedEditText tvse = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_SERIALNO"));
             if (tvse != null)
                 tvse.setText(equipo.getSernr());
-            SearchableSpinner tvme = ((SearchableSpinner) mapeoCamposDinamicosEnca.get("W_CTE-IM_MATERIAL"));
-            if (tvme != null)
-                tvme.setSelection(VariablesGlobales.getIndex(tvme, equipo.getMatnr()));
+            try{
+                SearchableSpinner tvme = ((SearchableSpinner) mapeoCamposDinamicosEnca.get("W_CTE-IM_MATERIAL"));
+                if (tvme != null)
+                    tvme.setSelection(VariablesGlobales.getIndex(tvme, equipo.getMatnr()));
+            }catch(Exception e){
+                MaskedEditText tvm = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_MATERIAL"));
+                tvm.setText(equipo.getMatnr());
+            }
             MaskedEditText tvpe = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_PARTNER"));
             if (tvpe != null)
                 tvpe.setText(codigoCliente);
@@ -2243,8 +2265,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         }
                         if (listaCamposDinamicos.get(i).equals("W_CTE-IM_SHORT_TEXT")) {
                             tv.setText(((SolicitudAvisosEquipoFrioActivity) activity).getSupportActionBar().getSubtitle());
-                            tv.setSingleLine(false);
-                            tv.setEnabled(false);
                         }
                         if (listaCamposDinamicos.get(i).equals("W_CTE-IM_PARTNER")) {
                             tv.setText(codigoCliente);
@@ -2494,8 +2514,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         public MostrarFormulario(Context context) {
             contextRef = new WeakReference<>(context);
             viewPager = new ViewPager(context);
-            misTabs = new TabLayout(context);
-            adapter = new ViewPagerAdapter(getSupportFragmentManager());
+            misTabs = new TabLayout(new ContextThemeWrapper(context, R.style.MyTabs),null,0);
+            adapter = new ViewPagerAdapter(getSupportFragmentManager(), context);
         }
         @SuppressLint("ResourceType")
         @Override
@@ -2508,7 +2528,10 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             //Traer primero las pestanas
             publishProgress(2);
             misTabs.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            misTabs.setBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
             misTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
+            misTabs.setTabGravity(GRAVITY_FILL);
+            misTabs.setTabTextColors(getResources().getColor(R.color.white,null), getResources().getColor(R.color.black,null));
             //final ViewPager viewPager = new ViewPager(context);
             publishProgress(4);
             viewPager.setId(1);
@@ -2534,7 +2557,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             });
             misTabs.setupWithViewPager(viewPager);
             publishProgress(9);
-
+            allotEachTabWithEqualWidth();
             publishProgress(10);
             return null;
         }
@@ -2548,8 +2571,23 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
             progressBar.setVisibility(View.GONE);
         }
-
+        private void allotEachTabWithEqualWidth() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ViewGroup slidingTabStrip = (ViewGroup) misTabs.getChildAt(0);
+                    int tamxpestana = (slidingTabStrip.getWidth())/misTabs.getTabCount();
+                    for (int i = 0; i < misTabs.getTabCount(); i++) {
+                        View tab = slidingTabStrip.getChildAt(i);
+                        tab.setMinimumWidth(tamxpestana);
+                        LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) tab.getLayoutParams();
+                        tab.setLayoutParams(layoutParams);
+                    }
+                }
+            });
+        }
     }
+
 
     public final static boolean isValidEmail(View v) {
         TextView correo = (TextView)v;

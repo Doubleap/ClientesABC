@@ -11,10 +11,13 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.v4.content.FileProvider;
+import androidx.core.content.FileProvider;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -28,13 +31,26 @@ import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.actividades.TCPActivity;
+import proyecto.app.clientesabc.modelos.Conexion;
 
 public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
     private WeakReference<Context> context;
@@ -44,6 +60,7 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
     private ServerSocket ss;
     private Socket socket;
     AlertDialog dialog;
+    int UNINSTALL_REQUEST_CODE = 1;
     public ActualizacionServidor(WeakReference<Context> c, WeakReference<Activity> a){
         this.context = c;
         this.activity = a;
@@ -66,18 +83,15 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
             //Comando String que indicara que se quiere realizar una Sincronizacion
             publishProgress("Comunicacion establecida...");
             //Enviar Pais de procedencia
-            /*dos.writeUTF(VariablesGlobales.getSociedad());
+            dos.writeUTF(VariablesGlobales.getSociedad());
             dos.flush();
             //Version con la que quiere transmitir
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
             dos.flush();
-            dos.writeUTF(VariablesGlobales.getSociedad());
-            dos.flush();
             //Enviar Ruta que se quiere sincronizar
             dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
             dos.flush();
-            */
 
             dos.writeUTF("Actualizacion");
             dos.flush();
@@ -108,7 +122,7 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
                 File externalStorage = Environment.getExternalStorageDirectory();
                 if (externalStorage != null) {
                     String externalStoragePath = externalStorage.getAbsolutePath();
-                    tranFileDir = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Actualizacion");
+                    tranFileDir = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
                     boolean ex = tranFileDir.mkdirs();
                     File transferFile = new File(tranFileDir, "ClientesABC");
                     OutputStream stream = new FileOutputStream(transferFile);
@@ -118,14 +132,15 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
 
                     dos.close();
                     //UNZIP informacion recibida
-                    boolean unzip = FileHelper.unzip(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Actualizacion/ClientesABC",externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Actualizacion");
-                    final File file = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Actualizacion/ClientesABC.apk");
+                    boolean unzip = FileHelper.unzip(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "ClientesABC",externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
+                    final File file = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "ClientesABC.apk");
 
                     Date lastModDate = new Date(file.lastModified());
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                     Date buildDate = proyecto.app.clientesabc.BuildConfig.BuildDate;
 
                     if(unzip) {
+                        CrearArchivoConfiguracion(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
                         if (buildDate.after(lastModDate)) {
                             activity.get().runOnUiThread(new Runnable() {
                                 public void run() {
@@ -209,12 +224,20 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
             }
         });
         dialog = builder.create();
-        dialog.show();
+        if(!activity.get().isFinishing()) {
+            dialog.show();
+        }
     }
     @Override
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
-        dialog.dismiss();
+        try {
+            dialog.dismiss();
+        } catch (final IllegalArgumentException e) {
+            // Do nothing.
+        } catch (final Exception e) {
+            // Do nothing.
+        }
         if(dialog.isShowing()) {
             dialog.hide();
         }
@@ -244,14 +267,21 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
                     //Uri packageURI = Uri.parse("package:proyecto.app.clientesabc");
                     //Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
                     //context.get().startActivity(uninstallIntent);
-                    Uri apkUri = FileProvider.getUriForFile(context.get(), BuildConfig.APPLICATION_ID + ".fileprovider", file);
+                    /*Intent uninstallIntent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE);
+                    uninstallIntent.setData(Uri.parse("package:proyecto.app.clientesabc"));
+                    uninstallIntent.putExtra(Intent.EXTRA_RETURN_RESULT, true);
+                    activity.get().startActivityForResult(uninstallIntent, UNINSTALL_REQUEST_CODE);*/
+                    Uri apkUri = FileProvider.getUriForFile(context.get(), BuildConfig.APPLICATION_ID + ".providers.FileProvider", file);
                     intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
                     intent.setData(apkUri);
                     intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 } else {
-                    //Uri packageURI = Uri.parse("package:proyecto.app.clientesabc");
-                    //Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
-                    //context.get().startActivity(uninstallIntent);
+                    /*
+                    Intent uninstallIntent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE);
+                    uninstallIntent.setData(Uri.parse("package:proyecto.app.clientesabc"));
+                    uninstallIntent.putExtra(Intent.EXTRA_RETURN_RESULT, true);
+                    activity.get().startActivityForResult(uninstallIntent, UNINSTALL_REQUEST_CODE);
+*/
                     Uri apkUri = Uri.fromFile(file);
                     intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
                     intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
@@ -262,5 +292,112 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
                 Toasty.error(context.get(),"Actualización Falló!!",Toast.LENGTH_LONG).show();
             }
         }
+
     }
+
+    private void CrearArchivoConfiguracion(String path) {
+        DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder docBuilder = null;
+        try {
+            docBuilder = docFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        }
+        // root elements
+        Document doc = docBuilder.newDocument();
+        Element rootElement = doc.createElement("configuracion");
+        doc.appendChild(rootElement);
+        // set attribute to staff element
+        /*Attr usuario = doc.createAttribute("usuario");
+        usuario.setValue(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("user",""));
+        rootElement.setAttributeNode(usuario);*/
+
+        //Sistema
+        Element sistema = doc.createElement("sistema");
+        rootElement.appendChild(sistema);
+
+        Element bukrs = doc.createElement("bukrs");
+        bukrs.appendChild(doc.createTextNode(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_BUKRS","")));
+        sistema.appendChild(bukrs);
+
+        Element orgvta = doc.createElement("orgvta");
+        orgvta.appendChild(doc.createTextNode(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_ORGVTA","")));
+        sistema.appendChild(orgvta);
+
+        Element land1 = doc.createElement("land1");
+        land1.appendChild(doc.createTextNode(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_LAND1","")));
+        sistema.appendChild(land1);
+
+        Element cadenaRM = doc.createElement("cadenaRM");
+        cadenaRM.appendChild(doc.createTextNode(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_CADENARM","")));
+        sistema.appendChild(cadenaRM);
+
+        Element ktokd = doc.createElement("ktokd");
+        ktokd.appendChild(doc.createTextNode(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_KTOKD","")));
+        sistema.appendChild(ktokd);
+
+        //Login
+        Element login = doc.createElement("login");
+        rootElement.appendChild(login);
+
+        Element user = doc.createElement("user");
+        user.appendChild(doc.createTextNode(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("user","")));
+        login.appendChild(user);
+
+        Element password = doc.createElement("password");
+        password.appendChild(doc.createTextNode(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("password","")));
+        login.appendChild(password);
+
+        Element guardar_contrasena = doc.createElement("guardar_contrasena");
+        guardar_contrasena.appendChild(doc.createTextNode(String.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getBoolean("guardar_contrasena", false))));
+        login.appendChild(guardar_contrasena);
+
+        Element ruta = doc.createElement("ruta");
+        ruta.appendChild(doc.createTextNode(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH","")));
+        login.appendChild(ruta);
+
+        //Conexiones
+        ArrayList<Conexion> misConexiones = TCPActivity.getConexionesFromSharedPreferences(context.get());
+
+        for(int x=0; x < misConexiones.size(); x++){
+            Element conexion = doc.createElement("conexion");
+            rootElement.appendChild(conexion);
+            conexion.setAttribute("defecto", String.valueOf(misConexiones.get(x).isDefecto()) );
+
+            Element nombre = doc.createElement("nombre");
+            nombre.appendChild(doc.createTextNode(misConexiones.get(x).getNombre()));
+            conexion.appendChild(nombre);
+
+            Element tipo_conexion = doc.createElement("tipo_conexion");
+            tipo_conexion.appendChild(doc.createTextNode(misConexiones.get(x).getTipo()));
+            conexion.appendChild(tipo_conexion);
+
+            Element Ip = doc.createElement("Ip");
+            Ip.appendChild(doc.createTextNode(misConexiones.get(x).getIp()));
+            conexion.appendChild(Ip);
+
+            Element Puerto = doc.createElement("Puerto");
+            Puerto.appendChild(doc.createTextNode(misConexiones.get(x).getPuerto()));
+            conexion.appendChild(Puerto);
+        }
+
+        // write the content into xml file
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = null;
+        try {
+            transformer = transformerFactory.newTransformer();
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        }
+        DOMSource source = new DOMSource(doc);
+        StreamResult result = new StreamResult(new File(path+"configuracion.xml"));
+
+        try {
+            transformer.transform(source, result);
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }

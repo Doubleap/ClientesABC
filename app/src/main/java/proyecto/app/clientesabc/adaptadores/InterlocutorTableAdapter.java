@@ -26,7 +26,7 @@ public class InterlocutorTableAdapter extends TableDataAdapter<Interlocutor> {
     private int textSize = 10;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
-    private int gravity = Gravity.START;
+    private int gravity = Gravity.CENTER;
 
     public InterlocutorTableAdapter(Context context, ArrayList<Interlocutor> data) {
         super(context, data);

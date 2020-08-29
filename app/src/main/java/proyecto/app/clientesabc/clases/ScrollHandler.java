@@ -1,10 +1,11 @@
 package proyecto.app.clientesabc.clases;
 
-import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.v4.view.ViewCompat;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.view.ViewCompat;
 import android.view.View;
 import android.widget.FrameLayout;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class ScrollHandler extends CoordinatorLayout.Behavior<BottomNavigationView> {
     @Override

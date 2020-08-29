@@ -58,7 +58,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         BK_PATH = context.getApplicationInfo().dataDir + "/backUp/";
         this.mContext = context;
 
-        mDataBase = this.getWritableDatabase();
+        try {
+            mDataBase = getWritableDatabase();
+        }catch(Exception e){
+            Toasty.error(context,"Hubo un error desconocido leyendo la DB. Por favor vuelva a intentar.").show();
+        }
         /*try {
             backUpDataBase();
         } catch (IOException e) {
@@ -73,11 +77,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         backUpDataBase();
         File dbFile = new File(DB_PATH + DB_NAME);
         boolean bandera = false;
-        if (dbFile.exists())
+        if (dbFile.exists()) {
+            this.close();
             bandera = dbFile.delete();
+        }
         if(bandera)
             Log.d("MI TAG","Se ha borrado el archivo "+dbFile.getName());
+
         copyDataBase();
+        //this.getReadableDatabase();
+        //this.openDataBase();
         mNeedUpdate = false;
     }
     public void deleteDataBase() throws IOException {
@@ -247,23 +256,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return null;
     }
 
-    // Get rutas Details
-    public ArrayList<HashMap<String, String>> getRutasPreventa(){
-        ArrayList<HashMap<String, String>> userList = new ArrayList<>();
-        String query = "SELECT zroute_pr as id, zroute_pr as descripcion" +
-                " FROM EX_T_RUTAS_VP" +
-                " WHERE  (zroute_pr IS NOT NULL) AND (vkorg = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","")+"') AND (trim(zroute_pr) <> '')";
-        Cursor cursor = mDataBase.rawQuery(query,null);
-        while (cursor.moveToNext()){
-            HashMap<String,String> user = new HashMap<>();
-            user.put("id",cursor.getString(0) != null ? cursor.getString(0) :"");
-            user.put("descripcion",cursor.getString(1) != null ?cursor.getString(1) :"");
-            userList.add(user);
-        }
-        cursor.close();
-        return  userList;
-    }
-
     public ArrayList<HashMap<String, String>> getClientes(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
@@ -288,10 +280,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return  clientList;
     }
-    public ArrayList<HashMap<String, String>> getValidaCreditos(String tipo){
+    public ArrayList<HashMap<String, String>> getValidaCreditos(String tipo, String clasicxc){
+        if(tipo.equals("ABC")){
+            tipo = "F";
+        }
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> datos = new ArrayList<>();
-        String query = "Select * from ValidaCreditos where sociedad = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "' and tipform = 'AC" + tipo + "'";;
+        String query = "Select * from ValidaCreditos where sociedad = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "' and tipform = '"+tipo+"C" + clasicxc + "'";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             //[sociedad], [tipform], [cuentacont], [claseriesgo], [tipocobro], [clasedocven], [clasicxc], [condpago]
@@ -460,6 +455,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             cliente.put("W_CTE-KVGR4",valorNoEncontrado);
             cliente.put("W_CTE-KONDA",cursor.getString(cursor.getColumnIndex("KONDA")) );
             cliente.put("W_CTE-RUTAHH",PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH",""));
+            //cliente.put("W_CTE-ZZESQUINA",cursor.getString(cursor.getColumnIndex("ZZESQUINA")) );
 
             formList.add(cliente);
         }
@@ -666,6 +662,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-KVGR4",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")) : "" );
             solicitud.put("W_CTE-KONDA",cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")) : "" );
             solicitud.put("W_CTE-RUTAHH",cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")) : "" );
+            solicitud.put("W_CTE-ZZESQUINA",cursor.getString(cursor.getColumnIndex("W_CTE-ZZESQUINA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZESQUINA")) : "" );
+            solicitud.put("W_CTE-ZZESTAC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZESTAC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZESTAC")) : "" );
+            solicitud.put("W_CTE-KATR2",cursor.getString(cursor.getColumnIndex("W_CTE-KATR2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR2")) : "" );
+            solicitud.put("W_CTE-ZZTIPONEC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPONEC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPONEC")) : "" );
+            solicitud.put("W_CTE-VBUND",cursor.getString(cursor.getColumnIndex("W_CTE-VBUND")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VBUND")) : "" );
             solicitud.put("SIGUIENTE_APROBADOR",cursor.getString(cursor.getColumnIndex("SIGUIENTE_APROBADOR")) != null ? cursor.getString(cursor.getColumnIndex("SIGUIENTE_APROBADOR")) : "" );
 
             //CAMPOS PARA AVISOS DE EQUIPO FRIO
@@ -850,7 +851,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-KVGR4",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")) : "" );
             solicitud.put("W_CTE-KONDA",cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")) : "" );
             solicitud.put("W_CTE-RUTAHH",cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")) : "" );
-
+            solicitud.put("W_CTE-ZZESQUINA",cursor.getString(cursor.getColumnIndex("W_CTE-ZZESQUINA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZESQUINA")) : "" );
+            solicitud.put("W_CTE-ZZESTAC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZESTAC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZESTAC")) : "" );
+            solicitud.put("W_CTE-KATR2",cursor.getString(cursor.getColumnIndex("W_CTE-KATR2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR2")) : "" );
+            solicitud.put("W_CTE-ZZTIPONEC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPONEC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPONEC")) : "" );
+            solicitud.put("W_CTE-VBUND",cursor.getString(cursor.getColumnIndex("W_CTE-VBUND")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VBUND")) : "" );
             //CAMPOS PARA AVISOS DE EQUIPO FRIO
 
             solicitud.put("W_CTE-IM_EQUIPMENT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) : "" );
@@ -876,11 +881,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getSolicitudes(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> formList = new ArrayList<>();
-        String query = "SELECT s.idform , s.id_solicitud, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME1] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, f.Descripcion, " +
-                "CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo " +
+        String query = "SELECT s.idform , s.id_solicitud, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN CASE WHEN fo.[W_CTE-NAME1] IS NULL THEN s.[W_CTE-NAME3] ELSE fo.[W_CTE-NAME1] END ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, f.Descripcion, " +
+                "CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo, s.feccre, s.fecfin " +
                 " FROM FormHVKOF_solicitud s  " +
-                " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) "+
-                " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) ";
+                " INNER JOIN flujo f ON (f.id_form = s.tipform ) "+
+                " LEFT JOIN FormHVKOF_old_solicitud fo ON ( trim(fo.id_solicitud) = trim(s.id_solicitud) ) ";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -894,6 +899,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("id_fiscal",cursor.getString(7));
             user.put("ind_credito",cursor.getString(8));
             user.put("ind_modelo",cursor.getString(9));
+            user.put("feccre",cursor.getString(10));
+            user.put("fecfin",cursor.getString(11));
             formList.add(user);
         }
         cursor.close();
@@ -910,10 +917,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             coma = ",";
         }
         params += ")";
-        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo " +
+        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN CASE WHEN fo.[W_CTE-NAME1] IS NULL THEN s.[W_CTE-NAME3] ELSE fo.[W_CTE-NAME1] END ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo " +
                 " FROM FormHVKOF_solicitud s" +
-                " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) " +
-                " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) "+
+                " INNER JOIN flujo f ON (f.id_form = s.tipform ) " +
+                " LEFT JOIN FormHVKOF_old_solicitud fo ON ( trim(fo.id_solicitud) = trim(s.id_solicitud) ) "+
                 " WHERE trim(s.estado) IN "+params;
         Cursor cursor = mDataBase.rawQuery(query, estados);
         while (cursor.moveToNext()){
@@ -948,10 +955,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             parametros.add(tipform);
         }
 
-        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo " +
+        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN CASE WHEN fo.[W_CTE-NAME1] IS NULL THEN s.[W_CTE-NAME3] ELSE fo.[W_CTE-NAME1] END ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo, s.feccre, s.fecfin " +
                 " FROM FormHVKOF_solicitud s" +
-                " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) " +
-                " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) "+
+                " INNER JOIN flujo f ON (f.id_form = s.tipform ) " +
+                " LEFT JOIN FormHVKOF_old_solicitud fo ON ( trim(fo.id_solicitud) = trim(s.id_solicitud) ) "+
                 where;
         String[] p = parametros.size() == 0? null: parametros.toArray(new String[0]);
         Cursor cursor = mDataBase.rawQuery(query,  p);
@@ -967,6 +974,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("id_fiscal",cursor.getString(7));
             user.put("ind_credito",cursor.getString(8));
             user.put("ind_modelo",cursor.getString(9));
+            user.put("feccre",cursor.getString(10));
+            user.put("fecfin",cursor.getString(11));
             formList.add(user);
         }
         cursor.close();
@@ -999,10 +1008,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             parametros.add(params2);
         }
 
-        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal " +
+        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NOT NULL THEN s.[W_CTE-NAME1] ELSE CASE WHEN fo.[W_CTE-NAME1] IS NOT NULL THEN fo.[W_CTE-NAME1] ELSE s.[W_CTE-NAME3] END END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, s.feccre, s.fecfin " +
                 " FROM FormHVKOF_solicitud s" +
-                " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) " +
-                " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) "+
+                " INNER JOIN flujo f ON (f.id_form = s.tipform ) " +
+                " LEFT JOIN FormHVKOF_old_solicitud fo ON ( trim(fo.id_solicitud) = trim(s.id_solicitud) ) "+
                 where;
         String[] p = parametros.size() == 0? null: parametros.toArray(new String[0]);
         Cursor cursor = mDataBase.rawQuery(query,  p);
@@ -1016,6 +1025,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("id_solicitud",cursor.getString(5));
             user.put("tipo_solicitud",cursor.getString(6));
             user.put("id_fiscal",cursor.getString(7));
+            user.put("feccre",cursor.getString(8));
+            user.put("fecfin",cursor.getString(9));
             formList.add(user);
         }
         cursor.close();
@@ -1110,7 +1121,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getCamposPestana(String id_formulario, String pestana){
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
         String BUKRS = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","");
-        String KTOKD = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_KTOKD","RCMA");
+        String KTOKD = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_KTOKD","");
         /*String query = "SELECT c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION FROM configuracion c" +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' and cc.ktokd = 'RCMA')" +
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion)" +
@@ -1120,19 +1131,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO')"+
                 " ORDER BY c.panta, s.orden_hh, c.orden_hh";*/
         String query = "SELECT * FROM (" +
-                "SELECT DISTINCT c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION " +
+                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo " +
                 "FROM configuracion c " +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"') " +
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
-                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' " +
+                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 "UNION " +
-                "SELECT DISTINCT c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION " +
+                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo " +
                 "FROM configuracion c " +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(cc.panta) = ( " +
-                " Select trim(cc2.panta) FROM configCampos cc2 WHERE trim(c.campo) = trim(cc2.CAMPO) AND trim(cc2.bukrs) = 'F443' and trim(cc2.ktokd) = '"+KTOKD+"' AND trim(cc2.panta) != trim(c.panta) LIMIT 1 " +
+                " Select trim(cc2.panta) FROM configCampos cc2 WHERE trim(c.campo) = trim(cc2.CAMPO) AND trim(cc2.bukrs) = '"+BUKRS+"' and trim(cc2.ktokd) = '"+KTOKD+"' AND trim(cc2.panta) != trim(c.panta) LIMIT 1 " +
                 " ) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"' and trim(c.campo) NOT IN ( " +
                 " SELECT DISTINCT trim(c.campo) " +
                 " FROM configuracion c " +
@@ -1140,7 +1151,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
-                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' " +
+                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 " )) " +
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
@@ -1171,6 +1182,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("llamado1",cursor.getString(cursor.getColumnIndex("llamado1")) != null ? cursor.getString(cursor.getColumnIndex("llamado1")): "");
             user.put("tooltip",cursor.getString(cursor.getColumnIndex("tooltip")) != null ? cursor.getString(cursor.getColumnIndex("tooltip")): "");
             user.put("modificacion",cursor.getString(cursor.getColumnIndex("modificacion")) != null ? cursor.getString(cursor.getColumnIndex("modificacion")): "");
+            user.put("sufijo",cursor.getString(cursor.getColumnIndex("sufijo")) != null ? cursor.getString(cursor.getColumnIndex("sufijo")): "");
             //metadatas
             user.put("datatype",cursor.getString(cursor.getColumnIndex("DATA_TYPE")) != null ? cursor.getString(cursor.getColumnIndex("DATA_TYPE")): "");
             user.put("numeric_precision",cursor.getString(cursor.getColumnIndex("NUMERIC_PRECISION")) != null ? cursor.getString(cursor.getColumnIndex("NUMERIC_PRECISION")): "");
@@ -1194,7 +1206,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             // looping through all rows and adding to list
             if (cursor.moveToFirst()) {
                 do {
-                    list.add(cursor.getString(2));//3era columna del query
+                    list.add(cursor.getString(2).trim());//3era columna del query
                 } while (cursor.moveToNext());
             }
             // closing connection
@@ -1224,18 +1236,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         StringBuilder filtros = new StringBuilder();
 
         //Crear Filtros manuales desde los parametros
+
         for(String filtro : filtroAdicional){
-            filtros.append(" AND ").append(filtro);
+            if(filtro.length() > 0)
+                filtros.append(" AND ").append(filtro);
         }
 
         if(tabla.equals("cat_tzont")){
             selectQuery = "SELECT * " +
                     " FROM " + tabla +" a INNER JOIN" +
-                    " EX_T_RUTAS_VP AS b ON a.zone1 = b.zroute_rep AND b.bzirk = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK","")+"'";
+                    " EX_T_RUTAS_VP AS b ON (trim(a.zone1) = trim(b.zroute_rep) OR trim(a.zone1) = trim(b.zroute_pr))";
         }
         //Cadena = cat_zesdvt_00561, Keyaccount = cat_ztmdcmc_00038t
         if(tabla.equals("cat_zesdvt_00561") && PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F443")){
-            filtros.append(" AND trim(hkunnr) = '0000160000' AND zzkeyacc = 'CA002'");
+            filtros.append(" AND trim(hkunnr) = '"+VariablesGlobales.getCadenaRM()+"' AND zzkeyacc = 'CA002'");
         }
         if(tabla.equals("cat_ztmdcmc_00038t") && PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F443")){
             filtros.append(" AND trim(zkeyacc) = 'CA002'");
@@ -1316,11 +1330,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(tabla.equals("cat_tzont")){
             selectQuery = "SELECT * " +
                     " FROM " + tabla +" a INNER JOIN" +
-                    " EX_T_RUTAS_VP AS b ON a.zone1 = b.zroute_rep ";
-                    //"AND b.bzirk = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK","")+"'";
+                    " EX_T_RUTAS_VP AS b ON (trim(a.zone1) = trim(b.zroute_rep) OR trim(a.zone1) = trim(b.zroute_pr))";
         }
         if(tabla.equals("aprobadores")){
-            selectQuery = "select id_usuario, nombre_usuario from flujoxpais as fxp" +
+            selectQuery = "select DISTINCT id_usuario, nombre_usuario from flujoxpais as fxp" +
                     "        INNER JOIN etapa as e  ON fxp.id_Etapa = e.id_Etapa" +
                     "        INNER JOIN aprobadores as a ON (a.id_flujoxpais = fxp.id_flujoxpais)" +
                     "        LEFT JOIN mant_usuarios m ON (upper(trim(m.id_usuario)) = upper(trim(a.id_aprobador)))" +
@@ -1665,6 +1678,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         while (cursor.moveToNext()){
             ret = true;
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KTOKD", VariablesGlobales.getKtokd() ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKORG", cursor.getString(cursor.getColumnIndex("vkorg")) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BUKRS", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg")) )).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg")) )).apply();
@@ -1674,10 +1688,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKBUR", cursor.getString(cursor.getColumnIndex("vkbur")) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKGRP", cursor.getString(cursor.getColumnIndex("vkgrp")) ).apply();
             ArrayList<HashMap<String, String>> valores = getValoresKOFSegunZonaVentas(cursor.getString(cursor.getColumnIndex("bzirk")) );
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VWERK", valores.get(0).get("VWERK")).apply();
+            if(valores.size() == 0){
+                ret = false;
+            }else {
+                PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VWERK", valores.get(0).get("VWERK")).apply();
+            }
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_TIPORUTA", cursor.getString(cursor.getColumnIndex("vptyp")) ).apply();
             String areactrlcred = "";
-            if(cursor.getString(cursor.getColumnIndex("vptyp")).contains("ZPV")){
+            if(cursor.getString(cursor.getColumnIndex("vptyp")).contains("ZPV") || cursor.getString(cursor.getColumnIndex("vptyp")).contains("ZAT")){
                 areactrlcred = "C#RF";
             }
             if(cursor.getString(cursor.getColumnIndex("vptyp")).contains("ZJV")){
@@ -1692,6 +1710,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     break;
                 case "F445":
                     areactrlcred = areactrlcred.replace("#","N");
+                    break;
+                case "1657"://Volcanes
+                    areactrlcred = areactrlcred.replace("#","G").replace("RF","VR");
+                    break;
+                case "1658"://Abasa
+                    areactrlcred = areactrlcred.replace("#","G").replace("RF","AR");
                     break;
                 case "F446":
                     areactrlcred = areactrlcred.replace("#","G");
@@ -1709,12 +1733,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //Formularios de modificacion permitidos para la HH
     public ArrayList<HashMap<String, String>> getModificacionesPermitidas(){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
         String query = "SELECT * FROM flujo WHERE permitirHH = 1 and ind_modelo = 'M' and ind_credito = 0 order by orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> flujo = new HashMap<>();
-            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_flujo")).trim());
+            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_form")).trim());
             flujo.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")).trim());
             flujoList.add(flujo);
         }
@@ -1725,12 +1748,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //Formularios de modificacion permitidos para la HH
     public ArrayList<HashMap<String, String>> getModificacionesCreditoPermitidas(){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
         String query = "SELECT * FROM flujo WHERE permitirHH = 1 and ind_modelo = 'M' and ind_credito = 1 order by orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> flujo = new HashMap<>();
-            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_flujo")).trim());
+            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_form")).trim());
             flujo.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")).trim());
             flujoList.add(flujo);
         }
@@ -1740,12 +1762,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //Formularios de modificacion permitidos para la HH
     public ArrayList<HashMap<String, String>> getOrdenesServicioPermitidas(){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
         String query = "SELECT * FROM flujo WHERE permitirHH = 1 and ind_modelo = 'E' order by orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> flujo = new HashMap<>();
-            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_flujo")).trim());
+            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_form")).trim());
             flujo.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")).trim());
             flujoList.add(flujo);
         }
@@ -2167,7 +2188,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Date c = Calendar.getInstance().getTime();
         SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
         String fechaSistema = df.format(c);
-        String query = "select vpore as vptyp, '' as descripcion, '1DA' as kvgr4, '' as ruta,'' as fec_frec, '" + fechaSistema + "' as f_ico, '99991231' as f_fco, '' as f_ini, '' as f_fin, '1' as fcalid FROM cat_ztsdvto_00185_x WHERE zopcional != 'X' and vkorg = '" + vkorg.trim() + "' and kvgr5 = '" + modalidad + "'";
+        String metodo = "1DA";
+        if(modalidad.equals("GV")){
+            metodo = "0DA";
+        }
+        String query = "select vpore as vptyp, '' as descripcion, '"+metodo+"' as kvgr4, '' as ruta,'' as fec_frec, '" + fechaSistema + "' as f_ico, '99991231' as f_fco, '' as f_ini, '' as f_fin, '1' as fcalid FROM cat_ztsdvto_00185_x WHERE zopcional != 'X' and vkorg = '" + vkorg.trim() + "' and kvgr5 = '" + modalidad + "'";
         Cursor cursor = mDataBase.rawQuery(query,null);
 
         while (cursor.moveToNext()){
@@ -2192,13 +2217,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public boolean EsTipodeReparto(String agencia, String tiporuta)
     {
-        String query = "select vwerks FROM EX_T_RUTAS_VP WHERE bzirk = @agencia AND vptyp = @tiporuta";
-        Cursor cursor = mDataBase.rawQuery("select vwerks FROM EX_T_RUTAS_VP WHERE bzirk = ? AND vptyp = ?", new String[]{agencia, tiporuta});
+        String query = "select vwerks, zroute_rep FROM EX_T_RUTAS_VP WHERE bzirk = ? AND vptyp = ?";
+        Cursor cursor = mDataBase.rawQuery(query, new String[]{agencia, tiporuta});
         boolean retorno = false;
         if (cursor.moveToNext()){
-            retorno = !cursor.getString(cursor.getColumnIndex("vwerks")).isEmpty() && !cursor.getString(cursor.getColumnIndex("vwerks")).trim().equals("");
+            retorno = !cursor.getString(cursor.getColumnIndex("vwerks")).isEmpty() && !cursor.getString(cursor.getColumnIndex("vwerks")).trim().equals("") && !cursor.getString(cursor.getColumnIndex("zroute_rep")).trim().equals("");
         }
         cursor.close();
+        //Caso exclusivo para tipos de visita autoventa, donde la preventa y el reparto son lo mismo.
+        if(tiporuta.contains("ZAT")){
+            retorno = false;
+        }
         return retorno;
     }
     public String RutaRepartoAsociada(String kvgr5, String vpore) {//vkorg,ktokd,name1,street,house_num1,suppl1,suppl3,city1,land1
@@ -2228,7 +2257,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 porpais = " AND SUBSTR(CITY1,1,1) = 'N'";
                 break;
             case "GT":
-                porpais = " AND SUBSTR(CITY1,1,1) = 'G'";
+                porpais = " AND SUBSTR(CITY1,1,1)  NOT IN ('C','P','N','G')";
                 break;
             case "PA":
                 porpais = " AND SUBSTR(CITY1,1,1) = 'P'";
@@ -2240,7 +2269,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<HashMap<String, String>> Distritos(String provincia, String canton)
     {
-        ArrayList<HashMap<String, String>> distritos = getDatosCatalogo("cat_ztsdvtc_00297", "region = '"+provincia+"' AND city1 = '"+canton+"'");
+        String sinRelacion = "";
+        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("F446")
+        ||PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("1657")
+        ||PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("1658")){
+            sinRelacion = " OR (region = '' AND city1 = '')";
+        }
+        ArrayList<HashMap<String, String>> distritos = getDatosCatalogo("cat_ztsdvtc_00297", "(region = '"+provincia+"' AND city1 = '"+canton+"')"+sinRelacion);
         return distritos;
     }
 
@@ -2277,8 +2312,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //ENCUESTA CANALES
     public ArrayList<HashMap<String, String>> getPreguntasSegunGrupo(String grupo_isscom){
         ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
-        String sql_encuesta = "select zid_quest,text  from cat_preguntas_isscom p where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
+
+        String sql_encuesta = "select DISTINCT zid_quest,text  from cat_preguntas_isscom p where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -2291,7 +2326,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
     public ArrayList<HashMap<String, String>> getOpcionesPreguntaGrupo(String grupo_isscom, String pregunta){
         ArrayList<HashMap<String, String>> respuestasList = new ArrayList<>();
-        String sql_encuesta = "select zid_resp,text from cat_respuestas_isscom p where trim(zid_grupo) = '"+grupo_isscom.trim()+"' and trim(zid_quest) = '"+pregunta.trim()+"'";
+        String filtroPais = " AND spras = 'C'";
+        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("F446") || PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("1658"))
+            filtroPais = " AND spras = 'G'";
+        String sql_encuesta = "select DISTINCT zid_resp,text from cat_respuestas_isscom p where trim(zid_grupo) = '"+grupo_isscom.trim()+"' and trim(zid_quest) = '"+pregunta.trim()+"'"+filtroPais;
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -2305,7 +2343,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public HashMap<String,String> getValoresSegunEncuestaRealizada(String... valores) {
         HashMap<String,String> registro_canales = new HashMap<>();
-        StringBuilder sql_encuesta = new StringBuilder("select zid_result from cat_ztsdvto_00186 p where trim(zid_grupo) = '" + valores[0].trim() + "'");
+        String tablaOrigen = "cat_ztsdvto_00186";
+        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","").equals("0446")
+        ||PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","").equals("0657")
+        ||PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","").equals("0658")){
+            tablaOrigen = "cat_ztcmvto_00005";
+        }
+        StringBuilder sql_encuesta = new StringBuilder("select zid_result from "+tablaOrigen+" p where trim(zid_grupo) = '" + valores[0].trim() + "'");
         for(int x = 1; x < valores.length;x++){
             if(valores[x] != null)
                 sql_encuesta.append(" AND zid_quest").append(x).append(" = '").append(valores[x].trim()).append("'");
@@ -2370,7 +2414,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //ENCUESTA GEC
     public ArrayList<HashMap<String, String>> getPreguntasGec(){
         ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
         String sql_encuesta = "select zid_quest,text,text2  from cat_preguntas_gec p where bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
@@ -2398,7 +2441,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<HashMap<String, String>> getEncuestaGec(String nextSolicitudId) {
         ArrayList<HashMap<String, String>> respuestasEncuestaGec = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
         String sql_encuesta = "select zid_quest, monto from encuesta_gec_solicitud p where id_solicitud = '" + nextSolicitudId + "'";
         //String sql_encuesta2 = "select zid_quest, monto from encuesta_gec_solicitud p";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
@@ -2442,14 +2484,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             idform = "0";
         }
         ArrayList<Comentario> comentarios = new ArrayList<>();
-        String sql_encuesta = "select '' as orden, 'Creacion' as etapa," +
-                "ususol|| ' - ' || nom_sol as aprobador,feccre as fecha,comentario_sol as comentarios, estado " +
+        String sql_encuesta = "select 0 as orden, 'Creacion' as etapa," +
+                "ususol|| ' - ' || nom_sol as aprobador,feccre as fecha,comentario_sol as comentarios, estado as estado " +
                 "FROM VistaFlujos WHERE idform = ?" +
                 " UNION " +
                 "select Orden as orden, cast(id_etapa as varchar) || ' - ' ||nom_etapa as etapa," +
-                "siguienteAprobador|| ' - ' || nom_aprob  as aprobador,fechaIngreso as fecha,comentario_aprob as comentarios , estado " +
+                "siguienteAprobador|| ' - ' || nom_aprob  as aprobador,fechaIngreso as fecha,comentario_aprob as comentarios , estado as estado " +
                 "FROM VistaFlujos " +
-                "WHERE idform = ? ORDER by orden desc";
+                "WHERE idform = ? ORDER by orden asc";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,new String[]{idform,idform});
         while (cursor.moveToNext()){
             Comentario comentario = new Comentario();
@@ -2471,17 +2513,23 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         //SQLiteDatabase db = this.getWritableDatabase();
         String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Transmitido' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_solicitud WHERE trim(estado) IN ('Nuevo','Modificado'));";
         mDataBase.execSQL(sqlUpdate);
+        String sqlUpdateOld = "UPDATE FormHvKof_old_solicitud SET estado = 'Transmitido' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_old_solicitud WHERE trim(estado) IN ('Nuevo','Modificado'));";
+        mDataBase.execSQL(sqlUpdateOld);
     }
     public void ActualizarEstadosSolicitudesTransmitidas(String lista_id_solicitudes){
         //SQLiteDatabase db = this.getWritableDatabase();
         String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Pendiente' WHERE id_solicitud IN ("+lista_id_solicitudes+");";
         mDataBase.execSQL(sqlUpdate);
+        String sqlUpdateOld = "UPDATE FormHvKof_old_solicitud SET estado = 'Pendiente' WHERE id_solicitud IN ("+lista_id_solicitudes+");";
+        mDataBase.execSQL(sqlUpdateOld);
     }
     //Solo para debugging
     public void RestaurarEstadosSolicitudesTransmitidas(){
         //SQLiteDatabase db = this.getWritableDatabase();
         String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Nuevo' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_solicitud WHERE trim(estado) IN ('Modificado'));";
         mDataBase.execSQL(sqlUpdate);
+        String sqlUpdateOld = "UPDATE FormHvKof_old_solicitud SET estado = 'Nuevo' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_old_solicitud WHERE trim(estado) IN ('Modificado'));";
+        mDataBase.execSQL(sqlUpdateOld);
     }
     public int CantidadAdjuntosMinima(String idform) {
         int cantidad = 0;
@@ -2506,27 +2554,38 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
     public int CantidadSolicitudesTotal() {
         int cantidad = 0;
-        String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud";
-        Cursor cursor = mDataBase.rawQuery(sql_encuesta,new String[]{});
-        while (cursor.moveToNext()){
-            cantidad = cursor.getInt(0);
+        try {
+            String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud";
+            Cursor cursor = mDataBase.rawQuery(sql_encuesta, new String[]{});
+            while (cursor.moveToNext()) {
+                cantidad = cursor.getInt(0);
+            }
+            cursor.close();
+        }catch (SQLiteException e){
+
         }
-        cursor.close();
         return cantidad;
     }
     public int CantidadSolicitudes(String estado) {
         int cantidad = 0;
-        String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud where trim(estado) = ?";
-        Cursor cursor = mDataBase.rawQuery(sql_encuesta,new String[]{estado});
-        while (cursor.moveToNext()){
-            cantidad = cursor.getInt(0);
+        try {
+
+            String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud where trim(estado) = ?";
+            Cursor cursor = mDataBase.rawQuery(sql_encuesta, new String[]{estado});
+            while (cursor.moveToNext()) {
+                cantidad = cursor.getInt(0);
+            }
+            cursor.close();
+        }catch (SQLiteException e){
+
         }
-        cursor.close();
         return cantidad;
     }
 
     public void CambiarEstadoSolicitud(String lista_id_solicitudes,String estado){
         String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = '"+estado.trim()+"' WHERE id_solicitud IN ('"+lista_id_solicitudes+"');";
+        mDataBase.execSQL(sqlUpdate);
+        sqlUpdate = "UPDATE FormHvKof_old_solicitud SET estado = '"+estado.trim()+"' WHERE id_solicitud IN ('"+lista_id_solicitudes+"');";
         mDataBase.execSQL(sqlUpdate);
     }
     public void EliminarSolicitud(String id_solicitud){
@@ -2689,5 +2748,53 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String strPattern = "^0+(?!$)";
         str = str.replaceAll(strPattern, "");
         return str;
+    }
+
+    public ArrayList<HashMap<String, String>> getNotificaciones(){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
+        String query = "SELECT * FROM notificaciones";
+        try {
+            Cursor cursor = mDataBase.rawQuery(query, null);
+            while (cursor.moveToNext()) {
+                HashMap<String, String> user = new HashMap<>();
+                user.put("id", cursor.getString(cursor.getColumnIndex("id")) != null ? cursor.getString(cursor.getColumnIndex("id")) : "");
+                user.put("titulo", cursor.getString(cursor.getColumnIndex("titulo")) != null ? cursor.getString(cursor.getColumnIndex("titulo")) : "");
+                user.put("mensaje", cursor.getString(cursor.getColumnIndex("mensaje")) != null ? cursor.getString(cursor.getColumnIndex("mensaje")) : "");
+                user.put("bukrs", cursor.getString(cursor.getColumnIndex("bukrs")) != null ? cursor.getString(cursor.getColumnIndex("bukrs")) : "");
+                user.put("bzirk", cursor.getString(cursor.getColumnIndex("bzirk")) != null ? cursor.getString(cursor.getColumnIndex("bzirk")) : "");
+                user.put("estado", cursor.getString(cursor.getColumnIndex("estado")) != null ? cursor.getString(cursor.getColumnIndex("estado")) : "");
+                user.put("version", cursor.getString(cursor.getColumnIndex("version")) != null ? cursor.getString(cursor.getColumnIndex("version")) : "");
+                clientList.add(user);
+            }
+            cursor.close();
+        }catch(Exception e){
+
+        }
+        return  clientList;
+    }
+
+    public String getIdFlujoDeTipoSolicitud(String tipoSolicitud) {
+        String id_flujo = "";
+        //Revisar que tipo de canal es ON o OFF
+        String query = "select id_flujo FROM flujo WHERE id_form = ?";
+        Cursor cursor = mDataBase.rawQuery(query, new String[]{tipoSolicitud});
+        if (cursor.moveToNext()){
+            id_flujo = cursor.getString(0);
+        }
+        cursor.close();
+        return id_flujo;
+    }
+    public String ClaseRiesgoSegunCondicionPago(String bukrs, String condpago)
+    {
+        String clase_riesgo = "";
+        //Trae la Clase de riesgo segun la condicion de pago seleccionada por sociedad
+        String query = "SELECT claseriesgo from cat_rel_condpago_claseriesgo where bukrs = ? AND condpago = ?";
+        Cursor cursor = mDataBase.rawQuery(query, new String[]{bukrs, condpago});
+        if (cursor.moveToNext()){
+            clase_riesgo = cursor.getString(0);
+        }
+        cursor.close();
+        return clase_riesgo;
     }
 }

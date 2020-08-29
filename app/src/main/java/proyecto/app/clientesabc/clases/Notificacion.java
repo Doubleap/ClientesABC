@@ -7,7 +7,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
-import android.support.v4.app.NotificationCompat;
+import androidx.core.app.NotificationCompat;
 
 public class Notificacion {
     Context context;
@@ -41,7 +41,8 @@ public class Notificacion {
                 .setLargeIcon(bitmapIcon)
                 .setContentTitle(titulo)
                 .setContentText(mensaje)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setChannelId("ABClientes");
 
         Notification notification = notiCompat.build();
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);

@@ -31,6 +31,7 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.actividades.ConsultaClienteTotalActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 
@@ -68,7 +69,7 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                 //Comando String que indicara que se quiere realizar una Sincronizacion
                 publishProgress("Comunicacion establecida...");
                 //Enviar Pais de procedencia
-                /*dos.writeUTF(VariablesGlobales.getSociedad());
+                dos.writeUTF(VariablesGlobales.getSociedad());
                 dos.flush();
                 //Version con la que quiere transmitir
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -76,7 +77,7 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                 dos.flush();
                 //Enviar Ruta que se quiere sincronizar
                 dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
-                dos.flush();*/
+                dos.flush();
 
                 dos.writeUTF("ConsultaCliente");
                 dos.flush();
@@ -98,7 +99,6 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                     xceptionFlag = true;
                     messageFlag = "Error: " + error;
                 } else {
-                    publishProgress("Procesando datos recibidos...");
                 /*ORDEN DE ESTRUCTURAS SAP RECIBIDAS
                         String jsonCliente = 0;
                         String jsonNotaEntrega = 1;
@@ -165,7 +165,7 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
     protected void onPreExecute() {
         super.onPreExecute();
         AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
-        builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
+        builder.setCancelable(false); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
         builder.setView(R.layout.layout_loading_dialog);
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
@@ -177,7 +177,9 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
             }
         });
         dialog = builder.create();
-        dialog.show();
+        if(!activity.get().isFinishing()) {
+            dialog.show();
+        }
     }
     @Override
     protected void onPostExecute(ArrayList<JsonArray> estructuras) {
@@ -194,6 +196,8 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
             SolicitudModificacionActivity.LlenarCampos(context.get(), activity.get(), estructuras);
         else if(context.get().getClass().getSimpleName().equals("SolicitudAvisosEquipoFrioActivity"))
             SolicitudAvisosEquipoFrioActivity.LlenarCampos(context.get(), activity.get(), estructuras);
+        else if(context.get().getClass().getSimpleName().equals("ConsultaClienteTotalActivity"))
+            ConsultaClienteTotalActivity.LlenarCampos(context.get(), activity.get(), estructuras);
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

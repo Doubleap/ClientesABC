@@ -26,25 +26,6 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.TabLayout;
-import android.support.design.widget.TextInputEditText;
-import android.support.design.widget.TextInputLayout;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.CompoundButtonCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.TooltipCompat;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -65,17 +46,38 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.appcompat.widget.TooltipCompat;
+import androidx.cardview.widget.CardView;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.widget.CompoundButtonCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.honeywell.aidc.AidcManager;
 import com.honeywell.aidc.BarcodeFailureEvent;
 import com.honeywell.aidc.BarcodeReadEvent;
@@ -84,6 +86,7 @@ import com.honeywell.aidc.InvalidScannerNameException;
 import com.honeywell.aidc.ScannerNotClaimedException;
 import com.honeywell.aidc.ScannerUnavailableException;
 import com.honeywell.aidc.UnsupportedPropertyException;
+import com.ortiz.touchview.TouchImageView;
 import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
@@ -113,6 +116,9 @@ import de.codecrafters.tableview.listeners.TableDataLongClickListener;
 import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
 import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
+
+import proyecto.app.clientesabc.Animaciones.CubeTransformer;
+
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
@@ -136,21 +142,18 @@ import proyecto.app.clientesabc.modelos.Interlocutor;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 import proyecto.app.clientesabc.modelos.Visitas;
 
-import static android.support.design.widget.TabLayout.GRAVITY_CENTER;
-import static android.support.design.widget.TabLayout.INDICATOR_GRAVITY_TOP;
-import static android.support.design.widget.TabLayout.INVISIBLE;
-import static android.support.design.widget.TabLayout.OnClickListener;
-import static android.support.design.widget.TabLayout.OnFocusChangeListener;
-import static android.support.design.widget.TabLayout.OnTouchListener;
-import static android.support.design.widget.TabLayout.TEXT_ALIGNMENT_CENTER;
+import static android.view.View.INVISIBLE;
+import static android.view.View.TEXT_ALIGNMENT_CENTER;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
+import static com.google.android.material.tabs.TabLayout.INDICATOR_GRAVITY_TOP;
 
 //import com.mikelau.croperino.Croperino;
 
 public class SolicitudActivity extends AppCompatActivity {
 
-    final static int alturaFilaTableView = 75;
+    final static int alturaFilaTableView = 95;
     static String tipoSolicitud ="";
     static String idSolicitud = "";
     static String idForm = "";
@@ -169,6 +172,7 @@ public class SolicitudActivity extends AppCompatActivity {
     static boolean modificable;
     static boolean correoValidado;
     static boolean cedulaValidada;
+    static boolean idFiscalValidado;
     static BottomNavigationView bottomNavigation;
 
     static Uri mPhotoUri;
@@ -209,7 +213,10 @@ public class SolicitudActivity extends AppCompatActivity {
         modificable = true;
         correoValidado = false;
         cedulaValidada = false;
+        idFiscalValidado = false;
 
+        FrameLayout f = findViewById(R.id.background);
+        //f.getBackground().setAlpha(80);
         Bundle b = getIntent().getExtras();
         if(b != null) {
             tipoSolicitud = b.getString("tipoSolicitud");
@@ -224,7 +231,6 @@ public class SolicitudActivity extends AppCompatActivity {
         mDb = mDBHelper.getWritableDatabase();
 
         getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.botella_coca_header_der,null));
-
 
         if(idSolicitud != null){
             solicitudSeleccionada = mDBHelper.getSolicitud(idSolicitud);
@@ -247,6 +253,7 @@ public class SolicitudActivity extends AppCompatActivity {
             firma = true;
             correoValidado = true;
             cedulaValidada = true;
+            idFiscalValidado = true;
             if(solicitudSeleccionada.get(0).get("ESTADO").equals("Pendiente")
                     ||solicitudSeleccionada.get(0).get("ESTADO").equals("Rechazado")
                     ||solicitudSeleccionada.get(0).get("ESTADO").equals("Aprobado")){
@@ -308,12 +315,19 @@ public class SolicitudActivity extends AppCompatActivity {
                     case R.id.action_save:
                         int numErrores = 0;
                         String mensajeError="";
+                        //View focusableView = getCurrentFocus();
+                        //if(focusableView != null)
+                            //focusableView.setFocusable(false);
                         //Validacion de Datos Obligatorios Automatico
+
                         for(int i=0; i < listaCamposObligatorios.size(); i++) {
                             try{
                                 MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposObligatorios.get(i)));
                                 String valor = tv.getText().toString().trim();
-
+                                if(listaCamposObligatorios.get(i).contains("W_CTE-SMTP_ADDR") ){
+                                    if(tv.isFocused())
+                                        tv.clearFocus();
+                                }
                                 if(valor.isEmpty()){
                                     tv.setError("El campo "+tv.getTag()+" es obligatorio!");
                                     numErrores++;
@@ -353,33 +367,46 @@ public class SolicitudActivity extends AppCompatActivity {
                                 }
                             }
                         }
+                        MaskedEditText correo = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-SMTP_ADDR");
+                        if(mapeoCamposDinamicos.get("W_CTE-SMTP_ADDR") != null ){
+                            if(correo.isFocused())
+                                correo.clearFocus();
+                        }
                         //Validacion de bloques obligatorios
                         //Validacion de encuestas ejecutadas
                         CheckBox encuesta = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA");
                         if(encuesta!= null && !encuesta.isChecked()){
                             numErrores++;
-                            mensajeError += "- Debe ejecutar la encuesta GEC!\n";
+                            mensajeError += "- Debe ejecutar la encuesta de Canales!\n";
                         }
                         CheckBox encuesta_gec = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
-                        if(encuesta_gec != null && !encuesta_gec.isChecked()){
+                        if(encuesta_gec != null && !encuesta_gec.isChecked() && encuesta_gec.isShown()){
                             numErrores++;
-                            mensajeError += "- Debe ejecutar la encuesta de Canales!\n";
+                            mensajeError += "- Debe ejecutar la encuesta GEC!\n";
                         }
                         //Validar el campo de ruta de reparto del grid de visitas
                         //int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPR");
+                        Spinner comboModalidad = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR5"));
+                        String modalidad = "";
+                        String tipoVisita = "ZPV";
+                        if(comboModalidad.getSelectedItem() != null) {
+                            modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
+                            if(modalidad.equals("GV"))
+                                tipoVisita = "ZAT";
+                        }
                         int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
-                        if(visitasSolicitud.get(indiceReparto).getRuta().trim().length() < 6){
+                        if(!modalidad.equals("GV") && visitasSolicitud.get(indiceReparto).getRuta().trim().length() < 6){
                             numErrores++;
                             mensajeError += "- Falta ruta de reparto en planes de visita!\n";
                         }
                         //Al menos 1 dia de visita
-                        if(((TextInputEditText)mapeoCamposDinamicos.get("ZPV_L")) != null) {
-                            if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_L")).getText().toString().isEmpty())
-                                if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_K")).getText().toString().isEmpty())
-                                    if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_M")).getText().toString().isEmpty())
-                                        if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_J")).getText().toString().isEmpty())
-                                            if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_V")).getText().toString().isEmpty())
-                                                if (((TextInputEditText) mapeoCamposDinamicos.get("ZPV_S")).getText().toString().isEmpty()) {
+                        if(((TextInputEditText)mapeoCamposDinamicos.get(tipoVisita+"_L")) != null) {
+                            if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_L")).getText().toString().isEmpty())
+                                if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_K")).getText().toString().isEmpty())
+                                    if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_M")).getText().toString().isEmpty())
+                                        if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_J")).getText().toString().isEmpty())
+                                            if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_V")).getText().toString().isEmpty())
+                                                if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_S")).getText().toString().isEmpty()) {
                                                     numErrores++;
                                                     mensajeError += "- El cliente debe tener al menos 1 día de visita!\n";
                                                 }
@@ -390,16 +417,20 @@ public class SolicitudActivity extends AppCompatActivity {
                             mensajeError += "- El cliente debe firmar las políticas de privacidad!\n";
                         }
                         //Validacion de correo
-                        if(!correoValidado){
+                        if(mapeoCamposDinamicos.get("W_CTE-SMTP_ADDR") != null && !correoValidado && (listaCamposObligatorios.contains("W_CTE-SMTP_ADDR") || ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-SMTP_ADDR")).getText().toString().trim().length() > 0 )){
                             numErrores++;
                             mensajeError += "- Formato de correo Inválido!\n";
                         }
-                        //Validacion de correo
+                        //Validacion de cedula de identidad
                         if(!cedulaValidada){
                             numErrores++;
                             mensajeError += "- Formato de cédula Inválida!\n";
                         }
-
+                        //Validacion de cedula de ID Fiscal para GT mas que todo
+                        if(!idFiscalValidado){
+                            numErrores++;
+                            mensajeError += "- ID Fiscal Inválido!\n";
+                        }
                         //Validacion de siguiente aprobador seleccionado
                         Spinner combo = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
                         if(combo.getSelectedItem() != null) {
@@ -438,9 +469,21 @@ public class SolicitudActivity extends AppCompatActivity {
                 @Override
                 public void onCreated(AidcManager aidcManager) {
                     manager = aidcManager;
+                    final String sociedad = PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","");
                     try {
                         reader = manager.createBarcodeReader();
-                        reader.setProperty(BarcodeReader.PROPERTY_PDF_417_ENABLED, true);
+                        if(sociedad.equals("F443")) {
+                            //reader.setProperty(BarcodeReader.PROPERTY_PDF_417_ENABLED, true);
+                            reader.setProperty(BarcodeReader.PROPERTY_OCR_MODE, BarcodeReader.POSTAL_OCR_MODE_NORMAL);
+                            reader.setProperty(BarcodeReader.PROPERTY_OCR_ACTIVE_TEMPLATE, 2);
+                        }else
+                        if(sociedad.equals("F445")) {
+                            reader.setProperty(BarcodeReader.PROPERTY_PDF_417_ENABLED, true);
+                        }else
+                        if(sociedad.equals("F446")) {
+                            reader.setProperty(BarcodeReader.PROPERTY_OCR_MODE, BarcodeReader.POSTAL_OCR_MODE_NORMAL);
+                            reader.setProperty(BarcodeReader.PROPERTY_OCR_ACTIVE_TEMPLATE, 2);
+                        }
                         BarcodeReader.BarcodeListener barcodeListener = new BarcodeReader.BarcodeListener() {
                             @Override
                             public void onBarcodeEvent(final BarcodeReadEvent barcodeReadEvent) {
@@ -448,8 +491,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        if(barcodeReadEvent.getAimId().substring(1,2).equals("L")) {//Cedula Fisica Costa Rica
-                                            String lecturaCedulaCR = barcodeReadEvent.getBarcodeData();
+                                        if((barcodeReadEvent.getAimId().substring(1,2).equals("L") && (sociedad.equals("F443") || sociedad.equals("F445") || sociedad.equals("F451"))) //Cedula Fisica Costa Rica
+                                        || (barcodeReadEvent.getAimId().substring(1,2).equals("o") && (sociedad.equals("F443") || sociedad.equals("F446") || sociedad.equals("1657") || sociedad.equals("1658") ) )) {//DPI guatemala
+                                            String lecturaCedula = barcodeReadEvent.getBarcodeData();
                                             try {
                                                 reader.softwareTrigger(false);
                                             } catch (ScannerNotClaimedException e) {
@@ -465,34 +509,64 @@ public class SolicitudActivity extends AppCompatActivity {
                                             if (spinner_tipo != null) {
                                                 spinner_tipo.setSelection(VariablesGlobales.getIndex(spinner_tipo, "C1"));
                                             }
+                                            String datosCedula = "";
+                                            String codigo = "";
+                                            String cedula = "";
+                                            String nombre = "";
+                                            String apellido1 = "";
+                                            String apellido2 = "";
+                                            switch (sociedad) {
+                                                case "F443":
+                                                case "F445":
+                                                case "F451":
+                                                    /*datosCedula = decodificarLecturaPDF417(lecturaCedula);
+                                                    codigo = datosCedula;
+                                                    if(codigo.length() > 100) {
+                                                        cedula = codigo.substring(0, 9).trim();
+                                                        nombre = codigo.substring(61, 91).trim();
+                                                        apellido1 = codigo.substring(9, 35).trim();
+                                                        apellido2 = codigo.substring(35, 61).trim();
+                                                    }*/
+                                                    codigo = datosCedula;
+                                                    codigo = lecturaCedula;
+                                                    cedula = codigo.substring(5, 18).trim();
+                                                    String[] nombreCompleto1 = codigo.substring(60, 90).split("<<");
+                                                    nombre = nombreCompleto1[0].replace("<"," ");
+                                                    apellido1 = nombreCompleto1[1].replace("<"," ");
+                                                    if (editText_cedula != null) {
+                                                        editText_cedula.setMask("0#-####-####-00");
+                                                        editText_cedula.setText(cedula);
+                                                        ValidarCedula(editText_cedula, ((OpcionSpinner) spinner_tipo.getSelectedItem()).getId());
+                                                    }
+                                                    break;
+                                                case "F446":
+                                                case "1657":
+                                                case "1658":
+                                                    editText_cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
+                                                    codigo = lecturaCedula;
+                                                    cedula = codigo.substring(5, 18).trim();
+                                                    String[] nombreCompleto = codigo.substring(60, 90).split("<<");
+                                                    nombre = nombreCompleto[0].replace("<"," ");
+                                                    apellido1 = nombreCompleto[1].replace("<"," ");
+                                                    if (editText_cedula != null) {
+                                                        editText_cedula.setText(cedula);
+                                                        ValidarCedula(editText_cedula, ((OpcionSpinner) spinner_tipo.getSelectedItem()).getId());
+                                                    }
+                                                    break;
+                                            }
 
-                                            String datosCedula = decodificarLecturaPDF417(lecturaCedulaCR);
-
-                                            String codigo = datosCedula;
-                                            if(codigo.length() > 100) {
-                                                String cedula = codigo.substring(0, 9).trim();
-                                                String nombre = codigo.substring(61, 91).trim();
-                                                String apellido1 = codigo.substring(9, 35).trim();
-                                                String apellido2 = codigo.substring(35, 61).trim();
-                                                //Toasty.info(getBaseContext(),cedula+" "+nombre+" "+apellido1+" "+apellido2+".").show();
-                                                if (editText_cedula != null) {
-                                                    editText_cedula.setMask("0#-####-####-00");
-                                                    editText_cedula.setText(cedula);
-                                                    ValidarCedula(editText_cedula, ((OpcionSpinner) spinner_tipo.getSelectedItem()).getId());
-                                                }
-                                                if (editText_name3 != null) {
-                                                    String nombre_completo = nombre + " " + apellido1 + " " + apellido2;
-                                                    if (nombre_completo.length() <= 35)
-                                                        editText_name3.setText(nombre_completo);
-                                                    else {
-                                                        editText_name3.setText(nombre_completo.substring(0, 35));
-                                                        if (editText_name4 != null) {
-                                                            editText_name3.setText(nombre_completo.substring(35, 70));
-                                                        }
+                                            if (editText_name3 != null) {
+                                                String nombre_completo = nombre + " " + apellido1 + " " + apellido2;
+                                                if (nombre_completo.length() <= 35)
+                                                    editText_name3.setText(nombre_completo);
+                                                else {
+                                                    editText_name3.setText(nombre_completo.substring(0, 35));
+                                                    if (editText_name4 != null) {
+                                                        editText_name3.setText(nombre_completo.substring(35, 70));
                                                     }
                                                 }
                                             }
-                                        }else if(barcodeReadEvent.getAimId().substring(1,2).equals("A")) {//Cedula Extranjera Costa rica
+                                        }else if(barcodeReadEvent.getAimId().substring(1,2).equals("A") && sociedad.equals("F443")) {//Cedula Extranjera Costa rica
                                             Spinner spinner_tipo = (Spinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
                                             if (spinner_tipo != null) {
                                                 spinner_tipo.setSelection(VariablesGlobales.getIndex(spinner_tipo, "C3"));
@@ -504,10 +578,10 @@ public class SolicitudActivity extends AppCompatActivity {
                                         }
                                     }
 
-                                    private String decodificarLecturaPDF417(String lecturaCedulaCR) {
+                                    private String decodificarLecturaPDF417(String lecturaCedula) {
                                         byte[] raw = new byte[0];
                                         try {
-                                            raw = lecturaCedulaCR.getBytes("ISO-8859-1");
+                                            raw = lecturaCedula.getBytes("ISO-8859-1");
                                         } catch (UnsupportedEncodingException e) {
                                             e.printStackTrace();
                                         }
@@ -595,7 +669,6 @@ public class SolicitudActivity extends AppCompatActivity {
         adjuntosSolicitud = new ArrayList<>();
         comentarios = new ArrayList<>();
         //notificantesSolicitud = new ArrayList<Adjuntos>();
-
     }
     @Override
     public void onBackPressed() {
@@ -717,6 +790,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }*/
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
 
             case 1://Cuando toma foto por la opcion de camara, permite el recorte de la foto tomada
@@ -724,8 +798,8 @@ public class SolicitudActivity extends AppCompatActivity {
                     Uri uri = null;
                     if (data != null)
                         uri = data.getData();
-                    if(uri == null){
-                       uri = mPhotoUri;
+                    if (uri == null) {
+                        uri = mPhotoUri;
                     }
                     InputStream iStream = null;
                     try {
@@ -735,23 +809,23 @@ public class SolicitudActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                     try {
-                        ContentResolver cR =  getContentResolver();
+                        ContentResolver cR = getContentResolver();
                         String type = cR.getType(uri);
                         String name = getFileName(cR, uri);
                         byte[] inputData = getBytes(iStream);
                         File file = null;
                         try {
-                            file = new File( Environment.getExternalStorageDirectory().getAbsolutePath());
+                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
                             if (!file.exists()) {
                                 file.createNewFile();
                             }
-                            FileOutputStream fos = new FileOutputStream(file+"//"+name);
+                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
                             fos.write(inputData);
                             fos.close();
                         } catch (Exception e) {
                             Log.e("thumbnail", e.getMessage());
                         }
-                        File file2 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
+                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
 
 
                         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -787,7 +861,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         //END CROP
                     } catch (IOException e) {
-                        Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
+                        Toasty.error(getBaseContext(), "Error al asociar el documento a la solicitud").show();
                         e.printStackTrace();
                     }
                 }
@@ -797,7 +871,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     Uri uri = null;
                     if (data != null)
                         uri = data.getData();
-                    if(uri == null){
+                    if (uri == null) {
                         uri = mPhotoUri;
                     }
                     InputStream iStream = null;
@@ -807,15 +881,15 @@ public class SolicitudActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                     try {
-                        ContentResolver cR =  getContentResolver();
+                        ContentResolver cR = getContentResolver();
                         MimeTypeMap mime = MimeTypeMap.getSingleton();
                         String type = cR.getType(uri);
                         String name = getFileName(cR, uri);
                         byte[] inputData = getBytes(iStream);
                         mDBHelper.addAdjuntoSolicitud(type, name, inputData);
-                        Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
+                        Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
                     } catch (IOException e) {
-                        Toasty.error(getBaseContext(),"Error al adjuntar el documento a la solicitud").show();
+                        Toasty.error(getBaseContext(), "Error al adjuntar el documento a la solicitud").show();
                         e.printStackTrace();
                     }
 
@@ -866,7 +940,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     Uri uri = null;
                     if (data != null)
                         uri = data.getData();
-                    if(uri == null){
+                    if (uri == null) {
                         uri = mPhotoUri;
                     }
                     InputStream iStream = null;
@@ -879,23 +953,23 @@ public class SolicitudActivity extends AppCompatActivity {
                         return;
                     }
                     try {
-                        ContentResolver cR =  getContentResolver();
+                        ContentResolver cR = getContentResolver();
                         String type = cR.getType(uri);
                         String name = getFileName(cR, uri);
                         byte[] inputData = getBytes(iStream);
                         File file = null;
                         try {
-                            file = new File( Environment.getExternalStorageDirectory().getAbsolutePath());
+                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
                             if (!file.exists()) {
                                 file.createNewFile();
                             }
-                            FileOutputStream fos = new FileOutputStream(file+"//"+name);
+                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
                             fos.write(inputData);
                             fos.close();
                         } catch (Exception e) {
                             Log.e("thumbnail", e.getMessage());
                         }
-                        File file2 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
+                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
                         file2 = FileHelper.saveBitmapToFile(file2);
 
                         byte[] bytesArray = new byte[(int) file2.length()];
@@ -919,12 +993,12 @@ public class SolicitudActivity extends AppCompatActivity {
                         MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudActivity.this);
 
                         //Intento de borrar el archivo que se guarda automatico en Pictures
-                        File file3 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//Pictures//"+name);
+                        File file3 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//Pictures//" + name);
                         file3.delete();
 
-                        Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
+                        Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
                     } catch (IOException e) {
-                        Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
+                        Toasty.error(getBaseContext(), "Error al asociar el documento a la solicitud").show();
                         e.printStackTrace();
                     }
                 }
@@ -935,15 +1009,20 @@ public class SolicitudActivity extends AppCompatActivity {
     public static class ViewPagerAdapter extends FragmentPagerAdapter {
 
         private ArrayList<String> title = new ArrayList<>();
+        private FragmentManager fragmentManager;
+        private Context context;
 
-        private ViewPagerAdapter(FragmentManager manager) {
+        private ViewPagerAdapter(FragmentManager manager,Context c) {
             super(manager);
             List<String> pestanas = mDBHelper.getPestanasFormulario(tipoSolicitud);
             title.addAll(pestanas);
+            fragmentManager = manager;
+            context = c;
         }
 
         @Override
         public Fragment getItem(int position) {
+
             return TabFragment.getInstance(position);
         }
 
@@ -956,7 +1035,6 @@ public class SolicitudActivity extends AppCompatActivity {
         public String getPageTitle(int position) {
             return title.get(position);
         }
-
     }
 
     public static class TabFragment extends Fragment {
@@ -969,7 +1047,9 @@ public class SolicitudActivity extends AppCompatActivity {
             Bundle bundle = new Bundle();
             bundle.putInt("pos", position);
             TabFragment tabFragment = new TabFragment();
+
             tabFragment.setArguments(bundle);
+
             return tabFragment;
         }
 
@@ -985,29 +1065,37 @@ public class SolicitudActivity extends AppCompatActivity {
         public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             // Inflate the layout for this fragment
             View view = inflater.inflate(R.layout.pagina_formulario, container, false);
-            ScrollView ms = view.findViewById(R.id.mainScroll);
-            //ms.requestDisallowInterceptTouchEvent(true);
-            //ms.getParent().requestDisallowInterceptTouchEvent(true);
-            LinearLayout ll = view.findViewById(R.id.miPagina);
-            String nombre = Objects.requireNonNull(Objects.requireNonNull(((ViewPager) container).getAdapter()).getPageTitle(position)).toString().trim();
+            ViewPager viewPager = (ViewPager) container;
+            try {
+                //ms.requestDisallowInterceptTouchEvent(true);
+                //ms.getParent().requestDisallowInterceptTouchEvent(true);
+                LinearLayout ll = view.findViewById(R.id.miPagina);
 
-            if(nombre.equals("Datos Generales") || nombre.equals("Informacion General")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"D");
-            }
-            if(nombre.equals("Facturación")|| nombre.equals("Facturacion")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"F");
-            }
-            if(nombre.equals("Ventas")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"V");
-            }
-            if(nombre.equals("Marketing")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"M");
-            }
-            if(nombre.equals("Creditos") || nombre.equals("Créditos")  || nombre.equals("Crédito")  || nombre.equals("Credito")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"C");
-            }
-            if(nombre.equals("Adjuntos") || nombre.equals("Adicionales")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"Z");
+                String nombre = Objects.requireNonNull(Objects.requireNonNull(viewPager.getAdapter()).getPageTitle(position)).toString().trim();
+
+                if (nombre.equals("Datos Generales") || nombre.equals("Informacion General")) {
+                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "D");
+                }
+                if (nombre.equals("Facturación") || nombre.equals("Facturacion")) {
+                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "F");
+                }
+                if (nombre.equals("Ventas")) {
+                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "V");
+                }
+                if (nombre.equals("Marketing")) {
+                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "M");
+                }
+                if (nombre.equals("Creditos") || nombre.equals("Créditos") || nombre.equals("Crédito") || nombre.equals("Credito")) {
+                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "C");
+                }
+                if (nombre.equals("Adjuntos") || nombre.equals("Adicionales")) {
+                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "Z");
+                }
+                viewPager.setPageTransformer(true, (ViewPager.PageTransformer) new CubeTransformer());
+
+
+            }catch(Exception e){
+
             }
             return view;
         }
@@ -1028,6 +1116,7 @@ public class SolicitudActivity extends AppCompatActivity {
             LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
 
             for (int i = 0; i < campos.size(); i++) {
+                final int finalI = i;
                     ImageView btnAyuda = null;
                     //Creacion de seccion
                     if (!seccionAnterior.equals(campos.get(i).get("id_seccion").trim()) && !campos.get(i).get("id_seccion").trim().equals("99")) {
@@ -1089,7 +1178,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null, getResources().getDrawable(R.drawable.icon_survey, null), null);
 
                         ll.addView(checkbox);
-                        checkbox.setOnClickListener(new OnClickListener() {
+                        checkbox.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 displayDialogEncuestaCanales(getContext());
@@ -1137,7 +1226,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         checkbox.setLayoutParams(clp);
                         checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null, getResources().getDrawable(R.drawable.icon_survey, null), null);
                         ll.addView(checkbox);
-                        checkbox.setOnClickListener(new OnClickListener() {
+                        checkbox.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 displayDialogEncuestaGec(getContext());
@@ -1197,13 +1286,14 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         }
                         if (solicitudSeleccionada.size() > 0) {
-                            if (solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
+                            System.out.print(campos.get(i).get("campo"));
+                            if (solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()) != null && solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
                                 checkbox.setChecked(true);
                             if (!modificable) {
                                 checkbox.setEnabled(false);
                             }
                         }
-                    } else if (campos.get(i).get("tabla") != null && campos.get(i).get("tabla").trim().length() > 0) {
+                    } else if (campos.get(i).get("tabla") != null && campos.get(i).get("tabla").replace(" ","").trim().length() > 0) {
                         //Tipo ComboBox/SelectBox/Spinner
                         TextView label = new TextView(getContext());
                         label.setText(campos.get(i).get("descr"));
@@ -1276,16 +1366,17 @@ public class SolicitudActivity extends AppCompatActivity {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                     final MaskedEditText cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD1");
+                                    final MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
                                     final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
                                     if (cedula != null) {
                                         //cedula.setFilters(new InputFilter[]{new RegexInputFilter("[A-Z-a-z]")});
-                                        if (opcion.getId().equals("C1")) {
+                                        if (opcion.getId().equals("C1") && PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F443")) {
                                             cedula.setMask("0#-####-####-00");
                                         }
-                                        if (opcion.getId().equals("C2")) {
+                                        if (opcion.getId().equals("C2") && PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F443")) {
                                             cedula.setMask("#-###-######");
                                         }
-                                        if (opcion.getId().equals("C3")) {
+                                        if (opcion.getId().equals("C3") && PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F443")) {
                                             cedula.setMask("##-####-####-##");
                                         }
                                         if (opcion.getId().startsWith("N")) {
@@ -1300,7 +1391,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 @Override
                                                 public void onTextChanged(CharSequence s, int start, int before, int count) {
                                                     if(s.toString().equals("")){
-                                                        cedula.setMask("");
+                                                        //cedula.setMask("");
                                                     }
                                                     if(s.toString().equals("N")){
                                                         cedula.setMask("N-####-######");
@@ -1320,12 +1411,30 @@ public class SolicitudActivity extends AppCompatActivity {
                                         if (opcion.getId().equals("P3")) {
                                             cedula.setMask("E-####-######");
                                         }
-                                        if (opcion.getId().equals("GT CF")) {
-                                            cedula.setMask("CF");
-                                            cedula.setText("CF");
-                                        }
-                                        if (opcion.getId().equals("GT NIT")) {
-                                            cedula.setMask("##-#");
+                                        if (opcion.getId().contains("C")
+                                                && (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F446")
+                                                || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("1657")
+                                                || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("1658"))) {
+                                            idfiscal.addTextChangedListener(new TextWatcher() {
+                                                @Override
+                                                public void afterTextChanged(Editable s) { }
+                                                @Override
+                                                public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+                                                @Override
+                                                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                                    String cantidad="";
+                                                    if (s.toString().length() < 13) {
+                                                        for(int x = 0; x <= s.toString().length(); x++){
+                                                            cantidad += "#";
+                                                        }
+                                                        idfiscal.setMask(cantidad);
+                                                        if(s.toString().length() <= 2){
+                                                            idfiscal.setMask("AA");
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                            cedula.setMask("AA");
                                             cedula.addTextChangedListener(new TextWatcher() {
                                                 @Override
                                                 public void afterTextChanged(Editable s) { }
@@ -1333,9 +1442,12 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
                                                 @Override
                                                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                                                    if(s.toString().length() >= 2 && s.toString().length() <= 8 && !s.toString().contains("-")){
+                                                    if(s.toString().length() <= 2){
+                                                        cedula.setMask("**");
+                                                    }
+                                                    if(s.toString().length() > 2 && s.toString().length() < 9 && !s.toString().contains("-")){
                                                         String cantidad="";
-                                                        for(int x = 0; x < count; x++){
+                                                        for(int x = 0; x < s.toString().length(); x++){
                                                             cantidad += "#";
                                                         }
                                                         cedula.setMask(cantidad+"-#");
@@ -1344,7 +1456,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             });
                                         }
 
-                                        cedula.setOnFocusChangeListener(new OnFocusChangeListener() {
+                                        cedula.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                                             @Override
                                             public void onFocusChange(View v, boolean hasFocus) {
                                                 if (!hasFocus) {
@@ -1352,8 +1464,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 }
                                             }
                                         });
+                                        idfiscal.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                                            @Override
+                                            public void onFocusChange(View v, boolean hasFocus) {
+                                                if (!hasFocus) {
+                                                    ValidarIDFiscal();
+                                                }
+                                            }
+                                        });
                                     }
-                                    if (position == 0)
+                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
@@ -1377,7 +1497,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                     ArrayList<HashMap<String, String>> valores = mDBHelper.getValoresKOFSegunZonaVentas(((OpcionSpinner) combo.getSelectedItem()).getId());
                                     ((Spinner) mapeoCamposDinamicos.get("W_CTE-VWERK")).setSelection(VariablesGlobales.getIndex(((Spinner) mapeoCamposDinamicos.get("W_CTE-VWERK")), valores.get(0).get("VWERK")));
-                                    if (position == 0)
+                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
@@ -1407,8 +1527,14 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 break;
                                             }
                                         }
+                                        //Campos zona de transporte se comporta diferente para Autoventa, debe ser la misma ruta de preventa y no puede ser seleccionable.
+                                        if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH", "").substring(2,3).equals("A")) {
+                                            zona_transporte.setEnabled(false);
+                                            zona_transporte.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                                            zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte,PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH","").trim()));
+                                        }
                                     }
-                                    if (position == 0)
+                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
@@ -1422,6 +1548,9 @@ public class SolicitudActivity extends AppCompatActivity {
                             //TODO aqui se debe cambiar si se quiere trabajar con diferentes tipos de 'PR'
                             if (solicitudSeleccionada.size() == 0) {
                                 combo.setSelection(VariablesGlobales.getIndex(combo, "PR"));
+                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH", "").substring(2,3).equals("A")){
+                                    combo.setSelection(VariablesGlobales.getIndex(combo, "GV"));
+                                }
                                 combo.setEnabled(false);
                                 combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
                             }
@@ -1438,7 +1567,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView) * visitasSolicitud.size());
                                         }
                                     }
-                                    if (position == 0)
+                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
@@ -1453,7 +1582,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         Provincias(parent);
-                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1468,7 +1597,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         Cantones(parent);
-                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1484,7 +1613,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         Distritos(parent);
-                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1498,8 +1627,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                 combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                        DireccionCorta();
-                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                        DireccionCorta(getContext());
+                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1514,7 +1643,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         Canales(parent);
-                                        if (position == 0)
+                                        if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1529,7 +1658,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         CanalesKof(parent);
-                                        if (position == 0)
+                                        if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1544,7 +1673,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         ImpuestoSegunUnidadNegocio(parent);
-                                        if (position == 0)
+                                        if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1597,11 +1726,17 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     break;
                                                 }
                                             }
+                                            //Campos zona de transporte se comporta diferente para Autoventa, debe ser la misma ruta de preventa y no puede ser seleccionable.
+                                            if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH", "").substring(2,3).equals("A")) {
+                                                zona_transporte.setEnabled(false);
+                                                zona_transporte.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                                                zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte,PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH","").trim()));
+                                            }
                                         }
                                     }
 
                                     ReplicarValorSpinner(parent, nombreCampo + "1", position);
-                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
@@ -1637,10 +1772,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     break;
                                                 }
                                             }
+                                            //Campos zona de transporte se comporta diferente para Autoventa, debe ser la misma ruta de preventa y no puede ser seleccionable.
+                                            if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH", "").substring(2,3).equals("A")) {
+                                                zona_transporte.setEnabled(false);
+                                                zona_transporte.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                                                zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte,PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH","").trim()));
+                                            }
                                         }
                                     }
                                     ReplicarValorSpinner(parent, nombreCampo, position);
-                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null)
+                                    if (position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
@@ -1695,7 +1836,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
                         final TextInputLayout label = new TextInputLayout(Objects.requireNonNull(getContext()));
                         label.setHint(campos.get(i).get("descr"));
-                        //label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.white,null)));
+                        label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.colorTextView,null)));
 
                         label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
                         label.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
@@ -1727,14 +1868,35 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         et.setMaxLines(1);
 
-                        if (campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("char")) {
-
-                            et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("maxlength")))});
+                        if (campos.get(i).get("datatype") != null && campos.get(i).get("datatype").contains("char")) {
                             if (campos.get(i).get("campo").trim().equals("W_CTE-STCD3")) {
                                 et.setInputType(InputType.TYPE_CLASS_NUMBER);
                                 et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(18)});
+                                if(VariablesGlobales.getSociedad().equals("F446") || VariablesGlobales.getSociedad().equals("1657") || VariablesGlobales.getSociedad().equals("1658")){
+                                    et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                                        @Override
+                                        public void onFocusChange(View v, boolean hasFocus) {
+                                            if (!hasFocus) {
+                                                ValidarIDFiscal();
+                                            }
+                                        }
+                                    });
+                                }
                             } else {
                                 et.setInputType(InputType.TYPE_CLASS_TEXT);
+                            }
+                            if (Integer.valueOf(campos.get(i).get("maxlength")) > 0) {
+                                et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("maxlength")))});
+                                if(Integer.valueOf(campos.get(i).get("maxlength")) >= 40){
+                                    et.setSingleLine(false);
+                                    et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                                    et.setMinLines(1);
+                                    et.setMaxLines(5);
+                                    et.setVerticalScrollBarEnabled(true);
+                                    et.setMovementMethod(ScrollingMovementMethod.getInstance());
+                                    et.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
+                                    et.setGravity(INDICATOR_GRAVITY_TOP);
+                                }
                             }
                         } else if (campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("decimal")) {
                             et.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -1783,7 +1945,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 split = campos.get(i).get("llamado1").trim().split("\"");
                             final String campoAReplicar = split[1];
                             if (!campos.get(i).get("campo").trim().equals("W_CTE-NAME1") && !campos.get(i).get("campo").trim().equals("W_CTE-NAME2") && !campos.get(i).get("campo").trim().equals("W_CTE-HOUSE_NUM1")) {
-                                et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                                et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                                     @Override
                                     public void onFocusChange(View v, boolean hasFocus) {
                                         if (!hasFocus) {
@@ -1807,7 +1969,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             btnAyudai.setLayoutParams(btnlp2);
                             btnAyudai.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                             btnAyudai.setForegroundGravity(GRAVITY_CENTER);
-                            btnAyudai.setOnTouchListener(new OnTouchListener() {
+                            btnAyudai.setOnTouchListener(new View.OnTouchListener() {
                                 @Override
                                 public boolean onTouch(View v, MotionEvent event) {
                                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -1844,7 +2006,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             et.setCompoundDrawablePadding(16);
                             et.setInputType(InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
-                            et.setOnTouchListener(new OnTouchListener() {
+                            et.setOnTouchListener(new View.OnTouchListener() {
                                 @Override
                                 public boolean onTouch(View v, MotionEvent event) {
                                     final int DRAWABLE_LEFT = 0;
@@ -1916,7 +2078,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 final List<View> tocables = tb_comentarios.getFocusables(View.FOCUS_FORWARD);
                                 for (int x = 0; x < tocables.size(); x++) {
                                     final int finalX = x;
-                                    tocables.get(x).setOnTouchListener(new OnTouchListener() {
+                                    tocables.get(x).setOnTouchListener(new View.OnTouchListener() {
                                         @Override
                                         public boolean onTouch(View v, MotionEvent event) {
                                             v.getParent().requestDisallowInterceptTouchEvent(true);
@@ -1936,7 +2098,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             et.setText(fechaSistema);
                         }
                         if (campos.get(i).get("campo").trim().equals("W_CTE-SMTP_ADDR")) {
-                            et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                            et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                                 @Override
                                 public void onFocusChange(View v, boolean hasFocus) {
                                     if (!hasFocus) {
@@ -2004,7 +2166,9 @@ public class SolicitudActivity extends AppCompatActivity {
                 combo.setLayoutParams(lp);
                 combo.setPopupBackgroundResource(R.drawable.menu_item);
 
-                ArrayList<OpcionSpinner> opciones = db.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_Flujo = "+tipoSolicitud);
+                String id_flujo = db.getIdFlujoDeTipoSolicitud(tipoSolicitud);
+
+                ArrayList<OpcionSpinner> opciones = db.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_flujo = "+id_flujo);
 
                 // Creando el adaptador(opciones) para el comboBox deseado
                 ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, opciones);
@@ -2045,7 +2209,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     checkbox.setLayoutParams(clp);
                     checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_privacy,null), null);
                     ll.addView(checkbox);
-                    checkbox.setOnClickListener(new OnClickListener() {
+                    checkbox.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             Aceptacion(v);
@@ -2074,8 +2238,25 @@ public class SolicitudActivity extends AppCompatActivity {
         }
 
         private void Aceptacion(View v) {
-            Intent intent = new Intent(getContext(),FirmaActivity.class);
-            getActivity().startActivityForResult(intent,100);
+            Intent intent;
+            switch (PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS","")){
+                case "F443":
+                    intent = new Intent(getContext(),FirmaActivity.class);
+                    getActivity().startActivityForResult(intent,100);
+                    break;
+                case "F445":
+                    intent = new Intent(getContext(),FirmaNIActivity.class);
+                    getActivity().startActivityForResult(intent,100);
+                    break;
+                case "F451":
+                    intent = new Intent(getContext(),FirmaPAActivity.class);
+                    getActivity().startActivityForResult(intent,100);
+                    break;
+                default:
+                    intent = new Intent(getContext(),FirmaActivity.class);
+                    getActivity().startActivityForResult(intent,100);
+            }
+
         }
 
         public void DesplegarBloque(DataBaseHelper db, View _ll, HashMap<String, String> campo) {
@@ -2194,7 +2375,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             displayDialogImpuesto(getContext(),null);
                         }
                     });*/
-                    if(bloque_impuesto.getParent() != null) {
+                    //if(bloque_impuesto.getParent() != null) {
                         bloque_impuesto.setColumnCount(4);
                         bloque_impuesto.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary, null));
                         bloque_impuesto.setHeaderElevation(2);
@@ -2225,7 +2406,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
                         rl.addView(bloque_impuesto);
                         ll.addView(rl);
-                    }
+                    //}
                     break;
                 case "W_CTE-INTERLOCUTORES":
                     de.codecrafters.tableview.TableView<Interlocutor> bloque_interlocutor;
@@ -2361,7 +2542,16 @@ public class SolicitudActivity extends AppCompatActivity {
                     //Desplegar textos para las secuencias de los dias de visita de la preventa.
                     //TODO Generar segun la Modalidad de venta seleccionada para usuarios tipo jefe de ventas y no preventas
                     final String[] diaLabel = {"L","K","M","J","V","S","D"};
-                    int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
+                    Spinner comboModalidad = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR5"));
+                    String modalidad = "";
+                    String tipoVisita = "ZPV";
+                    if(comboModalidad.getSelectedItem() != null) {
+                        modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
+                        if(modalidad.equals("GV")) {
+                            tipoVisita = "ZAT";
+                        }
+                    }
+                    int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,tipoVisita);
                     int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
 
                     CardView seccion_visitas = new CardView(Objects.requireNonNull(getContext()));
@@ -2396,6 +2586,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         label.setHint(""+diaLabel[x]);
                         label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
                         label.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
+                        label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.colorTextView,null)));
                         label.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f));
                         label.setPadding(0,0,0,0);
 
@@ -2444,11 +2635,19 @@ public class SolicitudActivity extends AppCompatActivity {
                         Drawable d = getResources().getDrawable(R.drawable.textbackground_min_padding, null);
                         et.setBackground(d);
                         final int finalX = x;
-                        et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                        et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                             @Override
                             public void onFocusChange(View v, boolean hasFocus) {
-
-                                int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
+                                Spinner comboModalidad = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR5"));
+                                String modalidad = "";
+                                String tipoVisita = "ZPV";
+                                if(comboModalidad.getSelectedItem() != null) {
+                                    modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
+                                    if(modalidad.equals("GV")) {
+                                        tipoVisita = "ZAT";
+                                    }
+                                }
+                                int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,tipoVisita);
                                 int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
 
                                 final int finalIndicePreventa = indicePreventa;
@@ -2461,7 +2660,10 @@ public class SolicitudActivity extends AppCompatActivity {
                                         diaReparto = (finalX+1);
                                     }
                                     Visitas visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
-                                    Visitas visitaReparto = visitasSolicitud.get(finalIndiceReparto);
+                                    Visitas visitaReparto=null;
+                                    if(!modalidad.equals("GV")) {
+                                        visitaReparto = visitasSolicitud.get(finalIndiceReparto);
+                                    }
                                     if(!((TextView)v).getText().toString().equals("") && Integer.valueOf(((TextView)v).getText().toString()) > 1440){
                                         switch(finalX) {
                                             case 0:
@@ -2493,35 +2695,37 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 visitaPreventa.setDom_de(getResources().getString(R.string.max_secuencia));
                                                 break;
                                         }
-                                        switch(diaReparto) {
-                                            case 0:
-                                                visitaReparto.setLun_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setLun_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 1:
-                                                visitaReparto.setMar_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setMar_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 2:
-                                                visitaReparto.setMier_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setMier_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 3:
-                                                visitaReparto.setJue_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setJue_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 4:
-                                                visitaReparto.setVie_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setVie_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 5:
-                                                visitaReparto.setSab_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setSab_de(getResources().getString(R.string.max_secuencia));
-                                                break;
-                                            case 6:
-                                                visitaReparto.setDom_a(getResources().getString(R.string.max_secuencia));
-                                                visitaReparto.setDom_de(getResources().getString(R.string.max_secuencia));
-                                                break;
+                                        if(!modalidad.equals("GV")) {
+                                            switch (diaReparto) {
+                                                case 0:
+                                                    visitaReparto.setLun_a(getResources().getString(R.string.max_secuencia));
+                                                    visitaReparto.setLun_de(getResources().getString(R.string.max_secuencia));
+                                                    break;
+                                                case 1:
+                                                    visitaReparto.setMar_a(getResources().getString(R.string.max_secuencia));
+                                                    visitaReparto.setMar_de(getResources().getString(R.string.max_secuencia));
+                                                    break;
+                                                case 2:
+                                                    visitaReparto.setMier_a(getResources().getString(R.string.max_secuencia));
+                                                    visitaReparto.setMier_de(getResources().getString(R.string.max_secuencia));
+                                                    break;
+                                                case 3:
+                                                    visitaReparto.setJue_a(getResources().getString(R.string.max_secuencia));
+                                                    visitaReparto.setJue_de(getResources().getString(R.string.max_secuencia));
+                                                    break;
+                                                case 4:
+                                                    visitaReparto.setVie_a(getResources().getString(R.string.max_secuencia));
+                                                    visitaReparto.setVie_de(getResources().getString(R.string.max_secuencia));
+                                                    break;
+                                                case 5:
+                                                    visitaReparto.setSab_a(getResources().getString(R.string.max_secuencia));
+                                                    visitaReparto.setSab_de(getResources().getString(R.string.max_secuencia));
+                                                    break;
+                                                case 6:
+                                                    visitaReparto.setDom_a(getResources().getString(R.string.max_secuencia));
+                                                    visitaReparto.setDom_de(getResources().getString(R.string.max_secuencia));
+                                                    break;
+                                            }
                                         }
                                         ((TextView)v).setText(getResources().getString(R.string.max_secuencia));
                                         Toasty.warning(getContext(), R.string.error_max_secuencia).show();
@@ -2559,35 +2763,37 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 visitaPreventa.setDom_de("");
                                                 break;
                                         }
-                                        switch(diaReparto) {
-                                            case 0:
-                                                visitaReparto.setLun_a("");
-                                                visitaReparto.setLun_de("");
-                                                break;
-                                            case 1:
-                                                visitaReparto.setMar_a("");
-                                                visitaReparto.setMar_de("");
-                                                break;
-                                            case 2:
-                                                visitaReparto.setMier_a("");
-                                                visitaReparto.setMier_de("");
-                                                break;
-                                            case 3:
-                                                visitaReparto.setJue_a("");
-                                                visitaReparto.setJue_de("");
-                                                break;
-                                            case 4:
-                                                visitaReparto.setVie_a("");
-                                                visitaReparto.setVie_de("");
-                                                break;
-                                            case 5:
-                                                visitaReparto.setSab_a("");
-                                                visitaReparto.setSab_de("");
-                                                break;
-                                            case 6:
-                                                visitaReparto.setDom_a("");
-                                                visitaReparto.setDom_de("");
-                                                break;
+                                        if(!modalidad.equals("GV")) {
+                                            switch (diaReparto) {
+                                                case 0:
+                                                    visitaReparto.setLun_a("");
+                                                    visitaReparto.setLun_de("");
+                                                    break;
+                                                case 1:
+                                                    visitaReparto.setMar_a("");
+                                                    visitaReparto.setMar_de("");
+                                                    break;
+                                                case 2:
+                                                    visitaReparto.setMier_a("");
+                                                    visitaReparto.setMier_de("");
+                                                    break;
+                                                case 3:
+                                                    visitaReparto.setJue_a("");
+                                                    visitaReparto.setJue_de("");
+                                                    break;
+                                                case 4:
+                                                    visitaReparto.setVie_a("");
+                                                    visitaReparto.setVie_de("");
+                                                    break;
+                                                case 5:
+                                                    visitaReparto.setSab_a("");
+                                                    visitaReparto.setSab_de("");
+                                                    break;
+                                                case 6:
+                                                    visitaReparto.setDom_a("");
+                                                    visitaReparto.setDom_de("");
+                                                    break;
+                                            }
                                         }
                                     }else{
                                         String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView)v).getText().toString());
@@ -2621,35 +2827,37 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 visitaPreventa.setDom_de(secuenciaSAP);
                                                 break;
                                         }
-                                        switch(diaReparto) {
-                                            case 0:
-                                                visitaReparto.setLun_a(secuenciaSAP);
-                                                visitaReparto.setLun_de(secuenciaSAP);
-                                                break;
-                                            case 1:
-                                                visitaReparto.setMar_a(secuenciaSAP);
-                                                visitaReparto.setMar_de(secuenciaSAP);
-                                                break;
-                                            case 2:
-                                                visitaReparto.setMier_a(secuenciaSAP);
-                                                visitaReparto.setMier_de(secuenciaSAP);
-                                                break;
-                                            case 3:
-                                                visitaReparto.setJue_a(secuenciaSAP);
-                                                visitaReparto.setJue_de(secuenciaSAP);
-                                                break;
-                                            case 4:
-                                                visitaReparto.setVie_a(secuenciaSAP);
-                                                visitaReparto.setVie_de(secuenciaSAP);
-                                                break;
-                                            case 5:
-                                                visitaReparto.setSab_a(secuenciaSAP);
-                                                visitaReparto.setSab_de(secuenciaSAP);
-                                                break;
-                                            case 6:
-                                                visitaReparto.setDom_a(secuenciaSAP);
-                                                visitaReparto.setDom_de(secuenciaSAP);
-                                                break;
+                                        if(!modalidad.equals("GV")) {
+                                            switch (diaReparto) {
+                                                case 0:
+                                                    visitaReparto.setLun_a(secuenciaSAP);
+                                                    visitaReparto.setLun_de(secuenciaSAP);
+                                                    break;
+                                                case 1:
+                                                    visitaReparto.setMar_a(secuenciaSAP);
+                                                    visitaReparto.setMar_de(secuenciaSAP);
+                                                    break;
+                                                case 2:
+                                                    visitaReparto.setMier_a(secuenciaSAP);
+                                                    visitaReparto.setMier_de(secuenciaSAP);
+                                                    break;
+                                                case 3:
+                                                    visitaReparto.setJue_a(secuenciaSAP);
+                                                    visitaReparto.setJue_de(secuenciaSAP);
+                                                    break;
+                                                case 4:
+                                                    visitaReparto.setVie_a(secuenciaSAP);
+                                                    visitaReparto.setVie_de(secuenciaSAP);
+                                                    break;
+                                                case 5:
+                                                    visitaReparto.setSab_a(secuenciaSAP);
+                                                    visitaReparto.setSab_de(secuenciaSAP);
+                                                    break;
+                                                case 6:
+                                                    visitaReparto.setDom_a(secuenciaSAP);
+                                                    visitaReparto.setDom_de(secuenciaSAP);
+                                                    break;
+                                            }
                                         }
                                     }
 
@@ -2818,7 +3026,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
     //Pruebas para seccion de bloques
     public static void displayDialogMessage(Context context, String mensaje) {
-        final Dialog d=new Dialog(context);
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setContentView(R.layout.message_dialog_layout);
         //INITIALIZE VIEWS
         final TextView title = d.findViewById(R.id.title);
@@ -2850,7 +3058,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }
     //Pruebas para seccion de bloques
     public static void displayDialogContacto(Context context, final Contacto seleccionado) {
-        final Dialog d=new Dialog(context);
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setContentView(R.layout.contacto_dialog_layout);
         //ArrayList<HashMap<String, String>> columnMeta =  mDBHelper.getMetaData(VariablesGlobales.getTABLA_BLOQUE_CONTACTO_HH());
         //INITIALIZE VIEWS
@@ -2941,7 +3149,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }
 
     public void displayDialogImpuesto(Context context, final Impuesto seleccionado) {
-        final Dialog d=new Dialog(context);
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setContentView(R.layout.impuesto_dialog_layout);
 
         //INITIALIZE VIEWS
@@ -3074,7 +3282,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }
 
     public void displayDialogInterlocutor(Context context, final Interlocutor seleccionado) {
-        final Dialog d=new Dialog(context);
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setContentView(R.layout.interlocutor_dialog_layout);
         d.setTitle("+ Nuevo Interlocutor");
 
@@ -3127,7 +3335,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }
 
     public static void displayDialogBancos(Context context, final Banco seleccionado) {
-        final Dialog d=new Dialog(context);
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setContentView(R.layout.banco_dialog_layout);
 
         //INITIALIZE VIEWS
@@ -3246,7 +3454,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }
     @SuppressWarnings("unchecked")
     public static void displayDialogEncuestaCanales(final Context context) {
-        final Dialog d=new Dialog(context);
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
@@ -3426,7 +3634,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }
 
     public static void displayDialogEncuestaGec(final Context context) {
-        final Dialog d=new Dialog(context);
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
@@ -3532,9 +3740,9 @@ public class SolicitudActivity extends AppCompatActivity {
     }
 
     public static void mostrarAdjunto(Context context, Adjuntos adjunto) {
-        final Dialog d = new Dialog(context);
-        d.setContentView(R.layout.adjunto_layout);
-        ImageView adjunto_img = d.findViewById(R.id.imagen);
+        final Dialog d = new Dialog(context, R.style.MyAlertDialogThemeAttachment);
+        d.setContentView(R.layout.adjunto_layout_zoom);
+        TouchImageView adjunto_img = d.findViewById(R.id.imagen);
         TextView adjunto_txt = d.findViewById(R.id.nombre);
         final String nombre_adjunto = adjunto.getName();
         byte[] image = adjunto.getImage();
@@ -3558,7 +3766,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }
 
     public static void mostrarAdjuntoServidor(Context context, Activity activity, Adjuntos adjunto) {
-        final Dialog d = new Dialog(context);
+        final Dialog d = new Dialog(context, R.style.MyAlertDialogTheme);
         d.setContentView(R.layout.adjunto_layout);
         ImageView adjunto_img = d.findViewById(R.id.imagen);
         TextView adjunto_txt = d.findViewById(R.id.nombre);
@@ -3582,7 +3790,6 @@ public class SolicitudActivity extends AppCompatActivity {
             s.DisableWiFi();
         }
         s.execute();
-
     }
     private class ContactoClickListener implements TableDataClickListener<Contacto> {
         @Override
@@ -3691,7 +3898,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }
     @SuppressWarnings("unchecked")
     private void DetallesVisitPlan(final Context context, final Visitas seleccionado) {
-        final Dialog d = new Dialog(context);
+        final Dialog d = new Dialog(context, R.style.MyAlertDialogTheme);
         d.setContentView(R.layout.visita_dialog_layout);
         final boolean reparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""), seleccionado.getVptyp());
         //INITIALIZE VIEWS
@@ -3706,6 +3913,14 @@ public class SolicitudActivity extends AppCompatActivity {
         final Spinner ruta_reparto = d.findViewById(R.id.ruta_reparto);
         Button saveBtn= d.findViewById(R.id.saveBtn);
         title.setText(String.format(context.getString(R.string.palabras_2),context.getString(R.string.label_vp),seleccionado.getVptyp()));
+
+        ArrayAdapter<String> spinnerArrayAdapter;
+        if(seleccionado.getVptyp().equals("ZAT"))
+            spinnerArrayAdapter =new ArrayAdapter<String>(this,R.layout.spinner_item, getResources().getStringArray(R.array.OpcionesKvgr4Autoventa));
+        else
+            spinnerArrayAdapter =new ArrayAdapter<String>(this,R.layout.spinner_item, getResources().getStringArray(R.array.OpcionesKvgr4));
+        //spinnerArrayAdapter.setDropDownViewResource(R.layout.spinner_item);
+        kvgr4Spinner.setAdapter(spinnerArrayAdapter);
 
         kvgr4Spinner.setSelection(((ArrayAdapter<CharSequence>)kvgr4Spinner.getAdapter()).getPosition(seleccionado.getKvgr4()));
         f_icoEditText.setText(seleccionado.getF_ico());
@@ -3797,6 +4012,12 @@ public class SolicitudActivity extends AppCompatActivity {
                 }
             }
         });
+        if(!modificable){
+            saveBtn.setEnabled(false);
+            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.boton_transparente,null));
+        }else{
+            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.colorPrimary,null));
+        }
         d.show();
     }
 
@@ -3831,7 +4052,11 @@ public class SolicitudActivity extends AppCompatActivity {
             boolean esReparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp());
             //TODO cambiar el valor "PR" por el valor dinamico del comboBox de Modalidad de venta
             if(!esReparto){
-                String rutaReparto = mDBHelper.RutaRepartoAsociada("PR", vp.getVptyp());
+                String rutaReparto = "";
+                if(vp.getVptyp().equals("ZAT"))
+                    rutaReparto = mDBHelper.RutaRepartoAsociada("GV", vp.getVptyp());
+                else
+                    rutaReparto = mDBHelper.RutaRepartoAsociada("PR", vp.getVptyp());
                 for (int x = 0; x < visitasSolicitud.size(); x++) {
                     if (rutaReparto.equals(visitasSolicitud.get(x).getVptyp())) {
                         rep = visitasSolicitud.get(x);
@@ -3953,6 +4178,7 @@ public class SolicitudActivity extends AppCompatActivity {
         public void run() {
             String NextId = GUID;
             ContentValues insertValues = new ContentValues();
+
             for (int i = 0; i < listaCamposDinamicos.size(); i++) {
                 if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                     try {
@@ -4162,12 +4388,7 @@ public class SolicitudActivity extends AppCompatActivity {
             }
             try {
                 //Datos que siemrpe deben ir cuando se crea por primera vez.
-                //TODO seccionar par pais el grupo de cuentas, talvez sacar de una tabla
-                if(tipoSolicitud.equals("1"))
-                    insertValues.put("[W_CTE-KTOKD]", "RCMA");
-                else{
-                    insertValues.put("[W_CTE-KTOKD]", "RCMA");
-                }
+                insertValues.put("[W_CTE-KTOKD]", PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_KTOKD",""));
                 Spinner sp = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
                 String id_aprobador = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
                 insertValues.put("[SIGUIENTE_APROBADOR]", id_aprobador);
@@ -4180,7 +4401,6 @@ public class SolicitudActivity extends AppCompatActivity {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
                 Date date = new Date();
                 //ContentValues initialValues = new ContentValues();
-                insertValues.put("[feccre]", dateFormat.format(date));
 
                 //mDBHelper.getWritableDatabase().insert("FormHvKof_solicitud", null, insertValues);
                 if(solicitudSeleccionada.size() > 0){
@@ -4190,6 +4410,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     long modifico = mDb.update("FormHvKof_solicitud", insertValues, "id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});
                     Toasty.success(getApplicationContext(), "Registro modificado con éxito", Toasty.LENGTH_SHORT).show();
                 }else {
+                    insertValues.put("[feccre]", dateFormat.format(date));
                     insertValues.put("[estado]", "Nuevo");
                     long inserto = mDb.insertOrThrow("FormHvKof_solicitud", null, insertValues);
                     //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
@@ -4243,10 +4464,13 @@ public class SolicitudActivity extends AppCompatActivity {
         Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
+        TextView view = null;
+        //view = ((TextView) combo.getAdapter().getView(0,null,null));
         combo.setSelection(selectedIndex);
-        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
-            ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
-        DireccionCorta();
+
+        if(selectedIndex == 0 &&  view != null && listaCamposObligatorios.contains("W_CTE-REGION"))
+            view.setError("El campo es obligatorio!");
+        DireccionCorta(parent.getContext());
         if(!modificable){
             combo.setEnabled(false);
             combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
@@ -4267,7 +4491,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 selectedIndex = j;
             }
         }
-        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-CITY1");
+        SearchableSpinner combo = (SearchableSpinner)mapeoCamposDinamicos.get("W_CTE-CITY1");
 
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
@@ -4277,10 +4501,13 @@ public class SolicitudActivity extends AppCompatActivity {
         Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
+        TextView view = null;
+        //view = ((TextView) combo.getAdapter().getView(0,null,null));
         combo.setSelection(selectedIndex);
-        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
-            ((TextView) combo.getSelectedView()).setError("El campo es obligatorio!");
-        DireccionCorta();
+
+        if(selectedIndex == 0 && view != null && listaCamposObligatorios.contains("W_CTE-CITY1"))
+            view.setError("El campo es obligatorio!");
+        DireccionCorta(parent.getContext());
         if(!modificable){
             combo.setEnabled(false);
             combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
@@ -4310,45 +4537,60 @@ public class SolicitudActivity extends AppCompatActivity {
         Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
         combo.setBackground(d);
         combo.setAdapter(dataAdapter);
+        TextView view = null;
+        //view = ((TextView) combo.getAdapter().getView(0,null,null));
         combo.setSelection(selectedIndex);
-        if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
-            ((TextView) combo.getSelectedView()).setError("El campo es obligatorio!");
-        DireccionCorta();
+
+        if(selectedIndex == 0 && view != null && listaCamposObligatorios.contains("W_CTE-STR_SUPPL3"))
+            view.setError("El campo es obligatorio!");
+        DireccionCorta(parent.getContext());
         if(!modificable){
             combo.setEnabled(false);
             combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
         }
     }
-    private static void  DireccionCorta() {
-        MaskedEditText home = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-HOME_CITY");
 
-        MaskedEditText dir = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-STREET");
-        MaskedEditText dirF = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-LOCATION");
-        Spinner prov = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
-        Spinner cant = (Spinner)mapeoCamposDinamicos.get("W_CTE-CITY1");
-        Spinner dist = (Spinner)mapeoCamposDinamicos.get("W_CTE-STR_SUPPL3");
-        OpcionSpinner p = (OpcionSpinner)prov.getSelectedItem();
-        OpcionSpinner c = (OpcionSpinner)cant.getSelectedItem();
-        OpcionSpinner d = (OpcionSpinner)dist.getSelectedItem();
-        if(!d.getId().isEmpty())
-            home.setText(d.getName().trim().split("-")[1]);
+    private static void  DireccionCorta(Context context) {
+        String sociedad = PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BUKRS","");
+        switch(sociedad){
+            case "F443":
+            case "F445":
+            case "F451":
+                MaskedEditText home = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-HOME_CITY");
 
-        StringBuilder dircorta = new StringBuilder();
-        if (dir != null) {
-            if (prov != null && !((OpcionSpinner)prov.getSelectedItem()).getId().equals("")) {
-                if(!p.getId().isEmpty())
-                    dircorta.append(p.getName().trim().split("- ")[1]);
-            }
-            if (cant != null && !((OpcionSpinner)cant.getSelectedItem()).getId().equals("")) {
-                if(!c.getId().isEmpty())
-                    dircorta.append(c.getName().trim().split("-")[1]);
-            }
-            if (dist != null && !((OpcionSpinner)dist.getSelectedItem()).getId().equals("")) {
+                MaskedEditText dir = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-STREET");
+                MaskedEditText dirF = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-LOCATION");
+                Spinner prov = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
+                Spinner cant = (Spinner)mapeoCamposDinamicos.get("W_CTE-CITY1");
+                Spinner dist = (Spinner)mapeoCamposDinamicos.get("W_CTE-STR_SUPPL3");
+                OpcionSpinner p = (OpcionSpinner)prov.getSelectedItem();
+                OpcionSpinner c = (OpcionSpinner)cant.getSelectedItem();
+                OpcionSpinner d = (OpcionSpinner)dist.getSelectedItem();
                 if(!d.getId().isEmpty())
-                    dircorta.append(d.getName().trim().split("-")[1]);
-            }
-            dir.setText(dircorta.toString().toUpperCase(Locale.getDefault()));
-            dirF.setText(dircorta.toString().toUpperCase(Locale.getDefault()));
+                    home.setText(d.getName().trim().split("-")[1]);
+
+                StringBuilder dircorta = new StringBuilder();
+                if (dir != null) {
+                    if (prov != null && !((OpcionSpinner)prov.getSelectedItem()).getId().equals("")) {
+                        if(!p.getId().isEmpty())
+                            dircorta.append(p.getName().trim().split("- ")[1]);
+                    }
+                    if (cant != null && !((OpcionSpinner)cant.getSelectedItem()).getId().equals("")) {
+                        if(!c.getId().isEmpty())
+                            dircorta.append(c.getName().trim().split("-")[1]);
+                    }
+                    if (dist != null && !((OpcionSpinner)dist.getSelectedItem()).getId().equals("")) {
+                        if(!d.getId().isEmpty())
+                            dircorta.append(d.getName().trim().split("-")[1]);
+                    }
+                    dir.setText(dircorta.toString().toUpperCase(Locale.getDefault()));
+                    dirF.setText(dircorta.toString().toUpperCase(Locale.getDefault()));
+                }
+                break;
+            case "F446":
+            case "1657":
+            case "1658":
+                break;
         }
     }
 
@@ -4426,6 +4668,8 @@ public class SolicitudActivity extends AppCompatActivity {
     private static boolean ValidarCedula(View v, String tipoCedula){
         TextView texto = (TextView)v;
         String cedula = "";
+        Pattern pattern;
+        Matcher matcher;
         switch(PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS","")) {
             case "F443"://Costa Rica
                 switch (tipoCedula) {
@@ -4442,7 +4686,23 @@ public class SolicitudActivity extends AppCompatActivity {
                         cedula = "([1-9][0-9])-[0-9]{4,4}-[0-9]{4,4}-[0-9]{2,2}";
                         break;
                 }
-            break;
+                pattern = Pattern.compile(cedula);
+                matcher = pattern.matcher(texto.getText());
+                if (!matcher.matches()) {
+                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+                    cedulaValidada = false;
+                    return true;
+                }
+                cedulaValidada = true;
+                MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
+                String cedulaDigitada = texto.getText().toString().trim();
+                if (texto.getText().toString().trim().endsWith("-00") && tipoCedula.equals("C1"))
+                    idfiscal.setText(cedulaDigitada.substring(0, cedulaDigitada.length() - 3).replaceFirst("^0+(?!$)", "").replace("-", ""));
+                else
+                    idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-", ""));
+                idfiscal.setError(null);
+                idfiscal.clearFocus();
+                break;
             case "F445"://Nicaragua
                 if (texto.getText().toString().trim().length() < 3) {
                     texto.setError("Formato Regimen "+tipoCedula+" invalido!");
@@ -4454,6 +4714,13 @@ public class SolicitudActivity extends AppCompatActivity {
                     texto.setText(padded);
                 }
                 cedula = "[0-9A-Z-]{14,14}";
+                pattern = Pattern.compile(cedula);
+                matcher = pattern.matcher(texto.getText());
+                if (!matcher.matches()) {
+                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+                    cedulaValidada = false;
+                    return true;
+                }
                 break;
 
             case "F451"://Panama
@@ -4476,38 +4743,116 @@ public class SolicitudActivity extends AppCompatActivity {
                         cedula = "E-[0-9]{4,4}-[0-9]{6,6}";
                         break;
                 }
+                pattern = Pattern.compile(cedula);
+                matcher = pattern.matcher(texto.getText());
+                if (!matcher.matches()) {
+                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+                    cedulaValidada = false;
+                    return true;
+                }
                 break;
             case "F446"://GT Embocem
             case "1657"://Volcanes
             case "1658"://Abasa
-                switch (tipoCedula) {
-                    case "G1":
-                        cedula = "CF";
-                        break;
-                    case "G2":
-                        cedula = "[0-9][0-9]{1,7}-[0-9]";
-                        break;
-                }
+                /*Validaciones Adicionales para GT*/
+                String regexp_idfiscal = "[0-9][0-9]{1,8}-[0-9A-Z]";
+                String regexp_cf = "CF";
+                Pattern patternFi = Pattern.compile(regexp_idfiscal);
+                Pattern patternCF = Pattern.compile(regexp_cf);
+                Matcher matcherFi = patternFi.matcher(texto.getText());
+                Matcher matcherCF = patternCF.matcher(texto.getText());
+
+                    if (!matcherFi.matches() && !matcherCF.matches()) {
+                        texto.setError("NIT valor/formato inválido!");
+                        cedulaValidada = false;
+                        return true;
+                    }
+                    /*Despues del formato se realiza validacion MOD 11*/
+                    String[] nit = texto.getText().toString().split("-");
+                    Integer cantDigitos = nit[0].length();
+
+                    StringBuilder digitos = new StringBuilder();
+                    digitos.append(nit[0]);
+                    digitos = digitos.reverse();
+                    int temp = 0;
+                    for (int x = 2; x <= (cantDigitos + 1); x++) {
+                        temp += x * Character.getNumericValue(digitos.charAt((x - 2)));
+                    }
+                    int resultado = temp % 11;
+                    int tempVerificador = 11 - resultado;
+                    if(tempVerificador == 11)
+                        tempVerificador = resultado;
+                    String digitoVerificador = String.valueOf(tempVerificador);
+                    if (digitoVerificador.equals("10")) {
+                        digitoVerificador = "K";
+                    }
+                    if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
+                        texto.setError("NIT inválido por digito verificador!");
+                        cedulaValidada = false;
+                        return true;
+                    }
+                cedulaValidada = true;
+                break;
         }
-        Pattern pattern = Pattern.compile(cedula);
-        Matcher matcher = pattern.matcher(texto.getText());
-        if (!matcher.matches()) {
-            texto.setError("Formato Regimen "+tipoCedula+" invalido!");
-            cedulaValidada = false;
+
+        Toasty.success(texto.getContext(),"Formato Regimen "+tipoCedula+" valido!",Toasty.LENGTH_SHORT).show();
+        return true;
+    }
+    private static boolean ValidarIDFiscal(){
+        //SearchableSpinner regimen = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
+        MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
+        if(idfiscal.getText().toString().trim().length() == 0){
+            if(!listaCamposObligatorios.contains("W_CTE-STCD3") && VariablesGlobales.getSociedad().equals("F446") || VariablesGlobales.getSociedad().equals("1657") || VariablesGlobales.getSociedad().equals("1658")){
+                idFiscalValidado = true;
+            }else{
+                idFiscalValidado = false;
+            }
             return true;
         }
-        cedulaValidada = true;
-        if(PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS","").equals("F443")) {
-            MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
-            String cedulaDigitada = texto.getText().toString().trim();
-            if (texto.getText().toString().trim().endsWith("-00") && tipoCedula.equals("C1"))
-                idfiscal.setText(cedulaDigitada.substring(0, cedulaDigitada.length() - 3).replaceFirst("^0+(?!$)", "").replace("-", ""));
-            else
-                idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-", ""));
-            idfiscal.setError(null);
-            idfiscal.clearFocus();
+        if(VariablesGlobales.getSociedad().equals("F446") || VariablesGlobales.getSociedad().equals("1657") || VariablesGlobales.getSociedad().equals("1658")){
+            String regexp_dpi = "[0-9]{12,14}";
+            String regexp_idfiscal = "[0-9][0-9]{1,8}-[0-9A-Z]";
+            String regexp_cf = "CF";
+            Pattern pattern = Pattern.compile(regexp_idfiscal);
+            Pattern patternCF = Pattern.compile(regexp_cf);
+            Matcher matcher = pattern.matcher(idfiscal.getText());
+            Matcher matcherCF = patternCF.matcher(idfiscal.getText());
+
+            pattern = Pattern.compile(regexp_dpi);
+            matcher = pattern.matcher(idfiscal.getText().toString().trim());
+            if (!matcher.matches()) {
+                if (!matcher.matches() && !matcherCF.matches()) {
+                    idfiscal.setError("DPI/CUI/NIT formato inválido!");
+                    idFiscalValidado = false;
+                    return true;
+                }
+                /*Despues del formato se realiza validacion MOD 11*/
+                String[] nit = idfiscal.getText().toString().split("-");
+                Integer cantDigitos = nit[0].length();
+
+                StringBuilder digitos = new StringBuilder();
+                digitos.append(nit[0]);
+                digitos = digitos.reverse();
+                int temp = 0;
+                for (int x = 2; x <= (cantDigitos + 1); x++) {
+                    temp += x * Character.getNumericValue(digitos.charAt((x - 2)));
+                }
+                int resultado = temp % 11;
+                int tempVerificador = 11 - resultado;
+                if (tempVerificador == 11)
+                    tempVerificador = resultado;
+                String digitoVerificador = String.valueOf(tempVerificador);
+                if (digitoVerificador.equals("10")) {
+                    digitoVerificador = "K";
+                }
+                if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
+                    idfiscal.setError("NIT inválido por digito verificador!");
+                    idFiscalValidado = false;
+                    return true;
+                }
+            }
         }
-        Toasty.success(texto.getContext(),"Formato Regimen "+tipoCedula+" valido!").show();
+        idFiscalValidado = true;
         return true;
     }
     private static boolean ValidarCoordenadaY(View v){
@@ -4546,8 +4891,8 @@ public class SolicitudActivity extends AppCompatActivity {
         public MostrarFormulario(Context context) {
             contextRef = new WeakReference<>(context);
             viewPager = new ViewPager(context);
-            misTabs = new TabLayout(context);
-            adapter = new ViewPagerAdapter(getSupportFragmentManager());
+            misTabs = new TabLayout(new ContextThemeWrapper(context, R.style.MyTabs),null,0);
+            adapter = new ViewPagerAdapter(getSupportFragmentManager(),context);
         }
         @SuppressLint("ResourceType")
         @Override
@@ -4559,8 +4904,11 @@ public class SolicitudActivity extends AppCompatActivity {
             Context context = contextRef.get();
             //Traer primero las pestanas
             publishProgress(2);
-            misTabs.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT);
+            misTabs.setLayoutParams(lp);
             misTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
+            misTabs.setTabGravity(TabLayout.GRAVITY_FILL);
+            misTabs.setTabTextColors(getResources().getColor(R.color.white,null), getResources().getColor(R.color.black,null));
             //final ViewPager viewPager = new ViewPager(context);
             publishProgress(4);
             viewPager.setId(1);
@@ -4599,7 +4947,6 @@ public class SolicitudActivity extends AppCompatActivity {
             super.onPostExecute(result);
             progressBar.setVisibility(View.GONE);
         }
-
     }
 
     public final static boolean isValidEmail(View v) {

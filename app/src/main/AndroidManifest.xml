@@ -14,8 +14,7 @@
     <uses-permission android:name="com.honeywell.decode.permission.DECODE" />
     <uses-permission
         android:name="android.permission.WRITE_SETTINGS"
-        tools:ignore="ProtectedPermissions" />
-    <!-- To auto-complete the email text field in the login form with the user's emails -->
+        tools:ignore="ProtectedPermissions" /> <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -42,9 +41,14 @@
         tools:ignore="GoogleAppIndexingWarning"
         tools:replace="android:appComponentFactory">
         <activity
-            android:name=".actividades.MainActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme" />
+            android:name=".actividades.SplashScreen"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".actividades.DetallesActivity"
             android:label="Lista de Clientes"
@@ -53,16 +57,19 @@
         <activity
             android:name=".actividades.LoginActivity"
             android:label="@string/title_activity_login"
-            android:screenOrientation="portrait"
-            android:theme="@style/SplashTheme">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:screenOrientation="portrait"></activity>
         <activity
             android:name=".actividades.FirmaActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_firma"
+            android:screenOrientation="reverseLandscape" />
+        <activity
+            android:name=".actividades.FirmaNIActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_firma"
+            android:screenOrientation="reverseLandscape" />
+        <activity
+            android:name=".actividades.FirmaPAActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_firma"
             android:screenOrientation="reverseLandscape" />
@@ -72,12 +79,21 @@
             android:label="@string/title_activity_firma_t4"
             android:screenOrientation="reverseLandscape" />
         <activity
+            android:name=".actividades.FirmaCreditoActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_firma_credito"
+            android:screenOrientation="reverseLandscape" />
+        <activity
             android:name=".actividades.SolicitudActivity"
             android:label="@string/title_activity_solicitud"
             android:screenOrientation="portrait" />
         <activity
             android:name=".actividades.SolicitudModificacionActivity"
             android:label="@string/title_activity_solicitud"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".actividades.ConsultaClienteTotalActivity"
+            android:label="@string/title_activity_cliente"
             android:screenOrientation="portrait" />
         <activity
             android:name=".actividades.SolicitudCreditoActivity"
@@ -123,17 +139,31 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
-            android:name=".actividades.ClienteActivity"
-            android:label="@string/title_activity_cliente"
-            android:screenOrientation="portrait" />
-        <activity android:name=".actividades.EscanearActivity"
-            android:label="@string/title_activity_scanner"></activity>
-        <activity android:name=".actividades.ScannerActivity"
-            android:label="@string/title_activity_scanner"></activity>
+            android:name=".actividades.EscanearActivity"
+            android:label="@string/title_activity_scanner" />
+        <activity
+            android:name=".actividades.ScannerActivity"
+            android:label="@string/title_activity_scanner" />
         <activity
             android:name=".actividades.IntermecScannerActivity"
             android:label="Scanner Interno"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".actividades.ScanOcrActivity"
+            android:label="Escaneo OCR"
+            android:screenOrientation="portrait" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.providers.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            tools:replace="android:authorities">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths"
+                tools:replace="android:resource" />
+        </provider>
     </application>
 
 </manifest>

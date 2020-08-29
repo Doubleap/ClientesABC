@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuracion>
+    <sistema>
+        <nombrePais>Costa Rica</nombrePais>
+        <sociedad>F443</sociedad>
+        <orgvta>0443</orgvta>
+        <land1>CR</land1>
+        <cadenaRM>0000160000</cadenaRM>
+        <ktokd>RCMA</ktokd>
+    </sistema>
+    <login>
+        <user></user>
+        <password></password>
+        <guardar_contrasena></guardar_contrasena>
+        <ruta></ruta>
+    </login>
+    <conexiones>
+        <conexion defecto="true">
+            <nombre>Produccion Gprs</nombre>
+            <tipo_conexion>gprs</tipo_conexion>
+            <Ip>10.218.40.7</Ip>
+            <Puerto>3348</Puerto>
+        </conexion>
+        <conexion defecto="true">
+            <nombre>Produccion Wifi</nombre>
+            <tipo_conexion>wifi</tipo_conexion>
+            <Ip>10.124.0.44</Ip>
+            <Puerto>3348</Puerto>
+        </conexion>
+        <conexion defecto="true">
+            <nombre>Calidad Wifi</nombre>
+            <tipo_conexion>wifi</tipo_conexion>
+            <Ip>10.153.152.69</Ip>
+            <Puerto>3348</Puerto>
+        </conexion>
+    </conexiones>
+</configuracion>

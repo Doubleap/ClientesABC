@@ -4,17 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-
-import me.dm7.barcodescanner.core.IViewFinder;
-import me.dm7.barcodescanner.zxing.ZXingScannerView;
 import proyecto.app.clientesabc.clases.CustomZXingScannerView;
 
 public class EscanearActivity extends AppCompatActivity implements ZXingScannerView.ResultHandler {
@@ -89,7 +82,7 @@ public class EscanearActivity extends AppCompatActivity implements ZXingScannerV
         Intent intentRegreso = new Intent();
         intentRegreso.putExtra("codigo", d);
         setResult(Activity.RESULT_OK, intentRegreso);
-        // Cerrar la actividad. Ahora mira onActivityResult de MainActivity
+        // Cerrar la actividad. Ahora mira onActivityResult de
         finish();
     }
     private static byte[] keysArray = new byte[]{

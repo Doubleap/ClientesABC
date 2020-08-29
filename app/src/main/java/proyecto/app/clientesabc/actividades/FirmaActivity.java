@@ -15,7 +15,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
+import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -26,6 +26,9 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,6 +48,8 @@ public class FirmaActivity extends AppCompatActivity {
     private ScrollView scroll;
     private FrameLayout documento;
     private LinearLayout canvasLL;
+    private TextView texto_titulo;
+    private TextView texto_cuadro;
     private View view;
     private signature mSignature;
     private Bitmap bitmap;
@@ -64,8 +69,8 @@ public class FirmaActivity extends AppCompatActivity {
         canvasLL = findViewById(R.id.canvasLL);
         scroll = findViewById(R.id.scroll);
         mSignature = new signature(getApplicationContext(), null);
-
-        //mSignature.setBackgroundColor(Color.WHITE);
+        texto_titulo = findViewById(R.id.texto_titulo);
+        texto_cuadro = findViewById(R.id.texto_cuadro);
 
         Drawable d = getResources().getDrawable(R.drawable.squared_textbackground,null);
         documento.setBackground(d);
@@ -75,6 +80,31 @@ public class FirmaActivity extends AppCompatActivity {
         mSignature.getParent().requestDisallowInterceptTouchEvent(true);
         canvasLL.getParent().requestDisallowInterceptTouchEvent(true);
         canvasLL.requestDisallowInterceptTouchEvent(true);
+
+        switch (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","")){
+            case "F443":
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(getResources().getString(R.string.politica_privacidad));
+                break;
+            case "F445":
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(getResources().getString(R.string.politica_privacidad_ni));
+                break;
+            case "F451":
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(getResources().getString(R.string.politica_privacidad_pa));
+                break;
+            case "F446":
+            case "1657":
+            case "1658":
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(getResources().getString(R.string.politica_privacidad));
+                break;
+            default:
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(getResources().getString(R.string.politica_privacidad));
+                break;
+        }
 
         btnClear = findViewById(R.id.btnclear);
         btnSave = findViewById(R.id.btnsave);

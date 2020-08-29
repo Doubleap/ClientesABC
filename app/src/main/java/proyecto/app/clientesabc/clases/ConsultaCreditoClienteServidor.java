@@ -69,7 +69,7 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
                 //Comando String que indicara que se quiere realizar una Sincronizacion
                 publishProgress("Comunicacion establecida...");
                 //Enviar Pais de procedencia
-                /*dos.writeUTF(VariablesGlobales.getSociedad());
+                dos.writeUTF(VariablesGlobales.getSociedad());
                 dos.flush();
                 //Version con la que quiere transmitir
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -77,7 +77,7 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
                 dos.flush();
                 //Enviar Ruta que se quiere sincronizar
                 dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
-                dos.flush();*/
+                dos.flush();
 
                 dos.writeUTF("CreditoCliente");
                 dos.flush();
@@ -177,12 +177,20 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
             }
         });
         dialog = builder.create();
-        dialog.show();
+        if(!activity.get().isFinishing()) {
+            dialog.show();
+        }
     }
     @Override
     protected void onPostExecute(ArrayList<JsonArray> estructuras) {
         super.onPostExecute(estructuras);
-        dialog.dismiss();
+        try {
+            dialog.dismiss();
+        } catch (final IllegalArgumentException e) {
+            // Do nothing.
+        } catch (final Exception e) {
+            // Do nothing.
+        }
         if(dialog.isShowing()) {
             dialog.hide();
         }

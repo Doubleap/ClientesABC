@@ -12,6 +12,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import de.codecrafters.tableview.TableDataAdapter;
+import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.modelos.Visitas;
 
 public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
@@ -26,7 +27,7 @@ public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
     private int textSize = 12;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
-    private int gravity = Gravity.START;
+    private int gravity = Gravity.CENTER;
 
     public VisitasTableAdapter(Context context, ArrayList<Visitas> data) {
         super(context, data);
@@ -46,6 +47,8 @@ public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
             //final String textToShow = getItem(rowIndex)[columnIndex];
             Visitas visita = getRowData(rowIndex);
             final String textToShow = visita.getValueFromColumn(columnIndex+2);
+            if(getContext().getClass().getName().contains("ConsultaClienteTotalActivity"))
+                textView.setTextColor(getResources().getColor(R.color.pendientes,null));
             textView.setText(textToShow);
             textView.setGravity(gravity);
         } catch (final IndexOutOfBoundsException e) {
