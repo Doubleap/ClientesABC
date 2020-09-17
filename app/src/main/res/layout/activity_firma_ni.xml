@@ -50,7 +50,7 @@
             android:minLines="5"
             android:padding="@dimen/margin_medium"
             android:textAlignment="center"
-            android:textColor="@color/black"
+            android:textColor="@color/colorTextView"
             />
     </FrameLayout>
         <LinearLayout

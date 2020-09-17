@@ -1,12 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuracion>
     <sistema>
+        <nombrePais>Guatemala Abasa</nombrePais>
+        <sociedad>1658</sociedad>
+        <orgvta>0658</orgvta>
+        <land1>GT</land1>
+        <cadenaRM>0000190027</cadenaRM>
+        <ktokd>GCMB</ktokd>
+        <!--
+        <nombrePais>Panamá</nombrePais>
+        <sociedad>F451</sociedad>
+        <orgvta>0451</orgvta>
+        <land1>PA</land1>
+        <cadenaRM>0000200000</cadenaRM>
+        <ktokd>PCMA</ktokd>
+
+        <nombrePais>Nicaragua</nombrePais>
+        <sociedad>F445</sociedad>
+        <orgvta>0445</orgvta>
+        <land1>NI</land1>
+        <cadenaRM>0000180000</cadenaRM>
+        <ktokd>NCMA</ktokd>
+
         <nombrePais>Costa Rica</nombrePais>
         <sociedad>F443</sociedad>
         <orgvta>0443</orgvta>
         <land1>CR</land1>
         <cadenaRM>0000160000</cadenaRM>
         <ktokd>RCMA</ktokd>
+
+        <nombrePais>Guatemala Embocen</nombrePais>
+        <sociedad>F446</sociedad>
+        <orgvta>0446</orgvta>
+        <land1>GT</land1>
+        <cadenaRM>0000170027</cadenaRM>
+        <ktokd>GCMA</ktokd>
+
+        <nombrePais>Guatemala Volcanes</nombrePais>
+        <sociedad>1657</sociedad>
+        <orgvta>0657</orgvta>
+        <land1>GT</land1>
+        <cadenaRM>0000210027</cadenaRM>
+        <ktokd>GCMC</ktokd>
+
+        <nombrePais>Guatemala Abasa</nombrePais>
+        <sociedad>1658</sociedad>
+        <orgvta>0658</orgvta>
+        <land1>GT</land1>
+        <cadenaRM>0000190027</cadenaRM>
+        <ktokd>GCMB</ktokd>
+        -->
     </sistema>
     <login>
         <user></user>
@@ -15,7 +58,7 @@
         <ruta></ruta>
     </login>
     <conexiones>
-        <conexion defecto="true">
+        <conexion defecto="false">
             <nombre>Produccion Gprs</nombre>
             <tipo_conexion>gprs</tipo_conexion>
             <Ip>10.218.40.7</Ip>
@@ -27,7 +70,7 @@
             <Ip>10.124.0.44</Ip>
             <Puerto>3348</Puerto>
         </conexion>
-        <conexion defecto="true">
+        <conexion defecto="false">
             <nombre>Calidad Wifi</nombre>
             <tipo_conexion>wifi</tipo_conexion>
             <Ip>10.153.152.69</Ip>

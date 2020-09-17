@@ -670,7 +670,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("SIGUIENTE_APROBADOR",cursor.getString(cursor.getColumnIndex("SIGUIENTE_APROBADOR")) != null ? cursor.getString(cursor.getColumnIndex("SIGUIENTE_APROBADOR")) : "" );
 
             //CAMPOS PARA AVISOS DE EQUIPO FRIO
-
             solicitud.put("W_CTE-IM_EQUIPMENT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) : "" );
             solicitud.put("W_CTE-IM_PARTNER",cursor.getString(cursor.getColumnIndex("W_CTE-IM_PARTNER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_PARTNER")) : "" );
             solicitud.put("W_CTE-IM_NOTIF_TYPE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_NOTIF_TYPE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NOTIF_TYPE")) : "" );
@@ -685,6 +684,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-IM_SHORT_TEXT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) : "" );
             solicitud.put("W_CTE-IM_TEXT_LINE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) : "" );
             solicitud.put("W_CTE-IM_NUM_AVISO",cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) : "" );
+
+            //CAMPOS NEUVOS DE NI Y PA PARA REALIZAR CONTRATOS O POLITICAS CON ESTA INFORMACION DENTRO DEL TEXTO FIRMABLE
+            /*solicitud.put("W_CTE-ESTADO_CIVIL",cursor.getString(cursor.getColumnIndex("W_CTE-ESTADO_CIVIL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ESTADO_CIVIL")) : "" );
+            solicitud.put("W_CTE-ACTIVIDAD_ECONOMICA",cursor.getString(cursor.getColumnIndex("W_CTE-ACTIVIDAD_ECONOMICA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ACTIVIDAD_ECONOMICA")) : "" );
+            solicitud.put("W_CTE-DURACION_CONTRATO",cursor.getString(cursor.getColumnIndex("W_CTE-DURACION_CONTRATO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DURACION_CONTRATO")) : "" );
+            solicitud.put("W_CTE-TIPO_CREDITO",cursor.getString(cursor.getColumnIndex("W_CTE-TIPO_CREDITO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TIPO_CREDITO")) : "" );
+*/
             formList.add(solicitud);
         }
 
@@ -872,6 +878,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-IM_SHORT_TEXT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) : "" );
             solicitud.put("W_CTE-IM_TEXT_LINE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) : "" );
             solicitud.put("W_CTE-IM_NUM_AVISO",cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) : "" );
+
+            //CAMPOS NEUVOS DE NI Y PA PARA REALIZAR CONTRATOS O POLITICAS CON ESTA INFORMACION DENTRO DEL TEXTO FIRMABLE
+           /* solicitud.put("W_CTE-ESTADO_CIVIL",cursor.getString(cursor.getColumnIndex("W_CTE-ESTADO_CIVIL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ESTADO_CIVIL")) : "" );
+            solicitud.put("W_CTE-ACTIVIDAD_ECONOMICA",cursor.getString(cursor.getColumnIndex("W_CTE-ACTIVIDAD_ECONOMICA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ACTIVIDAD_ECONOMICA")) : "" );
+            solicitud.put("W_CTE-DURACION_CONTRATO",cursor.getString(cursor.getColumnIndex("W_CTE-DURACION_CONTRATO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DURACION_CONTRATO")) : "" );
+            solicitud.put("W_CTE-TIPO_CREDITO",cursor.getString(cursor.getColumnIndex("W_CTE-TIPO_CREDITO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TIPO_CREDITO")) : "" );
+*/
             formList.add(solicitud);
         }
         cursor.close();
@@ -1248,11 +1261,15 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     " EX_T_RUTAS_VP AS b ON (trim(a.zone1) = trim(b.zroute_rep) OR trim(a.zone1) = trim(b.zroute_pr))";
         }
         //Cadena = cat_zesdvt_00561, Keyaccount = cat_ztmdcmc_00038t
-        if(tabla.equals("cat_zesdvt_00561") && PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F443")){
+        if(tabla.equals("cat_zesdvt_00561") /*&& PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F443")*/){
             filtros.append(" AND trim(hkunnr) = '"+VariablesGlobales.getCadenaRM()+"' AND zzkeyacc = 'CA002'");
         }
-        if(tabla.equals("cat_ztmdcmc_00038t") && PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F443")){
+        if(tabla.equals("cat_ztmdcmc_00038t") /*&& PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F443")*/){
             filtros.append(" AND trim(zkeyacc) = 'CA002'");
+        }
+        //TODO si entran formales D y ABC al app se debe cambiar esta manera de filtrar
+        if(tabla.equals("cat_knvv")){
+            filtros.append(" AND zterm like '%L%'");
         }
         //Crear Filtros Automaticos segun el pais
 
@@ -1339,7 +1356,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     "        LEFT JOIN mant_usuarios m ON (upper(trim(m.id_usuario)) = upper(trim(a.id_aprobador)))" +
                     "        where id_pais = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' and fxp.orden = 1 and id_agencia = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK","")+"' and Estado = 1";
         }
-
         //Crear Filtros Automaticos segun el pais
 
         //Si existe BUKRS en la tabla del catalago vamos a filtros por Sociedad
@@ -2796,5 +2812,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return clase_riesgo;
+    }
+    public String getTipoCambio() {//vkorg,ktokd,name1,street,house_num1,suppl1,suppl3,city1,land1
+        String valor = "";
+        try {
+            Cursor cursor = mDataBase.rawQuery("select tipo_cambio FROM tipoCambio WHERE pkPais = ?", new String[]{PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "")});
+            if (cursor.moveToNext()) {
+                valor = cursor.getString(cursor.getColumnIndex("tipo_cambio"));
+            }
+            cursor.close();
+        }catch (Exception e){
+            Toasty.error(mContext,"Error al obtener el tipo de cambio a dolares.").show();
+            return "0.00";
+        }
+        return valor;
     }
 }

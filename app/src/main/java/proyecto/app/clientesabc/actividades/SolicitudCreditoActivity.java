@@ -79,6 +79,8 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.tomergoldst.tooltips.ToolTip;
+import com.tomergoldst.tooltips.ToolTipsManager;
 import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
@@ -123,6 +125,7 @@ import proyecto.app.clientesabc.clases.AdjuntoServidor;
 import proyecto.app.clientesabc.clases.ConsultaCreditoClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.FileHelper;
+import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
@@ -165,7 +168,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     static  ArrayList<HashMap<String, String>> solicitudSeleccionadaOld = new ArrayList<>();
     private static String GUID;
     private ProgressBar progressBar;
-    static boolean firma;
+    public static boolean firma;
     static boolean modificable;
     static boolean correoValidado;
     static boolean cedulaValidada;
@@ -216,6 +219,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private static JsonArray credito;
     private static JsonArray creditoCadena;
 
+    private static String tipoCambio;
+
     @SuppressLint("ResourceType")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -243,6 +248,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
         getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.botella_coca_header_der,null));
 
+        tipoCambio = mDBHelper.getTipoCambio();
         cliente = null;
         if(idSolicitud != null){
             setTitle("Solicitud");
@@ -440,6 +446,16 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             numErrores++;
                             mensajeError += "- El cliente debe firmar la aceptacion de condiciones de crédito!\n";
                         }
+                        if(!firma && (getSupportActionBar().getSubtitle().toString().toLowerCase().contains("apertura") || getSupportActionBar().getSubtitle().toString().toLowerCase().contains("modificacion"))
+                                && (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","").equals("F445"))){
+                            numErrores++;
+                            mensajeError += "- El cliente debe firmar el pagare!\n";
+                        }
+                        if(((CheckBox) mapeoCamposDinamicos.get("aceptacion_contrato")) != null && ((CheckBox) mapeoCamposDinamicos.get("aceptacion_contrato")).getVisibility() == View.VISIBLE && !((CheckBox) mapeoCamposDinamicos.get("aceptacion_contrato")).isChecked() && (getSupportActionBar().getSubtitle().toString().toLowerCase().contains("apertura") || getSupportActionBar().getSubtitle().toString().toLowerCase().contains("modificacion"))
+                                && (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","").equals("F445"))){
+                            numErrores++;
+                            mensajeError += "- El cliente debe firmar el contrato!\n";
+                        }
                         if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-KLIMK")).getText().toString().replace("0","").replace(".","").isEmpty()){
                             numErrores++;
                             mensajeError += "- Límite de créditos debe ser mayor a 0.00!\n";
@@ -608,258 +624,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case 1:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        ContentResolver cR = getContentResolver();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        File file = null;
-                        try {
-                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
-                            if (!file.exists()) {
-                                file.createNewFile();
-                            }
-                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
-                            fos.write(inputData);
-                            fos.close();
-                        } catch (Exception e) {
-                            Log.e("thumbnail", e.getMessage());
-                        }
-                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
-
-
-                        BitmapFactory.Options options = new BitmapFactory.Options();
-                        options.inJustDecodeBounds = true;
-
-                        BitmapFactory.decodeFile(file2.getAbsolutePath(), options);
-                        //int imageHeight = options.outHeight;
-                        //int imageWidth = options.outWidth;
-                        /*CROP*/
-                        try {
-                            // call the standard crop action intent (the user device may not
-                            // support it)
-                            Intent cropIntent = new Intent("com.android.camera.action.CROP");
-                            // indicate image type and Uri
-                            cropIntent.setDataAndType(mPhotoUri, "image/*");
-                            // set crop properties
-                            cropIntent.putExtra("crop", true);
-                            cropIntent.putExtra("scale", true);
-                            // indicate aspect of desired crop
-                            cropIntent.putExtra("aspectX", 1);
-                            cropIntent.putExtra("aspectY", 1.33);
-                            // indicate output X and Y
-                            //cropIntent.putExtra("outputX", imageWidth);
-                            //cropIntent.putExtra("outputY", imageHeight);
-                            // retrieve data on return
-                            cropIntent.putExtra("return-data", true);
-                            // start the activity - we handle returning in onActivityResult
-                            startActivityForResult(cropIntent, 200);
-                        }
-                        // respond to users whose devices do not support the crop action
-                        catch (ActivityNotFoundException anfe) {
-                            Toasty.warning(this, "Este dispositivo no puede recortar la imagen!", Toasty.LENGTH_SHORT).show();
-                        }
-                        /*END CROP*/
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(), "Error al asociar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-                }
-                break;
-            case 2:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        ContentResolver cR = getContentResolver();
-                        MimeTypeMap mime = MimeTypeMap.getSingleton();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        mDBHelper.addAdjuntoSolicitud(type, name, inputData);
-                        Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(), "Error al adjuntar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-
-                }
-                break;
-            case 100:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    //Agregar al tableView del UI
-                    try {
-                        byte[] inputData = getBytes(iStream);
-                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, data.getType(), data.getExtras().getString("ImageName"), inputData);
-
-                        adjuntosSolicitud.add(nuevoAdjunto);
-                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
-                        tb_adjuntos.setDataAdapter(stda);
-
-                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudCreditoActivity.this);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    CheckBox aceptacion_credito = (CheckBox) mapeoCamposDinamicos.get("aceptacion_credito");
-                    aceptacion_credito.setChecked(true);
-                    firma = true;
-                    aceptacion_credito.setEnabled(false);
-                    Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
-                }
-                break;
-            case 110:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    //Agregar al tableView del UI
-                    try {
-                        byte[] inputData = getBytes(iStream);
-                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, data.getType(), data.getExtras().getString("ImageName"), inputData);
-
-                        adjuntosSolicitud.add(nuevoAdjunto);
-                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
-                        tb_adjuntos.setDataAdapter(stda);
-
-                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudCreditoActivity.this);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    CheckBox aceptacion_credito = (CheckBox) mapeoCamposDinamicos.get("aceptacion_contrato");
-                    aceptacion_credito.setChecked(true);
-                    firma = true;
-                    aceptacion_credito.setEnabled(false);
-                    Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
-                }
-                break;
-            case 200:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                        Toasty.error(getBaseContext(), "Imagen seleccionada ya no existe en el dispositivo!").show();
-                        return;
-                    }
-                    try {
-                        ContentResolver cR = getContentResolver();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        File file = null;
-                        try {
-                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
-                            if (!file.exists()) {
-                                file.createNewFile();
-                            }
-                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
-                            fos.write(inputData);
-                            fos.close();
-                        } catch (Exception e) {
-                            Log.e("thumbnail", e.getMessage());
-                        }
-                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
-                        file2 = FileHelper.saveBitmapToFile(file2);
-
-                        byte[] bytesArray = new byte[(int) file2.length()];
-
-                        FileInputStream fis = new FileInputStream(file2);
-                        fis.read(bytesArray); //read file into bytes[]
-                        fis.close();
-                        file2.delete();
-                        //Agregar al tableView del UI
-                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
-
-                        adjuntosSolicitud.add(nuevoAdjunto);
-                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
-                        tb_adjuntos.setDataAdapter(stda);
-
-                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudCreditoActivity.this);
-
-                        //Intento de borrar el archivo que se guarda automatico en Pictures
-                        File file3 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//Pictures//" + name);
-                        file3.delete();
-
-                        Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(), "Error al asociar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-                }
-                break;
-        }
+        WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudCreditoActivity.this);
+        ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
     }
 
 
@@ -1050,7 +816,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     );
 
                     CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
-                    if (!campos.get(i).get("modificacion").trim().equals("1")) {
+                    if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7")) {
                         listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
                     }
@@ -1101,7 +867,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
                     CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
 
-                    if (!campos.get(i).get("modificacion").trim().equals("1")) {
+                    if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7")) {
                         listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
                     }
@@ -1134,7 +900,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     fila.addView(checkbox_old);
                     fila.addView(checkbox);
                     ll.addView(fila);
-                    if (!campos.get(i).get("modificacion").trim().equals("1")) {
+                    if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7")) {
                         listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
                     }
@@ -1172,6 +938,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
                     final TextView label = new TextView(getContext());
                     label.setText(campos.get(i).get("descr"));
+                    label.setTag(campos.get(i).get("campo"));
                     label.setTextAppearance(R.style.AppTheme_TextFloatLabelAppearance);
                     TableRow.LayoutParams lpl = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
                     lpl.setMargins(35, 5, 0, 0);
@@ -1239,7 +1006,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     combo.setAdapter(dataAdapter);
 
                     combo.setSelection(selectedIndex);
-                    if(campos.get(i).get("modificacion").trim().equals("1")){
+                    if(campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7")){
                         combo.setSelection(selectedIndexOld);
                     }
 
@@ -1481,11 +1248,15 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         }
                     }
                     //Campos de encabezado deben salir todos como deshabilitados en valor viejo
-                    if(campos.get(i).get("modificacion").trim().equals("1") && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7")) && campos.get(i).get("sup").trim().length() == 0){
                         combo.setEnabled(false);
                         combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_old,null));
                         listaCamposDinamicosEnca.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicosEnca.put(campos.get(i).get("campo").trim(),combo);
+                        if(campos.get(i).get("modificacion").trim().equals("7")) {
+                            label.setVisibility(View.GONE);
+                            combo.setVisibility(View.GONE);
+                        }
                     }
 
                     final Spinner combo_old = new Spinner(getContext(), Spinner.MODE_DROPDOWN);
@@ -1610,7 +1381,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
 
                     if(!listaCamposDinamicos.contains(campos.get(i).get("campo").trim())) {
-                        if (!campos.get(i).get("modificacion").trim().equals("1")) {
+                        if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7")) {
                             listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                             mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), combo);
                         }
@@ -1692,8 +1463,10 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             combo.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
                         }
                         if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                            label.setVisibility(View.GONE);
                             combo.setVisibility(View.GONE);
                         }else if(configExcepcion.get("sup") != null){
+                            label.setVisibility(View.VISIBLE);
                             combo.setVisibility(View.VISIBLE);
                         }
                     }
@@ -1723,10 +1496,12 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     // Atributos del Texto a crear
                     //TableLayout.LayoutParams lp =  new TableLayout.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT,0.5f);
                     TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f);
-                    lp.setMargins(0, 15, 0, 15);
-
+                    if(campos.get(i).get("modificacion").trim().equals("2"))
+                        lp.setMargins(0, 15, 75, 15);
+                    else
+                        lp.setMargins(0, 15, 0, 15);
                     et.setLayoutParams(lp);
-                    et.setPadding(20, 5, 20, 5);
+                    et.setPadding(15, 5, 0, 5);
                     Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
                     et.setBackground(d);
                     if(campos.get(i).get("vis").trim().length() > 0){
@@ -1780,7 +1555,17 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         btnAyuda.setLayoutParams(btnlp);
                         btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                         btnAyuda.setForegroundGravity(GRAVITY_CENTER);
-                        TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                        //TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                        ToolTipsManager mToolTipsManager = new ToolTipsManager();
+                        ToolTip.Builder builder = new ToolTip.Builder(getContext(), et, (RelativeLayout)_ll.getParent() ,  campos.get(i).get("tooltip").toString(), ToolTip.POSITION_ABOVE);
+                        builder.setAlign(ToolTip.ALIGN_LEFT);
+                        //builder.setBackgroundColor(getResources().getColor(R.color.gray,null));
+                        builder.setGravity(ToolTip.GRAVITY_LEFT);
+                        builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+                        btnAyuda.setOnLongClickListener((View.OnLongClickListener) view -> {
+                            mToolTipsManager.show(builder.build());
+                            return true;
+                        });
                     }
                     //Le cae encima al valor default por el de la solicitud seleccionada
                     if(solicitudSeleccionada.size() > 0){
@@ -1789,7 +1574,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             et.setEnabled(false);
                             et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled,null));
                         }
-                        if(campos.get(i).get("modificacion").trim().equals("1") && solicitudSeleccionadaOld.size()  > 0){
+                        if((campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7")) && solicitudSeleccionadaOld.size()  > 0){
                             et.setText(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim());
                         }
                     }
@@ -1813,11 +1598,15 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         }
                     }
                     //Campos de encabezado deben salir todos como deshabilitados en valor viejo
-                    if(campos.get(i).get("modificacion").trim().equals("1") && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7"))  && campos.get(i).get("sup").trim().length() == 0){
                         et.setEnabled(false);
                         et.setBackground(getResources().getDrawable(R.drawable.textbackground_old,null));
                         listaCamposDinamicosEnca.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicosEnca.put(campos.get(i).get("campo").trim(),et);
+                        if(campos.get(i).get("modificacion").trim().equals("7")) {
+                            label.setVisibility(View.GONE);
+                            et.setVisibility(View.GONE);
+                        }
                     }
 
                     final TextInputLayout label_old = new TextInputLayout(Objects.requireNonNull(getContext()));
@@ -1835,20 +1624,20 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         TableRow.LayoutParams lp_old = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f);
                         lp_old.setMargins(0, 15, 0, 15);
                         et_old.setLayoutParams(lp_old);
-                        et_old.setPadding(20, 5, 20, 5);
+                        et_old.setPadding(15, 5, 15, 5);
                         et_old.setBackground(getResources().getDrawable(R.drawable.textbackground_old,null));
                         //if(cliente != null && cliente.get(campos.get(i).get("campo")) != null)
                             //et_old.setText(cliente.get(campos.get(i).get("campo").trim()).getAsString());
 
                         Button btnAyudai=null;
                         TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
-                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75);
+                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75,1f);
                             textolp2.setMargins(0,0,5,0);
                             //label.setLayoutParams(textolp2);
                             //label_old.setLayoutParams(textolp2);
                             btnAyudai = new Button(getContext());
                             btnAyudai.setBackground(getResources().getDrawable(R.drawable.icon_ver_viejo,null));
-                            btnlp2.setMargins(0,35,5,0);
+                            btnlp2.setMargins(0,0,5,0);
                             btnAyudai.setLayoutParams(btnlp2);
                             btnAyudai.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                             btnAyudai.setForegroundGravity(GRAVITY_CENTER);
@@ -1939,6 +1728,17 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-KLIMK")){
                         et.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                        //Cuando cambia el limite de credito de Nicaragua, debe validarse si es mayor a 175mil cordobas para activar el contrato grande.
+                        if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F445")) {
+                            et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                                @Override
+                                public void onFocusChange(View v, boolean hasFocus) {
+                                    if (!hasFocus) {
+                                        ValidarLimiteCredito(v, hasFocus, getActivity().findViewById(R.id.LinearLayoutMain));
+                                    }
+                                }
+                            });
+                        }
                     }
 
                     if(campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")){
@@ -2018,7 +1818,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             }
                         });
                     }
-                    if (!campos.get(i).get("modificacion").trim().equals("1")) {
+                    if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7")) {
                         listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), et);
                     }
@@ -2197,6 +1997,80 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     //Check Box para la aceptacion de las politicas de privacidad
                     final CheckBox checkboxC = new CheckBox(getContext());
                     checkboxC.setText("Firma Aceptación de Contrato");
+                    /*//Solo se activiran si el limite de credito e mayor a 175000 cordobas
+                    checkboxC.setVisibility(View.GONE);
+                    ((Spinner)mapeoCamposDinamicos.get("W_CTE-TIPO_CREDITO")).setVisibility(View.GONE);
+                    ((Spinner)mapeoCamposDinamicos.get("W_CTE-DURACION_CONTRATO")).setVisibility(View.GONE);*/
+
+                    if (solicitudSeleccionada.size() > 0) {
+                        checkboxC.setChecked(true);
+                        checkboxC.setEnabled(false);
+                        if (!modificable) {
+                            checkboxC.setEnabled(false);
+                        }
+                    }
+                    LinearLayout.LayoutParams clpC = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+                    checkboxC.setLayoutParams(clpC);
+                    checkboxC.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_privacy,null), null);
+                    ll.addView(checkboxC);
+                    checkboxC.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            AceptacionContrato(v);
+                            if(((CheckBox) v).isChecked())
+                                ((CheckBox) v).setChecked(false);
+                            else
+                                ((CheckBox) v).setChecked(true);
+                        }
+                    });
+                    CompoundButtonCompat.setButtonTintList(checkboxC,colorStateList);
+                    mapeoCamposDinamicos.put("aceptacion_contrato",checkboxC);
+                }
+                //Firmas PA
+                if( (tipoSolicitud.equals("13") || tipoSolicitud.equals("14") || tipoSolicitud.equals("15") || tipoSolicitud.equals("16") || tipoSolicitud.equals("17") || tipoSolicitud.equals("18"))
+                        && (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F451")) ) {
+                    //Check Box para la aceptacion de las politicas de privacidad
+                    final CheckBox checkbox = new CheckBox(getContext());
+                    checkbox.setText("Firma Letra de Cambio");
+                    if (solicitudSeleccionada.size() > 0) {
+                        checkbox.setChecked(true);
+                        checkbox.setEnabled(false);
+                        if (!modificable) {
+                            checkbox.setEnabled(false);
+                        }
+                    }
+                    LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+                    checkbox.setLayoutParams(clp);
+                    checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_privacy,null), null);
+                    ll.addView(checkbox);
+                    checkbox.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Aceptacion(v);
+                            if(((CheckBox) v).isChecked())
+                                ((CheckBox) v).setChecked(false);
+                            else
+                                ((CheckBox) v).setChecked(true);
+                        }
+                    });
+
+                    ColorStateList colorStateList = new ColorStateList(
+                            new int[][]{
+                                    new int[]{-android.R.attr.state_checked}, // unchecked
+                                    new int[]{android.R.attr.state_checked} , // checked
+                            },
+                            new int[]{
+                                    Color.parseColor("#110000"),
+                                    Color.parseColor("#00aa00"),
+                            }
+                    );
+
+                    CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
+                    mapeoCamposDinamicos.put("aceptacion_credito",checkbox);
+                    //Para verificacion apc extenso de PA
+                    //Check Box para la aceptacion de las politicas de privacidad
+                    final CheckBox checkboxC = new CheckBox(getContext());
+                    checkboxC.setText("Firma Verificación APC");
                     if (solicitudSeleccionada.size() > 0) {
                         checkboxC.setChecked(true);
                         checkboxC.setEnabled(false);
@@ -2236,24 +2110,114 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 String actividadEconomica = "";
                 String duracionContrato = "";
                 String tipoCredito = "";
-                if(((TextView) mapeoCamposDinamicos.get("W_CTE-KLIMK")) != null)
+                String location = "";
+                String mensajeError = "";
+                String indicadorFirma = "Credito";
+
+                if (((TextView) mapeoCamposDinamicos.get("W_CTE-KLIMK")) != null)
                     montoCredito = ((TextView) mapeoCamposDinamicos.get("W_CTE-KLIMK")).getText().toString();
-                if(((Spinner) mapeoCamposDinamicos.get("W_CTE-ZTERM")) != null)
+                if (((Spinner) mapeoCamposDinamicos.get("W_CTE-ZTERM")) != null)
                     plazoCredito = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZTERM")).getSelectedItem()).getId().substring(2, 4);
-                if(((TextView) mapeoCamposDinamicos.get("W_CTE-NAME1")) != null && ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")) != null)
-                    name12 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME1")).getText().toString().trim() + ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")).getText().toString().trim();
-                if(((TextView) mapeoCamposDinamicos.get("W_CTE-NAME3")) != null && ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null)
-                    name34 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME3")).getText().toString().trim() + ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
-                if(((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")) != null)
-                    cedula = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-STCD1")).getText().toString();
-                if(((TextView) mapeoCamposDinamicos.get("W_CTE-ESTADO_CIVIL")) != null)
-                    estadoCivil = ((TextView) mapeoCamposDinamicos.get("W_CTE-ESTADO_CIVIL")).getText().toString();
-                if(((TextView) mapeoCamposDinamicos.get("W_CTE-ACTIVIDAD_ECONOMICA")) != null)
-                    actividadEconomica = ((TextView) mapeoCamposDinamicos.get("W_CTE-ACTIVIDAD_ECONOMICA")).getText().toString();
-                if(((TextView) mapeoCamposDinamicos.get("W_CTE-DURACION_CONTRATO")) != null)
-                    duracionContrato = ((TextView) mapeoCamposDinamicos.get("W_CTE-DURACION_CONTRATO")).getText().toString();
-                if(((TextView) mapeoCamposDinamicos.get("W_CTE-TIPO_CREDITO")) != null)
-                    tipoCredito = ((TextView) mapeoCamposDinamicos.get("W_CTE-TIPO_CREDITO")).getText().toString();
+
+                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F445")) {
+                    indicadorFirma = "Pagare";
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME1")) != null) {
+                        name12 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME1")).getText().toString().trim();
+                        if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")) != null) {
+                            name12 += " "+((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")).getText().toString().trim();
+                        } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")) != null) {
+                            name12 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")).getText().toString().trim();
+                        }
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME1")) != null) {
+                        name12 = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME1")).getText().toString().trim();
+                        if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")) != null) {
+                            name12 += " "+((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")).getText().toString().trim();
+                        } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")) != null) {
+                            name12 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")).getText().toString().trim();
+                        }
+                    }
+
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
+                        name34 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")) != null) {
+                        name34 = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")).getText().toString().trim();
+                    }
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")) != null) {
+                        cedula = ((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")).getText().toString();
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-STCD1")) != null) {
+                        cedula = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-STCD1")).getText().toString();
+                    }
+                    if (((Spinner) mapeoCamposDinamicos.get("W_CTE-ESTADO_CIVIL")) != null) {
+                        estadoCivil = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicos.get("W_CTE-ESTADO_CIVIL")).getSelectedItem()).getId();
+                    } else if (((Spinner) mapeoCamposDinamicosEnca.get("W_CTE-ESTADO_CIVIL")) != null) {
+                        estadoCivil = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicosEnca.get("W_CTE-ESTADO_CIVIL")).getSelectedItem()).getId();
+                    }
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-ACTIVIDAD_ECONOMICA")) != null) {
+                        actividadEconomica = ((TextView) mapeoCamposDinamicos.get("W_CTE-ACTIVIDAD_ECONOMICA")).getText().toString();
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-ACTIVIDAD_ECONOMICA")) != null) {
+                        actividadEconomica = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-ACTIVIDAD_ECONOMICA")).getText().toString();
+                    }
+
+                    if (montoCredito.replace("0", "").replace(".", "").trim().equals("")) {
+                        mensajeError += "El límite de crédito no es válido para realizar la firma.\n";
+                    }
+                    if (plazoCredito.trim().equals("")) {
+                        mensajeError += "Debe seleccionar el plazo de crédito antes de firmar.\n";
+                    }
+                    if (name12.trim().equals("")) {
+                        mensajeError += "No se encontró el nombre de fantasia para la firma.\n";
+                    }
+                    if (name34.trim().equals("")) {
+                        mensajeError += "No se encontró la razon social para el pagare.\n";
+                    }
+                    if (cedula.trim().equals("")) {
+                        mensajeError += "No se encontró la cedula para el pagare.\n";
+                    }
+                    if (estadoCivil.trim().equals("")) {
+                        mensajeError += "No se seleccionó el estado civil para el pagare.\n";
+                    }
+                    if (actividadEconomica.trim().equals("")) {
+                        mensajeError += "No se digitó la actividad economica para el pagare.\n";
+                    }
+
+                    if (mensajeError.trim().length() > 0) {
+                        Toasty.warning(getContext(), mensajeError).show();
+                        return;
+                    }
+                }
+                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F451")) {
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME1")) != null) {
+                        name12 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME1")).getText().toString().trim();
+                        if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")) != null) {
+                            name12 += " "+((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")).getText().toString().trim();
+                        } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")) != null) {
+                            name12 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")).getText().toString().trim();
+                        }
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME1")) != null) {
+                        name12 = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME1")).getText().toString().trim();
+                        if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")) != null) {
+                            name12 += " "+((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")).getText().toString().trim();
+                        } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")) != null) {
+                            name12 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")).getText().toString().trim();
+                        }
+                    }
+
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
+                        name34 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")) != null) {
+                        name34 = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")).getText().toString().trim();
+                    }
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")) != null) {
+                        cedula = ((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")).getText().toString();
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-STCD1")) != null) {
+                        cedula = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-STCD1")).getText().toString();
+                    }
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-LOCATION")) != null) {
+                        location = ((TextView) mapeoCamposDinamicos.get("W_CTE-LOCATION")).getText().toString().trim();
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-LOCATION")) != null) {
+                        location = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-LOCATION")).getText().toString().trim();
+                    }
+                }
 
                 Intent intent = new Intent(getContext(),FirmaCreditoActivity.class);
                 intent.putExtra("montoCredito",montoCredito);
@@ -2265,7 +2229,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 intent.putExtra("actividadEconomica",actividadEconomica);
                 intent.putExtra("duracionContrato",duracionContrato);
                 intent.putExtra("tipoCredito",tipoCredito);
-                intent.putExtra("indicadorFirma","pagare");
+                intent.putExtra("location",location);
+                intent.putExtra("indicadorFirma",indicadorFirma);
+                intent.putExtra("tipoCambio",tipoCambio);
 
                 getActivity().startActivityForResult(intent,100);
             }catch (Exception e){
@@ -2285,24 +2251,87 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             String actividadEconomica = "";
             String duracionContrato = "";
             String tipoCredito = "";
-            if(((TextView) mapeoCamposDinamicos.get("W_CTE-KLIMK")) != null)
-                montoCredito = ((TextView) mapeoCamposDinamicos.get("W_CTE-KLIMK")).getText().toString();
-            if(((Spinner) mapeoCamposDinamicos.get("W_CTE-ZTERM")) != null)
-                plazoCredito = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZTERM")).getSelectedItem()).getId().substring(2, 4);
-            if(((TextView) mapeoCamposDinamicos.get("W_CTE-NAME1")) != null && ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")) != null)
-                name12 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME1")).getText().toString().trim() + ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")).getText().toString().trim();
-            if(((TextView) mapeoCamposDinamicos.get("W_CTE-NAME3")) != null && ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null)
-                name34 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME3")).getText().toString().trim() + ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
-            if(((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")) != null)
-                cedula = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-STCD1")).getText().toString();
-            if(((TextView) mapeoCamposDinamicos.get("W_CTE-ESTADO_CIVIL")) != null)
-                estadoCivil = ((TextView) mapeoCamposDinamicos.get("W_CTE-ESTADO_CIVIL")).getText().toString();
-            if(((TextView) mapeoCamposDinamicos.get("W_CTE-ACTIVIDAD_ECONOMICA")) != null)
-                actividadEconomica = ((TextView) mapeoCamposDinamicos.get("W_CTE-ACTIVIDAD_ECONOMICA")).getText().toString();
-            if(((TextView) mapeoCamposDinamicos.get("W_CTE-DURACION_CONTRATO")) != null)
-                duracionContrato = ((TextView) mapeoCamposDinamicos.get("W_CTE-DURACION_CONTRATO")).getText().toString();
-            if(((TextView) mapeoCamposDinamicos.get("W_CTE-TIPO_CREDITO")) != null)
-                tipoCredito = ((TextView) mapeoCamposDinamicos.get("W_CTE-TIPO_CREDITO")).getText().toString();
+            String mensajeError="";
+            if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F445")) {
+                if (((TextView) mapeoCamposDinamicos.get("W_CTE-KLIMK")) != null)
+                    montoCredito = ((TextView) mapeoCamposDinamicos.get("W_CTE-KLIMK")).getText().toString();
+                if (((Spinner) mapeoCamposDinamicos.get("W_CTE-ZTERM")) != null)
+                    plazoCredito = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZTERM")).getSelectedItem()).getId().substring(2, 4);
+
+                if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME1")) != null) {
+                    name12 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME1")).getText().toString().trim();
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")) != null) {
+                        name12 += " "+((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")).getText().toString().trim();
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")) != null) {
+                        name12 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")).getText().toString().trim();
+                    }
+                } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME1")) != null) {
+                    name12 = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME1")).getText().toString().trim();
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")) != null) {
+                        name12 += " "+((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")).getText().toString().trim();
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")) != null) {
+                        name12 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")).getText().toString().trim();
+                    }
+                }
+
+                if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
+                    name34 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
+                } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")) != null) {
+                    name34 = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")).getText().toString().trim();
+                }
+                if (((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")) != null) {
+                    cedula = ((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")).getText().toString();
+                } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-STCD1")) != null) {
+                    cedula = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-STCD1")).getText().toString();
+                }
+                if (((Spinner) mapeoCamposDinamicos.get("W_CTE-ESTADO_CIVIL")) != null) {
+                    estadoCivil = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicos.get("W_CTE-ESTADO_CIVIL")).getSelectedItem()).getId();
+                } else if (((Spinner) mapeoCamposDinamicosEnca.get("W_CTE-ESTADO_CIVIL")) != null) {
+                    estadoCivil = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicosEnca.get("W_CTE-ESTADO_CIVIL")).getSelectedItem()).getId();
+                }
+                if (((TextView) mapeoCamposDinamicos.get("W_CTE-ACTIVIDAD_ECONOMICA")) != null) {
+                    actividadEconomica = ((TextView) mapeoCamposDinamicos.get("W_CTE-ACTIVIDAD_ECONOMICA")).getText().toString();
+                } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-ACTIVIDAD_ECONOMICA")) != null) {
+                    actividadEconomica = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-ACTIVIDAD_ECONOMICA")).getText().toString();
+                }
+                if (((Spinner) mapeoCamposDinamicos.get("W_CTE-DURACION_CONTRATO")) != null) {
+                    duracionContrato = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicos.get("W_CTE-DURACION_CONTRATO")).getSelectedItem()).getId();
+                } else if (((Spinner) mapeoCamposDinamicosEnca.get("W_CTE-DURACION_CONTRATO")) != null) {
+                    duracionContrato = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicosEnca.get("W_CTE-DURACION_CONTRATO")).getSelectedItem()).getId();
+                }
+                if (((Spinner) mapeoCamposDinamicos.get("W_CTE-TIPO_CREDITO")) != null) {
+                    tipoCredito = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicos.get("W_CTE-TIPO_CREDITO")).getSelectedItem()).getId();
+                } else if (((Spinner) mapeoCamposDinamicosEnca.get("W_CTE-TIPO_CREDITO")) != null) {
+                    tipoCredito = ((OpcionSpinner) ((Spinner) mapeoCamposDinamicosEnca.get("W_CTE-TIPO_CREDITO")).getSelectedItem()).getId();
+                }
+
+                if (montoCredito.replace("0", "").replace(".", "").trim().equals("")) {
+                    mensajeError += "El límite de crédito no es válido para realizar la firma.\n";
+                }
+                if (plazoCredito.trim().equals("")) {
+                    mensajeError += "Debe seleccionar el plazo de crédito antes de firmar.\n";
+                }
+                if (name12.trim().equals("")) {
+                    mensajeError += "No se encontró el nombre de fantasia para la firma.\n";
+                }
+                if (name34.trim().equals("")) {
+                    mensajeError += "No se encontró la razon social para el contrato.\n";
+                }
+                if (cedula.trim().equals("")) {
+                    mensajeError += "No se encontró la cedula para el contrato.\n";
+                }
+                if (duracionContrato.trim().equals("")) {
+                    mensajeError += "No se seleccionó la duracion para el contrato.\n";
+                }
+                if (tipoCredito.trim().equals("")) {
+                    mensajeError += "No se seleccionó el tipo de crédito para el contrato.\n";
+                }
+
+                if (mensajeError.trim().length() > 0) {
+                    Toasty.warning(getContext(), mensajeError).show();
+                    return;
+                }
+            }
 
             Intent intent = new Intent(getContext(),FirmaCreditoActivity.class);
             intent.putExtra("montoCredito",montoCredito);
@@ -2314,7 +2343,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             intent.putExtra("actividadEconomica",actividadEconomica);
             intent.putExtra("duracionContrato",duracionContrato);
             intent.putExtra("tipoCredito",tipoCredito);
-            intent.putExtra("indicadorFirma","contrato");
+            intent.putExtra("indicadorFirma","Contrato");
+            intent.putExtra("tipoCambio",tipoCambio);
 
             getActivity().startActivityForResult(intent,110);
         }
@@ -2959,7 +2989,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
                     //Horizontal View de adjuntos
                     HorizontalScrollView hsv = new HorizontalScrollView(getContext());
-                    MostrarGaleriaAdjuntosHorizontal(hsv, getContext(), getActivity());
+                    ManejadorAdjuntos.MostrarGaleriaAdjuntosHorizontal(hsv, getContext(), getActivity(),adjuntosSolicitud,modificable, firma, tb_adjuntos, mapeoCamposDinamicos);
 
                     rl.addView(hsv);
                     ll.addView(rl);
@@ -2971,87 +3001,26 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }
 
     }
-
-    public static void MostrarGaleriaAdjuntosHorizontal(HorizontalScrollView hsv, final Context context, final Activity activity) {
-        hsv.removeAllViews();
-        hsv.setBackground(context.getResources().getDrawable(R.drawable.squared_textbackground,null));
-        hsv.setLayoutParams(new RelativeLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
-        LinearLayout myGallery = new LinearLayout(context);
-        myGallery.setLayoutParams(new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
-        myGallery.setPadding(10,10,10,10);
-        for(int x=0; x < adjuntosSolicitud.size(); x++){
-            LinearLayout layout = new LinearLayout(context);
-            layout.setLayoutParams(new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
-            layout.setGravity(Gravity.CENTER);
-            //layout.setPadding(5,0,5,0);
-            final ImageView adjunto_image = new ImageView(context);
-            adjunto_image.setLayoutParams(new LinearLayout.LayoutParams(150, 150));
-            adjunto_image.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            adjunto_image.setPadding(5,5,5,5);
-
-            final String nombre_adjunto = adjuntosSolicitud.get(x).getName();
-            if(adjuntosSolicitud.get(x).getImage() != null) {
-                byte[] image = adjuntosSolicitud.get(x).getImage();
-                //_bitmap.compress(Bitmap.CompressFormat.PNG, 50, image);
-                BitmapFactory.Options o = new BitmapFactory.Options();
-                o.inSampleSize = 1;
-                if (image.length > 200000)
-                    o.inSampleSize = 2;
-                if (image.length > 400000)
-                    o.inSampleSize = 4;
-                if (image.length > 500000)
-                    o.inSampleSize = 8;
-                Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length, o);
-
-                adjunto_image.setImageBitmap(imagen);
-                adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
-
-                final int finalX = x;
-                adjunto_image.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
-                        //mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
-                    }
-                });
-                if (modificable) {
-                    adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View v) {
-                            DialogHandler appdialog = new DialogHandler();
-                            appdialog.Confirm((Activity) context, "Confirmación Borrado", "Esta seguro que quiere eliminar el archivo adjunto #" + finalX + "?", "Cancelar", "Eliminar", new SolicitudCreditoActivity.EliminarAdjunto(context, activity, finalX));
-                            return false;
-                        }
-                    });
-                }
-            }else{
-                adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
-                adjunto_image.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.icon_file));
-                final int finalX = x;
-                adjunto_image.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
-                    }
-                });
-            }
-            layout.addView(adjunto_image);
-            myGallery.addView(layout);
+    private static void ValidarLimiteCredito(View v, boolean hasFocus, ViewGroup ll) {
+        double limite = Double.parseDouble(((TextView)v).getText().toString());
+        if(limite > 175000){
+            ((CheckBox)mapeoCamposDinamicos.get("aceptacion_contrato")).setVisibility(View.VISIBLE);
+            ((Spinner)mapeoCamposDinamicos.get("W_CTE-TIPO_CREDITO")).setVisibility(View.VISIBLE);
+            ((Spinner)mapeoCamposDinamicos.get("W_CTE-DURACION_CONTRATO")).setVisibility(View.VISIBLE);
+            ll.findViewWithTag("W_CTE-TIPO_CREDITO").setVisibility(View.VISIBLE);
+            ll.findViewWithTag("W_CTE-DURACION_CONTRATO").setVisibility(View.VISIBLE);
+            listaCamposObligatorios.add("W_CTE-DURACION_CONTRATO");
+            listaCamposObligatorios.add("W_CTE-TIPO_CREDITO");
+        }else{
+            ((CheckBox)mapeoCamposDinamicos.get("aceptacion_contrato")).setVisibility(View.GONE);
+            ((Spinner)mapeoCamposDinamicos.get("W_CTE-TIPO_CREDITO")).setVisibility(View.GONE);
+            ((Spinner)mapeoCamposDinamicos.get("W_CTE-DURACION_CONTRATO")).setVisibility(View.GONE);
+            ll.findViewWithTag("W_CTE-TIPO_CREDITO").setVisibility(View.GONE);
+            ll.findViewWithTag("W_CTE-DURACION_CONTRATO").setVisibility(View.GONE);
+            listaCamposObligatorios.remove("W_CTE-DURACION_CONTRATO");
+            listaCamposObligatorios.remove("W_CTE-TIPO_CREDITO");
         }
-        hsv.addView(myGallery);
     }
-    public byte[] getBytes(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
-        int bufferSize = 1024;
-        byte[] buffer = new byte[bufferSize];
-
-        int len;
-        while ((len = inputStream.read(buffer)) != -1) {
-            byteBuffer.write(buffer, 0, len);
-        }
-        return byteBuffer.toByteArray();
-    }
-
     //Pruebas para seccion de bloques
     public static void displayDialogMessage(Context context, String mensaje) {
         final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
@@ -3770,60 +3739,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }
     }
 
-    public static void mostrarAdjunto(Context context, Adjuntos adjunto) {
-        final Dialog d = new Dialog(context, R.style.MyAlertDialogThemeAttachment);
-        d.setContentView(R.layout.adjunto_layout_zoom);
-        ImageView adjunto_img = d.findViewById(R.id.imagen);
-        TextView adjunto_txt = d.findViewById(R.id.nombre);
-        final String nombre_adjunto = adjunto.getName();
-        byte[] image = adjunto.getImage();
-        BitmapFactory.Options o = new BitmapFactory.Options();
-        o.inSampleSize = 1;
-        if(image.length  > 200000)
-            o.inSampleSize = 2;
-        if(image.length  > 400000)
-            o.inSampleSize = 4;
-        if(image.length  > 500000)
-            o.inSampleSize = 8;
-        Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length);
-        adjunto_img.setImageBitmap(imagen);
-        adjunto_txt.setText(adjunto.getName());
-        //SHOW DIALOG
-        d.show();
-        Window window = d.getWindow();
-        if(window != null) {
-            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        }
-    }
-
-    public static void mostrarAdjuntoServidor(Context context, Activity activity, Adjuntos adjunto) {
-        final Dialog d = new Dialog(context, R.style.MyAlertDialogThemeAttachment);
-        d.setContentView(R.layout.adjunto_layout_zoom);
-        ImageView adjunto_img = d.findViewById(R.id.imagen);
-        TextView adjunto_txt = d.findViewById(R.id.nombre);
-        adjunto_txt.setText(adjunto.getName());
-        if(!adjunto.getName().toLowerCase().contains(".pdf")) {
-            //SHOW DIALOG
-            d.show();
-            Window window = d.getWindow();
-            if (window != null) {
-                window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            }
-        }
-        //Realizar la transmision de lo que se necesita (Db o txt)
-        WeakReference<Context> weakRefs = new WeakReference<Context>(context);
-        WeakReference<Activity> weakRefAs = new WeakReference<Activity>(activity);
-        //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-        AdjuntoServidor s = new AdjuntoServidor(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
-        if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
-            s.EnableWiFi();
-        }else{
-            s.DisableWiFi();
-        }
-        s.execute();
-
-    }
-
     private class ContactoClickListener implements TableDataClickListener<Contacto> {
         @Override
         public void onDataClicked(int rowIndex, Contacto seleccionado) {
@@ -4170,36 +4085,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height-alturaFilaTableView;
             Toasty.info(getBaseContext(), salida, Toast.LENGTH_SHORT).show();
             return true;
-        }
-    }
-
-    public static class EliminarAdjunto implements Runnable {
-        private Context context;
-        private Activity activity;
-        private int rowIndex;
-        public EliminarAdjunto(Context context, Activity activity, int rowIndex) {
-            this.context = context;
-            this.activity = activity;
-            this.rowIndex = rowIndex;
-        }
-        public void run() {
-            if(adjuntosSolicitud.get(rowIndex).getName().contains("AceptacionCredito")) {
-                CheckBox aceptacion_credito = (CheckBox) mapeoCamposDinamicos.get("aceptacion_credito");
-                aceptacion_credito.setChecked(false);
-                aceptacion_credito.setEnabled(true);
-                firma = false;
-            }
-            if(adjuntosSolicitud.get(rowIndex).getName().contains("AceptacionContrato")) {
-                CheckBox aceptacion_credito = (CheckBox) mapeoCamposDinamicos.get("aceptacion_credito");
-                aceptacion_credito.setChecked(false);
-                aceptacion_credito.setEnabled(true);
-                firma = false;
-            }
-            adjuntosSolicitud.remove(rowIndex);
-            tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(context, adjuntosSolicitud));
-            MostrarGaleriaAdjuntosHorizontal((HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos"),context, activity);
-
-            Toasty.info(context, "Se ha eliminado el adjunto!", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -4654,17 +4539,20 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         if(listaFinal.get(i).contains("DMBTR")){
                             Double mes = NumberFormat.getInstance(Locale.ENGLISH).parse(credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString().replace(",",".")).doubleValue();
                             valorsugerido += mes;
-                            tv.setText(String.format ("%,.2f", mes));
+                            tv.setText(String.format (java.util.Locale.US,"%,.2f", mes));
                         }
 
                     if(listaFinal.get(i).contains("KLIMK")){
                         Double limite = NumberFormat.getInstance(Locale.ENGLISH).parse(credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString().replace(",",".")).doubleValue();
                         tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaFinal.get(i).trim()));
-                        if(tv != null)
-                            tv.setText(String.format ("%.2f", limite));
+                        if(tv != null) {
+                            tv.setText(String.format(java.util.Locale.US, "%.2f", limite));
+                            ValidarLimiteCredito( tv,  false, activity.findViewById(R.id.LinearLayoutMain));
+                        }
                         tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaFinal.get(i).trim()));
                         if(tv != null)
-                            tv.setText(String.format ("%.2f", limite));
+                            tv.setText(String.format (java.util.Locale.US,"%.2f", limite));
+
                     }
                     //}
                 } catch (Exception e) {
@@ -4844,7 +4732,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         valorsugerido = ((valorsugerido / 3) / 4) * 2.5;
         MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-LIMSUG"));
         if(tv != null){
-            tv.setText(String.format ("%,.2f", valorsugerido));
+            tv.setText(String.format (java.util.Locale.US,"%,.2f", valorsugerido));
         }
 
         String tipo = "A";
@@ -5005,17 +4893,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }
     }
 
-    private String getFileName(ContentResolver resolver, Uri uri) {
-        Cursor returnCursor =
-                resolver.query(uri, null, null, null, null);
-        assert returnCursor != null;
-        int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-        returnCursor.moveToFirst();
-        String name = returnCursor.getString(nameIndex);
-        returnCursor.close();
-        return name;
-    }
-
     private static void Provincias(AdapterView<?> parent){
         final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
 
@@ -5085,7 +4962,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
         }
     }
-
     private static void Distritos(AdapterView<?> parent){
         Spinner provincia = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
         final OpcionSpinner opcionprovincia = (OpcionSpinner) provincia.getSelectedItem();
@@ -5191,7 +5067,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
         }
     }
-
     private static void DistritosOld(AdapterView<?> parent){
         Spinner provincia = (Spinner)mapeoCamposDinamicosOld.get("W_CTE-REGION");
         final OpcionSpinner opcionprovincia = (OpcionSpinner) provincia.getSelectedItem();
@@ -5332,6 +5207,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         Spinner hasta = (Spinner)mapeoCamposDinamicos.get(campo);
         hasta.setSelection(selection);
     }
+
     private static boolean ValidarCedula(View v, String tipoCedula){
         TextView texto = (TextView)v;
         String cedula = "";
@@ -5410,19 +5286,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             return false;
         }
         //Toasty.success(texto.getContext(),"Formato Coordenada X "+valor+" valido!").show();
-        return true;
-    }
-
-    private static boolean ValidarCliente(View v){
-        TextView texto = (TextView)v;
-        String coordenadaY = "^[-]?(([8-9]|[1][0-2])(\\.\\d{5,12}+)?)";
-        Pattern pattern = Pattern.compile(coordenadaY);
-        Matcher matcher = pattern.matcher(texto.getText().toString().trim());
-        if (!matcher.matches()) {
-            texto.setError("Formato Coordenada Y "+texto.getText().toString().trim()+" invalido!");
-            return false;
-        }
-        //Toasty.success(texto.getContext(),"Formato Coordenada Y "+valor+" valido!").show();
         return true;
     }
 

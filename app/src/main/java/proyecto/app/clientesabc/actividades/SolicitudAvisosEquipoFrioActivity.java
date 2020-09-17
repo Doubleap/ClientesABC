@@ -77,6 +77,8 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.tomergoldst.tooltips.ToolTip;
+import com.tomergoldst.tooltips.ToolTipsManager;
 import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
@@ -112,6 +114,7 @@ import proyecto.app.clientesabc.clases.AdjuntoServidor;
 import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.FileHelper;
+import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Comentario;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
@@ -148,7 +151,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     static  ArrayList<HashMap<String, String>> solicitudSeleccionadaOld = new ArrayList<>();
     private static String GUID;
     private ProgressBar progressBar;
-    static boolean firma;
+    public static boolean firma;
     static boolean modificable;
     static boolean correoValidado;
     static boolean cedulaValidada;
@@ -176,6 +179,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     private static JsonArray impuestos;
     private static JsonArray bancos;
     private static JsonArray visitas;
+    public static ManejadorAdjuntos manejadorAdjuntos;
 
     @SuppressLint("ResourceType")
     @Override
@@ -275,7 +279,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
                         try {
                             startActivityForResult(intent, 1);
-
                         } catch (ActivityNotFoundException e) {
                             Log.e("tag", getResources().getString(R.string.no_activity));
                         }
@@ -396,7 +399,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         comentarios = new ArrayList<>();
         //notificantesSolicitud = new ArrayList<Adjuntos>();
         adjuntosSolicitud_old = new ArrayList<>();
-
+        manejadorAdjuntos = new ManejadorAdjuntos();
     }
 
     @Override
@@ -428,229 +431,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case 1:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        ContentResolver cR = getContentResolver();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        File file = null;
-                        try {
-                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
-                            if (!file.exists()) {
-                                file.createNewFile();
-                            }
-                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
-                            fos.write(inputData);
-                            fos.close();
-                        } catch (Exception e) {
-                            Log.e("thumbnail", e.getMessage());
-                        }
-                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
-
-
-                        BitmapFactory.Options options = new BitmapFactory.Options();
-                        options.inJustDecodeBounds = true;
-
-                        BitmapFactory.decodeFile(file2.getAbsolutePath(), options);
-                        int imageHeight = options.outHeight;
-                        int imageWidth = options.outWidth;
-                        /*CROP*/
-                        try {
-                            // call the standard crop action intent (the user device may not
-                            // support it)
-                            Intent cropIntent = new Intent("com.android.camera.action.CROP");
-                            // indicate image type and Uri
-                            cropIntent.setDataAndType(mPhotoUri, "image/*");
-                            // set crop properties
-                            cropIntent.putExtra("crop", true);
-                            // indicate aspect of desired crop
-                            cropIntent.putExtra("aspectX", 1);
-                            cropIntent.putExtra("aspectY", 1.33);
-                            // indicate output X and Y
-                            //cropIntent.putExtra("outputX", imageWidth);
-                            //cropIntent.putExtra("outputY", imageHeight);
-                            // retrieve data on return
-                            cropIntent.putExtra("return-data", true);
-                            // start the activity - we handle returning in onActivityResult
-                            startActivityForResult(cropIntent, 200);
-                        }
-                        // respond to users whose devices do not support the crop action
-                        catch (ActivityNotFoundException anfe) {
-                            Toast toast = Toast
-                                    .makeText(this, "This device doesn't support the crop action!", Toast.LENGTH_SHORT);
-                            toast.show();
-                        }
-                        /*END CROP*/
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(), "Error al asociar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-                }
-                break;
-            case 2:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        ContentResolver cR = getContentResolver();
-                        MimeTypeMap mime = MimeTypeMap.getSingleton();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        mDBHelper.addAdjuntoSolicitud(type, name, inputData);
-                        Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(), "Error al adjuntar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-
-                }
-                break;
-            case 100:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    //Agregar al tableView del UI
-                    try {
-                        byte[] inputData = getBytes(iStream);
-                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, data.getType(), data.getExtras().getString("ImageName"), inputData);
-
-                        adjuntosSolicitud.add(nuevoAdjunto);
-                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
-                        tb_adjuntos.setDataAdapter(stda);
-
-                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudAvisosEquipoFrioActivity.this);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    CheckBox constancia = (CheckBox) mapeoCamposDinamicos.get("constancia");
-                    constancia.setChecked(true);
-                    firma = true;
-                    constancia.setEnabled(false);
-                    Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
-                }
-                break;
-            case 200:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        ContentResolver cR = getContentResolver();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        File file = null;
-                        try {
-                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
-                            if (!file.exists()) {
-                                file.createNewFile();
-                            }
-                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
-                            fos.write(inputData);
-                            fos.close();
-                        } catch (Exception e) {
-                            Log.e("thumbnail", e.getMessage());
-                        }
-                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
-                        file2 = FileHelper.saveBitmapToFile(file2);
-
-                        byte[] bytesArray = new byte[(int) file2.length()];
-
-                        FileInputStream fis = new FileInputStream(file2);
-                        fis.read(bytesArray); //read file into bytes[]
-                        fis.close();
-                        file2.delete();
-                        //Agregar al tableView del UI
-                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
-
-                        adjuntosSolicitud.add(nuevoAdjunto);
-                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
-                        tb_adjuntos.setDataAdapter(stda);
-
-                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudAvisosEquipoFrioActivity.this);
-
-                        //Intento de borrar el archivo que se guarda automatico en Pictures
-                        File file3 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//Pictures//" + name);
-                        file3.delete();
-
-                        Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(), "Error al asociar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-                }
-                break;
-        }
-    }
-
-    public byte[] getBytes(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
-        int bufferSize = 1024;
-        byte[] buffer = new byte[bufferSize];
-
-        int len;
-        while ((len = inputStream.read(buffer)) != -1) {
-            byteBuffer.write(buffer, 0, len);
-        }
-        return byteBuffer.toByteArray();
+        WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudAvisosEquipoFrioActivity.this);
+        ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
     }
 
     public static class ViewPagerAdapter extends FragmentPagerAdapter {
@@ -1299,7 +1081,17 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         btnAyuda.setLayoutParams(btnlp);
                         btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                         btnAyuda.setForegroundGravity(GRAVITY_CENTER);
-                        TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                        //TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                        ToolTipsManager mToolTipsManager = new ToolTipsManager();
+                        ToolTip.Builder builder = new ToolTip.Builder(getContext(), et, (RelativeLayout)_ll.getParent() ,  campos.get(i).get("tooltip").toString(), ToolTip.POSITION_ABOVE);
+                        builder.setAlign(ToolTip.ALIGN_LEFT);
+                        //builder.setBackgroundColor(getResources().getColor(R.color.gray,null));
+                        builder.setGravity(ToolTip.GRAVITY_LEFT);
+                        builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+                        btnAyuda.setOnLongClickListener((View.OnLongClickListener) view -> {
+                            mToolTipsManager.show(builder.build());
+                            return true;
+                        });
                     }
                     if (campos.get(i).get("dfaul").trim().length() > 0) {
                         et.setText(campos.get(i).get("dfaul").trim());
@@ -1682,8 +1474,24 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         }
 
         private void Aceptacion(View v) {
-            Intent intent = new Intent(getContext(),FirmaT4Activity.class);
-            getActivity().startActivityForResult(intent,100);
+            Intent intent;
+            switch (PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS","")){
+                case "F443":
+                    intent = new Intent(getContext(),FirmaT4Activity.class);
+                    getActivity().startActivityForResult(intent,100);
+                    break;
+                case "F445":
+                    intent = new Intent(getContext(),FirmaT4Activity.class);
+                    getActivity().startActivityForResult(intent,100);
+                    break;
+                case "F451":
+                    intent = new Intent(getContext(),FirmaT4Activity.class);
+                    getActivity().startActivityForResult(intent,100);
+                    break;
+                default:
+                    intent = new Intent(getContext(),FirmaT4Activity.class);
+                    getActivity().startActivityForResult(intent,100);
+            }
         }
 
         public void DesplegarBloque(DataBaseHelper db, View _ll, HashMap<String, String> campo) {
@@ -1791,7 +1599,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
                     //Horizontal View de adjuntos
                     HorizontalScrollView hsv = new HorizontalScrollView(getContext());
-                    MostrarGaleriaAdjuntosHorizontal(hsv, getContext(), getActivity());
+                    ManejadorAdjuntos.MostrarGaleriaAdjuntosHorizontal(hsv, getContext(), getActivity(),adjuntosSolicitud, modificable, firma, tb_adjuntos, mapeoCamposDinamicos);
 
                     rl.addView(hsv);
                     ll.addView(rl);
@@ -1802,81 +1610,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             }
         }
 
-    }
-
-    public static void MostrarGaleriaAdjuntosHorizontal(HorizontalScrollView hsv, final Context context, final Activity activity) {
-        hsv.removeAllViews();
-        hsv.setBackground(context.getResources().getDrawable(R.drawable.squared_textbackground,null));
-        hsv.setLayoutParams(new RelativeLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
-        LinearLayout myGallery = new LinearLayout(context);
-        myGallery.setLayoutParams(new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
-        myGallery.setPadding(10,10,10,10);
-        for(int x=0; x < adjuntosSolicitud.size(); x++){
-            LinearLayout layout = new LinearLayout(context);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
-            lp.setMargins(0,0,5,0);
-            layout.setLayoutParams(lp);
-            layout.setGravity(Gravity.CENTER);
-
-
-            final ImageView adjunto_image = new ImageView(context);
-            adjunto_image.setLayoutParams(new LinearLayout.LayoutParams(150, 150));
-            adjunto_image.setScaleType(ImageView.ScaleType.FIT_XY);
-            adjunto_image.setPadding(5,5,5,5);
-
-
-
-            final String nombre_adjunto = adjuntosSolicitud.get(x).getName();
-            //Bitmap _bitmap = null;
-
-            if(adjuntosSolicitud.get(x).getImage() != null) {
-                byte[] image = adjuntosSolicitud.get(x).getImage();
-                //_bitmap.compress(Bitmap.CompressFormat.PNG, 50, image);
-                BitmapFactory.Options o = new BitmapFactory.Options();
-                o.inSampleSize = 1;
-                if (image.length > 200000)
-                    o.inSampleSize = 2;
-                if (image.length > 400000)
-                    o.inSampleSize = 4;
-                if (image.length > 500000)
-                    o.inSampleSize = 8;
-                Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length, o);
-
-                adjunto_image.setImageBitmap(imagen);
-                adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
-
-                final int finalX = x;
-                adjunto_image.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
-                        //mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
-                    }
-                });
-                if (modificable) {
-                    adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View v) {
-                            DialogHandler appdialog = new DialogHandler();
-                            appdialog.Confirm((Activity) context, "Confirmación Borrado", "Esta seguro que quiere eliminar el archivo adjunto #" + finalX + "?", "Cancelar", "Eliminar", new EliminarAdjunto(context, activity, finalX));
-                            return false;
-                        }
-                    });
-                }
-            }else{
-                adjunto_image.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.icon_about));
-                final int finalX = x;
-                adjunto_image.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
-                    }
-                });
-            }
-            layout.addView(adjunto_image);
-            myGallery.addView(layout);
-        }
-        hsv.addView(myGallery);
     }
 
     //Pruebas para seccion de bloques
@@ -1909,75 +1642,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         Window window = d.getWindow();
         if (window != null) {
             window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        }
-    }
-    public static void mostrarAdjunto(Context context, Adjuntos adjunto) {
-        final Dialog d = new Dialog(context, R.style.MyAlertDialogThemeAttachment);
-        d.setContentView(R.layout.adjunto_layout_zoom);
-        ImageView adjunto_img = d.findViewById(R.id.imagen);
-        TextView adjunto_txt = d.findViewById(R.id.nombre);
-        final String nombre_adjunto = adjunto.getName();
-        byte[] image = adjunto.getImage();
-        Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length);
-        adjunto_img.setImageBitmap(imagen);
-        adjunto_txt.setText(adjunto.getName());
-        //SHOW DIALOG
-        d.show();
-        Window window = d.getWindow();
-        if(window != null) {
-            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        }
-    }
-
-    public static void mostrarAdjuntoServidor(Context context, Activity activity, Adjuntos adjunto) {
-        final Dialog d = new Dialog(context, R.style.MyAlertDialogThemeAttachment);
-        d.setContentView(R.layout.adjunto_layout_zoom);
-        ImageView adjunto_img = d.findViewById(R.id.imagen);
-        TextView adjunto_txt = d.findViewById(R.id.nombre);
-        adjunto_txt.setText(adjunto.getName());
-        if(!adjunto.getName().toLowerCase().contains(".pdf")) {
-            //SHOW DIALOG
-            d.show();
-            Window window = d.getWindow();
-            if (window != null) {
-                window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            }
-        }
-        //Realizar la transmision de lo que se necesita (Db o txt)
-        WeakReference<Context> weakRefs = new WeakReference<Context>(context);
-        WeakReference<Activity> weakRefAs = new WeakReference<Activity>(activity);
-        //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-        AdjuntoServidor s = new AdjuntoServidor(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
-        if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
-            s.EnableWiFi();
-        }else{
-            s.DisableWiFi();
-        }
-        s.execute();
-
-    }
-
-    public static class EliminarAdjunto implements Runnable {
-        private Context context;
-        private Activity activity;
-        private int rowIndex;
-        public EliminarAdjunto(Context context, Activity activity, int rowIndex) {
-            this.context = context;
-            this.activity = activity;
-            this.rowIndex = rowIndex;
-        }
-        public void run() {
-            if(adjuntosSolicitud.get(rowIndex).getName().contains("Constancia")) {
-                CheckBox constancia = (CheckBox) mapeoCamposDinamicos.get("constancia");
-                constancia.setChecked(false);
-                constancia.setEnabled(true);
-                firma = false;
-            }
-            adjuntosSolicitud.remove(rowIndex);
-            tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(context, adjuntosSolicitud));
-            MostrarGaleriaAdjuntosHorizontal((HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos"),context, activity);
-
-            Toasty.info(context, "Se ha eliminado el adjunto!", Toast.LENGTH_SHORT).show();
         }
     }
 

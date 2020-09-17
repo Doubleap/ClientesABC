@@ -24,6 +24,7 @@ import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -45,7 +46,7 @@ public class FirmaPAActivity extends AppCompatActivity {
     private File file;
     private LinearLayout completo;
     private ScrollView scroll;
-    private FrameLayout documento;
+    private RelativeLayout documento;
     private LinearLayout canvasLL;
     private View view;
     private signature mSignature;

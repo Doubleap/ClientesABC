@@ -25,10 +25,12 @@ import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.text.HtmlCompat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -46,7 +48,7 @@ public class FirmaActivity extends AppCompatActivity {
     private File file;
     private LinearLayout completo;
     private ScrollView scroll;
-    private FrameLayout documento;
+    private LinearLayout documento;
     private LinearLayout canvasLL;
     private TextView texto_titulo;
     private TextView texto_cuadro;
@@ -84,21 +86,21 @@ public class FirmaActivity extends AppCompatActivity {
         switch (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","")){
             case "F443":
                 texto_titulo.setText(R.string.title_activity_firma);
-                texto_cuadro.setText(getResources().getString(R.string.politica_privacidad));
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "F445":
                 texto_titulo.setText(R.string.title_activity_firma);
-                texto_cuadro.setText(getResources().getString(R.string.politica_privacidad_ni));
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_ni),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "F451":
-                texto_titulo.setText(R.string.title_activity_firma);
-                texto_cuadro.setText(getResources().getString(R.string.politica_privacidad_pa));
+                texto_titulo.setText(R.string.title_activity_firma_pa);
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_pa),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "F446":
             case "1657":
             case "1658":
                 texto_titulo.setText(R.string.title_activity_firma);
-                texto_cuadro.setText(getResources().getString(R.string.politica_privacidad));
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             default:
                 texto_titulo.setText(R.string.title_activity_firma);

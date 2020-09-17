@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.androidbuts.multispinnerfilter.KeyPairBoolData;
 import com.androidbuts.multispinnerfilter.MultiSpinnerListener;
 import com.androidbuts.multispinnerfilter.MultiSpinnerSearch;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -45,6 +46,9 @@ public class SolicitudesActivity extends AppCompatActivity {
     boolean isFABOpen = false;
     String estado;
     String tipform;
+    ArrayList<HashMap<String, String>> formList;
+    ArrayList<HashMap<String, String>> filteredFormList;
+    Toolbar toolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,8 +59,6 @@ public class SolicitudesActivity extends AppCompatActivity {
             tipform = b.getString("tipform");
         }
         db = new DataBaseHelper(this);
-        ArrayList<HashMap<String, String>> formList;
-        ArrayList<HashMap<String, String>> filteredFormList;
         if(estado != null && tipform != null)
             formList = db.getSolicitudes(estado,tipform);
         else if(estado != null)
@@ -106,7 +108,7 @@ public class SolicitudesActivity extends AppCompatActivity {
         });
 
         Drawable d = getResources().getDrawable(R.drawable.header_curved_cc5,null);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Mis Solicitudes ("+mAdapter.getItemCount()+")");
         /*if(estado != null && tipform != null)
             toolbar.setSubtitle("Filtro: "+estado+" / "+tipform);
@@ -123,6 +125,25 @@ public class SolicitudesActivity extends AppCompatActivity {
         }
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+    }
+    @Override
+    protected  void onResume(){
+        super.onResume();
+        if(estado != null && tipform != null)
+            formList = db.getSolicitudes(estado,tipform);
+        else if(estado != null)
+            formList = db.getSolicitudes(estado,null);
+        else if(tipform != null)
+            formList = db.getSolicitudes(null,tipform);
+        else
+            formList = db.getSolicitudes();
+        RecyclerView rv = findViewById(R.id.user_list);
+
+        mAdapter = new MyAdapter(formList,this,SolicitudesActivity.this);
+        rv.setLayoutManager(new LinearLayoutManager(this));
+        rv.setAdapter(mAdapter);
+        rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
+        toolbar.setTitle("Mis Solicitudes ("+mAdapter.getItemCount()+")");
     }
 
     private void showDialogFilters(View view) {

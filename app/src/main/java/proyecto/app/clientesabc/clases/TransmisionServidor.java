@@ -109,7 +109,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
 
                     String filtroUnicaSolicitud = "";
                     if (id_solicitud.trim().length() > 0) {
-                        filtroUnicaSolicitud = " AND id_solicitud = '" + id_solicitud.trim() + "'";
+                        filtroUnicaSolicitud = " AND trim(id_solicitud) = '" + id_solicitud.trim() + "'";
                     }
                     //Comenzar a crear las tablas segun lo que existe actualmente en la base de datos
                     String sqlCreate = "CREATE TABLE FormHvKof_solicitud AS SELECT * FROM fromDB.FormHvKof_solicitud WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud;

@@ -68,7 +68,7 @@
     //Label de los selectBox/ComboBox
     <style name="AppTheme.TextFloatLabelAppearance" parent="TextAppearance.Design.Hint">
         <item name="android:textSize">16sp</item>
-        <item name="android:textColor">@color/text_color</item>//Label flotante focuseado
+        <item name="android:textColor">@color/text_color</item>
     </style>
     <style name="AppTheme.TextErrorAppearance" parent="TextAppearance.Design.Error">
         <item name="android:textSize">12sp</item>
@@ -141,5 +141,10 @@
     <style name="DialogAnimation">
         <item name="android:windowEnterAnimation">@anim/zoom_in</item>
         <item name="android:windowExitAnimation">@anim/zoom_out</item>
+    </style>
+    <style name="TooltipTextAppearance">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">normal</item>
     </style>
 </resources>

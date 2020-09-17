@@ -126,8 +126,6 @@
             android:label="@string/title_activity_TCP"
             android:screenOrientation="portrait" />
 
-        <service android:name=".clases.NameService" />
-
         <activity
             android:name=".actividades.PanelActivity"
             android:label="@string/title_activity_panel"

@@ -16,12 +16,55 @@ import proyecto.app.clientesabc.modelos.Visitas;
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
 
+    private static String nombrePais = "Guatemala Abasa";
+    private static String sociedad = "1658";
+    private static String orgvta = "0658";
+    private static String land1 = "GT";
+    private static String cadenaRM = "0000190027";
+    private static String ktokd = "GCMB";
+    /*
     private static String nombrePais = "Costa Rica";
     private static String sociedad = "F443";
     private static String orgvta = "0443";
     private static String land1 = "CR";
     private static String cadenaRM = "0000160000";
     private static String ktokd = "RCMA";
+
+    private static String nombrePais = "Guatemala Embocen";
+    private static String sociedad = "F446";
+    private static String orgvta = "0446";
+    private static String land1 = "GT";
+    private static String cadenaRM = "0000170027";
+    private static String ktokd = "GCMA";
+
+    private static String nombrePais = "Guatemala Volcanes";
+    private static String sociedad = "1657";
+    private static String orgvta = "0657";
+    private static String land1 = "GT";
+    private static String cadenaRM = "0000210027";
+    private static String ktokd = "GCMC";
+
+    private static String nombrePais = "Guatemala Abasa";
+    private static String sociedad = "1658";
+    private static String orgvta = "0658";
+    private static String land1 = "GT";
+    private static String cadenaRM = "0000190027";
+    private static String ktokd = "GCMB";
+
+    private static String nombrePais = "Nicaragua";
+    private static String sociedad = "F445";
+    private static String orgvta = "0445";
+    private static String land1 = "NI";
+    private static String cadenaRM = "0000180000";
+    private static String ktokd = "NCMA";
+
+    private static String nombrePais = "Panamá";
+    private static String sociedad = "F451";
+    private static String orgvta = "0451";
+    private static String land1 = "PA";
+    private static String cadenaRM = "0000200000";
+    private static String ktokd = "PCMA";
+    */
 
     private static String TABLA_BLOQUE_CONTACTO_HH = "grid_contacto_solicitud";
     private static String TABLA_BLOQUE_BANCO_HH = "grid_bancos_solicitud";
@@ -175,8 +218,12 @@ public class VariablesGlobales extends Application {
             numero = Integer.parseInt(usuarioMC);
         }catch (NumberFormatException ne){
             try {
-                numero = Integer.parseInt(usuarioMC.substring(2, usuarioMC.length()));
-                usuarioHH = String.valueOf(numero);
+                if(usuarioMC.length() == 10) {
+                    numero = Integer.parseInt(usuarioMC.substring(2, usuarioMC.length()));
+                    usuarioHH = String.valueOf(numero);
+                }else{
+                    usuarioHH = usuarioMC;
+                }
             }catch (NumberFormatException nex){
                 usuarioHH = usuarioMC;
             }

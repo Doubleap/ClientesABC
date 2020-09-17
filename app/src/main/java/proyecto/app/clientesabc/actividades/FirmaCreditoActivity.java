@@ -16,6 +16,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.text.Html;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -29,6 +30,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.text.HtmlCompat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -38,7 +40,9 @@ import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.clases.FileHelper;
+import proyecto.app.clientesabc.clases.NumerosALetras;
 
 public class FirmaCreditoActivity extends AppCompatActivity {
 
@@ -46,7 +50,7 @@ public class FirmaCreditoActivity extends AppCompatActivity {
     private File file;
     private LinearLayout completo;
     private ScrollView scroll;
-    private FrameLayout documento;
+    private LinearLayout documento;
     private LinearLayout canvasLL;
     private TextView texto_titulo;
     private TextView texto_cuadro;
@@ -54,6 +58,7 @@ public class FirmaCreditoActivity extends AppCompatActivity {
     private signature mSignature;
     private Bitmap bitmap;
     private String montoCredito;
+    private String montoCreditoDolares;
     private String plazoCredito;
     private String name12;
     private String name34;
@@ -62,13 +67,14 @@ public class FirmaCreditoActivity extends AppCompatActivity {
     private String actividadEconomica;
     private String duracionContrato;
     private String tipoCredito;
+    private String location;
     private String indicadorFirma;
-
+    private String tipoCambio;
 
     // Creating Separate Directory for saving Generated Images
     String DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/Signature/";
     String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-    String StoredPath = DIRECTORY + "AceptacionCredito_"+pic_name + ".jpg";
+    String StoredPath = DIRECTORY + "Aceptacion#indicadorFirma#_"+pic_name + ".jpg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,8 +92,17 @@ public class FirmaCreditoActivity extends AppCompatActivity {
             actividadEconomica = b.getString("actividadEconomica");
             duracionContrato = b.getString("duracionContrato");
             tipoCredito = b.getString("tipoCredito");
+            location = b.getString("location");
             indicadorFirma = b.getString("indicadorFirma");
+            tipoCambio = b.getString("tipoCambio");
         }
+        if(tipoCambio != null && !tipoCambio.equals("")){
+            montoCreditoDolares = String.format(java.util.Locale.US, "%.2f", (Double.parseDouble(montoCredito)/Double.parseDouble(tipoCambio)));
+        }
+        if(indicadorFirma.length() == 0)
+            StoredPath = StoredPath.replace("#indicadorFirma#","Credito");
+        else
+            StoredPath = StoredPath.replace("#indicadorFirma#",indicadorFirma);
 
         completo = findViewById(R.id.completo);
         documento = findViewById(R.id.documento);
@@ -105,33 +120,34 @@ public class FirmaCreditoActivity extends AppCompatActivity {
         mSignature.getParent().requestDisallowInterceptTouchEvent(true);
         canvasLL.getParent().requestDisallowInterceptTouchEvent(true);
         canvasLL.requestDisallowInterceptTouchEvent(true);
-
+        String fechaLetras="";
         switch (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","")){
             case "F443":
                 break;
             case "F445":
-                String fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", Locale.getDefault()).format(new Date());
-                String fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", Locale.getDefault()).format(new Date());
-                /*if(indicadorFirma.equals("pagare")){
+                texto_cuadro.setText("");
+                fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
+                String fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
+                if(indicadorFirma.equals("Pagare")){
                     texto_titulo.setText(R.string.title_activity_firma_credito_ni);
-                    texto_cuadro.setText(String.format(getResources().getString(R.string.firma_credito_ni),name12, montoCredito, fechaLetras, name34, cedula, estadoCivil, actividadEconomica, montoCredito, fechaLetras2));
+                    texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_credito_ni),name12, montoCredito, fechaLetras, name34, cedula, estadoCivil, actividadEconomica, montoCredito, NumerosALetras.Convertir(montoCreditoDolares,false," DOLARES"), montoCreditoDolares, fechaLetras , fechaLetras2),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 }
-                if(indicadorFirma.equals("contrato")){
+                if(indicadorFirma.equals("Contrato")){
                     texto_titulo.setText(R.string.title_activity_firma_contrato_ni);
-                    texto_cuadro.setText(String.format(getResources().getString(R.string.firma_credito_ni_contrato),name12, montoCredito, fechaLetras, name34, cedula, estadoCivil, actividadEconomica, montoCredito, fechaLetras2));
-                }*/
-
-
+                    texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_credito_ni_contrato))+String.format(getResources().getString(R.string.firma_credito_ni_contrato2),fechaLetras, name34, cedula, name12, montoCredito, duracionContrato, plazoCredito, tipoCredito, fechaLetras),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                    //texto_cuadro.setText(HtmlCompat.fromHtml(texto_cuadro.getText()+String.format(getResources().getString(R.string.firma_credito_ni_contrato2),fechaLetras, name34, cedula, name12, montoCredito, duracionContrato, plazoCredito, tipoCredito, fechaLetras),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                }
                 break;
             case "F451":
+                fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
                 texto_titulo.setText(R.string.title_activity_firma_credito_pa);
-                texto_cuadro.setText(String.format(getResources().getString(R.string.firma_credito_pa), plazoCredito));
+                texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_credito_pa), location, fechaLetras, NumerosALetras.Convertir(montoCredito,false," balboas"), montoCredito ),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "F446":
             case "1657":
             case "1658":
                 texto_titulo.setText(R.string.title_activity_firma_credito);
-                texto_cuadro.setText(String.format(getResources().getString(R.string.firma_credito), plazoCredito));
+                texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_credito), plazoCredito),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
         }
 

@@ -4,17 +4,17 @@ import java.util.regex.Pattern;
 
 public class NumerosALetras {
 
-    private final String[] UNIDADES = {"", "un ", "dos ", "tres ", "cuatro ", "cinco ", "seis ", "siete ", "ocho ", "nueve "};
-    private final String[] DECENAS = {"diez ", "once ", "doce ", "trece ", "catorce ", "quince ", "dieciseis ",
+    private static final String[] UNIDADES = {"", "un ", "dos ", "tres ", "cuatro ", "cinco ", "seis ", "siete ", "ocho ", "nueve "};
+    private static final String[] DECENAS = {"diez ", "once ", "doce ", "trece ", "catorce ", "quince ", "dieciseis ",
             "diecisiete ", "dieciocho ", "diecinueve", "veinte ", "treinta ", "cuarenta ",
             "cincuenta ", "sesenta ", "setenta ", "ochenta ", "noventa "};
-    private final String[] CENTENAS = {"", "ciento ", "doscientos ", "trecientos ", "cuatrocientos ", "quinientos ", "seiscientos ",
+    private static final String[] CENTENAS = {"", "ciento ", "doscientos ", "trecientos ", "cuatrocientos ", "quinientos ", "seiscientos ",
             "setecientos ", "ochocientos ", "novecientos "};
 
     public NumerosALetras() {
     }
 
-    public String Convertir(String numero, boolean mayusculas, String moneda) {
+    public static String Convertir(String numero, boolean mayusculas, String moneda) {
         String literal = "";
         String parte_decimal;
         //si el numero utiliza (.) en lugar de (,) -> se reemplaza
@@ -55,13 +55,13 @@ public class NumerosALetras {
     }
 
     /* funciones para convertir los numeros a literales */
-    private String getUnidades(String numero) {// 1 - 9
+    private static String getUnidades(String numero) {// 1 - 9
         //si tuviera algun 0 antes se lo quita -> 09 = 9 o 009=9
         String num = numero.substring(numero.length() - 1);
         return UNIDADES[Integer.parseInt(num)];
     }
 
-    private String getDecenas(String num) {// 99
+    private static String getDecenas(String num) {// 99
         int n = Integer.parseInt(num);
         if (n < 10) {//para casos como -> 01 - 09
             return getUnidades(num);
@@ -77,7 +77,7 @@ public class NumerosALetras {
         }
     }
 
-    private String getCentenas(String num) {// 999 o 099
+    private static String getCentenas(String num) {// 999 o 099
         if (Integer.parseInt(num) > 99) {//es centena
             if (Integer.parseInt(num) == 100) {//caso especial
                 return " cien ";
@@ -90,7 +90,7 @@ public class NumerosALetras {
         }
     }
 
-    private String getMiles(String numero) {// 999 999
+    private static String getMiles(String numero) {// 999 999
         //obtiene las centenas
         String c = numero.substring(numero.length() - 3);
         //obtiene los miles
@@ -106,7 +106,7 @@ public class NumerosALetras {
 
     }
 
-    private String getMillones(String numero) { //000 000 000
+    private static String getMillones(String numero) { //000 000 000
         //se obtiene los miles
         String miles = numero.substring(numero.length() - 6);
         //se obtiene los millones

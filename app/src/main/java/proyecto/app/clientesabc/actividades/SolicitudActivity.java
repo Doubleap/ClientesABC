@@ -5,27 +5,21 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -33,7 +27,6 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -41,7 +34,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -62,7 +54,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ContextThemeWrapper;
-import androidx.appcompat.widget.TooltipCompat;
 import androidx.cardview.widget.CardView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
@@ -86,17 +77,12 @@ import com.honeywell.aidc.InvalidScannerNameException;
 import com.honeywell.aidc.ScannerNotClaimedException;
 import com.honeywell.aidc.ScannerUnavailableException;
 import com.honeywell.aidc.UnsupportedPropertyException;
-import com.ortiz.touchview.TouchImageView;
+import com.tomergoldst.tooltips.ToolTip;
+import com.tomergoldst.tooltips.ToolTipAnimator;
+import com.tomergoldst.tooltips.ToolTipsManager;
 import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
@@ -119,6 +105,7 @@ import es.dmoral.toasty.Toasty;
 
 import proyecto.app.clientesabc.Animaciones.CubeTransformer;
 
+import proyecto.app.clientesabc.Animaciones.FlipPageTransformer;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
@@ -129,9 +116,8 @@ import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
 import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
-import proyecto.app.clientesabc.clases.AdjuntoServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
-import proyecto.app.clientesabc.clases.FileHelper;
+import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
@@ -168,7 +154,7 @@ public class SolicitudActivity extends AppCompatActivity {
     static  ArrayList<HashMap<String, String>> solicitudSeleccionada = new ArrayList<>();
     private static String GUID;
     private ProgressBar progressBar;
-    static boolean firma;
+    public static boolean firma;
     static boolean modificable;
     static boolean correoValidado;
     static boolean cedulaValidada;
@@ -198,7 +184,6 @@ public class SolicitudActivity extends AppCompatActivity {
     private static ArrayList<Interlocutor> interlocutoresSolicitud;
     private static ArrayList<Visitas> visitasSolicitud;
     private static ArrayList<Adjuntos> adjuntosSolicitud;
-    private static ArrayList<Adjuntos> adjuntosServidor;
     private static ArrayList<Comentario> comentarios;
 
     private AidcManager manager;
@@ -303,11 +288,12 @@ public class SolicitudActivity extends AppCompatActivity {
                         return true;
                     case R.id.action_file:
                         intent = new Intent(Intent.ACTION_GET_CONTENT);
-                        intent.setType("image/*");
+                        intent.setType("*/*");
                         intent.addCategory(Intent.CATEGORY_OPENABLE);
-                        intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
+                        //intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
                         try {
-                            startActivityForResult(intent, 200);
+                            //startActivityForResult(intent, 200);
+                            startActivityForResult(Intent.createChooser(intent, "Seleccione un archivo para adjuntar!"),200);
                         } catch (ActivityNotFoundException e) {
                             Log.e("tag", getResources().getString(R.string.no_activity));
                         }
@@ -334,11 +320,6 @@ public class SolicitudActivity extends AppCompatActivity {
                                     mensajeError += "- "+tv.getTag()+"\n";
                                 }
                                 if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") || listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG")){
-                                    if(valor.equals("0")){
-                                        tv.setError("El campo "+tv.getTag()+" no puede ser 0!");
-                                        numErrores++;
-                                        mensajeError += "- "+tv.getTag()+"\n";
-                                    }
                                     if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") && !ValidarCoordenadaY(tv)){
                                         numErrores++;
                                         mensajeError += "- Formato Coordenada Y invalido\n";
@@ -366,6 +347,14 @@ public class SolicitudActivity extends AppCompatActivity {
                                     mensajeError += "- "+combo.getTag()+"\n";
                                 }
                             }
+                        }
+                        //Validar si el tipo de pago es por transferencia, debe ingresar al menos 1 cuenta bancaria.
+                        Spinner comboTipoPago = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR2"));
+                        String tipoPago = "";
+                        if(comboTipoPago != null && comboTipoPago.getSelectedItem() != null) {
+                            tipoPago = ((OpcionSpinner) comboTipoPago.getAdapter().getItem((int) comboTipoPago.getSelectedItemId())).getId();
+                            if(tipoPago.equals("T") && bancosSolicitud.size() == 0)
+                                mensajeError += "- Tipo de Pago por Transferencia. Debe ingresar al menos 1 cuenta bancaria.\n";
                         }
                         MaskedEditText correo = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-SMTP_ADDR");
                         if(mapeoCamposDinamicos.get("W_CTE-SMTP_ADDR") != null ){
@@ -427,6 +416,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             mensajeError += "- Formato de cédula Inválida!\n";
                         }
                         //Validacion de cedula de ID Fiscal para GT mas que todo
+                        ValidarIDFiscal();
                         if(!idFiscalValidado){
                             numErrores++;
                             mensajeError += "- ID Fiscal Inválido!\n";
@@ -694,316 +684,11 @@ public class SolicitudActivity extends AppCompatActivity {
         AlertDialog alert = builder.create();
         alert.show();
     }
-
-    /*@Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case CroperinoConfig.REQUEST_TAKE_PHOTO:
-                if (resultCode == Activity.RESULT_OK) {
-                    // Parameters of runCropImage = File, Activity Context, Image is Scalable or Not, Aspect Ratio X, Aspect Ratio Y, Button Bar Color, Background Color
-                    Croperino.runCropImage(CroperinoFileUtil.getTempFile(), SolicitudActivity.this, true, 0, 0, getResources().getColor(R.color.colorPrimary,null), getResources().getColor(R.color.black,null));
-                }
-                break;
-            case CroperinoConfig.REQUEST_PICK_FILE:
-                if (resultCode == Activity.RESULT_OK) {
-                    CroperinoFileUtil.newGalleryFile(data, SolicitudActivity.this);
-                    Croperino.runCropImage(CroperinoFileUtil.getTempFile(), SolicitudActivity.this, true, 0, 0, getResources().getColor(R.color.colorPrimary,null), getResources().getColor(R.color.black,null));
-                }
-                break;
-            case CroperinoConfig.REQUEST_CROP_PHOTO:
-                if (resultCode == Activity.RESULT_OK) {
-                    Uri i = Uri.fromFile(CroperinoFileUtil.getTempFile());
-                    //ivMain.setImageURI(i);
-                    //Salvar la imagen despues de Croperino con CroperinoFileUtil.getTempFile()
-                    if (resultCode == RESULT_OK) {
-                        Uri uri = i;
-                        if(uri == null){
-                            uri = mPhotoUri;
-                        }
-                        InputStream iStream = null;
-                        try {
-                            iStream = getContentResolver().openInputStream(uri);
-                            //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                        try {
-                            ContentResolver cR =  getContentResolver();
-                            String type = cR.getType(uri);
-                            String name = CroperinoConfig.getsImageName();//getFileName(cR, uri);
-                            byte[] inputData = getBytes(iStream);
-                            File file = null;
-                            try {
-                                file = new File( Environment.getExternalStorageDirectory().getAbsolutePath());
-                                if (!file.exists()) {
-                                    file.createNewFile();
-                                }
-                                FileOutputStream fos = new FileOutputStream(file+"//"+name);
-                                fos.write(inputData);
-                                fos.close();
-                            } catch (Exception e) {
-                                Log.e("thumbnail", e.getMessage());
-                            }
-                            File file2 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
-                            file2 = FileHelper.saveBitmapToFile(file2);
-
-                            byte[] bytesArray = new byte[(int) file2.length()];
-
-                            FileInputStream fis = new FileInputStream(file2);
-                            fis.read(bytesArray); //read file into bytes[]
-                            fis.close();
-                            file2.delete();
-                            //Agregar al tableView del UI
-                            Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
-
-                            adjuntosSolicitud.add(nuevoAdjunto);
-                            AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
-                            stda.setPaddings(10, 5, 10, 5);
-                            stda.setTextSize(10);
-                            stda.setGravity(GRAVITY_CENTER);
-                            //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
-                            tb_adjuntos.setDataAdapter(stda);
-
-                            HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                            MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudActivity.this);
-
-                            //Intento de borrar el archivo que se guarda automatico en Pictures
-                            File file3 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//Pictures//"+name);
-                            file3.delete();
-
-                            File eliminar = CroperinoFileUtil.getTempFile();
-                            eliminar.delete();
-
-                            Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
-                        } catch (IOException e) {
-                            Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                break;
-            default:
-                break;
-        }
-    }*/
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-
-            case 1://Cuando toma foto por la opcion de camara, permite el recorte de la foto tomada
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        ContentResolver cR = getContentResolver();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        File file = null;
-                        try {
-                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
-                            if (!file.exists()) {
-                                file.createNewFile();
-                            }
-                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
-                            fos.write(inputData);
-                            fos.close();
-                        } catch (Exception e) {
-                            Log.e("thumbnail", e.getMessage());
-                        }
-                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
-
-
-                        BitmapFactory.Options options = new BitmapFactory.Options();
-                        options.inJustDecodeBounds = true;
-
-                        BitmapFactory.decodeFile(file2.getAbsolutePath(), options);
-                        //int imageHeight = options.outHeight;
-                        //int imageWidth = options.outWidth;
-                        //CROP
-                        try {
-                            // call the standard crop action intent (the user device may not
-                            // support it)
-                            Intent cropIntent = new Intent("com.android.camera.action.CROP");
-                            // indicate image type and Uri
-                            cropIntent.setDataAndType(uri, "image/*");
-                            // set crop properties
-                            cropIntent.putExtra("crop", true);
-                            cropIntent.putExtra("scale", true);
-                            // indicate aspect of desired crop
-                            cropIntent.putExtra("aspectX", 1);
-                            cropIntent.putExtra("aspectY", 1.33);
-                            // indicate output X and Y
-                            //cropIntent.putExtra("outputX", imageWidth);
-                            //cropIntent.putExtra("outputY", imageHeight);
-                            // retrieve data on return
-                            cropIntent.putExtra("return-data", true);
-                            // start the activity - we handle returning in onActivityResult
-                            startActivityForResult(cropIntent, 200);
-                        }
-                        // respond to users whose devices do not support the crop action
-                        catch (ActivityNotFoundException anfe) {
-                            Toasty.warning(this, "Este dispositivo no puede recortar la imagen!", Toasty.LENGTH_SHORT).show();
-                        }
-                        //END CROP
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(), "Error al asociar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-                }
-                break;
-            case 2:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        ContentResolver cR = getContentResolver();
-                        MimeTypeMap mime = MimeTypeMap.getSingleton();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        mDBHelper.addAdjuntoSolicitud(type, name, inputData);
-                        Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(), "Error al adjuntar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-
-                }
-                break;
-            case 100:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    //Agregar al tableView del UI
-                    try {
-                        byte[] inputData = getBytes(iStream);
-                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, data.getType(), data.getExtras().getString("ImageName"), inputData);
-
-                        adjuntosSolicitud.add(nuevoAdjunto);
-                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
-                        tb_adjuntos.setDataAdapter(stda);
-
-                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudActivity.this);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    CheckBox politica = (CheckBox) mapeoCamposDinamicos.get("politica");
-                    politica.setChecked(true);
-                    firma = true;
-                    politica.setEnabled(false);
-                    Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
-                }
-                break;
-            case 200:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                        Toasty.error(getBaseContext(), "Imagen seleccionada ya no existe en el dispositivo!").show();
-                        return;
-                    }
-                    try {
-                        ContentResolver cR = getContentResolver();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        File file = null;
-                        try {
-                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
-                            if (!file.exists()) {
-                                file.createNewFile();
-                            }
-                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
-                            fos.write(inputData);
-                            fos.close();
-                        } catch (Exception e) {
-                            Log.e("thumbnail", e.getMessage());
-                        }
-                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
-                        file2 = FileHelper.saveBitmapToFile(file2);
-
-                        byte[] bytesArray = new byte[(int) file2.length()];
-
-                        FileInputStream fis = new FileInputStream(file2);
-                        fis.read(bytesArray); //read file into bytes[]
-                        fis.close();
-                        file2.delete();
-                        //Agregar al tableView del UI
-                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
-
-                        adjuntosSolicitud.add(nuevoAdjunto);
-                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
-                        tb_adjuntos.setDataAdapter(stda);
-
-                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudActivity.this);
-
-                        //Intento de borrar el archivo que se guarda automatico en Pictures
-                        File file3 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//Pictures//" + name);
-                        file3.delete();
-
-                        Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(), "Error al asociar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-                }
-                break;
-        }
+        WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudActivity.this);
+        ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
     }
 
     public static class ViewPagerAdapter extends FragmentPagerAdapter {
@@ -1070,6 +755,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 //ms.requestDisallowInterceptTouchEvent(true);
                 //ms.getParent().requestDisallowInterceptTouchEvent(true);
                 LinearLayout ll = view.findViewById(R.id.miPagina);
+                FrameLayout fl = view.findViewById(R.id.miFrame);
 
                 String nombre = Objects.requireNonNull(Objects.requireNonNull(viewPager.getAdapter()).getPageTitle(position)).toString().trim();
 
@@ -1167,7 +853,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             checkbox.setEnabled(false);
                             //checkbox.setVisibility(View.GONE);
                         }
-                        if (campos.get(i).get("dfaul").trim().length() > 0) {
+                        if (campos.get(i).get("dfaul").replace(" ","").trim().length() > 0) {//Sustituye un valor basura que NO es espacio xA0 en UTF8
                             checkbox.setChecked(true);
                         }
                         if (solicitudSeleccionada.size() > 0) {
@@ -1216,7 +902,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             checkbox.setEnabled(false);
                             //checkbox.setVisibility(View.GONE);
                         }
-                        if (campos.get(i).get("dfaul").trim().length() > 0) {
+                        if (campos.get(i).get("dfaul").replace(" ","").trim().length() > 0) {
                             checkbox.setChecked(true);
                         }
                         if (solicitudSeleccionada.size() > 0) {
@@ -1922,7 +1608,17 @@ public class SolicitudActivity extends AppCompatActivity {
                             btnAyuda.setLayoutParams(btnlp);
                             btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                             btnAyuda.setForegroundGravity(GRAVITY_CENTER);
-                            TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                            //TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                            ToolTipsManager mToolTipsManager = new ToolTipsManager();
+                            final ToolTip.Builder builder = new ToolTip.Builder(getContext(), et, (RelativeLayout)_ll.getParent() ,  campos.get(i).get("tooltip").toString(), ToolTip.POSITION_ABOVE);
+                            builder.setAlign(ToolTip.ALIGN_LEFT);
+
+                            builder.setGravity(ToolTip.GRAVITY_LEFT);
+                            builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+                            btnAyuda.setOnLongClickListener(view -> {
+                                mToolTipsManager.show(builder.build());
+                                return true;
+                            });
 
                         }
                         if (campos.get(i).get("dfaul").trim().length() > 0) {
@@ -1955,7 +1651,6 @@ public class SolicitudActivity extends AppCompatActivity {
                                 });
                             }
                         }
-
                         //Crear campo para valor viejo exclusivo.
                         if (campos.get(i).get("modificacion").trim().equals("2")) {
                             Button btnAyudai = null;
@@ -2245,18 +1940,17 @@ public class SolicitudActivity extends AppCompatActivity {
                     getActivity().startActivityForResult(intent,100);
                     break;
                 case "F445":
-                    intent = new Intent(getContext(),FirmaNIActivity.class);
+                    intent = new Intent(getContext(),FirmaActivity.class);
                     getActivity().startActivityForResult(intent,100);
                     break;
                 case "F451":
-                    intent = new Intent(getContext(),FirmaPAActivity.class);
+                    intent = new Intent(getContext(),FirmaActivity.class);
                     getActivity().startActivityForResult(intent,100);
                     break;
                 default:
                     intent = new Intent(getContext(),FirmaActivity.class);
                     getActivity().startActivityForResult(intent,100);
             }
-
         }
 
         public void DesplegarBloque(DataBaseHelper db, View _ll, HashMap<String, String> campo) {
@@ -2925,7 +2619,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     //Horizontal View de adjuntos
                     HorizontalScrollView hsv = new HorizontalScrollView(getContext());
-                    MostrarGaleriaAdjuntosHorizontal(hsv, getContext(), getActivity());
+                    ManejadorAdjuntos.MostrarGaleriaAdjuntosHorizontal(hsv, getContext(), getActivity(),adjuntosSolicitud,modificable, firma, tb_adjuntos, mapeoCamposDinamicos);
 
                     rl.addView(hsv);
                     ll.addView(rl);
@@ -2939,91 +2633,6 @@ public class SolicitudActivity extends AppCompatActivity {
         }
 
     }
-
-    public static void MostrarGaleriaAdjuntosHorizontal(HorizontalScrollView hsv, final Context context, final Activity activity) {
-        hsv.removeAllViews();
-        hsv.setBackground(context.getResources().getDrawable(R.drawable.squared_textbackground,null));
-        hsv.setLayoutParams(new RelativeLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
-        LinearLayout myGallery = new LinearLayout(context);
-        myGallery.setLayoutParams(new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
-        myGallery.setPadding(10,10,10,10);
-        for(int x=0; x < adjuntosSolicitud.size(); x++){
-            LinearLayout layout = new LinearLayout(context);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
-            lp.setMargins(0,0,5,0);
-            layout.setLayoutParams(lp);
-            layout.setGravity(Gravity.CENTER);
-
-            final ImageView adjunto_image = new ImageView(context);
-            adjunto_image.setLayoutParams(new LinearLayout.LayoutParams(150, 150));
-            adjunto_image.setScaleType(ImageView.ScaleType.FIT_XY);
-            adjunto_image.setPadding(5,5,5,5);
-
-            final String nombre_adjunto = adjuntosSolicitud.get(x).getName();
-            //Bitmap _bitmap = null;
-
-            if(adjuntosSolicitud.get(x).getImage() != null) {
-                byte[] image = adjuntosSolicitud.get(x).getImage();
-                //_bitmap.compress(Bitmap.CompressFormat.PNG, 50, image);
-                BitmapFactory.Options o = new BitmapFactory.Options();
-            o.inSampleSize = 1;
-            if (image.length > 200000)
-                o.inSampleSize = 2;
-            if (image.length > 400000)
-                o.inSampleSize = 4;
-            if (image.length > 500000)
-                o.inSampleSize = 8;
-            Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length, o);
-
-            adjunto_image.setImageBitmap(imagen);
-            adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
-
-            final int finalX = x;
-            adjunto_image.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
-                    //mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
-                }
-            });
-            if (modificable) {
-                adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        DialogHandler appdialog = new DialogHandler();
-                        appdialog.Confirm((Activity) context, "Confirmación Borrado", "Esta seguro que quiere eliminar el archivo adjunto #" + finalX + "?", "Cancelar", "Eliminar", new EliminarAdjunto(context, activity, finalX));
-                        return false;
-                    }
-                });
-            }
-        }else{
-            adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
-            adjunto_image.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.icon_file));
-            final int finalX = x;
-            adjunto_image.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
-                }
-            });
-        }
-            layout.addView(adjunto_image);
-            myGallery.addView(layout);
-        }
-        hsv.addView(myGallery);
-    }
-    public byte[] getBytes(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
-        int bufferSize = 1024;
-        byte[] buffer = new byte[bufferSize];
-
-        int len;
-        while ((len = inputStream.read(buffer)) != -1) {
-            byteBuffer.write(buffer, 0, len);
-        }
-        return byteBuffer.toByteArray();
-    }
-
     //Pruebas para seccion de bloques
     public static void displayDialogMessage(Context context, String mensaje) {
         final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
@@ -3739,58 +3348,6 @@ public class SolicitudActivity extends AppCompatActivity {
         }
     }
 
-    public static void mostrarAdjunto(Context context, Adjuntos adjunto) {
-        final Dialog d = new Dialog(context, R.style.MyAlertDialogThemeAttachment);
-        d.setContentView(R.layout.adjunto_layout_zoom);
-        TouchImageView adjunto_img = d.findViewById(R.id.imagen);
-        TextView adjunto_txt = d.findViewById(R.id.nombre);
-        final String nombre_adjunto = adjunto.getName();
-        byte[] image = adjunto.getImage();
-        BitmapFactory.Options o = new BitmapFactory.Options();
-        o.inSampleSize = 1;
-        if(image.length  > 200000)
-            o.inSampleSize = 2;
-        if(image.length  > 400000)
-            o.inSampleSize = 4;
-        if(image.length  > 500000)
-            o.inSampleSize = 8;
-        Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length);
-        adjunto_img.setImageBitmap(imagen);
-        adjunto_txt.setText(adjunto.getName());
-        //SHOW DIALOG
-        d.show();
-        Window window = d.getWindow();
-        if(window != null) {
-            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        }
-    }
-
-    public static void mostrarAdjuntoServidor(Context context, Activity activity, Adjuntos adjunto) {
-        final Dialog d = new Dialog(context, R.style.MyAlertDialogTheme);
-        d.setContentView(R.layout.adjunto_layout);
-        ImageView adjunto_img = d.findViewById(R.id.imagen);
-        TextView adjunto_txt = d.findViewById(R.id.nombre);
-        adjunto_txt.setText(adjunto.getName());
-        if(!adjunto.getName().toLowerCase().contains(".pdf")) {
-            //SHOW DIALOG
-            d.show();
-            Window window = d.getWindow();
-            if (window != null) {
-                window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            }
-        }
-        //Realizar la transmision de lo que se necesita (Db o txt)
-        WeakReference<Context> weakRefs = new WeakReference<Context>(context);
-        WeakReference<Activity> weakRefAs = new WeakReference<Activity>(activity);
-        //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-        AdjuntoServidor s = new AdjuntoServidor(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
-        if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
-            s.EnableWiFi();
-        }else{
-            s.DisableWiFi();
-        }
-        s.execute();
-    }
     private class ContactoClickListener implements TableDataClickListener<Contacto> {
         @Override
         public void onDataClicked(int rowIndex, Contacto seleccionado) {
@@ -3999,6 +3556,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     Visitas vp = visitasSolicitud.get(x);
                     vp.setF_ico(f_icoEditText.getText().toString());
                     vp.setF_fco(f_fcoEditText.getText().toString());
+                    vp.setKvgr4(seleccionado.getKvgr4());
                 }
 
                 //RECALCULAR DIAS DE VISITA
@@ -4145,31 +3703,6 @@ public class SolicitudActivity extends AppCompatActivity {
             return true;
         }
     }
-
-    public static class EliminarAdjunto implements Runnable {
-        private Context context;
-        private Activity activity;
-        private int rowIndex;
-        public EliminarAdjunto(Context context, Activity activity, int rowIndex) {
-            this.context = context;
-            this.activity = activity;
-            this.rowIndex = rowIndex;
-        }
-        public void run() {
-            if(adjuntosSolicitud.get(rowIndex).getName().contains("PoliticaPrivacidad")) {
-                CheckBox politica = (CheckBox) mapeoCamposDinamicos.get("politica");
-                politica.setChecked(false);
-                politica.setEnabled(true);
-                firma = false;
-            }
-            adjuntosSolicitud.remove(rowIndex);
-            tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(context, adjuntosSolicitud));
-            MostrarGaleriaAdjuntosHorizontal((HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos"),context, activity);
-
-            Toasty.info(context, "Se ha eliminado el adjunto!", Toasty.LENGTH_SHORT).show();
-        }
-    }
-
     public class GuardarFormulario implements Runnable {
         private Context context;
         public GuardarFormulario(Context context) {
@@ -4427,18 +3960,6 @@ public class SolicitudActivity extends AppCompatActivity {
             }
 
         }
-    }
-
-
-    private String getFileName(ContentResolver resolver, Uri uri) {
-        Cursor returnCursor =
-                resolver.query(uri, null, null, null, null);
-        assert returnCursor != null;
-        int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-        returnCursor.moveToFirst();
-        String name = returnCursor.getString(nameIndex);
-        returnCursor.close();
-        return name;
     }
 
     private static void Provincias(AdapterView<?> parent){
@@ -4721,6 +4242,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     cedulaValidada = false;
                     return true;
                 }
+                cedulaValidada = true;
                 break;
 
             case "F451"://Panama
@@ -4750,6 +4272,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     cedulaValidada = false;
                     return true;
                 }
+                cedulaValidada = true;
                 break;
             case "F446"://GT Embocem
             case "1657"://Volcanes
@@ -4801,55 +4324,75 @@ public class SolicitudActivity extends AppCompatActivity {
     private static boolean ValidarIDFiscal(){
         //SearchableSpinner regimen = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
         MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
-        if(idfiscal.getText().toString().trim().length() == 0){
-            if(!listaCamposObligatorios.contains("W_CTE-STCD3") && VariablesGlobales.getSociedad().equals("F446") || VariablesGlobales.getSociedad().equals("1657") || VariablesGlobales.getSociedad().equals("1658")){
-                idFiscalValidado = true;
-            }else{
-                idFiscalValidado = false;
-            }
-            return true;
-        }
-        if(VariablesGlobales.getSociedad().equals("F446") || VariablesGlobales.getSociedad().equals("1657") || VariablesGlobales.getSociedad().equals("1658")){
-            String regexp_dpi = "[0-9]{12,14}";
-            String regexp_idfiscal = "[0-9][0-9]{1,8}-[0-9A-Z]";
-            String regexp_cf = "CF";
-            Pattern pattern = Pattern.compile(regexp_idfiscal);
-            Pattern patternCF = Pattern.compile(regexp_cf);
-            Matcher matcher = pattern.matcher(idfiscal.getText());
-            Matcher matcherCF = patternCF.matcher(idfiscal.getText());
+        if(idfiscal != null) {
+            switch (VariablesGlobales.getSociedad()) {
+                case "F443":
+                    if (idfiscal.getText().toString().trim().length() == 0) {
+                        if (!listaCamposObligatorios.contains("W_CTE-STCD3")) {
+                            idFiscalValidado = true;
+                        } else {
+                            idFiscalValidado = false;
+                        }
+                        return true;
+                    }
+                    break;
+                case "F445":
+                case "F451":
+                    if (idfiscal.getText().toString().trim().length() == 0) {
+                        if (!listaCamposObligatorios.contains("W_CTE-STCD3")) {
+                            idFiscalValidado = true;
+                        } else {
+                            idFiscalValidado = false;
+                        }
+                        return true;
+                    }
+                    break;
+                case "F446":
+                case "1658":
+                case "1657":
+                    String regexp_dpi = "[0-9]{12,14}";
+                    String regexp_idfiscal = "[0-9][0-9]{1,8}-[0-9A-Z]";
+                    String regexp_cf = "CF";
+                    Pattern pattern = Pattern.compile(regexp_idfiscal);
+                    Pattern patternCF = Pattern.compile(regexp_cf);
+                    Matcher matcher = pattern.matcher(idfiscal.getText());
+                    Matcher matcherCF = patternCF.matcher(idfiscal.getText());
 
-            pattern = Pattern.compile(regexp_dpi);
-            matcher = pattern.matcher(idfiscal.getText().toString().trim());
-            if (!matcher.matches()) {
-                if (!matcher.matches() && !matcherCF.matches()) {
-                    idfiscal.setError("DPI/CUI/NIT formato inválido!");
-                    idFiscalValidado = false;
-                    return true;
-                }
-                /*Despues del formato se realiza validacion MOD 11*/
-                String[] nit = idfiscal.getText().toString().split("-");
-                Integer cantDigitos = nit[0].length();
+                    pattern = Pattern.compile(regexp_dpi);
+                    matcher = pattern.matcher(idfiscal.getText().toString().trim());
+                    if (!matcher.matches()) {
+                        if (!matcher.matches() && !matcherCF.matches()) {
+                            idfiscal.setError("DPI/CUI/NIT formato inválido!");
+                            idFiscalValidado = false;
+                            return true;
+                        }
+                        /*Despues del formato se realiza validacion MOD 11*/
+                        String[] nit = idfiscal.getText().toString().split("-");
+                        Integer cantDigitos = nit[0].length();
 
-                StringBuilder digitos = new StringBuilder();
-                digitos.append(nit[0]);
-                digitos = digitos.reverse();
-                int temp = 0;
-                for (int x = 2; x <= (cantDigitos + 1); x++) {
-                    temp += x * Character.getNumericValue(digitos.charAt((x - 2)));
-                }
-                int resultado = temp % 11;
-                int tempVerificador = 11 - resultado;
-                if (tempVerificador == 11)
-                    tempVerificador = resultado;
-                String digitoVerificador = String.valueOf(tempVerificador);
-                if (digitoVerificador.equals("10")) {
-                    digitoVerificador = "K";
-                }
-                if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
-                    idfiscal.setError("NIT inválido por digito verificador!");
-                    idFiscalValidado = false;
-                    return true;
-                }
+                        StringBuilder digitos = new StringBuilder();
+                        digitos.append(nit[0]);
+                        digitos = digitos.reverse();
+                        int temp = 0;
+                        for (int x = 2; x <= (cantDigitos + 1); x++) {
+                            temp += x * Character.getNumericValue(digitos.charAt((x - 2)));
+                        }
+                        int resultado = temp % 11;
+                        int tempVerificador = 11 - resultado;
+                        if (tempVerificador == 11)
+                            tempVerificador = resultado;
+                        String digitoVerificador = String.valueOf(tempVerificador);
+                        if (digitoVerificador.equals("10")) {
+                            digitoVerificador = "K";
+                        }
+                        if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
+                            idfiscal.setError("NIT inválido por digito verificador!");
+                            idFiscalValidado = false;
+                            return true;
+                        }
+                    }
+                    break;
+
             }
         }
         idFiscalValidado = true;
@@ -4857,24 +4400,45 @@ public class SolicitudActivity extends AppCompatActivity {
     }
     private static boolean ValidarCoordenadaY(View v){
         TextView texto = (TextView)v;
-        String coordenadaY = "^[-]?(([8-9]|[1][0-2])(\\.\\d{3,10}+)?)";
-        Pattern pattern = Pattern.compile(coordenadaY);
-        Matcher matcher = pattern.matcher(texto.getText().toString().trim());
-        if (!matcher.matches()) {
-            texto.setError("Formato Coordenada Y "+texto.getText().toString().trim()+" invalido!");
-            return false;
+        switch (PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS","")){
+            case "F443":
+                if(texto.getText().toString().replace("0","").replace(".","").isEmpty()){
+                    texto.setError("El campo "+texto.getTag()+" no puede ser 0!");
+                    return false;
+                }
+                String coordenadaY = "^[-]?(([8-9]|[1][0-2])(\\.\\d{3,10}+)?)";
+                Pattern pattern = Pattern.compile(coordenadaY);
+                Matcher matcher = pattern.matcher(texto.getText().toString().trim());
+                if (!matcher.matches()) {
+                    texto.setError("Formato Coordenada Y "+texto.getText().toString().trim()+" invalido!");
+                    return false;
+                }
+                break;
+            case "F445":
+            case "F446":
+            case "F451":
+            case "1657":
+            case "1658":
+                break;
         }
-        //Toasty.success(texto.getContext(),"Formato Coordenada Y "+valor+" valido!").show();
         return true;
     }
     private static boolean ValidarCoordenadaX(View v){
         TextView texto = (TextView)v;
-        String coordenadaX = "^[-](([8][2-6])(\\.\\d{3,10}+)?)";
-        Pattern pattern = Pattern.compile(coordenadaX);
-        Matcher matcher = pattern.matcher(texto.getText().toString().trim());
-        if (!matcher.matches()) {
-            texto.setError("Formato Coordenada X "+ texto.getText().toString().trim()+" invalido!");
-            return false;
+        switch (PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS","")){
+            case "F443":
+                if(texto.getText().toString().replace("0","").replace(".","").isEmpty()){
+                    texto.setError("El campo "+texto.getTag()+" no puede ser 0!");
+                    return false;
+                }
+                String coordenadaX = "^[-](([8][2-6])(\\.\\d{3,10}+)?)";
+                Pattern pattern = Pattern.compile(coordenadaX);
+                Matcher matcher = pattern.matcher(texto.getText().toString().trim());
+                if (!matcher.matches()) {
+                    texto.setError("Formato Coordenada X "+ texto.getText().toString().trim()+" invalido!");
+                    return false;
+                }
+                break;
         }
         //Toasty.success(texto.getContext(),"Formato Coordenada X "+valor+" valido!").show();
         return true;
@@ -5009,22 +4573,10 @@ public class SolicitudActivity extends AppCompatActivity {
         return super.onKeyUp(keyCode, event);
     }
     private static byte[] keysArray = new byte[]{
-            (byte)0x27,
-            (byte)0x30,
-            (byte)0x04,
-            (byte)0xA0,
-            (byte)0x00,
-            (byte)0x0F,
-            (byte)0x93,
-            (byte)0x12,
-            (byte)0xA0,
-            (byte)0xD1,
-            (byte)0x33,
-            (byte)0xE0,
-            (byte)0x03,
-            (byte)0xD0,
-            (byte)0x00,
-            (byte)0xDf,
+            (byte)0x27,            (byte)0x30,            (byte)0x04,            (byte)0xA0,
+            (byte)0x00,            (byte)0x0F,            (byte)0x93,            (byte)0x12,
+            (byte)0xA0,            (byte)0xD1,            (byte)0x33,            (byte)0xE0,
+            (byte)0x03,            (byte)0xD0,            (byte)0x00,            (byte)0xDf,
             (byte)0x00
     };
 }

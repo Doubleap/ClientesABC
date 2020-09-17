@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-    <FrameLayout
+    <LinearLayout
         android:id="@+id/documento"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -29,8 +29,10 @@
         <TextView
             android:id="@+id/texto_titulo"
             android:layout_width="match_parent"
-            android:layout_height="20dp"
-            android:singleLine="true"
+            android:layout_height="wrap_content"
+            android:singleLine="false"
+
+            android:maxLines="2"
             android:text="Politicas de Privacidad"
             android:textAlignment="center"
             android:background="@color/sinFormularios"
@@ -40,18 +42,19 @@
             android:id="@+id/texto_cuadro"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="20dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
+            android:layout_below="@+id/texto_titulo"
             android:singleLine="false"
             android:text="@string/politica_privacidad"
-            android:maxLines="100"
+            android:maxLines="1000"
             android:minLines="5"
             android:padding="@dimen/margin_medium"
             android:textAlignment="center"
-            android:textColor="@color/black"
+            android:textColor="@color/colorTextView"
+            android:maxLength="1000000"
             />
-    </FrameLayout>
+    </LinearLayout>
         <LinearLayout
             android:id="@+id/canvasLL"
             android:layout_width="match_parent"
