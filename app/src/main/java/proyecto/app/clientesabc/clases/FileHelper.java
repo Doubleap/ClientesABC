@@ -69,7 +69,9 @@ public class FileHelper {
 
     }
 
-    private static void zipFile(ZipOutputStream zipOutputStream, String sourcePath, String fileName ) throws  IOException{
+    private static void
+
+    zipFile(ZipOutputStream zipOutputStream, String sourcePath, String fileName ) throws  IOException{
 
         java.io.File files = new java.io.File(sourcePath);
         java.io.File[] fileList = files.listFiles();

@@ -65,7 +65,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.appbar.AppBarLayout;
@@ -75,7 +74,6 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.io.ByteArrayOutputStream;
@@ -113,6 +111,7 @@ import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
 import proyecto.app.clientesabc.clases.AdjuntoServidor;
 import proyecto.app.clientesabc.clases.ConsultaClienteTotalServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
+import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;

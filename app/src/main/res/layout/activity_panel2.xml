@@ -123,22 +123,22 @@
                             android:id="@+id/num_nuevos"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="25sp"
+                            android:layout_marginTop="25dp"
                             android:padding="0dp"
                             android:text="17"
                             android:textAlignment="center"
                             android:textColor="@color/nuevo"
-                            android:textSize="48sp"
+                            android:textSize="48dp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10sp"
+                            android:layout_marginTop="10dp"
                             android:text="Nuevos"
                             android:textAlignment="center"
                             android:textColor="@color/nuevo"
-                            android:textSize="16sp"
+                            android:textSize="16dp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -194,17 +194,17 @@
                             android:text="26"
                             android:textAlignment="center"
                             android:textColor="@color/pendientes"
-                            android:textSize="48sp"
+                            android:textSize="48dp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10sp"
+                            android:layout_marginTop="10dp"
                             android:text="Pendientes"
                             android:textAlignment="center"
                             android:textColor="@color/pendientes"
-                            android:textSize="16sp"
+                            android:textSize="16dp"
                             android:textStyle="bold" />
                     </LinearLayout>
                     <pl.pawelkleczkowski.customgauge.CustomGauge
@@ -258,17 +258,17 @@
                         android:text="5"
                         android:textAlignment="center"
                         android:textColor="@color/rechazado"
-                        android:textSize="48sp"
+                        android:textSize="48dp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10sp"
+                        android:layout_marginTop="10dp"
                         android:text="Rechazados"
                         android:textAlignment="center"
                         android:textColor="@color/rechazado"
-                        android:textSize="16sp"
+                        android:textSize="16dp"
                         android:textStyle="bold" />
                 </LinearLayout>
                 <pl.pawelkleczkowski.customgauge.CustomGauge
@@ -322,17 +322,17 @@
                             android:text="8"
                             android:textAlignment="center"
                             android:textColor="@color/aprobados"
-                            android:textSize="48sp"
+                            android:textSize="48dp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10sp"
+                            android:layout_marginTop="10dp"
                             android:text="Aprobados"
                             android:textAlignment="center"
                             android:textColor="@color/aprobados"
-                            android:textSize="16sp"
+                            android:textSize="16dp"
                             android:textStyle="bold" />
                     </LinearLayout>
                     <pl.pawelkleczkowski.customgauge.CustomGauge
@@ -386,17 +386,17 @@
                         android:text="9"
                         android:textAlignment="center"
                         android:textColor="@color/devuelto"
-                        android:textSize="48sp"
+                        android:textSize="48dp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10sp"
+                        android:layout_marginTop="10dp"
                         android:text="Incidencias"
                         android:textAlignment="center"
                         android:textColor="@color/devuelto"
-                        android:textSize="16sp"
+                        android:textSize="16dp"
                         android:textStyle="bold" />
                 </LinearLayout>
                 <pl.pawelkleczkowski.customgauge.CustomGauge
@@ -451,17 +451,17 @@
                             android:text="18"
                             android:textAlignment="center"
                             android:textColor="@color/transmitido"
-                            android:textSize="48sp"
+                            android:textSize="48dp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10sp"
+                            android:layout_marginTop="10dp"
                             android:text="Transmitidos"
                             android:textAlignment="center"
                             android:textColor="@color/transmitido"
-                            android:textSize="16sp"
+                            android:textSize="16dp"
                             android:textStyle="bold" />
                     </LinearLayout>
                     <pl.pawelkleczkowski.customgauge.CustomGauge
@@ -516,17 +516,17 @@
                             android:text="6"
                             android:textAlignment="center"
                             android:textColor="@color/modificado"
-                            android:textSize="48sp"
+                            android:textSize="48dp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10sp"
+                            android:layout_marginTop="10dp"
                             android:text="Modificados"
                             android:textAlignment="center"
                             android:textColor="@color/modificado"
-                            android:textSize="16sp"
+                            android:textSize="16dp"
                             android:textStyle="bold" />
                     </LinearLayout>
                     <pl.pawelkleczkowski.customgauge.CustomGauge
@@ -580,17 +580,17 @@
                             android:text="18"
                             android:textAlignment="center"
                             android:textColor="@color/colorTextView"
-                            android:textSize="48sp"
+                            android:textSize="48dp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10sp"
+                            android:layout_marginTop="10dp"
                             android:text="Incompletos"
                             android:textAlignment="center"
                             android:textColor="@color/colorTextView"
-                            android:textSize="16sp"
+                            android:textSize="16dp"
                             android:textStyle="bold" />
                     </LinearLayout>
                     <pl.pawelkleczkowski.customgauge.CustomGauge
@@ -643,16 +643,16 @@
                             android:text="18"
                             android:textAlignment="center"
                             android:textColor="@color/black"
-                            android:textSize="48sp"
+                            android:textSize="48dp"
                             android:textStyle="bold" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10sp"
+                            android:layout_marginTop="10dp"
                             android:text="Total"
                             android:textAlignment="center"
                             android:textColor="@color/black"
-                            android:textSize="16sp"
+                            android:textSize="16dp"
                             android:textStyle="bold" />
                     </LinearLayout>
                     <pl.pawelkleczkowski.customgauge.CustomGauge

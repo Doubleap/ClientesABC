@@ -147,4 +147,6 @@
         <item name="android:textSize">12sp</item>
         <item name="android:textStyle">normal</item>
     </style>
+
+    <declare-styleable name="SearchableSpinner"><attr format="string" name="hintText"/></declare-styleable>
 </resources>

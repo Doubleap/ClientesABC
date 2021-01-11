@@ -73,114 +73,114 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
             publishProgress("Estableciendo comunicación...");
             System.out.println("Estableciendo comunicación para enviar archivos...");
             String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
-            if(mensaje.equals("")) {
-            socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip","").trim(),Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto","").trim()));
+            if (mensaje.equals("")) {
+                socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", "").trim(), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "").trim()));
 
-            System.out.println("Creando Streams de datos...");
-            DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                System.out.println("Creando Streams de datos...");
+                DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+                DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 
-            //Comando String que indicara que se quiere realizar una Sincronizacion
-            publishProgress("Comunicacion establecida...");
-            //Enviar Pais de procedencia
-            dos.writeUTF(VariablesGlobales.getSociedad());
-            dos.flush();
-            //Version con la que quiere transmitir
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-            dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
-            dos.flush();
-            //Enviar Ruta que se quiere sincronizar
-            dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
-            dos.flush();
+                //Comando String que indicara que se quiere realizar una Sincronizacion
+                publishProgress("Comunicacion establecida...");
+                //Enviar Pais de procedencia
+                dos.writeUTF(VariablesGlobales.getSociedad());
+                dos.flush();
+                //Version con la que quiere transmitir
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
+                dos.flush();
+                //Enviar Ruta que se quiere sincronizar
+                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
+                dos.flush();
 
-            dos.writeUTF("Actualizacion");
-            dos.flush();
+                dos.writeUTF("Actualizacion");
+                dos.flush();
 
-            dos.writeUTF("FIN");
-            dos.flush();
+                dos.writeUTF("FIN");
+                dos.flush();
 
-            //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
-            long s = dis.readLong();
-            if(s < 0){
-                publishProgress("No se pudo descargar...");
-                s = dis.readLong();
-                byte[] e = new byte[(int) s];
-                dis.readFully(e);
-                String error = new String(e);
-                xceptionFlag = true;
-                messageFlag = "Error: "+error;
-            }else {
-                byte[] r = new byte[(int) s];
-                int offset = 0;
-                int bytesRead;
-                while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
-                    offset += bytesRead;
-                    publishProgress("Descargando..."+String.format("%.02f",(100f/(s/1024f))*(offset/1024f))+"%");
-                }
-                publishProgress("Procesando datos recibidos...");
-                File tranFileDir;
-                File externalStorage = Environment.getExternalStorageDirectory();
-                if (externalStorage != null) {
-                    String externalStoragePath = externalStorage.getAbsolutePath();
-                    tranFileDir = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
-                    boolean ex = tranFileDir.mkdirs();
-                    File transferFile = new File(tranFileDir, "ClientesABC");
-                    OutputStream stream = new FileOutputStream(transferFile);
-                    stream.write(r);
-                    stream.flush();
-                    stream.close();
+                //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
+                long s = dis.readLong();
+                if (s < 0) {
+                    publishProgress("No se pudo descargar...");
+                    s = dis.readLong();
+                    byte[] e = new byte[(int) s];
+                    dis.readFully(e);
+                    String error = new String(e);
+                    xceptionFlag = true;
+                    messageFlag = "Error: " + error;
+                } else {
+                    byte[] r = new byte[(int) s];
+                    int offset = 0;
+                    int bytesRead;
+                    while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
+                        offset += bytesRead;
+                        publishProgress("Descargando..." + String.format("%.02f", (100f / (s / 1024f)) * (offset / 1024f)) + "%");
+                    }
+                    dos.writeUTF("END");
+                    dos.flush();
+                    publishProgress("Procesando datos recibidos...");
+                    File tranFileDir;
+                    File externalStorage = Environment.getExternalStorageDirectory();
+                    if (externalStorage != null) {
+                        String externalStoragePath = externalStorage.getAbsolutePath();
+                        tranFileDir = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
+                        boolean ex = tranFileDir.mkdirs();
+                        File transferFile = new File(tranFileDir, "ClientesABC");
+                        OutputStream stream = new FileOutputStream(transferFile);
+                        stream.write(r);
+                        stream.flush();
+                        stream.close();
 
-                    dos.close();
-                    //UNZIP informacion recibida
-                    boolean unzip = FileHelper.unzip(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "ClientesABC",externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
-                    final File file = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "ClientesABC.apk");
+                        dos.close();
+                        //UNZIP informacion recibida
+                        boolean unzip = FileHelper.unzip(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "ClientesABC", externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
+                        final File file = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "ClientesABC.apk");
 
-                    Date lastModDate = new Date(file.lastModified());
-                    //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                    Date buildDate = proyecto.app.clientesabc.BuildConfig.BuildDate;
+                        Date lastModDate = new Date(file.lastModified());
+                        //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                        Date buildDate = proyecto.app.clientesabc.BuildConfig.BuildDate;
 
-                    if(unzip) {
-                        CrearArchivoConfiguracion(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
-                        if (buildDate.after(lastModDate)) {
-                            activity.get().runOnUiThread(new Runnable() {
-                                public void run() {
-                                    DialogHandler appdialog = new DialogHandler();
-                                    appdialog.Confirm(activity.get(), "Version Antigua", "Al aceptar esta instalacion estara devolviendose a una version ANTERIOR a la actual. Desea continuar con la instalacion?", "No", "Si", new ActualizacionServidor.ActualizarVersion(context.get(),file));
-
-                                }
-                            });
-                        }else
-                        if (buildDate.before(lastModDate)) {
-                            publishProgress("Iniciando Instalacion...");
-                            //Intentar REInstalar la aplicacion con el permiso del usuario.
-                            try {
+                        if (unzip) {
+                            CrearArchivoConfiguracion(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
+                            if (buildDate.after(lastModDate)) {
                                 activity.get().runOnUiThread(new Runnable() {
                                     public void run() {
                                         DialogHandler appdialog = new DialogHandler();
-                                        appdialog.Confirm(activity.get(), "Nueva versión", "Existe una actualización de la aplicacion! Desea instalar la nueva actualizacion de la aplicacion?", "No", "Si", new ActualizacionServidor.ActualizarVersion(context.get(),file));
+                                        appdialog.Confirm(activity.get(), "Version Antigua", "Al aceptar esta instalacion estara devolviendose a una version ANTERIOR a la actual. Desea continuar con la instalacion?", "No", "Si", new ActualizacionServidor.ActualizarVersion(context.get(), file));
+
                                     }
                                 });
+                            } else if (buildDate.before(lastModDate)) {
+                                publishProgress("Iniciando Instalacion...");
+                                //Intentar REInstalar la aplicacion con el permiso del usuario.
+                                try {
+                                    activity.get().runOnUiThread(new Runnable() {
+                                        public void run() {
+                                            DialogHandler appdialog = new DialogHandler();
+                                            appdialog.Confirm(activity.get(), "Nueva versión", "Existe una actualización de la aplicacion! Desea instalar la nueva actualizacion de la aplicacion?", "No", "Si", new ActualizacionServidor.ActualizarVersion(context.get(), file));
+                                        }
+                                    });
 
-                            } catch (Exception e) {
+                                } catch (Exception e) {
+                                    xceptionFlag = true;
+                                    messageFlag = "Error Actualizando la aplicacion." + e.getMessage();
+                                    e.printStackTrace();
+                                }
+                            } else if (buildDate.equals(lastModDate)) {
                                 xceptionFlag = true;
-                                messageFlag = "Error Actualizando la aplicacion." + e.getMessage();
-                                e.printStackTrace();
+                                messageFlag = "No se encontraron nuevas versiones de la aplicacion.";
+                            } else {
+                                xceptionFlag = true;
+                                messageFlag = "Problemas al desempaquetar la informacion.";
                             }
-                        }else if(buildDate.equals(lastModDate)){
-                            xceptionFlag = true;
-                            messageFlag = "No se encontraron nuevas versiones de la aplicacion.";
-                        }
-                        else {
-                            xceptionFlag = true;
-                            messageFlag = "Problemas al desempaquetar la informacion.";
                         }
                     }
                 }
+            } else {
+                xceptionFlag = true;
+                messageFlag = mensaje;
             }
-        }else{
-            xceptionFlag = true;
-            messageFlag = mensaje;
-        }
             publishProgress("Proceso Terminado...");
         } catch (IOException e) {
             xceptionFlag = true;

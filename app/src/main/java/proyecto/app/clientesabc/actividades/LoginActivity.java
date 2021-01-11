@@ -59,7 +59,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Date;
 import java.util.Locale;
 
@@ -504,6 +506,35 @@ public class LoginActivity extends AppCompatActivity {
 
         boolean cancel = false;
         View focusView = null;
+
+        //Primero se checkea que tenga una sincronizacion de menos de 24 horas para poder continuar
+        String ultimaSincronizacion = PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("ultimaSincronizacion","No hay");
+        Date ultimaSincro = null;
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
+        Date ahora = new Date();
+        long diff = 0;
+        long seconds = 0;
+        long minutes = 0;
+        long hours = 0;
+        try {
+            ultimaSincro = dateFormat.parse(ultimaSincronizacion);
+            diff = ahora.getTime() - ultimaSincro.getTime();
+            seconds = diff / 1000;
+            minutes = seconds / 60;
+            hours = minutes / 60;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        if(ultimaSincronizacion.equals("No hay") || hours > 24){
+            Toasty.warning(getBaseContext(),"Los datos del dispositivo ya no están vigentes(+24 horas). Por favor SINCRONIZAR la información para poder continuar.", Toasty.LENGTH_LONG).show();
+            Bundle b = new Bundle();
+            //TODO seleccionar el tipo de solicitud por el UI
+            b.putBoolean("deshabilitarTransmision", true); //id de solicitud
+            intent = new Intent(LoginActivity.this, TCPActivity.class);
+            intent.putExtras(b);
+            startActivity(intent);
+            return;
+        }
 
         // Checkear por el password correcto, si existe
         if (TextUtils.isEmpty(password) && !isPasswordValid(password)) {

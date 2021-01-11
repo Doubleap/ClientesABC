@@ -26,12 +26,12 @@
             android:layout_height="wrap_content"
             android:text="Equipo Frio"
             android:paddingLeft="5dp"/>
-        <com.toptoche.searchablespinnerlibrary.SearchableSpinner
+        <proyecto.app.clientesabc.clases.SearchableSpinner
             android:id="@+id/equipoFrioSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
-            ></com.toptoche.searchablespinnerlibrary.SearchableSpinner>
+            />
         <!--BUTTON-->
         <Button android:id="@+id/saveBtn"
             android:layout_width="match_parent"

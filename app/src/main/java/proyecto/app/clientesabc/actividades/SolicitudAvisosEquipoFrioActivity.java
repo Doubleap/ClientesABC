@@ -14,15 +14,12 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
@@ -32,7 +29,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ContextThemeWrapper;
-import androidx.appcompat.widget.TooltipCompat;
 import androidx.cardview.widget.CardView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
@@ -48,14 +44,12 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -79,16 +73,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
-import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -110,11 +96,10 @@ import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.ComentarioTableAdapter;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
-import proyecto.app.clientesabc.clases.AdjuntoServidor;
 import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
-import proyecto.app.clientesabc.clases.FileHelper;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
+import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Comentario;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
@@ -122,7 +107,6 @@ import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 import static android.view.View.TEXT_ALIGNMENT_CENTER;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
 import static com.google.android.material.tabs.TabLayout.GRAVITY_FILL;
 import static com.google.android.material.tabs.TabLayout.INDICATOR_GRAVITY_TOP;
@@ -297,6 +281,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     case R.id.action_save:
                         int numErrores = 0;
                         String mensajeError="";
+                        if(getCurrentFocus() != null)
+                            getCurrentFocus().clearFocus();
                         //Validacion de Datos Obligatorios Automatico
                         for(int i=0; i < listaCamposObligatorios.size(); i++) {
                             try{
@@ -1702,6 +1688,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             if(sp != null) {
                                 valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
                                 insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                if(listaCamposDinamicos.get(i).trim().equals("W_CTE-BZIRK") && !insertValues.containsKey("[W_CTE-BZIRK]")){
+                                    insertValues.put("[W_CTE-BZIRK]", valor);
+                                }
                             }
                         } catch (Exception e2) {
                             try {

@@ -123,6 +123,8 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
                     publishProgress("Recibiendo informacion..");
                     byte[] r = new byte[(int) s];
                     dis.readFully(r);
+                    dos.writeUTF("END");
+                    dos.flush();
                     String jsoncliente = new String(r);
                     Gson gson = new Gson();
                     estructurasSAP.add(gson.fromJson(jsoncliente, JsonArray.class));

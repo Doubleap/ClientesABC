@@ -16,12 +16,12 @@ import proyecto.app.clientesabc.modelos.Visitas;
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
 
-    private static String nombrePais = "Guatemala Abasa";
-    private static String sociedad = "1658";
-    private static String orgvta = "0658";
-    private static String land1 = "GT";
-    private static String cadenaRM = "0000190027";
-    private static String ktokd = "GCMB";
+    private static String nombrePais = "Costa Rica";
+    private static String sociedad = "F443";
+    private static String orgvta = "0443";
+    private static String land1 = "CR";
+    private static String cadenaRM = "0000160000";
+    private static String ktokd = "RCMA";
     /*
     private static String nombrePais = "Costa Rica";
     private static String sociedad = "F443";
@@ -159,7 +159,7 @@ public class VariablesGlobales extends Application {
             secuencia = String.valueOf(Integer.valueOf(h) * 60 + Integer.valueOf(m));
         }
 
-        return secuencia;
+        return secuencia.equals("0")?"":secuencia;
     }
 
     public static String validarConexionDePreferencia(Context context){

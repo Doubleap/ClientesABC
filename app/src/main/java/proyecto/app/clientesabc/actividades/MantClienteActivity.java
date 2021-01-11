@@ -55,7 +55,6 @@ import com.honeywell.aidc.InvalidScannerNameException;
 import com.honeywell.aidc.ScannerNotClaimedException;
 import com.honeywell.aidc.ScannerUnavailableException;
 import com.honeywell.aidc.UnsupportedPropertyException;
-import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,6 +63,7 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
+import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 

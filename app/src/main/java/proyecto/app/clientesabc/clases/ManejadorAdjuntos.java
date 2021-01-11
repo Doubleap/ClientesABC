@@ -357,68 +357,114 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
         public void run() {
             if(adjuntosSolicitud.get(rowIndex).getName().contains("PoliticaPrivacidad")) {
                 CheckBox politica = (CheckBox) mapeoCamposDinamicos.get("politica");
-                politica.setChecked(false);
-                politica.setEnabled(true);
-                if(activity instanceof SolicitudActivity)
-                    ((SolicitudActivity) activity).firma = false;
-                if(activity instanceof SolicitudModificacionActivity)
-                    ((SolicitudModificacionActivity) activity).firma = false;
-                if(activity instanceof SolicitudCreditoActivity)
-                    ((SolicitudCreditoActivity) activity).firma = false;
-                if(activity instanceof SolicitudAvisosEquipoFrioActivity)
-                    ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                if(politica != null) {
+                    politica.setChecked(false);
+                    politica.setEnabled(true);
+
+                    if (activity instanceof SolicitudActivity)
+                        ((SolicitudActivity) activity).firma = false;
+                    if (activity instanceof SolicitudModificacionActivity)
+                        ((SolicitudModificacionActivity) activity).firma = false;
+                    if (activity instanceof SolicitudCreditoActivity)
+                        ((SolicitudCreditoActivity) activity).firma = false;
+                    if (activity instanceof SolicitudAvisosEquipoFrioActivity)
+                        ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                }
             }
             if(adjuntosSolicitud.get(rowIndex).getName().contains("AceptacionCredito")) {
                 CheckBox aceptacion_credito = (CheckBox) mapeoCamposDinamicos.get("aceptacion_credito");
-                aceptacion_credito.setChecked(false);
-                aceptacion_credito.setEnabled(true);
-                if(activity instanceof SolicitudActivity)
-                    ((SolicitudActivity) activity).firma = false;
-                if(activity instanceof SolicitudModificacionActivity)
-                    ((SolicitudModificacionActivity) activity).firma = false;
-                if(activity instanceof SolicitudCreditoActivity)
-                    ((SolicitudCreditoActivity) activity).firma = false;
-                if(activity instanceof SolicitudAvisosEquipoFrioActivity)
-                    ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                if(aceptacion_credito != null) {
+                    aceptacion_credito.setChecked(false);
+                    aceptacion_credito.setEnabled(true);
+
+                    if (activity instanceof SolicitudActivity)
+                        ((SolicitudActivity) activity).firma = false;
+                    if (activity instanceof SolicitudModificacionActivity)
+                        ((SolicitudModificacionActivity) activity).firma = false;
+                    if (activity instanceof SolicitudCreditoActivity)
+                        ((SolicitudCreditoActivity) activity).firma = false;
+                    if (activity instanceof SolicitudAvisosEquipoFrioActivity)
+                        ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                }
             }
             if(adjuntosSolicitud.get(rowIndex).getName().contains("AceptacionContrato")) {
-                CheckBox aceptacion_credito = (CheckBox) mapeoCamposDinamicos.get("aceptacion_contrato");
-                aceptacion_credito.setChecked(false);
-                aceptacion_credito.setEnabled(true);
-                if(activity instanceof SolicitudActivity)
-                    ((SolicitudActivity) activity).firma = false;
-                if(activity instanceof SolicitudModificacionActivity)
-                    ((SolicitudModificacionActivity) activity).firma = false;
-                if(activity instanceof SolicitudCreditoActivity)
-                    ((SolicitudCreditoActivity) activity).firma = false;
-                if(activity instanceof SolicitudAvisosEquipoFrioActivity)
-                    ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                CheckBox aceptacion_contrato = (CheckBox) mapeoCamposDinamicos.get("aceptacion_contrato");
+                if(aceptacion_contrato != null) {
+                    aceptacion_contrato.setChecked(false);
+                    aceptacion_contrato.setEnabled(true);
+
+                    if (activity instanceof SolicitudActivity)
+                        ((SolicitudActivity) activity).firma = false;
+                    if (activity instanceof SolicitudModificacionActivity)
+                        ((SolicitudModificacionActivity) activity).firma = false;
+                    if (activity instanceof SolicitudCreditoActivity)
+                        ((SolicitudCreditoActivity) activity).firma = false;
+                    if (activity instanceof SolicitudAvisosEquipoFrioActivity)
+                        ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                }
             }
             if(adjuntosSolicitud.get(rowIndex).getName().contains("AceptacionPagare")) {
                 CheckBox aceptacion_credito = (CheckBox) mapeoCamposDinamicos.get("aceptacion_credito");
-                aceptacion_credito.setChecked(false);
-                aceptacion_credito.setEnabled(true);
-                if(activity instanceof SolicitudActivity)
-                    ((SolicitudActivity) activity).firma = false;
-                if(activity instanceof SolicitudModificacionActivity)
-                    ((SolicitudModificacionActivity) activity).firma = false;
-                if(activity instanceof SolicitudCreditoActivity)
-                    ((SolicitudCreditoActivity) activity).firma = false;
-                if(activity instanceof SolicitudAvisosEquipoFrioActivity)
-                    ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                if(aceptacion_credito != null) {
+                    aceptacion_credito.setChecked(false);
+                    aceptacion_credito.setEnabled(true);
+
+                    if (activity instanceof SolicitudActivity)
+                        ((SolicitudActivity) activity).firma = false;
+                    if (activity instanceof SolicitudModificacionActivity)
+                        ((SolicitudModificacionActivity) activity).firma = false;
+                    if (activity instanceof SolicitudCreditoActivity)
+                        ((SolicitudCreditoActivity) activity).firma = false;
+                    if (activity instanceof SolicitudAvisosEquipoFrioActivity)
+                        ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                }
+            }
+            if(adjuntosSolicitud.get(rowIndex).getName().contains("AceptacionLetra")) {
+                CheckBox aceptacion_letra = (CheckBox) mapeoCamposDinamicos.get("aceptacion_letra");
+                if(aceptacion_letra != null) {
+                    aceptacion_letra.setChecked(false);
+                    aceptacion_letra.setEnabled(true);
+
+                    if (activity instanceof SolicitudActivity)
+                        ((SolicitudActivity) activity).firma = false;
+                    if (activity instanceof SolicitudModificacionActivity)
+                        ((SolicitudModificacionActivity) activity).firma = false;
+                    if (activity instanceof SolicitudCreditoActivity)
+                        ((SolicitudCreditoActivity) activity).firma = false;
+                    if (activity instanceof SolicitudAvisosEquipoFrioActivity)
+                        ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                }
+            }
+            if(adjuntosSolicitud.get(rowIndex).getName().contains("AceptacionApc")) {
+                CheckBox aceptacion_apc = (CheckBox) mapeoCamposDinamicos.get("aceptacion_apc");
+                if (aceptacion_apc != null) {
+                    aceptacion_apc.setChecked(false);
+                    aceptacion_apc.setEnabled(true);
+
+                    if (activity instanceof SolicitudActivity)
+                        ((SolicitudActivity) activity).firma = false;
+                    if (activity instanceof SolicitudModificacionActivity)
+                        ((SolicitudModificacionActivity) activity).firma = false;
+                    if (activity instanceof SolicitudCreditoActivity)
+                        ((SolicitudCreditoActivity) activity).firma = false;
+                    if (activity instanceof SolicitudAvisosEquipoFrioActivity)
+                        ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                }
             }
             if(adjuntosSolicitud.get(rowIndex).getName().contains("Constancia")) {
                 CheckBox constancia = (CheckBox) mapeoCamposDinamicos.get("constancia");
-                constancia.setChecked(false);
-                constancia.setEnabled(true);
-                if(activity instanceof SolicitudActivity)
-                    ((SolicitudActivity) activity).firma = false;
-                if(activity instanceof SolicitudModificacionActivity)
-                    ((SolicitudModificacionActivity) activity).firma = false;
-                if(activity instanceof SolicitudCreditoActivity)
-                    ((SolicitudCreditoActivity) activity).firma = false;
-                if(activity instanceof SolicitudAvisosEquipoFrioActivity)
-                    ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                if(constancia != null) {
+                    constancia.setChecked(false);
+                    constancia.setEnabled(true);
+                    if(activity instanceof SolicitudActivity)
+                        ((SolicitudActivity) activity).firma = false;
+                    if(activity instanceof SolicitudModificacionActivity)
+                        ((SolicitudModificacionActivity) activity).firma = false;
+                    if(activity instanceof SolicitudCreditoActivity)
+                        ((SolicitudCreditoActivity) activity).firma = false;
+                    if(activity instanceof SolicitudAvisosEquipoFrioActivity)
+                        ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                }
             }
             adjuntosSolicitud.remove(rowIndex);
             tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(context, adjuntosSolicitud));
@@ -613,6 +659,20 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                             ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
                         constancia.setEnabled(false);
                     }
+                    CheckBox aceptacion_letra = (CheckBox) mapeoCamposDinamicos.get("aceptacion_letra");
+                    if(aceptacion_letra != null) {
+                        aceptacion_letra.setChecked(true);
+                        //TODO firma depende de 2 o mas firmas como hacer para validar
+                        if(activity instanceof SolicitudActivity)
+                            ((SolicitudActivity) activity).firma = true;
+                        if(activity instanceof SolicitudModificacionActivity)
+                            ((SolicitudModificacionActivity) activity).firma = true;
+                        if(activity instanceof SolicitudCreditoActivity)
+                            ((SolicitudCreditoActivity) activity).firma = true;
+                        if(activity instanceof SolicitudAvisosEquipoFrioActivity)
+                            ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
+                        aceptacion_letra.setEnabled(false);
+                    }
 
                     Toasty.success(context, "Documento asociado correctamente.").show();
                 }
@@ -662,6 +722,21 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         if(activity instanceof SolicitudAvisosEquipoFrioActivity)
                             ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
                         aceptacion_contrato.setEnabled(false);
+                    }
+
+                    CheckBox aceptacion_apc = (CheckBox) mapeoCamposDinamicos.get("aceptacion_apc");
+                    if(aceptacion_apc != null) {
+                        aceptacion_apc.setChecked(true);
+                        //TODO firma depende de 2 o mas firmas como hacer para validar
+                        if(activity instanceof SolicitudActivity)
+                            ((SolicitudActivity) activity).firma = true;
+                        if(activity instanceof SolicitudModificacionActivity)
+                            ((SolicitudModificacionActivity) activity).firma = true;
+                        if(activity instanceof SolicitudCreditoActivity)
+                            ((SolicitudCreditoActivity) activity).firma = true;
+                        if(activity instanceof SolicitudAvisosEquipoFrioActivity)
+                            ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
+                        aceptacion_apc.setEnabled(false);
                     }
                     Toasty.success(context, "Documento asociado correctamente.").show();
                 }

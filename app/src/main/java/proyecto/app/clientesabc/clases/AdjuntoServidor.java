@@ -106,7 +106,7 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
                 //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
                 long s = dis.readLong();
                 if (s < 0) {
-                    publishProgress("Error en Sincronizacion...");
+                    publishProgress("Error al obtener adjunto...");
                     s = dis.readLong();
                     byte[] e = new byte[(int) s];
                     dis.readFully(e);
@@ -117,6 +117,8 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
                     publishProgress("Recibiendo datos...");
                     byte[] r = new byte[(int) s];
                     dis.readFully(r);
+                    dos.writeUTF("END");
+                    dos.flush();
                     publishProgress("Procesando datos recibidos...");
                     if (nombre.toLowerCase().contains(".pdf")) {
                         adjuntoArray = r;

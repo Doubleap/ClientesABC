@@ -113,6 +113,8 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                         offset += bytesRead;
                         publishProgress("Descargando..." + String.format("%.02f", (100f / (s / 1024f)) * (offset / 1024f)) + "%");
                     }
+                    dos.writeUTF("END");
+                    dos.flush();
                     publishProgress("Procesando datos recibidos...");
                     File tranFileDir;
                     File externalStorage = Environment.getExternalStorageDirectory();
@@ -257,7 +259,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
         } catch (IOException e) {
             xceptionFlag = true;
             if(e.getMessage() == null)
-                messageFlag = "Posible ruta de venta inválida. Revise los datos de comunicación."+e.getMessage();
+                messageFlag = "Revise los datos de comunicación o intente de nuevo!"+e.getMessage();
             else
                 messageFlag = e.getMessage();
             e.printStackTrace();

@@ -241,6 +241,8 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                             offset += bytesRead;
                             publishProgress("Descargando..." + String.format("%.02f", (100f / (s / 1024f)) * (offset / 1024f)) + "%");
                         }
+                        dos.writeUTF("END");
+                        dos.flush();
                         publishProgress("Actualizando solicitudes...");
                         solicitudes_procesadas = new String(r, Charset.defaultCharset());
                     }

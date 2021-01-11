@@ -120,6 +120,8 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                         offset += bytesRead;
                         publishProgress("Descargando..." + String.format("%.02f", (100f / (s / 1024f)) * (offset / 1024f)) + "%");
                     }
+                    dos.writeUTF("END");
+                    dos.flush();
                     publishProgress("Procesando datos recibidos...");
 
                     String jsoncliente = new String(r);
@@ -177,14 +179,20 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
             }
         });
         dialog = builder.create();
-        if(!activity.get().isFinishing()) {
+        if(activity.get() != null && !activity.get().isFinishing()) {
             dialog.show();
         }
     }
     @Override
     protected void onPostExecute(ArrayList<JsonArray> estructuras) {
         super.onPostExecute(estructuras);
-        dialog.dismiss();
+        try {
+            dialog.dismiss();
+        } catch (final IllegalArgumentException e) {
+            // Do nothing.
+        } catch (final Exception e) {
+            // Do nothing.
+        }
         if(dialog.isShowing()) {
             dialog.hide();
         }

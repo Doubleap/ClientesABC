@@ -5,34 +5,27 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.provider.OpenableColumns;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ContextThemeWrapper;
-import androidx.appcompat.widget.TooltipCompat;
 import androidx.cardview.widget.CardView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
@@ -48,14 +41,12 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -81,18 +72,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
-import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -121,11 +105,10 @@ import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
 import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
-import proyecto.app.clientesabc.clases.AdjuntoServidor;
 import proyecto.app.clientesabc.clases.ConsultaCreditoClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
-import proyecto.app.clientesabc.clases.FileHelper;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
+import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
@@ -220,6 +203,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private static JsonArray creditoCadena;
 
     private static String tipoCambio;
+    private static String montoCredito = "";
+    private static String plazoCredito = "";
 
     @SuppressLint("ResourceType")
     @Override
@@ -339,6 +324,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     case R.id.action_save:
                         int numErrores = 0;
                         String mensajeError="";
+                        if(getCurrentFocus() != null)
+                            getCurrentFocus().clearFocus();
                         //Validacion de Datos Obligatorios Automatico
                         for(int i=0; i < listaCamposObligatorios.size(); i++) {
                             try{
@@ -455,6 +442,16 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                 && (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","").equals("F445"))){
                             numErrores++;
                             mensajeError += "- El cliente debe firmar el contrato!\n";
+                        }
+                        if(((CheckBox) mapeoCamposDinamicos.get("aceptacion_letra")) != null && ((CheckBox) mapeoCamposDinamicos.get("aceptacion_letra")).getVisibility() == View.VISIBLE && !((CheckBox) mapeoCamposDinamicos.get("aceptacion_letra")).isChecked() && (getSupportActionBar().getSubtitle().toString().toLowerCase().contains("apertura") || getSupportActionBar().getSubtitle().toString().toLowerCase().contains("modificacion"))
+                                && (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","").equals("F451"))){
+                            numErrores++;
+                            mensajeError += "- El cliente debe firmar la letra de cambio!\n";
+                        }
+                        if(((CheckBox) mapeoCamposDinamicos.get("aceptacion_apc")) != null && ((CheckBox) mapeoCamposDinamicos.get("aceptacion_apc")).getVisibility() == View.VISIBLE && !((CheckBox) mapeoCamposDinamicos.get("aceptacion_apc")).isChecked() && (getSupportActionBar().getSubtitle().toString().toLowerCase().contains("apertura") || getSupportActionBar().getSubtitle().toString().toLowerCase().contains("modificacion"))
+                                && (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","").equals("F451"))){
+                            numErrores++;
+                            mensajeError += "- El cliente debe firmar la verificación apc!\n";
                         }
                         if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-KLIMK")).getText().toString().replace("0","").replace(".","").isEmpty()){
                             numErrores++;
@@ -1009,7 +1006,19 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     if(campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7")){
                         combo.setSelection(selectedIndexOld);
                     }
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-ZTERM")) {
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                //ValidarPlazoCredito();
+                            }
 
+                            @Override
+                            public void onNothingSelected(AdapterView<?> adapterView) {
+
+                            }
+                        });
+                    }
                     //Campo de regimen fiscal, se debe cambiar el formato de cedula segun el tipo de cedula
                     if(campos.get(i).get("campo").trim().equals("W_CTE-KATR3")){
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -1570,12 +1579,22 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     //Le cae encima al valor default por el de la solicitud seleccionada
                     if(solicitudSeleccionada.size() > 0){
                         et.setText(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim());
+                        if(campos.get(i).get("campo").trim().equals("W_CTE-KLIMK")){
+                            montoCredito = solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim().replace(",",".");
+                        }
+                        if(campos.get(i).get("campo").trim().equals("W_CTE-KLIMK") || campos.get(i).get("campo").trim().equals("W_CTE-LIMSUG") || campos.get(i).get("campo").trim().contains("W_CTE-DMBTR")){
+                            et.setText(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim().replace(",","."));
+                        }
+
                         if(!modificable){
                             et.setEnabled(false);
                             et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled,null));
                         }
                         if((campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7")) && solicitudSeleccionadaOld.size()  > 0){
                             et.setText(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim());
+                            if(campos.get(i).get("campo").trim().equals("W_CTE-KLIMK") || campos.get(i).get("campo").trim().equals("W_CTE-LIMSUG") || campos.get(i).get("campo").trim().contains("W_CTE-DMBTR")){
+                                et.setText(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim().replace(",","."));
+                            }
                         }
                     }
                     //metodos configurados en tabla
@@ -1734,7 +1753,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                 @Override
                                 public void onFocusChange(View v, boolean hasFocus) {
                                     if (!hasFocus) {
-                                        ValidarLimiteCredito(v, hasFocus, getActivity().findViewById(R.id.LinearLayoutMain));
+                                        ValidarLimiteCredito(v, hasFocus, getActivity(),getContext());
                                     }
                                 }
                             });
@@ -2066,7 +2085,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     );
 
                     CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
-                    mapeoCamposDinamicos.put("aceptacion_credito",checkbox);
+                    mapeoCamposDinamicos.put("aceptacion_letra",checkbox);
                     //Para verificacion apc extenso de PA
                     //Check Box para la aceptacion de las politicas de privacidad
                     final CheckBox checkboxC = new CheckBox(getContext());
@@ -2093,7 +2112,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         }
                     });
                     CompoundButtonCompat.setButtonTintList(checkboxC,colorStateList);
-                    mapeoCamposDinamicos.put("aceptacion_contrato",checkboxC);
+                    mapeoCamposDinamicos.put("aceptacion_apc",checkboxC);
                 }
             }
         }
@@ -2101,8 +2120,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         private void Aceptacion(View v) {
             Bundle b = new Bundle();
             try {
-                String montoCredito = "";
-                String plazoCredito = "";
+                montoCredito = "";
+                plazoCredito = "";
                 String name12 = "";
                 String name34 = "";
                 String cedula = "";
@@ -2186,6 +2205,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     }
                 }
                 if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F451")) {
+                    indicadorFirma = "Letra";
                     if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME1")) != null) {
                         name12 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME1")).getText().toString().trim();
                         if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME2")) != null) {
@@ -2217,6 +2237,17 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-LOCATION")) != null) {
                         location = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-LOCATION")).getText().toString().trim();
                     }
+
+                    if (montoCredito.replace("0", "").replace(".", "").trim().equals("")) {
+                        mensajeError += "El límite de crédito no es válido para realizar la firma.\n";
+                    }
+                    if (location.trim().equals("")) {
+                        mensajeError += "No se encontró la locacion para la firma.\n";
+                    }
+                    if (mensajeError.trim().length() > 0) {
+                        Toasty.warning(getContext(), mensajeError).show();
+                        return;
+                    }
                 }
 
                 Intent intent = new Intent(getContext(),FirmaCreditoActivity.class);
@@ -2242,8 +2273,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
         private void AceptacionContrato(View v) {
             Bundle b = new Bundle();
-            String montoCredito = "";
-            String plazoCredito = "";
+            montoCredito = "";
+            plazoCredito = "";
             String name12 = "";
             String name34 = "";
             String cedula = "";
@@ -2331,22 +2362,38 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     Toasty.warning(getContext(), mensajeError).show();
                     return;
                 }
+                Intent intent = new Intent(getContext(),FirmaCreditoActivity.class);
+                intent.putExtra("montoCredito",montoCredito);
+                intent.putExtra("plazoCredito",plazoCredito);
+                intent.putExtra("name12",name12);
+                intent.putExtra("name34",name34);
+                intent.putExtra("cedula",cedula);
+                intent.putExtra("estadoCivil",estadoCivil);
+                intent.putExtra("actividadEconomica",actividadEconomica);
+                intent.putExtra("duracionContrato",duracionContrato);
+                intent.putExtra("tipoCredito",tipoCredito);
+                intent.putExtra("indicadorFirma","Contrato");
+                intent.putExtra("tipoCambio",tipoCambio);
+
+                getActivity().startActivityForResult(intent,110);
+            }
+            if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F451")) {
+                Intent intent = new Intent(getContext(),FirmaCreditoActivity.class);
+                intent.putExtra("montoCredito",montoCredito);
+                intent.putExtra("plazoCredito",plazoCredito);
+                intent.putExtra("name12",name12);
+                intent.putExtra("name34",name34);
+                intent.putExtra("cedula",cedula);
+                intent.putExtra("estadoCivil",estadoCivil);
+                intent.putExtra("actividadEconomica",actividadEconomica);
+                intent.putExtra("duracionContrato",duracionContrato);
+                intent.putExtra("tipoCredito",tipoCredito);
+                intent.putExtra("indicadorFirma","Apc");
+                intent.putExtra("tipoCambio",tipoCambio);
+
+                getActivity().startActivityForResult(intent,110);
             }
 
-            Intent intent = new Intent(getContext(),FirmaCreditoActivity.class);
-            intent.putExtra("montoCredito",montoCredito);
-            intent.putExtra("plazoCredito",plazoCredito);
-            intent.putExtra("name12",name12);
-            intent.putExtra("name34",name34);
-            intent.putExtra("cedula",cedula);
-            intent.putExtra("estadoCivil",estadoCivil);
-            intent.putExtra("actividadEconomica",actividadEconomica);
-            intent.putExtra("duracionContrato",duracionContrato);
-            intent.putExtra("tipoCredito",tipoCredito);
-            intent.putExtra("indicadorFirma","Contrato");
-            intent.putExtra("tipoCambio",tipoCambio);
-
-            getActivity().startActivityForResult(intent,110);
         }
 
         public void DesplegarBloque(DataBaseHelper db, View _ll, HashMap<String, String> campo) {
@@ -3001,8 +3048,15 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }
 
     }
-    private static void ValidarLimiteCredito(View v, boolean hasFocus, ViewGroup ll) {
-        double limite = Double.parseDouble(((TextView)v).getText().toString());
+    private static void ValidarLimiteCredito(View v, boolean hasFocus, Activity activity, Context context) {
+        double limite = 0;
+        try {
+            limite = NumberFormat.getInstance(Locale.ENGLISH).parse(((TextView)v).getText().toString().replace(",",".")).doubleValue();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        //double limite = Double.parseDouble(((TextView)v).getText().toString());
+        ViewGroup ll = activity.findViewById(R.id.LinearLayoutMain);
         if(limite > 175000){
             ((CheckBox)mapeoCamposDinamicos.get("aceptacion_contrato")).setVisibility(View.VISIBLE);
             ((Spinner)mapeoCamposDinamicos.get("W_CTE-TIPO_CREDITO")).setVisibility(View.VISIBLE);
@@ -3020,6 +3074,23 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             listaCamposObligatorios.remove("W_CTE-DURACION_CONTRATO");
             listaCamposObligatorios.remove("W_CTE-TIPO_CREDITO");
         }
+        //Si el valor cambio y la firma ya fue realizada se debe eliminar el adjunto
+        //Buscar si existen las firmas del pagare y de contrato
+        if(!montoCredito.equals(((TextView)v).getText().toString().replace(",","."))) {
+            int rowIndex = -1;
+            int tam = adjuntosSolicitud.size();
+            for (int x = 0; x < adjuntosSolicitud.size(); x++) {
+                if (adjuntosSolicitud.get(x).getName().contains("AceptacionPagare")) {
+                    new ManejadorAdjuntos.EliminarAdjunto(context, activity, x, adjuntosSolicitud, mapeoCamposDinamicos, tb_adjuntos, modificable, firma).run();
+                }
+            }
+            for (int x = 0; x < adjuntosSolicitud.size(); x++) {
+                if (adjuntosSolicitud.get(x).getName().contains("AceptacionContrato")) {
+                    new ManejadorAdjuntos.EliminarAdjunto(context, activity, x, adjuntosSolicitud, mapeoCamposDinamicos, tb_adjuntos, modificable, firma).run();
+                }
+            }
+        }
+
     }
     //Pruebas para seccion de bloques
     public static void displayDialogMessage(Context context, String mensaje) {
@@ -4526,7 +4597,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     }
 
                     //Caerle encima con los valores de la RFC de Credito
-                    //if(credito.size() > 0){
+                    if(credito.size() > 0){
                         tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaFinal.get(i).trim()));
                         if(tv != null)
                             tv.setText(credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString());
@@ -4542,19 +4613,19 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             tv.setText(String.format (java.util.Locale.US,"%,.2f", mes));
                         }
 
-                    if(listaFinal.get(i).contains("KLIMK")){
-                        Double limite = NumberFormat.getInstance(Locale.ENGLISH).parse(credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString().replace(",",".")).doubleValue();
-                        tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaFinal.get(i).trim()));
-                        if(tv != null) {
-                            tv.setText(String.format(java.util.Locale.US, "%.2f", limite));
-                            ValidarLimiteCredito( tv,  false, activity.findViewById(R.id.LinearLayoutMain));
+                        if(listaFinal.get(i).contains("KLIMK")){
+                            Double limite = NumberFormat.getInstance(Locale.ENGLISH).parse(credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString().replace(",",".")).doubleValue();
+                            tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaFinal.get(i).trim()));
+                            if(tv != null) {
+                                tv.setText(String.format(java.util.Locale.US, "%.2f", limite));
+                                ValidarLimiteCredito( tv,  false, activity, context);
+                            }
+                            tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaFinal.get(i).trim()));
+                            if(tv != null)
+                                tv.setText(String.format (java.util.Locale.US,"%.2f", limite));
+                            montoCredito = String.format (java.util.Locale.US,"%.2f", limite);
                         }
-                        tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaFinal.get(i).trim()));
-                        if(tv != null)
-                            tv.setText(String.format (java.util.Locale.US,"%.2f", limite));
-
                     }
-                    //}
                 } catch (Exception e) {
                     try {
                         Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaFinal.get(i).trim()));
@@ -4574,6 +4645,12 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             sp = ((Spinner) mapeoCamposDinamicos.get(listaFinal.get(i)));
                             if(sp != null && credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()) != null)
                                 sp.setSelection(VariablesGlobales.getIndex(sp,credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString()));
+                            sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaFinal.get(i)));
+                            if(sp != null && credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()) != null)
+                                sp.setSelection(VariablesGlobales.getIndex(sp,credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString()));
+                            sp = ((Spinner) mapeoCamposDinamicosOld.get(listaFinal.get(i)));
+                            if(sp != null && credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()) != null)
+                                sp.setSelection(VariablesGlobales.getIndex(sp,credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString()));
                         }
                     } catch (Exception e2) {
                         try {
@@ -4584,7 +4661,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                 check.setChecked(true);
                                 checkold.setChecked(true);
                             }
-
                         }catch(Exception e3){
                             //Toasty.error(context,"No se pudo obtener el valor del campo "+listaFinal.get(i)).show();
                         }
@@ -4631,7 +4707,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         break;
                     case "W_CTE-BANCOS":
                         Banco banco = null;
-
                         for(int x=0; x < bancos.size(); x++){
                             banco = gson.fromJson(bancos.get(x), Banco.class);
                             bancosSolicitud.add(banco);

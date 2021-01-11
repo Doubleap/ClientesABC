@@ -97,10 +97,16 @@ public class FirmaActivity extends AppCompatActivity {
                 texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_pa),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "F446":
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_gt),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                break;
             case "1657":
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_vo),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                break;
             case "1658":
                 texto_titulo.setText(R.string.title_activity_firma);
-                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_ab),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             default:
                 texto_titulo.setText(R.string.title_activity_firma);

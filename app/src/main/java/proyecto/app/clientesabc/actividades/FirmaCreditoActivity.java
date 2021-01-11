@@ -96,7 +96,11 @@ public class FirmaCreditoActivity extends AppCompatActivity {
             indicadorFirma = b.getString("indicadorFirma");
             tipoCambio = b.getString("tipoCambio");
         }
-        if(tipoCambio != null && !tipoCambio.equals("")){
+        if(!montoCredito.contains(".") && montoCredito != null && !montoCredito.trim().equals(""))
+            montoCredito = montoCredito+".00";
+        if(tipoCambio != null && !tipoCambio.trim().equals("") && montoCredito != null && !montoCredito.trim().equals("")){
+            if(!tipoCambio.contains("."))
+                tipoCambio = tipoCambio+".00";
             montoCreditoDolares = String.format(java.util.Locale.US, "%.2f", (Double.parseDouble(montoCredito)/Double.parseDouble(tipoCambio)));
         }
         if(indicadorFirma.length() == 0)
@@ -139,9 +143,16 @@ public class FirmaCreditoActivity extends AppCompatActivity {
                 }
                 break;
             case "F451":
-                fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
-                texto_titulo.setText(R.string.title_activity_firma_credito_pa);
-                texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_credito_pa), location, fechaLetras, NumerosALetras.Convertir(montoCredito,false," balboas"), montoCredito ),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                if(indicadorFirma.equals("Letra")) {
+                    fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
+                    texto_titulo.setText(R.string.title_activity_firma_credito_pa);
+                    texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_credito_pa), location, fechaLetras, NumerosALetras.Convertir(montoCredito, false, " balboas"), montoCredito), HtmlCompat.FROM_HTML_MODE_LEGACY));
+                }
+                if(indicadorFirma.equals("Apc")) {
+                    texto_titulo.setText("VERIFICACIÓN APC");
+                    texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_credito_pa2)), HtmlCompat.FROM_HTML_MODE_LEGACY));
+                }
+
                 break;
             case "F446":
             case "1657":
