@@ -1640,90 +1640,91 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             String NextId = GUID;
             ContentValues insertValues = new ContentValues();
             ContentValues insertValuesOld = new ContentValues();
-            boolean cambioRealizado = false;
-            for (int i = 0; i < listaCamposDinamicos.size(); i++) {
-                if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
+            ArrayList<String> listaFinal = (ArrayList<String>)listaCamposDinamicos.clone();
+            boolean prueba  = listaFinal.addAll(listaCamposDinamicosEnca);
+            for (int i = 0; i < listaFinal.size(); i++) {
+                if(!listaCamposBloque.contains(listaFinal.get(i).trim()) && !listaFinal.get(i).equals("W_CTE-ENCUESTA") && !listaFinal.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                     try {
-                        MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                        MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaFinal.get(i)));
                         String valor = "";
                         if(tv != null) {
                             valor = tv.getText().toString();
                         }
-                        if(!listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
-                            insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
-                            tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
+                        if(!listaFinal.get(i).equals("W_CTE-ENCUESTA") && !listaFinal.get(i).equals("W_CTE-ENCUESTA_GEC")) {
+                            insertValues.put("[" + listaFinal.get(i) + "]", valor);
+                            tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaFinal.get(i)));
                             if(tv != null){
                                 valor = tv.getText().toString();
-                                insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
                             }
-                            tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i)));
+                            tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaFinal.get(i)));
                             if(tv != null){
                                 valor = tv.getText().toString();
-                                insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
                             }
-                            if(listaCamposDinamicos.get(i).equals("W_CTE-COMENTARIOS")) {
+                            if(listaFinal.get(i).equals("W_CTE-COMENTARIOS")) {
                                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
                                 Date date = new Date();
                                 if(comentarios.size() == 0)
-                                    insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                    insertValues.put("[" + listaFinal.get(i) + "]", valor);
                                 else
-                                    insertValues.put("[" + listaCamposDinamicos.get(i) + "]", comentarios.get(0).getComentario()+"("+dateFormat.format(date)+"): "+valor);
+                                    insertValues.put("[" + listaFinal.get(i) + "]", comentarios.get(0).getComentario()+"("+dateFormat.format(date)+"): "+valor);
                             }
                         }
 
                     } catch (Exception e) {
                         try {
-                            Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                            Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaFinal.get(i)));
                             String valor="";
                             if(sp != null) {
                                 valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
-                                insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                insertValues.put("[" + listaFinal.get(i) + "]", valor);
                             }
-                            sp = ((Spinner) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
+                            sp = ((Spinner) mapeoCamposDinamicosOld.get(listaFinal.get(i)));
                             if(sp != null) {
                                 valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
-                                insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
                             }
-                            sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i)));
+                            sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaFinal.get(i)));
                             if(sp != null) {
                                 valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
-                                insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
-                                if(listaCamposDinamicos.get(i).trim().equals("W_CTE-BZIRK") && !insertValues.containsKey("[W_CTE-BZIRK]")){
+                                insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
+                                if(listaFinal.get(i).trim().equals("W_CTE-BZIRK") && !insertValues.containsKey("[W_CTE-BZIRK]")){
                                     insertValues.put("[W_CTE-BZIRK]", valor);
                                 }
                             }
                         } catch (Exception e2) {
                             try {
-                                CheckBox check = ((CheckBox) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                                CheckBox check = ((CheckBox) mapeoCamposDinamicos.get(listaFinal.get(i)));
                                 String valor = "";
                                 if (check.isChecked()) {
                                     valor = "X";
                                 }
-                                insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                insertValues.put("[" + listaFinal.get(i) + "]", valor);
 
-                                check = ((CheckBox) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
+                                check = ((CheckBox) mapeoCamposDinamicosOld.get(listaFinal.get(i)));
                                 if(check != null){
                                     valor = "";
                                     if (check.isChecked()) {
                                         valor = "X";
                                     }
-                                    insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                    insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
                                 }
-                                check = ((CheckBox) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i)));
+                                check = ((CheckBox) mapeoCamposDinamicosEnca.get(listaFinal.get(i)));
                                 if(check != null){
                                     valor = "";
                                     if (check.isChecked()) {
                                         valor = "X";
                                     }
-                                    insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                    insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
                                 }
                             }catch(Exception e3){
-                                Toasty.error(getBaseContext(),"No se pudo obtener el valor del campo "+listaCamposDinamicos.get(i)).show();
+                                Toasty.error(getBaseContext(),"No se pudo obtener el valor del campo "+listaFinal.get(i)).show();
                             }
                         }
                     }
                 }else{//Revisar que tipo de bloque es para guardarlo en el lugar correcto.
-                    switch(listaCamposDinamicos.get(i)){
+                    switch(listaFinal.get(i)){
                         case "W_CTE-ADJUNTOS":
                             ContentValues adjuntoValues = new ContentValues();
                             try {
@@ -1794,7 +1795,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     //Bundle par = new Bundle();
                     //par.putString("tipo_solicitud",tipoSolicitud);
                     //SolicitudActivity.this.startActivity(sol);
-                    Toasty.success(getApplicationContext(), "Solicitud de Modificación Creada", Toast.LENGTH_LONG).show();
+                    Toasty.success(getApplicationContext(), "Solicitud de Equipo Frio Creada", Toast.LENGTH_LONG).show();
                 }
             } catch (Exception e) {
                 Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_LONG).show();

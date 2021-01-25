@@ -5056,17 +5056,25 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 //Telefono Celular
                 if (telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals("3")) {
                     MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER2"));
+                    if(tv == null){
+                        tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TELNUMBER2"));
+                    }
                     if (tv != null)
                         tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
 
                     tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-TEL_NUMBER2"));
+                    if(tv == null){
+                        tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-TELNUMBER2"));
+                    }
                     if (tv != null)
                         tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
 
                     tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-TEL_NUMBER2"));
+                    if(tv == null){
+                        tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-TELNUMBER2"));
+                    }
                     if (tv != null)
                         tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
-
                 }
                 //Telefono adicional
                 if (telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals(" ") || telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals("")) {
@@ -5527,7 +5535,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             case "1657"://Volcanes
             case "1658"://Abasa
                 /*Validaciones Adicionales para GT*/
-                String regexp_idfiscal = "[0-9][0-9]{1,8}-[0-9A-Z]";
+                String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
                 String regexp_cf = "CF";
                 Pattern patternFi = Pattern.compile(regexp_idfiscal);
                 Pattern patternCF = Pattern.compile(regexp_cf);
@@ -5584,7 +5592,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         }
         if(VariablesGlobales.getSociedad().equals("F446") || VariablesGlobales.getSociedad().equals("1657") || VariablesGlobales.getSociedad().equals("1658")){
             String regexp_dpi = "[0-9]{12,14}";
-            String regexp_idfiscal = "[0-9][0-9]{1,8}-[0-9A-Z]";
+            String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
             String regexp_cf = "CF";
             Pattern pattern = Pattern.compile(regexp_idfiscal);
             Pattern patternCF = Pattern.compile(regexp_cf);
@@ -5713,7 +5721,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             case "1657"://Volcanes
             case "1658"://Abasa
                 /*Validaciones Adicionales para GT*/
-                String regexp_idfiscal = "[0-9][0-9]{1,8}-[0-9A-Z]";
+                String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
                 String regexp_cf = "CF";
                 Pattern patternFi = Pattern.compile(regexp_idfiscal);
                 Pattern patternCF = Pattern.compile(regexp_cf);

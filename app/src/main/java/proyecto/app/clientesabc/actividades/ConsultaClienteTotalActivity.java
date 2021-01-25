@@ -3194,10 +3194,16 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
                 //Telefono Celular
                 if (telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals("3")) {
                     MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER2"));
+                    if(tv == null){
+                        tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TELNUMBER2"));
+                    }
                     if (tv != null)
                         tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
 
                     tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-TEL_NUMBER2"));
+                    if(tv == null){
+                        tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-TELNUMBER2"));
+                    }
                     if (tv != null)
                         tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
 

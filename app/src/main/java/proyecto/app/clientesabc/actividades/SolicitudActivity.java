@@ -4406,7 +4406,7 @@ public class SolicitudActivity extends AppCompatActivity {
             case "1657"://Volcanes
             case "1658"://Abasa
                 /*Validaciones Adicionales para GT*/
-                String regexp_idfiscal = "[0-9][0-9]{1,8}-[0-9A-Z]";
+                String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
                 String regexp_cf = "CF";
                 Pattern patternFi = Pattern.compile(regexp_idfiscal);
                 Pattern patternCF = Pattern.compile(regexp_cf);
@@ -4484,7 +4484,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 case "1658":
                 case "1657":
                     String regexp_dpi = "[0-9]{12,14}";
-                    String regexp_idfiscal = "[0-9][0-9]{1,8}-[0-9A-Z]";
+                    String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
                     String regexp_cf = "CF";
                     Pattern pattern = Pattern.compile(regexp_idfiscal);
                     Pattern patternCF = Pattern.compile(regexp_cf);
