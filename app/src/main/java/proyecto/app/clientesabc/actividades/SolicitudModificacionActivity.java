@@ -1233,10 +1233,19 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             }else if(valor_centro_suministro.equals(((OpcionSpinner)cs_old.getSelectedItem()).getId().trim())){
                                                 Spinner zona_transporte_old = (Spinner)mapeoCamposDinamicosOld.get("W_CTE-LZONE");
                                                 int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
-                                                if(indiceReparto != -1)
-                                                    visitasSolicitud.get(indiceReparto).setRuta(((OpcionSpinner)zona_transporte_old.getSelectedItem()).getId().trim());
+                                                if(indiceReparto != -1) {
+                                                    if(((OpcionSpinner)zona_transporte_old.getSelectedItem()) != null) {
+                                                        visitasSolicitud.get(indiceReparto).setRuta(((OpcionSpinner) zona_transporte_old.getSelectedItem()).getId().trim());
+                                                    }else{
+                                                        Toasty.warning(getContext(),"No se encontró la zona de transporte, se debe validar la replica en SAP");
+                                                    }
+                                                }
                                                 tb_visitas.setDataAdapter(new VisitasTableAdapter(getContext(), visitasSolicitud));
-                                                zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte, ((OpcionSpinner)zona_transporte_old.getSelectedItem()).getId().trim()));
+                                                if(((OpcionSpinner)zona_transporte_old.getSelectedItem()) != null) {
+                                                    zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte, ((OpcionSpinner) zona_transporte_old.getSelectedItem()).getId().trim()));
+                                                }else{
+                                                    Toasty.warning(getContext(),"No se encontró la zona de transporte, se debe validar la replica en SAP");
+                                                }
                                             }
                                         }else{
                                             Spinner cs = (Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK");
@@ -2869,7 +2878,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                 }
                                             }
                                         } else {
-                                            String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView) v).getText().toString());
+                                            String secuenciaSAP = ((TextView) v).getText().toString();//VariablesGlobales.SecuenciaToHora(((TextView) v).getText().toString());
                                             switch (finalX) {
                                                 case 0:
                                                     visitaPreventa.setLun_a(secuenciaSAP);
@@ -4030,6 +4039,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             if(!esReparto){
                 Spinner metodo = ((Spinner)mapeoCamposDinamicos.get("W_CTE-KVGR5"));
                 String rutaReparto = mDBHelper.RutaRepartoAsociada(((OpcionSpinner)metodo.getSelectedItem()).getId(), vp.getVptyp());
+                if(rutaReparto.equals("ZAT")){//Autoventa no ocupa recalcular su reparto
+                    return;
+                }
                 for (int x = 0; x < visitasSolicitud.size(); x++) {
                     if (rutaReparto.equals(visitasSolicitud.get(x).getVptyp())) {
                         rep = visitasSolicitud.get(x);

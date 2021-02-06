@@ -13,7 +13,7 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.androidbuts.multispinnerfilter.KeyPairBoolData;
+//import com.androidbuts.multispinnerfilter.KeyPairBoolData;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -1452,9 +1452,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         return listaopciones;
     }
-    public List<KeyPairBoolData> getEstadosCatalogoParaMultiSpinner(){
+    /*public List<KeyPairBoolData> getEstadosCatalogoParaMultiSpinner(){
         List<KeyPairBoolData> listaCatalogo = new ArrayList<KeyPairBoolData>();
-        //List<String> listaopciones = new ArrayList<>();
+        //List<String> listaopciones = new ArrayList<>();*
         // Select All Query
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
@@ -1475,10 +1475,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             // closing connection
             cursor.close();
 
-            /*int selectedIndex = 0;
-            for (int j = 0; j < listaCatalogo.size(); j++){
-                listaopciones.add(new OpcionSpinner(listaCatalogo.get(j).get("id"), listaCatalogo.get(j).get("descripcion")) );
-            }*/
+            //int selectedIndex = 0;
+            //for (int j = 0; j < listaCatalogo.size(); j++){
+                //listaopciones.add(new OpcionSpinner(listaCatalogo.get(j).get("id"), listaCatalogo.get(j).get("descripcion")) );
+            //}
 
             //db.close();
             // returning lables
@@ -1511,7 +1511,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }
         return listaCatalogo;
-    }
+    }*/
     /**
      *
      * @param tabla : nombre de la tabla de base de datos del catálogo

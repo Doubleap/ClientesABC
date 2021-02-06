@@ -3737,8 +3737,9 @@ public class SolicitudActivity extends AppCompatActivity {
             //TODO cambiar el valor "PR" por el valor dinamico del comboBox de Modalidad de venta
             if(!esReparto){
                 String rutaReparto = "";
-                if(vp.getVptyp().equals("ZAT"))
-                    rutaReparto = mDBHelper.RutaRepartoAsociada("GV", vp.getVptyp());
+                if(rutaReparto.equals("ZAT")){//Autoventa no ocupa recalcular su reparto
+                    return;
+                }
                 else if(vp.getVptyp().equals("ZTV"))
                     rutaReparto = mDBHelper.RutaRepartoAsociada("TA", vp.getVptyp());
                 else
@@ -4448,6 +4449,47 @@ public class SolicitudActivity extends AppCompatActivity {
                         return true;
                     }
                 cedulaValidada = true;
+                break;
+            case "1661":
+                String[] nit_uy = texto.getText().toString().split("-");
+                if(texto.getText().toString().replace("-","").replace("0","").length() == 0){
+                    texto.setError("CI no puede tener solo ceros!");
+                    cedulaValidada = false;
+                    return true;
+                }
+                Integer cantDigitos_uy = nit_uy[0].length();
+                String ci =  nit_uy[0].trim();
+                if(ci.length() != 7 && ci.length() != 8){
+                    cedulaValidada = false;
+                }else{
+                    try{
+                        Integer.parseInt(ci);
+                    }catch (NumberFormatException e){
+                        cedulaValidada = false;
+                    }
+                }
+                int digVerificador = Integer.parseInt(nit_uy[1].trim() + "" ) ;
+                int[] factores;
+                if(ci.length() == 6){ // CI viejas
+                    factores = new int[]{9, 8, 7, 6, 3, 4};
+                }else{
+                    factores = new int[]{2, 9, 8, 7, 6, 3, 4};
+                }
+
+                int suma = 0;
+                for(int i=0; i <= (cantDigitos_uy + 1) ; i++){
+                    int digito = Integer.parseInt(ci.charAt(i) + "" );
+                    suma += digito * factores[ i ];
+                }
+
+                int resto = suma % 10;
+                int checkdigit = 10 - resto;
+
+                if(checkdigit == 10){
+                    cedulaValidada =  (digVerificador == 0);
+                }else {
+                    cedulaValidada =  (checkdigit == digVerificador) ;
+                }
                 break;
         }
 

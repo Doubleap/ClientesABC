@@ -20,9 +20,9 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.androidbuts.multispinnerfilter.KeyPairBoolData;
-import com.androidbuts.multispinnerfilter.MultiSpinnerListener;
-import com.androidbuts.multispinnerfilter.MultiSpinnerSearch;
+//import com.androidbuts.multispinnerfilter.KeyPairBoolData;
+//import com.androidbuts.multispinnerfilter.MultiSpinnerListener;
+//import com.androidbuts.multispinnerfilter.MultiSpinnerSearch;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -147,7 +147,7 @@ public class SolicitudesActivity extends AppCompatActivity {
     }
 
     private void showDialogFilters(View view) {
-        final Dialog dialog =new Dialog(view.getContext());
+        /*final Dialog dialog =new Dialog(view.getContext());
         dialog.setContentView(R.layout.filtros_solicitudes_dialog_layout);
         dialog.show();
 
@@ -200,7 +200,7 @@ public class SolicitudesActivity extends AppCompatActivity {
             }
         });
         tipoSolicitudSpinner.setBackground(d1);
-        tipoSolicitudSpinner.setColorSeparation(true);
+        tipoSolicitudSpinner.setColorSeparation(true);*/
     }
 
     private void showFABMenu(){

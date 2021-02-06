@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "proyecto.app.clientesabc"
+        applicationId "app.clientesabc.volcanes"
         minSdkVersion 23
         targetSdkVersion 28
         versionCode 2
@@ -60,7 +60,7 @@ dependencies {
     implementation 'de.codecrafters.tableview:tableview:2.8.1'
     implementation 'com.github.GrenderG:Toasty:1.4.2'
     implementation 'com.github.VicMikhailau:MaskedEditText:2.0.2'
-    implementation 'com.github.pratikbutani:MultiSelectSpinner:-SNAPSHOT'
+    //implementation 'com.github.pratikbutani:MultiSelectSpinner:-SNAPSHOT'
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'pl.pawelkleczkowski.customgauge:CustomGauge:1.0.4'
     //implementation 'com.github.mike14u:croperino:1.1.8'
