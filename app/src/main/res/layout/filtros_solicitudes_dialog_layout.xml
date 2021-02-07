@@ -26,30 +26,30 @@
             android:layout_height="wrap_content"
             android:text="Estado de solicitud"
             android:paddingLeft="5dp"/>
-        <com.androidbuts.multispinnerfilter.MultiSpinnerSearch
+        <proyecto.app.clientesabc.clases.MultiSpinnerSearch
             android:id="@+id/estadoSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp">
 
-        </com.androidbuts.multispinnerfilter.MultiSpinnerSearch>
+        </proyecto.app.clientesabc.clases.MultiSpinnerSearch>
         <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Tipo Solicitud"
             android:paddingLeft="5dp"/>
-        <com.androidbuts.multispinnerfilter.MultiSpinnerSearch
+        <proyecto.app.clientesabc.clases.MultiSpinnerSearch
             android:id="@+id/tipoSolicitudSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp">
-        </com.androidbuts.multispinnerfilter.MultiSpinnerSearch>
+        </proyecto.app.clientesabc.clases.MultiSpinnerSearch>
 
         <!--BUTTON-->
         <Button android:id="@+id/saveBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Filtrar"
+            android:text="Cerrar"
             android:textColor="@color/white"
             android:clickable="true"
             android:background="@color/colorPrimary"

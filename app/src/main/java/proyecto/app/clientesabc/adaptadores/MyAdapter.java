@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -380,6 +381,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
 
                 FilterResults filterResults = new FilterResults();
                 filterResults.values = formListFiltered;
+
                 return filterResults;
             }
             @SuppressWarnings("unchecked")
@@ -415,6 +417,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
 
                     filterResults.values = formListFiltered;
                 }
+
                 return filterResults;
             }
             @SuppressWarnings("unchecked")

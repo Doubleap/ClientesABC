@@ -31,6 +31,7 @@ import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.clases.KeyPairBoolData;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
@@ -1452,7 +1453,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         return listaopciones;
     }
-    /*public List<KeyPairBoolData> getEstadosCatalogoParaMultiSpinner(){
+    public List<KeyPairBoolData> getEstadosCatalogoParaMultiSpinner(){
         List<KeyPairBoolData> listaCatalogo = new ArrayList<KeyPairBoolData>();
         //List<String> listaopciones = new ArrayList<>();*
         // Select All Query
@@ -1511,7 +1512,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }
         return listaCatalogo;
-    }*/
+    }
     /**
      *
      * @param tabla : nombre de la tabla de base de datos del catálogo

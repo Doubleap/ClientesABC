@@ -182,5 +182,6 @@
         <item id="8">Cada 8 Semanas</item>
         <item id="10">Cada 10 Semanas</item>
     </string-array>
-
+    <string name="type_to_search">Buscar...</string>
+    <string name="filtrar">Filtrar</string>
 </resources>

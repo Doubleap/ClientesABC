@@ -41,11 +41,11 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
     public SearchableSpinner(Context context, AttributeSet attrs) {
         super(context, attrs);
         this._context = context;
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.SearchableSpinner);
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MultiSpinnerSearch);
         final int N = a.getIndexCount();
         for (int i = 0; i < N; ++i) {
             int attr = a.getIndex(i);
-            if (attr == R.styleable.SearchableSpinner_hintText) {
+            if (attr == R.styleable.MultiSpinnerSearch_hintText) {
                 _strHintText = a.getString(attr);
             }
         }

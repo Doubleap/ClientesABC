@@ -33,7 +33,10 @@ import java.util.List;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.MyAdapter;
+import proyecto.app.clientesabc.clases.KeyPairBoolData;
 import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
+import proyecto.app.clientesabc.clases.MultiSpinnerListener;
+import proyecto.app.clientesabc.clases.MultiSpinnerSearch;
 
 
 public class SolicitudesActivity extends AppCompatActivity {
@@ -147,7 +150,7 @@ public class SolicitudesActivity extends AppCompatActivity {
     }
 
     private void showDialogFilters(View view) {
-        /*final Dialog dialog =new Dialog(view.getContext());
+        final Dialog dialog =new Dialog(view.getContext());
         dialog.setContentView(R.layout.filtros_solicitudes_dialog_layout);
         dialog.show();
 
@@ -177,6 +180,9 @@ public class SolicitudesActivity extends AppCompatActivity {
                     }
                 }
                 mAdapter.getMultiFilter().filter(multiFiltro);
+
+                if(toolbar != null)
+                    toolbar.setTitle("Mis Solicitudes ("+items.size()+" de "+mAdapter.getItemCount()+")");
             }
         });
         Drawable d1 = getResources().getDrawable(R.drawable.spinner_background, null);
@@ -197,10 +203,13 @@ public class SolicitudesActivity extends AppCompatActivity {
                     }
                 }
                 mAdapter.getMultiFilter().filter(multiFiltro);
+
+                if(toolbar != null)
+                    toolbar.setTitle("Mis Solicitudes ("+items.size()+" de "+mAdapter.getItemCount()+")");
             }
         });
         tipoSolicitudSpinner.setBackground(d1);
-        tipoSolicitudSpinner.setColorSeparation(true);*/
+        tipoSolicitudSpinner.setColorSeparation(true);
     }
 
     private void showFABMenu(){
@@ -231,7 +240,7 @@ public class SolicitudesActivity extends AppCompatActivity {
                 searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
             }
             searchView.setMaxWidth(Integer.MAX_VALUE);
-            searchView.setQueryHint("Busqueda");
+            searchView.setQueryHint("Búsqueda");
 
             // listener de buscar query text change
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
