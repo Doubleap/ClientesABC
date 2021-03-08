@@ -4,24 +4,31 @@ import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.preference.PreferenceManager;
+import android.text.InputFilter;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextUtils;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
+import proyecto.app.clientesabc.modelos.RegexInputFilter;
 import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
+    private boolean usarAPI = true;
 
-    private static String nombrePais = "Guatemala Volcanes";
-    private static String sociedad = "1657";
-    private static String orgvta = "0657";
+    private static String nombrePais = "Guatemala Embocen";
+    private static String sociedad = "F446";
+    private static String orgvta = "0446";
     private static String land1 = "GT";
-    private static String cadenaRM = "0000210027";
-    private static String ktokd = "GCMC";
+    private static String cadenaRM = "0000170027";
+    private static String ktokd = "GCMA";
     /*
     private static String nombrePais = "Costa Rica";
     private static String sociedad = "F443";
@@ -64,6 +71,13 @@ public class VariablesGlobales extends Application {
     private static String land1 = "PA";
     private static String cadenaRM = "0000200000";
     private static String ktokd = "PCMA";
+
+    private static String nombrePais = "Uruguay";
+    private static String sociedad = "1661";
+    private static String orgvta = "0661";
+    private static String land1 = "UY";
+    private static String cadenaRM = "0000240000";
+    private static String ktokd = "UYDE";
     */
 
     private static String TABLA_BLOQUE_CONTACTO_HH = "grid_contacto_solicitud";
@@ -317,5 +331,13 @@ public class VariablesGlobales extends Application {
 
     public static void setNombrePais(String nombrePais) {
         VariablesGlobales.nombrePais = nombrePais;
+    }
+
+    public boolean getUsarAPI() {
+        return usarAPI;
+    }
+
+    public void setUsarAPI(boolean usarAPI) {
+        this.usarAPI = usarAPI;
     }
 }

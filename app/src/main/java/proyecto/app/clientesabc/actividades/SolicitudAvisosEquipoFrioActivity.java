@@ -480,26 +480,26 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             String nombre = Objects.requireNonNull(Objects.requireNonNull(((ViewPager) container).getAdapter()).getPageTitle(position)).toString().trim();
 
             if(nombre.equals("Datos Generales") || nombre.equals("Informacion General")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"D");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"D", idSolicitud);
 
             }else
             if(nombre.equals("Facturación")|| nombre.equals("Facturacion")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"F");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"F", idSolicitud);
             }else
             if(nombre.equals("Ventas")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"V");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"V", idSolicitud);
             }else
             if(nombre.equals("Marketing")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"M");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"M", idSolicitud);
             }else
             if(nombre.equals("Creditos") || nombre.equals("Créditos")  || nombre.equals("Crédito")  || nombre.equals("Credito")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"C");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"C", idSolicitud);
             }else
             if(nombre.equals("Adjuntos") || nombre.equals("Adicionales")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"Z");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"Z", idSolicitud);
             }else
             if(nombre.toLowerCase().contains("equipo") || nombre.toLowerCase().contains("frio")|| nombre.toLowerCase().contains("eq.")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"E");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"E", idSolicitud);
             }
             try {
                 viewPager.setPageTransformer(true, (ViewPager.PageTransformer) new CubeTransformer());
@@ -515,12 +515,12 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         }
         //LLenado Automatico de campos x pestana.
         @SuppressLint("ClickableViewAccessibility")
-        public void LlenarPestana(DataBaseHelper db, View _ll, String tipoFormulario, String pestana) {
+        public void LlenarPestana(DataBaseHelper db, View _ll, String tipoFormulario, String pestana, String idSolicitud) {
             //View view = inflater.inflate(R.layout.pagina_formulario, container, false);
             String seccionAnterior = "";
             LinearLayout ll = (LinearLayout)_ll;
             //DataBaseHelper db = new DataBaseHelper(getContext());
-            final ArrayList<HashMap<String, String>> campos = db.getCamposPestana(tipoFormulario, pestana);
+            final ArrayList<HashMap<String, String>> campos = db.getCamposPestana(tipoFormulario, pestana, idSolicitud);
 
             LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
 

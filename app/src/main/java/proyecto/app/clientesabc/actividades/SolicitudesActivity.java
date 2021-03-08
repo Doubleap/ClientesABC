@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -181,8 +182,8 @@ public class SolicitudesActivity extends AppCompatActivity {
                 }
                 mAdapter.getMultiFilter().filter(multiFiltro);
 
-                if(toolbar != null)
-                    toolbar.setTitle("Mis Solicitudes ("+items.size()+" de "+mAdapter.getItemCount()+")");
+                //if(toolbar != null)
+                    //toolbar.setTitle("Mis Solicitudes ("+mAdapter.getItemCount()+" de "+formList.size()+")");
             }
         });
         Drawable d1 = getResources().getDrawable(R.drawable.spinner_background, null);
@@ -204,8 +205,8 @@ public class SolicitudesActivity extends AppCompatActivity {
                 }
                 mAdapter.getMultiFilter().filter(multiFiltro);
 
-                if(toolbar != null)
-                    toolbar.setTitle("Mis Solicitudes ("+items.size()+" de "+mAdapter.getItemCount()+")");
+                //if(toolbar != null)
+                    //toolbar.setTitle("Mis Solicitudes ("+mAdapter.getItemCount()+" de "+formList.size()+")");
             }
         });
         tipoSolicitudSpinner.setBackground(d1);

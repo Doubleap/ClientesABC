@@ -23,6 +23,8 @@ import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
@@ -789,22 +791,22 @@ public class SolicitudActivity extends AppCompatActivity {
                 String nombre = Objects.requireNonNull(Objects.requireNonNull(viewPager.getAdapter()).getPageTitle(position)).toString().trim();
 
                 if (nombre.equals("Datos Generales") || nombre.equals("Informacion General")) {
-                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "D");
+                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "D", idSolicitud);
                 }
                 if (nombre.equals("Facturación") || nombre.equals("Facturacion")) {
-                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "F");
+                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "F", idSolicitud);
                 }
                 if (nombre.equals("Ventas")) {
-                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "V");
+                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "V", idSolicitud);
                 }
                 if (nombre.equals("Marketing")) {
-                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "M");
+                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "M", idSolicitud);
                 }
                 if (nombre.equals("Creditos") || nombre.equals("Créditos") || nombre.equals("Crédito") || nombre.equals("Credito")) {
-                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "C");
+                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "C", idSolicitud);
                 }
                 if (nombre.equals("Adjuntos") || nombre.equals("Adicionales")) {
-                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "Z");
+                    LlenarPestana(mDBHelper, ll, tipoSolicitud, "Z", idSolicitud);
                 }
                 viewPager.setPageTransformer(true, (ViewPager.PageTransformer) new CubeTransformer());
 
@@ -821,12 +823,12 @@ public class SolicitudActivity extends AppCompatActivity {
         }
         //LLenado Automatico de campos x pestana.
         @SuppressLint("ClickableViewAccessibility")
-        public void LlenarPestana(DataBaseHelper db, View _ll, String tipoFormulario, String pestana) {
+        public void LlenarPestana(DataBaseHelper db, View _ll, String tipoFormulario, String pestana, String idSolicitud) {
             //View view = inflater.inflate(R.layout.pagina_formulario, container, false);
             String seccionAnterior = "";
             LinearLayout ll = (LinearLayout)_ll;
             //DataBaseHelper db = new DataBaseHelper(getContext());
-            final ArrayList<HashMap<String, String>> campos = db.getCamposPestana(tipoFormulario, pestana);
+            final ArrayList<HashMap<String, String>> campos = db.getCamposPestana(tipoFormulario, pestana, idSolicitud);
 
             LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
 
@@ -1599,6 +1601,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         }
                     } else {
+
                         //Tipo EditText normal textbox
                         TableRow fila = new TableRow(getContext());
                         fila.setOrientation(TableRow.HORIZONTAL);
@@ -1614,6 +1617,14 @@ public class SolicitudActivity extends AppCompatActivity {
 
                         //final TextInputEditText et = new TextInputEditText(getContext());
                         final MaskedEditText et = new MaskedEditText(getContext(), null);
+                        InputFilter[] editFilters = et.getFilters();
+                        InputFilter[] newFilters = null;
+                        if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").trim().equals("F451")){
+                            newFilters = new InputFilter[editFilters.length + 1];
+                            System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
+                            newFilters[editFilters.length] = Validaciones.getEditTextFilter();
+                            et.setFilters(newFilters);
+                        }
 
                         et.setTag(campos.get(i).get("descr"));
                         //et.setTextColor(getResources().getColor(R.color.colorTextView,null));
@@ -1642,7 +1653,11 @@ public class SolicitudActivity extends AppCompatActivity {
                         if (campos.get(i).get("datatype") != null && campos.get(i).get("datatype").contains("char")) {
                             if (campos.get(i).get("campo").trim().equals("W_CTE-STCD3")) {
                                 et.setInputType(InputType.TYPE_CLASS_NUMBER);
-                                et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(18)});
+                                editFilters = et.getFilters();
+                                newFilters = new InputFilter[editFilters.length + 1];
+                                System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
+                                newFilters[editFilters.length] = new InputFilter.LengthFilter(18);
+                                et.setFilters(newFilters);
                                 if(VariablesGlobales.getSociedad().equals("F446") || VariablesGlobales.getSociedad().equals("1657") || VariablesGlobales.getSociedad().equals("1658")){
                                     et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                                         @Override
@@ -1657,7 +1672,11 @@ public class SolicitudActivity extends AppCompatActivity {
                                 et.setInputType(InputType.TYPE_CLASS_TEXT);
                             }
                             if (Integer.valueOf(campos.get(i).get("maxlength")) > 0) {
-                                et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("maxlength")))});
+                                editFilters = et.getFilters();
+                                newFilters = new InputFilter[editFilters.length + 1];
+                                System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
+                                newFilters[editFilters.length] = new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("maxlength")));
+                                et.setFilters(newFilters);
                                 if(Integer.valueOf(campos.get(i).get("maxlength")) >= 40){
                                     et.setSingleLine(false);
                                     et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
@@ -1671,12 +1690,16 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         } else if (campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("decimal")) {
                             et.setInputType(InputType.TYPE_CLASS_NUMBER);
-                            et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("numeric_precision")))});
+                            editFilters = et.getFilters();
+                            newFilters = new InputFilter[editFilters.length + 1];
+                            System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
+                            newFilters[editFilters.length] = new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("numeric_precision")));
+                            et.setFilters(newFilters);
                         }
 
 
-                        InputFilter[] editFilters = et.getFilters();
-                        InputFilter[] newFilters = new InputFilter[editFilters.length + 1];
+                        editFilters = et.getFilters();
+                        newFilters = new InputFilter[editFilters.length + 1];
                         System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
                         newFilters[editFilters.length] = new InputFilter.AllCaps();
                         et.setFilters(newFilters);
@@ -4713,4 +4736,6 @@ public class SolicitudActivity extends AppCompatActivity {
             (byte)0x03,            (byte)0xD0,            (byte)0x00,            (byte)0xDf,
             (byte)0x00
     };
+
+
 }

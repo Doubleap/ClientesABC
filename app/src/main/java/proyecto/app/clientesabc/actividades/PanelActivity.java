@@ -37,8 +37,10 @@ import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.clases.SincronizacionAPI;
 import proyecto.app.clientesabc.clases.SincronizacionServidor;
 import proyecto.app.clientesabc.clases.SingleClickListener;
+import proyecto.app.clientesabc.clases.TransmisionAPI;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
 
 public class PanelActivity extends AppCompatActivity {
@@ -147,7 +149,7 @@ public class PanelActivity extends AppCompatActivity {
                             WeakReference<Context> weakRef = new WeakReference<Context>(PanelActivity.this);
                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(PanelActivity.this);
                             //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "","");
+                            TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "","");
                             if(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion","").equals("wifi")){
                                 f.EnableWiFi();
                             }else{

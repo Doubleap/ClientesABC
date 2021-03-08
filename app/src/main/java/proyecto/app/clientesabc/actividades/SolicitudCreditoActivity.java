@@ -685,23 +685,23 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             String nombre = Objects.requireNonNull(Objects.requireNonNull(((ViewPager) container).getAdapter()).getPageTitle(position)).toString().trim();
 
             if(nombre.equals("Datos Generales") || nombre.equals("Informacion General")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"D");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"D", idSolicitud);
 
             }
             if(nombre.equals("Facturación")|| nombre.equals("Facturacion")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"F");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"F", idSolicitud);
             }
             if(nombre.equals("Ventas")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"V");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"V", idSolicitud);
             }
             if(nombre.equals("Marketing")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"M");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"M", idSolicitud);
             }
             if(nombre.equals("Creditos") || nombre.equals("Créditos")  || nombre.equals("Crédito")  || nombre.equals("Credito")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"C");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"C", idSolicitud);
             }
             if(nombre.equals("Adjuntos") || nombre.equals("Adicionales")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"Z");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"Z", idSolicitud);
             }
             try {
                 viewPager.setPageTransformer(true, (ViewPager.PageTransformer) new CubeTransformer());
@@ -717,12 +717,12 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }
         //LLenado Automatico de campos x pestana.
         @SuppressLint("ClickableViewAccessibility")
-        public void LlenarPestana(final DataBaseHelper db, View _ll, String tipoFormulario, String pestana) {
+        public void LlenarPestana(final DataBaseHelper db, View _ll, String tipoFormulario, String pestana, String idSolicitud) {
             //View view = inflater.inflate(R.layout.pagina_formulario, container, false);
             String seccionAnterior = "";
             LinearLayout ll = (LinearLayout)_ll;
             //DataBaseHelper db = new DataBaseHelper(getContext());
-            final ArrayList<HashMap<String, String>> campos = db.getCamposPestana(tipoFormulario, pestana);
+            final ArrayList<HashMap<String, String>> campos = db.getCamposPestana(tipoFormulario, pestana, idSolicitud);
 
             LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
 
@@ -4812,7 +4812,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
         String tipo = "A";
         String clasi = "I";
-        //Cliente tiene credito pero es de contado y se quiere aperturar(Reactivar o Desbloquear) - llenar los campos neccesarios con los campos por defecto en tabla ValidaCrecitos
+        //Cliente tiene credito pero es de contado y se quiere aperturar(Reactivar o Desbloquear) - llenar los campos neccesarios con los campos por defecto en tabla ValidaCreditos
         if(subtitulo.toLowerCase().contains("modificacion")) {
             tipo = "M";
             clasi = "I";
@@ -4828,7 +4828,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             //Campos para aperturas de credito
             Spinner zzauart = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-ZZAUART");
             if(zzauart != null) {
-                if(cliente.get(0).getAsJsonObject().get("W_CTE-ZZAUART").getAsString().contains("28")){
+                if(cliente.get(0).getAsJsonObject().get("W_CTE-ZZAUART").getAsString().contains("28") || cliente.get(0).getAsJsonObject().get("W_CTE-ZZAUART").getAsString().contains("38")){
                     zzauart.setSelection(VariablesGlobales.getIndex(zzauart, datosNuevoCredito.get(0).get("clasedocven").trim()));
                 }
             }
@@ -4837,6 +4837,10 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 if(cliente.get(0).getAsJsonObject().get("W_CTE-ZTERM").getAsString().substring(2,4).equals("00")){
                     zterm.setSelection(VariablesGlobales.getIndex(zterm, datosNuevoCredito.get(0).get("condpago").trim()));
                 }
+            }
+            Spinner ctlpc = (Spinner)mapeoCamposDinamicos.get("W_CTE-CTLPC");
+            if(ctlpc != null) {
+                ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, datosNuevoCredito.get(0).get("claseriesgo").trim()));
             }
         }
         //Cliente NO tiene credito y se quiere aperturar - llenar los campos neccesarios con los campos por defecto en tabla ValidaCrecitos

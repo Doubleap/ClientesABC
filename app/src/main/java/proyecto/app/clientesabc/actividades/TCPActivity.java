@@ -47,7 +47,9 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.ConexionTableAdapter;
+import proyecto.app.clientesabc.clases.PruebaConexionAPI;
 import proyecto.app.clientesabc.clases.PruebaConexionServidor;
+import proyecto.app.clientesabc.clases.SincronizacionAPI;
 import proyecto.app.clientesabc.clases.SincronizacionServidor;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
 import proyecto.app.clientesabc.modelos.Conexion;
@@ -175,7 +177,7 @@ public class TCPActivity extends AppCompatActivity
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
-                    PruebaConexionServidor f = new PruebaConexionServidor(weakRef, weakRefA);
+                    PruebaConexionAPI f = new PruebaConexionAPI(weakRef, weakRefA);
                     if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                         EnableWiFi();
                     }else{
@@ -208,6 +210,8 @@ public class TCPActivity extends AppCompatActivity
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
+                            //SincronizacionServidor s = new SincronizacionServidor(weakRef, weakRefA);
+
                             SincronizacionServidor s = new SincronizacionServidor(weakRef, weakRefA);
                             if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                                 EnableWiFi();

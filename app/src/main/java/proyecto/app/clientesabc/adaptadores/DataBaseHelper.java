@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -260,8 +261,24 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getClientes(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
-        String query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
-                " FROM SAPDClientes";
+        String query = "";
+        switch(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")){
+            case "F443":
+            case "F445":
+            case "F446":
+            case "F451":
+            case "1657":
+            case "1658":
+                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
+                        " FROM SAPDClientes";
+                break;
+            case "1661":
+            case "Z001":
+                query = "SELECT KUNNR as codigo, NAME1_E as nombre, STRAS as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
+                        " FROM SAPDClientes";
+                break;
+        }
+
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -1132,7 +1149,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return  columnList;
     }
 
-    public ArrayList<HashMap<String, String>> getCamposPestana(String id_formulario, String pestana){
+    public ArrayList<HashMap<String, String>> getCamposPestana(String id_formulario, String pestana ){
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
         String BUKRS = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","");
         String KTOKD = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_KTOKD","");
@@ -1144,6 +1161,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"'" +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO')"+
                 " ORDER BY c.panta, s.orden_hh, c.orden_hh";*/
+        String fechas = "";
+        switch(mContext.getClass().getSimpleName()){
+            case "SolicitudActivity":
+        }
         String query = "SELECT * FROM (" +
                 "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo " +
                 "FROM configuracion c " +
@@ -1166,6 +1187,92 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
                 " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " +
+                " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
+                " )) " +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
+                "                LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
+                "                LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
+                "                WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' " +
+                "                AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
+                ") T " +
+                " ORDER BY T.panta, T.orden_seccion, T.orden_hh";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("campo",cursor.getString(cursor.getColumnIndex("campo")) != null ? cursor.getString(cursor.getColumnIndex("campo")): "");
+            user.put("nombre",cursor.getString(cursor.getColumnIndex("nombre")) != null ? cursor.getString(cursor.getColumnIndex("nombre")): "");
+            user.put("tipo_input",cursor.getString(cursor.getColumnIndex("tipo_input")) != null ? cursor.getString(cursor.getColumnIndex("tipo_input")): "");
+            user.put("id_seccion",cursor.getString(cursor.getColumnIndex("id_seccion")) != null ? cursor.getString(cursor.getColumnIndex("id_seccion")): "");
+            user.put("seccion",cursor.getString(cursor.getColumnIndex("seccion")) != null ? cursor.getString(cursor.getColumnIndex("seccion")): "");
+            user.put("descr",cursor.getString(cursor.getColumnIndex("descr")) != null ? cursor.getString(cursor.getColumnIndex("descr")): "");
+            user.put("tabla",cursor.getString(cursor.getColumnIndex("tabla")) != null ? cursor.getString(cursor.getColumnIndex("tabla")): "");
+            user.put("dfaul",cursor.getString(cursor.getColumnIndex("dfaul")) != null ? cursor.getString(cursor.getColumnIndex("dfaul")): "");
+            user.put("sup",cursor.getString(cursor.getColumnIndex("sup")) != null ? cursor.getString(cursor.getColumnIndex("sup")): "");
+            user.put("obl",cursor.getString(cursor.getColumnIndex("obl")) != null ? cursor.getString(cursor.getColumnIndex("obl")): "");
+            user.put("vis",cursor.getString(cursor.getColumnIndex("vis")) != null ? cursor.getString(cursor.getColumnIndex("vis")): "");
+            user.put("opc",cursor.getString(cursor.getColumnIndex("opc")) != null ? cursor.getString(cursor.getColumnIndex("opc")): "");
+            user.put("tabla_local",cursor.getString(cursor.getColumnIndex("tabla_local")) != null ? cursor.getString(cursor.getColumnIndex("tabla_local")): "");
+            user.put("evento1",cursor.getString(cursor.getColumnIndex("evento1")) != null ? cursor.getString(cursor.getColumnIndex("evento1")): "");
+            user.put("llamado1",cursor.getString(cursor.getColumnIndex("llamado1")) != null ? cursor.getString(cursor.getColumnIndex("llamado1")): "");
+            user.put("tooltip",cursor.getString(cursor.getColumnIndex("tooltip")) != null ? cursor.getString(cursor.getColumnIndex("tooltip")): "");
+            user.put("modificacion",cursor.getString(cursor.getColumnIndex("modificacion")) != null ? cursor.getString(cursor.getColumnIndex("modificacion")): "");
+            user.put("sufijo",cursor.getString(cursor.getColumnIndex("sufijo")) != null ? cursor.getString(cursor.getColumnIndex("sufijo")): "");
+            //metadatas
+            user.put("datatype",cursor.getString(cursor.getColumnIndex("DATA_TYPE")) != null ? cursor.getString(cursor.getColumnIndex("DATA_TYPE")): "");
+            user.put("numeric_precision",cursor.getString(cursor.getColumnIndex("NUMERIC_PRECISION")) != null ? cursor.getString(cursor.getColumnIndex("NUMERIC_PRECISION")): "");
+            user.put("maxlength",cursor.getString(cursor.getColumnIndex("CHARACTER_MAXIMUM_LENGTH")) != null ? cursor.getString(cursor.getColumnIndex("CHARACTER_MAXIMUM_LENGTH")): "");
+            clientList.add(user);
+        }
+        cursor.close();
+        return  clientList;
+    }
+    public ArrayList<HashMap<String, String>> getCamposPestana(String id_formulario, String pestana, String idSolicitud ){
+        ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
+        String BUKRS = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","");
+        String KTOKD = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_KTOKD","");
+        /*String query = "SELECT c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION FROM configuracion c" +
+                " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' and cc.ktokd = 'RCMA')" +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion)" +
+                " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip)" +
+                " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo))" +
+                " WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"'" +
+                " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO')"+
+                " ORDER BY c.panta, s.orden_hh, c.orden_hh";*/
+        String whereVigencia = "";
+        if(idSolicitud != null){
+            ArrayList<HashMap<String, String>> formList = new ArrayList<>();
+            String query = "SELECT FECCRE from FormHvkof_solicitud where id_solicitud = ?";
+            Cursor cursor = mDataBase.rawQuery(query,new String[]{idSolicitud});
+            if (cursor.moveToNext()){
+                whereVigencia = " AND c.fecini <= '"+cursor.getString(0)+"' AND c.fecfin >= '"+cursor.getString(0)+"'";
+            }
+            cursor.close();
+        }else{
+            whereVigencia = " AND c.fecini <= datetime('now') AND c.fecfin >= datetime('now')";
+        }
+        String query = "SELECT * FROM (" +
+                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo " +
+                "FROM configuracion c " +
+                " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"') " +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
+                " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
+                " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
+                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " + whereVigencia +
+                " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
+                "UNION " +
+                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo " +
+                "FROM configuracion c " +
+                " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(cc.panta) = ( " +
+                " Select trim(cc2.panta) FROM configCampos cc2 WHERE trim(c.campo) = trim(cc2.CAMPO) AND trim(cc2.bukrs) = '"+BUKRS+"' and trim(cc2.ktokd) = '"+KTOKD+"' AND trim(cc2.panta) != trim(c.panta) LIMIT 1 " +
+                " ) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"' and trim(c.campo) NOT IN ( " +
+                " SELECT DISTINCT trim(c.campo) " +
+                " FROM configuracion c " +
+                " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"')\n" +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
+                " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
+                " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
+                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " + whereVigencia +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 " )) " +
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +

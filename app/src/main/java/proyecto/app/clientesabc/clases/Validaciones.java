@@ -1,6 +1,9 @@
 package proyecto.app.clientesabc.clases;
 
 import android.preference.PreferenceManager;
+import android.text.InputFilter;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
@@ -90,5 +93,41 @@ public class Validaciones {
         else
             Toasty.error(correo.getContext(),"Formato de correo Invalido!").show();
         return valido;
+    }
+
+    public static InputFilter getEditTextFilter() {
+        return new InputFilter() {
+            @Override
+            public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+
+                boolean keepOriginal = true;
+                StringBuilder sb = new StringBuilder(end - start);
+                for (int i = start; i < end; i++) {
+                    char c = source.charAt(i);
+                    if (isCharAllowed(c)) // put your condition here
+                        sb.append(c);
+                    else
+                        keepOriginal = false;
+                }
+                if (keepOriginal)
+                    return null;
+                else {
+                    if (source instanceof Spanned) {
+                        SpannableString sp = new SpannableString(sb);
+                        TextUtils.copySpansFrom((Spanned) source, start, sb.length(), null, sp, 0);
+                        return sp;
+                    } else {
+                        return sb;
+                    }
+                }
+            }
+
+            private boolean isCharAllowed(char c) {
+                //[¡”#$%&/(),:]
+                Pattern ps = Pattern.compile("^[a-zA-Z 0-9.]+$");
+                Matcher ms = ps.matcher(String.valueOf(c));
+                return ms.matches();
+            }
+        };
     }
 }

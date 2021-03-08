@@ -161,7 +161,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                     dateEnd = new SimpleDateFormat("dd/MM/yyyy h:mm:ss aa").parse(formListFiltered.get(position).get("fecfin").trim().replace("p.m.","PM").replace("a.m.","AM"));
                 } catch (ParseException ex) {
                     try {
-                        date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(formListFiltered.get(position).get("fecfin").trim().replace("p.m.","PM").replace("a.m.","AM"));
+                        dateEnd = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(formListFiltered.get(position).get("fecfin").trim().replace("p.m.","PM").replace("a.m.","AM"));
                     } catch (ParseException exc) {
                         exc.printStackTrace();
                     }
@@ -382,6 +382,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                 FilterResults filterResults = new FilterResults();
                 filterResults.values = formListFiltered;
 
+                activity.runOnUiThread(new Runnable() {
+                    public void run() {
+                        Toolbar toolbar = (Toolbar) activity.findViewById(R.id.toolbar);
+                        if(toolbar != null)
+                            toolbar.setTitle("Mis Solicitudes ("+formListFiltered.size()+" de "+mDataset.size()+")");
+                    }
+                });
                 return filterResults;
             }
             @SuppressWarnings("unchecked")
@@ -417,7 +424,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
 
                     filterResults.values = formListFiltered;
                 }
-
+                activity.runOnUiThread(new Runnable() {
+                    public void run() {
+                        Toolbar toolbar = (Toolbar) activity.findViewById(R.id.toolbar);
+                        if(toolbar != null)
+                            toolbar.setTitle("Mis Solicitudes ("+formListFiltered.size()+" de "+mDataset.size()+")");
+                    }
+                });
                 return filterResults;
             }
             @SuppressWarnings("unchecked")

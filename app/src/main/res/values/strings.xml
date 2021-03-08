@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ClientesABC VO</string>
+    <string name="app_name">ClientesABC EM</string>
     <string name="title_activity_login">Maestro Clientes Femsa</string>
 
     <!-- Strings related to login -->

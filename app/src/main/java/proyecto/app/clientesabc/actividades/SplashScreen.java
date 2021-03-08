@@ -23,7 +23,7 @@ public class SplashScreen extends AppCompatActivity {
         setContentView(R.layout.activity_splash_screen);
         imageView = (ImageView)findViewById(R.id.imageView2);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-        int[] ids = new int[]{R.drawable.splash,R.drawable.splash_gt, R.drawable.splash_volcanes, R.drawable.splash_abasa};
+        int[] ids = new int[]{R.drawable.splash,R.drawable.splash_gt, R.drawable.splash_volcanes, R.drawable.splash_abasa, R.drawable.splash_uruguay};
         //Random randomGenerator = new Random();
         //int r= randomGenerator.nextInt(ids.length);
         switch(VariablesGlobales.getSociedad()){
@@ -40,6 +40,10 @@ public class SplashScreen extends AppCompatActivity {
                 break;
             case "1658":
                 this.imageView.setImageDrawable(getResources().getDrawable(ids[3],null));
+                break;
+            case "1661":
+            case "Z001":
+                this.imageView.setImageDrawable(getResources().getDrawable(ids[4],null));
                 break;
             default:
                 break;
