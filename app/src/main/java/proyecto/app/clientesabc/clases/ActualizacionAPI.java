@@ -87,14 +87,9 @@ public class ActualizacionAPI extends AsyncTask<Void,String,Void> {
         String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
         if (mensaje.equals("")) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl("http://10.0.2.2:51123/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
 
-            retrofit.create(InterfaceApi.class);
+            InterfaceApi actualizacionService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-            InterfaceApi actualizacionService = retrofit.create(InterfaceApi.class);
             String version = "";
             version = dateFormat.format(BuildConfig.BuildDate).replace(":","COLON").replace("-","HYPHEN");
             Call<ResponseBody> call = actualizacionService.Actualizacion(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
@@ -354,27 +349,28 @@ public class ActualizacionAPI extends AsyncTask<Void,String,Void> {
 
         //Conexiones
         ArrayList<Conexion> misConexiones = TCPActivity.getConexionesFromSharedPreferences(context.get());
+        if(misConexiones != null) {
+            for (int x = 0; x < misConexiones.size(); x++) {
+                Element conexion = doc.createElement("conexion");
+                rootElement.appendChild(conexion);
+                conexion.setAttribute("defecto", String.valueOf(misConexiones.get(x).isDefecto()));
 
-        for(int x=0; x < misConexiones.size(); x++){
-            Element conexion = doc.createElement("conexion");
-            rootElement.appendChild(conexion);
-            conexion.setAttribute("defecto", String.valueOf(misConexiones.get(x).isDefecto()) );
+                Element nombre = doc.createElement("nombre");
+                nombre.appendChild(doc.createTextNode(misConexiones.get(x).getNombre()));
+                conexion.appendChild(nombre);
 
-            Element nombre = doc.createElement("nombre");
-            nombre.appendChild(doc.createTextNode(misConexiones.get(x).getNombre()));
-            conexion.appendChild(nombre);
+                Element tipo_conexion = doc.createElement("tipo_conexion");
+                tipo_conexion.appendChild(doc.createTextNode(misConexiones.get(x).getTipo()));
+                conexion.appendChild(tipo_conexion);
 
-            Element tipo_conexion = doc.createElement("tipo_conexion");
-            tipo_conexion.appendChild(doc.createTextNode(misConexiones.get(x).getTipo()));
-            conexion.appendChild(tipo_conexion);
+                Element Ip = doc.createElement("Ip");
+                Ip.appendChild(doc.createTextNode(misConexiones.get(x).getIp()));
+                conexion.appendChild(Ip);
 
-            Element Ip = doc.createElement("Ip");
-            Ip.appendChild(doc.createTextNode(misConexiones.get(x).getIp()));
-            conexion.appendChild(Ip);
-
-            Element Puerto = doc.createElement("Puerto");
-            Puerto.appendChild(doc.createTextNode(misConexiones.get(x).getPuerto()));
-            conexion.appendChild(Puerto);
+                Element Puerto = doc.createElement("Puerto");
+                Puerto.appendChild(doc.createTextNode(misConexiones.get(x).getPuerto()));
+                conexion.appendChild(Puerto);
+            }
         }
 
         // write the content into xml file

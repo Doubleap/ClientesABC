@@ -101,7 +101,7 @@ public class TransmisionAPI extends AsyncTask<Void,String,Void> {
                 //Crear una base de datos solo para los datos que deben ser transmitidos
                 publishProgress("Extrayendo datos...");
                 String sqlDrop = "DROP TABLE IF EXISTS 'FormHvKof_solicitud';DROP TABLE IF EXISTS 'FormHvKof_old_solicitud';DROP TABLE IF EXISTS 'encuesta_solicitud';DROP TABLE IF EXISTS 'encuesta_gec_solicitud';DROP TABLE IF EXISTS 'grid_contacto_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_solicitud';DROP TABLE IF EXISTS 'grid_bancos_solicitud';DROP TABLE IF EXISTS 'grid_visitas_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_solicitud';DROP TABLE IF EXISTS 'adjuntos_solicitud';" +
-                        "DROP TABLE IF EXISTS 'grid_contacto_old_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_old_solicitud';DROP TABLE IF EXISTS 'grid_bancos_old_solicitud';DROP TABLE IF EXISTS 'grid_visitas_old_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_old_solicitud';";
+                        "DROP TABLE IF EXISTS 'grid_contacto_old_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_old_solicitud';DROP TABLE IF EXISTS 'grid_bancos_old_solicitud';DROP TABLE IF EXISTS 'grid_visitas_old_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_old_solicitud';DROP TABLE IF EXISTS 'grid_horarios_solicitud';DROP TABLE IF EXISTS 'grid_horarios_old_solicitud';";
                 String sqlAttach = "ATTACH DATABASE '"+context.get().getDatabasePath("FAWM_ANDROID_2").getPath()+"' AS fromDB";
                 String[] droptables = sqlDrop.split(";");
                 for (String query : droptables) {
@@ -133,6 +133,11 @@ public class TransmisionAPI extends AsyncTask<Void,String,Void> {
                 sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
                 mDataBase.execSQL(sqlCreate);
 
+                try {
+                    //Para Uruguay y Argentina que tienen horarios
+                    sqlCreate = "CREATE TABLE grid_horarios_solicitud AS SELECT * FROM fromDB.grid_horarios_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
+                    mDataBase.execSQL(sqlCreate);
+                }catch(Exception e){}
                 //Datos de formularios de modificaicion, credito o avisos de Equipo frio, con datos en tablas OLD
                 sqlCreate = "CREATE TABLE FormHvKof_old_solicitud AS SELECT * FROM fromDB.FormHvKof_old_solicitud WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud;
                 mDataBase.execSQL(sqlCreate);
@@ -150,7 +155,11 @@ public class TransmisionAPI extends AsyncTask<Void,String,Void> {
                 mDataBase.execSQL(sqlCreate);
                 sqlCreate = "CREATE TABLE grid_interlocutor_old_solicitud AS SELECT * FROM fromDB.grid_interlocutor_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
                 mDataBase.execSQL(sqlCreate);
-
+                try {
+                    //Para Uruguay y Argentina que tienen horarios
+                    sqlCreate = "CREATE TABLE grid_horarios_old_solicitud AS SELECT * FROM fromDB.grid_horarios_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
+                    mDataBase.execSQL(sqlCreate);
+                }catch(Exception e){}
 
                 publishProgress("Empaquetando datos...");
                 String pathFileToZip = context.get().getApplicationInfo().dataDir + "/databases/";
@@ -169,20 +178,8 @@ public class TransmisionAPI extends AsyncTask<Void,String,Void> {
 
                 version = dateFormat.format(BuildConfig.BuildDate).replace(":","COLON").replace("-","HYPHEN");
 
-                OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                        .connectTimeout(30, TimeUnit.SECONDS)
-                        .readTimeout(5, TimeUnit.MINUTES)
-                        .writeTimeout(60, TimeUnit.SECONDS)
-                        .build();
-                Retrofit retrofit = new Retrofit.Builder()
-                        .baseUrl("http://10.0.2.2:51123/")
-                        .client(okHttpClient)
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build();
+                InterfaceApi apiService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-                retrofit.create(InterfaceApi.class);
-
-                InterfaceApi sincronizacionService = retrofit.create(InterfaceApi.class);
                 //RequestBody fbody = RequestBody.create(MediaType.parse("application/octet-stream"), myFile);
 
                 // create RequestBody instance from file
@@ -200,7 +197,8 @@ public class TransmisionAPI extends AsyncTask<Void,String,Void> {
                 RequestBody description = RequestBody.create(okhttp3.MultipartBody.FORM, descriptionString);
 
                 // finally, execute the request
-                Call<ResponseBody> call = sincronizacionService.Transmision(description, body, VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
+                Call<ResponseBody> call = apiService.Transmision(description, body, VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
+
                 Response<ResponseBody> response;
 
                 try {

@@ -76,16 +76,10 @@ public class AdjuntoAPI extends AsyncTask<Void,String,Bitmap> {
             String version = "";
             nombre = tv_nombre.getText().toString();
             version = dateFormat.format(BuildConfig.BuildDate).replace(":","COLON").replace("-","HYPHEN");
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl("http://10.0.2.2:51123/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
 
-            retrofit.create(InterfaceApi.class);
+            InterfaceApi adjuntoService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-            InterfaceApi sincronizacionService = retrofit.create(InterfaceApi.class);
-
-            Call<ResponseBody> call = sincronizacionService.Adjunto(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, nombre);
+            Call<ResponseBody> call = adjuntoService.Adjunto(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, nombre);
             Response<ResponseBody> response;
             try {
                 response = call.execute();
@@ -198,7 +192,7 @@ public class AdjuntoAPI extends AsyncTask<Void,String,Bitmap> {
             //Toasty.success(context.get(),"Sincronizacion Exitosa!!",Toast.LENGTH_LONG).show();
         }
         else{
-            //Toasty.error(context.get(),"Sincronizacion Fallida. "+messageFlag,Toast.LENGTH_LONG).show();
+            Toasty.error(context.get(),"No se pudo obtener el adjunto: "+messageFlag).show();
         }
         try {
             dialog.dismiss();

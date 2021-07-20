@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.TimePickerDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Context;
@@ -50,6 +51,7 @@ import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.TimePicker;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -115,6 +117,7 @@ import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
 import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
+import proyecto.app.clientesabc.clases.CustomTimePickerDialog;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
@@ -124,6 +127,7 @@ import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
 import proyecto.app.clientesabc.modelos.Contacto;
 import proyecto.app.clientesabc.modelos.EditTextDatePicker;
+import proyecto.app.clientesabc.modelos.Horarios;
 import proyecto.app.clientesabc.modelos.Impuesto;
 import proyecto.app.clientesabc.modelos.Interlocutor;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
@@ -185,6 +189,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private static ArrayList<Interlocutor> interlocutoresSolicitud;
     private static ArrayList<Visitas> visitasSolicitud;
     private static ArrayList<Adjuntos> adjuntosSolicitud;
+    private static ArrayList<Horarios> horariosSolicitud = new ArrayList<>();
     private static ArrayList<Comentario> comentarios;
 
     private AidcManager manager;
@@ -231,6 +236,8 @@ public class SolicitudActivity extends AppCompatActivity {
             idForm = "";
             solicitudSeleccionada.clear();
             mapeoCamposDinamicos.clear();
+            horariosSolicitud.clear();
+
             setTitle("Solicitud Nuevo Cliente");
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             getSupportActionBar().setSubtitle(descripcion);
@@ -688,6 +695,7 @@ public class SolicitudActivity extends AppCompatActivity {
         bancosSolicitud = new ArrayList<>();
         visitasSolicitud = new ArrayList<>();
         adjuntosSolicitud = new ArrayList<>();
+        horariosSolicitud.add(new Horarios(GUID,"00:00:00"));
         comentarios = new ArrayList<>();
         //notificantesSolicitud = new ArrayList<Adjuntos>();
     }
@@ -991,20 +999,12 @@ public class SolicitudActivity extends AppCompatActivity {
                         int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                         if (excepcion >= 0) {
                             HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                            if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
-                                checkbox.setEnabled(false);
-                            } else if (configExcepcion.get("vis") != null) {
-                                checkbox.setEnabled(true);
-                            }
-                            if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
-                                checkbox.setVisibility(View.GONE);
-                            } else if (configExcepcion.get("sup") != null) {
-                                checkbox.setVisibility(View.VISIBLE);
-                            }
-                            if (configExcepcion.get("obl").equals("1") || configExcepcion.get("obl").equals("X")) {
-                                listaCamposObligatorios.add(campos.get(i).get("campo").trim());
-                            } else if (configExcepcion.get("obl") != null && !configExcepcion.get("obl").equals("NULL")) {
-                                listaCamposObligatorios.remove(campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion,listaCamposObligatorios, campos.get(i).get("campo").trim());
+
+                            int excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
+                            if (excepcionxAgencia >= 0) {
+                                HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
+                                Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios, campos.get(i).get("campo").trim());
                             }
                         }
                         if (solicitudSeleccionada.size() > 0) {
@@ -1292,6 +1292,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                 if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZTV")){
                                     combo.setSelection(VariablesGlobales.getIndex(combo, "TA"));
                                 }
+                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZJV")){
+                                    combo.setSelection(VariablesGlobales.getIndex(combo, "PE"));
+                                }
                                 combo.setEnabled(false);
                                 combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
                             }
@@ -1424,6 +1427,21 @@ public class SolicitudActivity extends AppCompatActivity {
                                     }
                                 });
                             }
+                        if (campos.get(i).get("llamado1").trim().contains("AsignarTipoImpuesto")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    AsignarTipoImpuesto(parent);
+                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }
 
 
                         //label.addView(combo);
@@ -1556,48 +1574,12 @@ public class SolicitudActivity extends AppCompatActivity {
                         int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                         if (excepcion >= 0) {
                             HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                            if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
-                                combo.setEnabled(false);
-                                combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-                            } else if (configExcepcion.get("vis") != null && !configExcepcion.get("vis").equals("NULL")) {
-                                combo.setEnabled(true);
-                                combo.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
-                            }
-                            if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
-                                combo.setVisibility(View.GONE);
-                                label.setVisibility(View.GONE);
-                            } else if (configExcepcion.get("sup") != null && !configExcepcion.get("sup").equals("NULL")) {
-                                combo.setVisibility(View.VISIBLE);
-                                label.setVisibility(View.VISIBLE);
-                            }
-                            if (configExcepcion.get("obl").equals("1") || configExcepcion.get("obl").equals("X")) {
-                                listaCamposObligatorios.add(campos.get(i).get("campo").trim());
-                            } else if (configExcepcion.get("obl") != null && !configExcepcion.get("obl").equals("NULL")) {
-                                listaCamposObligatorios.remove(campos.get(i).get("campo").trim());
-                            }
+                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios, campos.get(i).get("campo").trim());
+
                             int excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                             if (excepcionxAgencia >= 0) {
                                 HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                                if (configExcepcionxAgencia.get("vis").equals("1") || configExcepcionxAgencia.get("vis").equals("X")) {
-                                    combo.setEnabled(false);
-                                    combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-                                } else if (configExcepcionxAgencia.get("vis") != null && !configExcepcion.get("vis").equals("NULL")) {
-                                    combo.setEnabled(true);
-                                    combo.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
-                                }
-                                if (configExcepcionxAgencia.get("sup").equals("1") || configExcepcionxAgencia.get("sup").equals("X")) {
-                                    combo.setVisibility(View.GONE);
-                                } else if (configExcepcionxAgencia.get("sup") != null && !configExcepcion.get("sup").equals("NULL")) {
-                                    combo.setVisibility(View.VISIBLE);
-                                }
-                                if (configExcepcion.get("obl").equals("1") || configExcepcion.get("obl").equals("X")) {
-                                    listaCamposObligatorios.add(campos.get(i).get("campo").trim());
-                                } else if (configExcepcion.get("obl") != null && !configExcepcion.get("obl").equals("NULL")) {
-                                    listaCamposObligatorios.remove(campos.get(i).get("campo").trim());
-                                }
-                                if (!configExcepcionxAgencia.get("dfaul").isEmpty() && !configExcepcion.get("dfaul").equals("NULL")) {
-                                    ((Spinner)mapeoCamposDinamicos.get(campos.get(i).get("campo").trim())).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get(campos.get(i).get("campo").trim())),configExcepcionxAgencia.get("dfaul").trim()));
-                                }
+                                Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios, campos.get(i).get("campo").trim());
                             }
                         }
                     } else {
@@ -1669,7 +1651,13 @@ public class SolicitudActivity extends AppCompatActivity {
                                     });
                                 }
                             } else {
-                                et.setInputType(InputType.TYPE_CLASS_TEXT);
+
+                                // IMPORTANT, do this before any of the code following it
+                                et.setSingleLine(true);
+                                et.setHorizontallyScrolling(false);
+                                et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                                et.setMinLines(1);
+                                et.setMaxLines(5);
                             }
                             if (Integer.valueOf(campos.get(i).get("maxlength")) > 0) {
                                 editFilters = et.getFilters();
@@ -1678,7 +1666,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                 newFilters[editFilters.length] = new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("maxlength")));
                                 et.setFilters(newFilters);
                                 if(Integer.valueOf(campos.get(i).get("maxlength")) >= 40){
-                                    et.setSingleLine(false);
+                                    // IMPORTANT, do this before any of the code following it
+                                    et.setSingleLine(true);
+                                    et.setHorizontallyScrolling(false);
                                     et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
                                     et.setMinLines(1);
                                     et.setMaxLines(5);
@@ -1760,7 +1750,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         }
                         //Crear campo para valor viejo exclusivo.
-                        if (campos.get(i).get("modificacion").trim().equals("2")) {
+                        if (campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10")) {
                             Button btnAyudai = null;
                             TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 5f);
                             TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75);
@@ -1926,45 +1916,12 @@ public class SolicitudActivity extends AppCompatActivity {
                         int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                         if (excepcion >= 0) {
                             HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                            if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
-                                et.setEnabled(false);
-                                et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
-                            } else if (configExcepcion.get("vis") != null && configExcepcion.get("vis").trim() != "NULL") {
-                                et.setEnabled(true);
-                                et.setBackground(getResources().getDrawable(R.drawable.textbackground, null));
-                            }
-                            if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
-                                et.setVisibility(View.GONE);
-                                label.setVisibility(View.GONE);
-                            } else if (configExcepcion.get("sup") != null && configExcepcion.get("sup").trim() != "NULL") {
-                                et.setVisibility(View.VISIBLE);
-                                label.setVisibility(View.VISIBLE);
-                            }
-                            if (configExcepcion.get("obl").equals("1") || configExcepcion.get("obl").equals("X")) {
-                                listaCamposObligatorios.add(campos.get(i).get("campo").trim());
-                            } else if (configExcepcion.get("obl") != null && !configExcepcion.get("obl").equals("NULL")) {
-                                listaCamposObligatorios.remove(campos.get(i).get("campo").trim());
-                            }
+                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i).get("campo").trim());
+
                             int excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                             if (excepcionxAgencia >= 0) {
                                 HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                                if (configExcepcionxAgencia.get("vis").equals("1") || configExcepcionxAgencia.get("vis").equals("X")) {
-                                    et.setEnabled(false);
-                                    et.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-                                } else if (configExcepcionxAgencia.get("vis") != null && !configExcepcion.get("vis").equals("NULL")) {
-                                    et.setEnabled(true);
-                                    et.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
-                                }
-                                if (configExcepcionxAgencia.get("sup").equals("1") || configExcepcionxAgencia.get("sup").equals("X")) {
-                                    et.setVisibility(View.GONE);
-                                    label.setVisibility(View.GONE);
-                                } else if (configExcepcionxAgencia.get("sup") != null && !configExcepcion.get("sup").equals("NULL")) {
-                                    et.setVisibility(View.VISIBLE);
-                                    label.setVisibility(View.VISIBLE);
-                                }
-                                if (!configExcepcionxAgencia.get("dfaul").isEmpty() && !configExcepcion.get("dfaul").equals("NULL")) {
-                                    ((MaskedEditText)mapeoCamposDinamicos.get(campos.get(i).get("campo").trim())).setText(configExcepcionxAgencia.get("dfaul").trim());
-                                }
+                                Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i).get("campo").trim());
                             }
                         }
                     }
@@ -2129,8 +2086,8 @@ public class SolicitudActivity extends AppCompatActivity {
             seccion_layout.setBackground(getResources().getDrawable(R.color.colorPrimary, null));
             seccion_layout.setPadding(5, 5, 5, 5);
             seccion_layout.addView(seccion_header);
-
-            ll.addView(seccion_layout);
+            if(!campo.get("campo").trim().equals("W_CTE-HORARIOS"))
+                ll.addView(seccion_layout);
 
             RelativeLayout rl = new RelativeLayout(getContext());
             CoordinatorLayout.LayoutParams rlp = new CoordinatorLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
@@ -2138,10 +2095,10 @@ public class SolicitudActivity extends AppCompatActivity {
             CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) rl.getLayoutParams();
             params.setBehavior(new AppBarLayout.ScrollingViewBehavior(getContext(), null));
 
-            switch(campo.get("campo").trim()){
+            switch(campo.get("campo").trim()) {
                 case "W_CTE-CONTACTOS":
                     //bloque_contacto = tb_contactos;
-                    if(modificable) {
+                    if (modificable) {
                         seccion_header.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
@@ -2155,29 +2112,29 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         });
                     }
-                    tb_contactos.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
+                    tb_contactos.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary, null));
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
 
                     tb_contactos.setLayoutParams(hlp);
 
-                    if(solicitudSeleccionada.size() > 0){
+                    if (solicitudSeleccionada.size() > 0) {
                         contactosSolicitud = mDBHelper.getContactosDB(idSolicitud);
                     }
                     //Adaptadores
-                    if(contactosSolicitud != null) {
+                    if (contactosSolicitud != null) {
                         ContactoTableAdapter stda = new ContactoTableAdapter(getContext(), contactosSolicitud);
                         stda.setPaddings(10, 5, 10, 5);
                         stda.setTextSize(10);
                         stda.setGravity(GRAVITY_CENTER);
                         tb_contactos.setDataAdapter(stda);
-                        tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height+(contactosSolicitud.size()*(alturaFilaTableView));
+                        tb_contactos.getLayoutParams().height = tb_contactos.getLayoutParams().height + (contactosSolicitud.size() * (alturaFilaTableView));
                     }
 
-                    headers = ((ContactoTableAdapter)tb_contactos.getDataAdapter()).getHeaders();
+                    headers = ((ContactoTableAdapter) tb_contactos.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                    sta.setPaddings(10,5,10,5);
+                    sta.setPaddings(10, 5, 10, 5);
                     sta.setTextSize(12);
-                    sta.setTextColor(getResources().getColor(R.color.white,null));
+                    sta.setTextColor(getResources().getColor(R.color.white, null));
                     sta.setTypeface(Typeface.BOLD);
                     sta.setGravity(GRAVITY_CENTER);
 
@@ -2188,11 +2145,11 @@ public class SolicitudActivity extends AppCompatActivity {
                     ll.addView(rl);
                     break;
                 case "W_CTE-IMPUESTOS":
-                        de.codecrafters.tableview.TableView<Impuesto> bloque_impuesto;
-                        tb_impuestos.removeDataClickListener(null);
-                        tb_impuestos.removeDataLongClickListener(null);
-                        bloque_impuesto = tb_impuestos;
-                        btnAddBloque.setVisibility(INVISIBLE);
+                    de.codecrafters.tableview.TableView<Impuesto> bloque_impuesto;
+                    tb_impuestos.removeDataClickListener(null);
+                    tb_impuestos.removeDataLongClickListener(null);
+                    bloque_impuesto = tb_impuestos;
+                    btnAddBloque.setVisibility(INVISIBLE);
                     /*seccion_header.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -2206,36 +2163,36 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                     });*/
                     //if(bloque_impuesto.getParent() != null) {
-                        bloque_impuesto.setColumnCount(4);
-                        bloque_impuesto.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary, null));
-                        bloque_impuesto.setHeaderElevation(2);
-                        hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
-                        bloque_impuesto.setLayoutParams(hlp);
+                    bloque_impuesto.setColumnCount(4);
+                    bloque_impuesto.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary, null));
+                    bloque_impuesto.setHeaderElevation(2);
+                    hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
+                    bloque_impuesto.setLayoutParams(hlp);
 
-                        ArrayList<Impuesto> listaImpuestos = db.getImpuestosPais();
-                        impuestosSolicitud.addAll(listaImpuestos);
-                        if (solicitudSeleccionada.size() > 0) {
-                            impuestosSolicitud.clear();
-                            impuestosSolicitud = mDBHelper.getImpuestosDB(idSolicitud);
-                        }
-                        //Adaptadores
-                        if (impuestosSolicitud != null) {
-                            tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(getContext(), impuestosSolicitud));
-                            tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height + (impuestosSolicitud.size() * (alturaFilaTableView));
-                        }
-                        headers = ((ImpuestoTableAdapter) bloque_impuesto.getDataAdapter()).getHeaders();
-                        sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                        sta.setPaddings(10, 5, 10, 5);
-                        sta.setTextSize(12);
-                        sta.setTextColor(getResources().getColor(R.color.white, null));
-                        sta.setTypeface(Typeface.BOLD);
-                        sta.setGravity(GRAVITY_CENTER);
+                    ArrayList<Impuesto> listaImpuestos = db.getImpuestosPais();
+                    impuestosSolicitud.addAll(listaImpuestos);
+                    if (solicitudSeleccionada.size() > 0) {
+                        impuestosSolicitud.clear();
+                        impuestosSolicitud = mDBHelper.getImpuestosDB(idSolicitud);
+                    }
+                    //Adaptadores
+                    if (impuestosSolicitud != null) {
+                        tb_impuestos.setDataAdapter(new ImpuestoTableAdapter(getContext(), impuestosSolicitud));
+                        tb_impuestos.getLayoutParams().height = tb_impuestos.getLayoutParams().height + (impuestosSolicitud.size() * (alturaFilaTableView));
+                    }
+                    headers = ((ImpuestoTableAdapter) bloque_impuesto.getDataAdapter()).getHeaders();
+                    sta = new SimpleTableHeaderAdapter(getContext(), headers);
+                    sta.setPaddings(10, 5, 10, 5);
+                    sta.setTextSize(12);
+                    sta.setTextColor(getResources().getColor(R.color.white, null));
+                    sta.setTypeface(Typeface.BOLD);
+                    sta.setGravity(GRAVITY_CENTER);
 
-                        bloque_impuesto.setHeaderAdapter(sta);
-                        bloque_impuesto.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
+                    bloque_impuesto.setHeaderAdapter(sta);
+                    bloque_impuesto.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
 
-                        rl.addView(bloque_impuesto);
-                        ll.addView(rl);
+                    rl.addView(bloque_impuesto);
+                    ll.addView(rl);
                     //}
                     break;
                 case "W_CTE-INTERLOCUTORES":
@@ -2255,7 +2212,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                     });*/
                     bloque_interlocutor.setColumnCount(3);
-                    bloque_interlocutor.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
+                    bloque_interlocutor.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary, null));
                     bloque_interlocutor.setHeaderElevation(2);
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     bloque_interlocutor.setLayoutParams(hlp);
@@ -2263,22 +2220,22 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     ArrayList<Interlocutor> listaInterlocutores = db.getInterlocutoresPais();
                     interlocutoresSolicitud.addAll(listaInterlocutores);
-                    if(solicitudSeleccionada.size() > 0){
+                    if (solicitudSeleccionada.size() > 0) {
                         interlocutoresSolicitud.clear();
                         interlocutoresSolicitud = mDBHelper.getInterlocutoresDB(idSolicitud);
                     }
                     //Adaptadores
-                    if(interlocutoresSolicitud != null) {
-                        if(tipoSolicitud.equals("1") || tipoSolicitud.equals("6")) {
+                    if (interlocutoresSolicitud != null) {
+                        if (tipoSolicitud.equals("1") || tipoSolicitud.equals("6")) {
                             tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height + (interlocutoresSolicitud.size() * alturaFilaTableView);
                             tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(getContext(), interlocutoresSolicitud));
                         }
                     }
-                    headers = ((InterlocutorTableAdapter)bloque_interlocutor.getDataAdapter()).getHeaders();
+                    headers = ((InterlocutorTableAdapter) bloque_interlocutor.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                    sta.setPaddings(10,5,10,5);
+                    sta.setPaddings(10, 5, 10, 5);
                     sta.setTextSize(12);
-                    sta.setTextColor(getResources().getColor(R.color.white,null));
+                    sta.setTextColor(getResources().getColor(R.color.white, null));
                     sta.setTypeface(Typeface.BOLD);
                     sta.setGravity(GRAVITY_CENTER);
 
@@ -2291,7 +2248,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 case "W_CTE-BANCOS":
                     de.codecrafters.tableview.TableView<Banco> bloque_banco;
                     bloque_banco = tb_bancos;
-                    if(modificable) {
+                    if (modificable) {
                         btnAddBloque.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
@@ -2306,16 +2263,16 @@ public class SolicitudActivity extends AppCompatActivity {
                         });
                     }
                     bloque_banco.setColumnCount(5);
-                    bloque_banco.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
+                    bloque_banco.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary, null));
                     bloque_banco.setHeaderElevation(2);
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     bloque_banco.setLayoutParams(hlp);
 
-                    if(solicitudSeleccionada.size() > 0){
+                    if (solicitudSeleccionada.size() > 0) {
                         bancosSolicitud = mDBHelper.getBancosDB(idSolicitud);
                     }
                     //Adaptadores
-                    if(bancosSolicitud != null) {
+                    if (bancosSolicitud != null) {
                         BancoTableAdapter stda = new BancoTableAdapter(getContext(), bancosSolicitud);
                         stda.setPaddings(10, 5, 10, 5);
                         stda.setTextSize(10);
@@ -2323,11 +2280,11 @@ public class SolicitudActivity extends AppCompatActivity {
                         bloque_banco.setDataAdapter(stda);
                         tb_bancos.getLayoutParams().height = tb_bancos.getLayoutParams().height + (bancosSolicitud.size() * alturaFilaTableView);
                     }
-                    headers = ((BancoTableAdapter)bloque_banco.getDataAdapter()).getHeaders();
+                    headers = ((BancoTableAdapter) bloque_banco.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                    sta.setPaddings(10,5,10,5);
+                    sta.setPaddings(10, 5, 10, 5);
                     sta.setTextSize(12);
-                    sta.setTextColor(getResources().getColor(R.color.white,null));
+                    sta.setTextColor(getResources().getColor(R.color.white, null));
                     sta.setTypeface(Typeface.BOLD);
                     sta.setGravity(GRAVITY_CENTER);
 
@@ -2339,28 +2296,47 @@ public class SolicitudActivity extends AppCompatActivity {
                     break;
                 case "W_CTE-VISITAS":
                     tb_visitas.setColumnCount(4);
-                    tb_visitas.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
+                    tb_visitas.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary, null));
                     tb_visitas.setHeaderElevation(1);
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
                     tb_visitas.setLayoutParams(hlp);
                     btnAddBloque.setVisibility(INVISIBLE);
-                    if(solicitudSeleccionada.size() > 0){
+
+                    Button btnRefreshBloque = new Button(getContext());
+                    LinearLayout.LayoutParams tam_btnv = new LinearLayout.LayoutParams(30, 30);
+
+                    btnRefreshBloque.setLayoutParams(tam_btnv);
+                    btnRefreshBloque.setBackground(getResources().getDrawable(R.drawable.icon_refresh, null));
+
+                    seccion_layout.addView(btnRefreshBloque);
+                    if (modificable) {
+                        btnRefreshBloque.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                DialogHandler appdialog = new DialogHandler();
+                                appdialog.Confirm(getActivity(), "Refrescar", "Está seguro que desea reinicializar los tipos de visita del cliente? Debe volver a configurar todo el VP.", "NO", "SI", new SolicitudActivity.ResetearVisitas(getContext(), getActivity()));
+                                //return false;
+                            }
+                        });
+                    }
+
+                    if (solicitudSeleccionada.size() > 0) {
                         visitasSolicitud = mDBHelper.getVisitasDB(idSolicitud);
                     }
                     //Adaptadores
-                    if(visitasSolicitud != null) {
+                    if (visitasSolicitud != null) {
                         VisitasTableAdapter stda = new VisitasTableAdapter(getContext(), visitasSolicitud);
                         stda.setPaddings(10, 5, 10, 5);
                         stda.setTextSize(10);
                         stda.setGravity(GRAVITY_CENTER);
-                        tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+(visitasSolicitud.size()*alturaFilaTableView);
+                        tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + (visitasSolicitud.size() * alturaFilaTableView);
                         tb_visitas.setDataAdapter(stda);
                     }
-                    headers = ((VisitasTableAdapter)tb_visitas.getDataAdapter()).getHeaders();
+                    headers = ((VisitasTableAdapter) tb_visitas.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                    sta.setPaddings(10,5,10,5);
+                    sta.setPaddings(10, 5, 10, 5);
                     sta.setTextSize(12);
-                    sta.setTextColor(getResources().getColor(R.color.white,null));
+                    sta.setTextColor(getResources().getColor(R.color.white, null));
                     sta.setTypeface(Typeface.BOLD);
                     sta.setGravity(GRAVITY_CENTER);
 
@@ -2371,10 +2347,10 @@ public class SolicitudActivity extends AppCompatActivity {
                     //Textos de dias de visita
                     //Desplegar textos para las secuencias de los dias de visita de la preventa.
                     //TODO Generar segun la Modalidad de venta seleccionada para usuarios tipo jefe de ventas y no preventas
-                    final String[] diaLabel = {"L","K","M","J","V","S","D"};
+                    final String[] diaLabel = {"L", "K", "M", "J", "V", "S", "D"};
                     Spinner comboModalidad = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR5"));
                     String modalidad = "";
-                    String tipoVisita = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString();//"ZPV";
+                    String tipoVisita = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "ZPV").toString();//"ZPV";
                     modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
                     /*if(comboModalidad.getSelectedItem() != null) {
                         modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
@@ -2385,8 +2361,8 @@ public class SolicitudActivity extends AppCompatActivity {
                             tipoVisita = "ZTV";
                         }
                     }*/
-                    int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,tipoVisita);
-                    int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
+                    int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, tipoVisita);
+                    int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
 
                     CardView seccion_visitas = new CardView(Objects.requireNonNull(getContext()));
 
@@ -2412,32 +2388,32 @@ public class SolicitudActivity extends AppCompatActivity {
                     v_ll.setOrientation(LinearLayout.HORIZONTAL);
                     v_ll.setLayoutParams(hlpll);
                     TableRow tr = new TableRow(getContext());
-                    tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,6f));
-                    tr.setPadding(0,0,0,0);
+                    tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 6f));
+                    tr.setPadding(0, 0, 0, 0);
 
-                    for(int x = 0; x < 6; x++){
+                    for (int x = 0; x < 6; x++) {
                         TextInputLayout label = new TextInputLayout(getContext());
-                        label.setHint(""+diaLabel[x]);
+                        label.setHint("" + diaLabel[x]);
                         label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
                         label.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
-                        label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.colorTextView,null)));
-                        label.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f));
-                        label.setPadding(0,0,0,0);
+                        label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.colorTextView, null)));
+                        label.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f));
+                        label.setPadding(0, 0, 0, 0);
 
                         final TextInputEditText et = new TextInputEditText(getContext());
-                        mapeoCamposDinamicos.put(tipoVisita+"_"+diaLabel[x],et);
+                        mapeoCamposDinamicos.put(tipoVisita + "_" + diaLabel[x], et);
                         et.setMaxLines(1);
                         et.setTextSize(16);
 
                         et.setInputType(InputType.TYPE_CLASS_NUMBER);
-                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( 4 ) });
+                        et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(4)});
                         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                         lp.setMargins(0, 10, 10, 10);
-                        et.setPadding(1,0,1,0);
+                        et.setPadding(1, 0, 1, 0);
 
                         et.setLayoutParams(lp);
-                        if(solicitudSeleccionada.size() > 0 && visitasSolicitud.size() > 0 ){
-                            switch(x) {
+                        if (solicitudSeleccionada.size() > 0 && visitasSolicitud.size() > 0) {
+                            switch (x) {
                                 case 0:
                                     et.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud.get(indicePreventa).getLun_de()));
                                     break;
@@ -2461,9 +2437,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                     break;
                             }
                         }
-                        if(!modificable){
+                        if (!modificable) {
                             et.setEnabled(false);
-                            et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled,null));
+                            et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
                         }
                         //et.setPadding(20, 5, 20, 5);
                         Drawable d = getResources().getDrawable(R.drawable.textbackground_min_padding, null);
@@ -2474,7 +2450,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             public void onFocusChange(View v, boolean hasFocus) {
                                 Spinner comboModalidad = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR5"));
                                 String modalidad = "";
-                                String tipoVisita = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString();//"ZPV";
+                                String tipoVisita = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "ZPV").toString();//"ZPV";
                                 modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
                                 /*if(comboModalidad.getSelectedItem() != null) {
                                     modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
@@ -2485,25 +2461,25 @@ public class SolicitudActivity extends AppCompatActivity {
                                         tipoVisita = "ZTV";
                                     }
                                 }*/
-                                int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,tipoVisita);
-                                int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
+                                int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, tipoVisita);
+                                int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
 
                                 final int finalIndicePreventa = indicePreventa;
                                 final int finalIndiceReparto = indiceReparto;
                                 if (!hasFocus) {
                                     int diaReparto = 0;
-                                    if((finalX+1) > 5){
-                                        diaReparto = ((finalX+1)-6);
-                                    }else{
-                                        diaReparto = (finalX+1);
+                                    if ((finalX + 1) > 5) {
+                                        diaReparto = ((finalX + 1) - 6);
+                                    } else {
+                                        diaReparto = (finalX + 1);
                                     }
                                     Visitas visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
-                                    Visitas visitaReparto=null;
-                                    if(!modalidad.equals("GV")) {
+                                    Visitas visitaReparto = null;
+                                    if (!modalidad.equals("GV")) {
                                         visitaReparto = visitasSolicitud.get(finalIndiceReparto);
                                     }
-                                    if(!((TextView)v).getText().toString().equals("") && Integer.valueOf(((TextView)v).getText().toString()) > 1440){
-                                        switch(finalX) {
+                                    if (!((TextView) v).getText().toString().equals("") && Integer.valueOf(((TextView) v).getText().toString()) > 1440) {
+                                        switch (finalX) {
                                             case 0:
                                                 visitaPreventa.setLun_a(getResources().getString(R.string.max_secuencia));
                                                 visitaPreventa.setLun_de(getResources().getString(R.string.max_secuencia));
@@ -2533,7 +2509,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 visitaPreventa.setDom_de(getResources().getString(R.string.max_secuencia));
                                                 break;
                                         }
-                                        if(!modalidad.equals("GV")) {
+                                        if (!modalidad.equals("GV")) {
                                             switch (diaReparto) {
                                                 case 0:
                                                     visitaReparto.setLun_a(getResources().getString(R.string.max_secuencia));
@@ -2565,17 +2541,17 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     break;
                                             }
                                         }
-                                        ((TextView)v).setText(getResources().getString(R.string.max_secuencia));
+                                        ((TextView) v).setText(getResources().getString(R.string.max_secuencia));
                                         Toasty.warning(getContext(), R.string.error_max_secuencia).show();
                                     }
 
                                     //Si el valor es vacio, borrar si existe el dia
-                                    if(((TextView)v).getText().toString().trim().replace("0","").equals("")){
-                                        if(((TextView)v).getText().toString().trim().length() > 0){
-                                            ((TextView)v).setText("");
-                                            Toasty.warning(getContext(),"La Secuencia debe ser mayor a 0").show();
+                                    if (((TextView) v).getText().toString().trim().replace("0", "").equals("")) {
+                                        if (((TextView) v).getText().toString().trim().length() > 0) {
+                                            ((TextView) v).setText("");
+                                            Toasty.warning(getContext(), "La Secuencia debe ser mayor a 0").show();
                                         }
-                                        switch(finalX) {
+                                        switch (finalX) {
                                             case 0:
                                                 visitaPreventa.setLun_a("");
                                                 visitaPreventa.setLun_de("");
@@ -2605,7 +2581,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 visitaPreventa.setDom_de("");
                                                 break;
                                         }
-                                        if(!modalidad.equals("GV")) {
+                                        if (!modalidad.equals("GV")) {
                                             switch (diaReparto) {
                                                 case 0:
                                                     visitaReparto.setLun_a("");
@@ -2637,9 +2613,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     break;
                                             }
                                         }
-                                    }else{
-                                        String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView)v).getText().toString());
-                                        switch(finalX) {
+                                    } else {
+                                        String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView) v).getText().toString());
+                                        switch (finalX) {
                                             case 0:
                                                 visitaPreventa.setLun_a(secuenciaSAP);
                                                 visitaPreventa.setLun_de(secuenciaSAP);
@@ -2669,7 +2645,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 visitaPreventa.setDom_de(secuenciaSAP);
                                                 break;
                                         }
-                                        if(!modalidad.equals("GV")) {
+                                        if (!modalidad.equals("GV")) {
                                             switch (diaReparto) {
                                                 case 0:
                                                     visitaReparto.setLun_a(secuenciaSAP);
@@ -2711,21 +2687,21 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     v_ll.addView(tr);
                     ll.addView(v_ll);
-                break;
+                    break;
                 case "W_CTE-ADJUNTOS":
                     tb_adjuntos.setColumnCount(3);
-                    tb_adjuntos.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
+                    tb_adjuntos.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary, null));
                     hlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, height);
 
                     tb_adjuntos.setLayoutParams(hlp);
 
-                    if(solicitudSeleccionada.size() > 0){
-                        if((idForm == null || idForm.equals("")) || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")|| solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Modificado"))
+                    if (solicitudSeleccionada.size() > 0) {
+                        if ((idForm == null || idForm.equals("")) || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia") || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Modificado"))
                             adjuntosSolicitud = mDBHelper.getAdjuntosDB(idSolicitud);
                         else
                             adjuntosSolicitud = mDBHelper.getAdjuntosServidor(idForm);
                     }
-                    if(modificable) {
+                    if (modificable) {
                         btnAddBloque.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
@@ -2744,7 +2720,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         });
                     }
                     //Adaptadores
-                    if(adjuntosSolicitud != null) {
+                    if (adjuntosSolicitud != null) {
                         AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getContext(), adjuntosSolicitud);
                         stda.setPaddings(10, 5, 10, 5);
                         stda.setTextSize(10);
@@ -2752,28 +2728,169 @@ public class SolicitudActivity extends AppCompatActivity {
                         //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*alturaFilaTableView);
                         tb_adjuntos.setDataAdapter(stda);
                     }
-                    headers = ((AdjuntoTableAdapter)tb_adjuntos.getDataAdapter()).getHeaders();
+                    headers = ((AdjuntoTableAdapter) tb_adjuntos.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
-                    sta.setPaddings(10,5,10,5);
-                    sta.setTextSize(12);
-                    sta.setTextColor(getResources().getColor(R.color.white,null));
+                    sta.setPaddings(10, 5, 10, 5);
+                    sta.setTextSize(16);
+                    sta.setTextColor(getResources().getColor(R.color.white, null));
                     sta.setTypeface(Typeface.BOLD);
                     sta.setGravity(GRAVITY_CENTER);
 
                     tb_adjuntos.setHeaderAdapter(sta);
                     tb_adjuntos.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
 
-                    if(tb_adjuntos.getParent() != null)
+                    if (tb_adjuntos.getParent() != null)
                         rl.addView(tb_adjuntos);
 
                     //Horizontal View de adjuntos
                     HorizontalScrollView hsv = new HorizontalScrollView(getContext());
-                    ManejadorAdjuntos.MostrarGaleriaAdjuntosHorizontal(hsv, getContext(), getActivity(),adjuntosSolicitud,modificable, firma, tb_adjuntos, mapeoCamposDinamicos);
+                    ManejadorAdjuntos.MostrarGaleriaAdjuntosHorizontal(hsv, getContext(), getActivity(), adjuntosSolicitud, modificable, firma, tb_adjuntos, mapeoCamposDinamicos);
 
                     rl.addView(hsv);
                     ll.addView(rl);
                     mapeoCamposDinamicos.put("GaleriaAdjuntos", hsv);
                     break;
+                case "W_CTE-HORARIOS":
+                    final String[] dias = {"Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"};
+                    final String[] dias_prefijo = {"mo", "di", "mi", "do", "fr", "sa", "so"};
+                    final String[] dias_sufijo = {"ab1", "bi1", "ab2", "bi2"};
+
+                    CardView seccion_horarios = new CardView(Objects.requireNonNull(getContext()));
+
+                    TextView header_horarios = new TextView(getContext());
+                    header_horarios.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                    header_horarios.setAllCaps(true);
+                    header_horarios.setText("Horarios para Reparto");
+                    header_horarios.setLayoutParams(tlp);
+                    header_horarios.setPadding(10, 5, 0, 5);
+                    header_horarios.setTextColor(getResources().getColor(R.color.white, null));
+                    header_horarios.setTextSize(14);
+
+                    LinearLayout.LayoutParams hlph = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+                    hlph.setMargins(0, 25, 0, 5);
+                    seccion_horarios.setLayoutParams(hlph);
+                    seccion_horarios.setBackground(getResources().getDrawable(R.color.colorPrimary, null));
+                    seccion_horarios.setPadding(5, 5, 5, 5);
+
+                    seccion_horarios.addView(header_horarios);
+                    ll.addView(seccion_horarios);
+
+                    TableLayout h_tl = new TableLayout(getContext());
+                    TableLayout.LayoutParams h_tlp = new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT,1.0f);
+                    h_tl.setOrientation(LinearLayout.HORIZONTAL);
+                    h_tl.setLayoutParams(h_tlp);
+
+                    TableLayout h_tl2 = new TableLayout(getContext());
+                    TableLayout.LayoutParams h_tlp2 = new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT);
+                    h_tl2.setOrientation(LinearLayout.HORIZONTAL);
+                    h_tl2.setLayoutParams(h_tlp2);
+
+                    TableRow tr_header = new TableRow(getContext());
+
+                    tr_header.setLayoutParams(new TableRow.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1.0f));
+                    tr_header.setBackgroundColor(getResources().getColor(R.color.red,null));
+
+                    TextView label_empty = new TextView(getContext());
+                    label_empty.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                    label_empty.setTextColor(getResources().getColor(R.color.white, null));
+                    label_empty.setText(" Día ");
+                    label_empty.setLayoutParams(new TableRow.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 0.1f));
+                    label_empty.setPadding(0, 0, 0, 0);
+                    tr_header.addView(label_empty);
+
+                    TextView label_manana = new TextView(getContext());
+                    label_manana.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                    label_manana.setTextColor(getResources().getColor(R.color.white, null));
+                    //label_manana.setBackgroundColor(getResources().getColor(R.color.blue,null));
+                    label_manana.setText("Por la mañana");
+                    label_manana.setLayoutParams(new TableRow.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 0.45f));
+                    label_manana.setPadding(0, 0, 0, 0);
+                    tr_header.addView(label_manana);
+
+                    TextView label_tarde = new TextView(getContext());
+                    label_tarde.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                    label_tarde.setTextColor(getResources().getColor(R.color.white, null));
+                    //label_tarde.setBackgroundColor(getResources().getColor(R.color.blue,null));
+                    label_tarde.setText("Por la tarde");
+                    label_tarde.setLayoutParams(new TableRow.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 0.45f));
+                    label_tarde.setPadding(0, 0, 0, 0);
+                    tr_header.addView(label_tarde);
+                    h_tl2.addView(tr_header);
+                    ll.addView(h_tl2);
+                for (int y = 0; y < dias.length; y++) {
+                    TableRow tr_dia = new TableRow(getContext());
+                    tr_dia.setLayoutParams(new TableRow.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1.0f));
+                    TextView label = new TextView(getContext());
+                    label.setTextAlignment(TEXT_ALIGNMENT_CENTER );
+                    label.setTextColor(getResources().getColor(R.color.black, null));
+                    label.setText("" + dias[y]+": ");
+                    TableRow.LayoutParams tlp_l = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 0.1f);
+                    tlp_l.setMargins(0, 5, 0, 0);
+                    label.setLayoutParams(tlp_l);
+                    tr_dia.addView(label);
+
+                    for (int z = 0; z < dias_sufijo.length; z++) {
+
+                        final MaskedEditText et = new MaskedEditText(getContext(),null);
+                        mapeoCamposDinamicos.put(dias_prefijo[y] + dias_sufijo[z], et);
+                        et.setMaxLines(1);
+                        et.setTextSize(16);
+                        et.setHint("00:00:00");
+                        et.setMask("##:##:00");
+                        et.setTag(dias_prefijo[y] + dias_sufijo[z]);
+
+                        et.setInputType(InputType.TYPE_CLASS_TEXT);
+                        et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(8)});
+                        TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,0.225f);
+                        lp.setMargins(0, 10, 10, 10);
+                        //et.setPadding(100, 0, 0, 0);
+                        et.setLayoutParams(lp);
+                        et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                            @Override
+                            public void onFocusChange(View v, boolean hasFocus) {
+                                if (hasFocus) {
+                                    // TODO Auto-generated method stub
+                                    Calendar mcurrentTime = Calendar.getInstance();
+                                    int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
+                                    int minute = mcurrentTime.get(Calendar.MINUTE);
+                                    TimePickerDialog mTimePicker;
+                                    mTimePicker = new TimePickerDialog(getContext(), new TimePickerDialog.OnTimeSetListener() {
+                                        @Override
+                                        public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+                                            String mivalor = "00".substring(String.valueOf(selectedHour).length()) + String.valueOf(selectedHour) + ":" + "00".substring(String.valueOf(selectedMinute).length()) + String.valueOf(selectedMinute) + ":00";
+                                            et.setText(mivalor);
+                                            horariosSolicitud.get(0).actualizarCampo(et.getTag().toString(),mivalor);
+                                        }
+                                    }, hour, minute, true);//Yes 24 hour time
+                                    mTimePicker.setTitle("Seleccione la hora");
+                                    mTimePicker.show();
+                                }
+                            }
+                        });
+                        et.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if(v.isFocused()) {
+                                    v.clearFocus();
+                                    v.requestFocus();
+                                }
+                            }
+                        });
+
+                        if (!modificable) {
+                            et.setEnabled(false);
+                            et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
+                        }
+                        Drawable d = getResources().getDrawable(R.drawable.textbackground_min_padding, null);
+                        et.setBackground(d);
+
+
+                        tr_dia.addView(et);
+                    }
+                    h_tl.addView(tr_dia);
+                }
+                    ll.addView(h_tl);
+                break;
                 case "W_CTE-COMENTARIOS":
                     break;
                 case "W_CTE-NOTIFICANTES":
@@ -3689,6 +3806,11 @@ public class SolicitudActivity extends AppCompatActivity {
                     ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
                 }else{
                     seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
+                    if(seleccionado.getVptyp().equals("ZAT")){
+                        ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
+                        String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_VKORG",""), seleccionado.getRuta());
+                        ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
+                    }
                 }
                 //seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
                 seleccionado.setKvgr4(kvgr4Spinner.getSelectedItem().toString().trim());
@@ -3855,6 +3977,27 @@ public class SolicitudActivity extends AppCompatActivity {
             return true;
         }
     }
+
+    public static class ResetearVisitas implements Runnable {
+        private Context context;
+        private Activity activity;
+        public ResetearVisitas(Context context, Activity activity) {
+            this.context = context;
+            this.activity = activity;
+        }
+        public void run() {
+            Spinner modalidad_preventa = (Spinner)mapeoCamposDinamicos.get("W_CTE-KVGR5");
+            OpcionSpinner opcion = (OpcionSpinner) modalidad_preventa.getSelectedItem();
+            visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_VKORG", ""), opcion.getId());
+
+            tb_visitas.setDataAdapter(new VisitasTableAdapter(context, visitasSolicitud));
+            if (tb_visitas.getLayoutParams() != null) {
+                tb_visitas.getLayoutParams().height = 50;
+                tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView ) * visitasSolicitud.size());
+            }
+        }
+    }
+
     public class GuardarFormulario implements Runnable {
         private Context context;
         public GuardarFormulario(Context context) {
@@ -3877,8 +4020,13 @@ public class SolicitudActivity extends AppCompatActivity {
                             Date date = new Date();
                             if(comentarios.size() == 0)
                                 insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
-                            else
-                                insertValues.put("[" + listaCamposDinamicos.get(i) + "]", comentarios.get(0).getComentario()+"("+dateFormat.format(date)+"): "+valor);
+                            else {
+                                if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia")) {
+                                    insertValues.put("[" + listaCamposDinamicos.get(i) + "]", comentarios.get(0).getComentario() + "INCIDENCIA (" + dateFormat.format(date) + "): " + valor);
+                                }else {
+                                    insertValues.put("[" + listaCamposDinamicos.get(i) + "]", comentarios.get(0).getComentario() + "C(" + dateFormat.format(date) + "): " + valor);
+                                }
+                            }
                         }
                     } catch (Exception e) {
                         try {
@@ -4067,6 +4215,50 @@ public class SolicitudActivity extends AppCompatActivity {
                                 Toasty.error(getApplicationContext(), "Error Insertando Adjuntos de Solicitud. "+e.getMessage(), Toasty.LENGTH_SHORT).show();
                             }
                             break;
+                        case "W_CTE-HORARIOS":
+                            ContentValues horariosValues = new ContentValues();
+                            try {
+                                if(solicitudSeleccionada.size() > 0){
+                                    mDb.delete(VariablesGlobales.getTablaHorariosSolicitud(),"id_solicitud=?",new String[]{GUID});
+                                }
+                                for (int c = 0; c < horariosSolicitud.size(); c++) {
+                                    Horarios horario = horariosSolicitud.get(c);
+                                    horariosValues.put("id_solicitud", NextId);
+                                    horariosValues.put("moab1", horario.getMoab1());
+                                    horariosValues.put("mobi1", horario.getMobi1());
+                                    horariosValues.put("diab1", horario.getDiab1());
+                                    horariosValues.put("dibi1", horario.getDibi1());
+                                    horariosValues.put("miab1", horario.getMiab1());
+                                    horariosValues.put("mibi1", horario.getMibi1());
+                                    horariosValues.put("doab1", horario.getDoab1());
+                                    horariosValues.put("dobi1", horario.getDobi1());
+                                    horariosValues.put("frab1", horario.getFrab1());
+                                    horariosValues.put("frbi1", horario.getFrbi1());
+                                    horariosValues.put("saab1", horario.getSaab1());
+                                    horariosValues.put("sabi1", horario.getSabi1());
+                                    horariosValues.put("soab1", horario.getSoab1());
+                                    horariosValues.put("sobi1", horario.getSobi1());
+
+                                    horariosValues.put("moab2", horario.getMoab2());
+                                    horariosValues.put("mobi2", horario.getMobi2());
+                                    horariosValues.put("diab2", horario.getDiab2());
+                                    horariosValues.put("dibi2", horario.getDibi2());
+                                    horariosValues.put("miab2", horario.getMiab2());
+                                    horariosValues.put("mibi2", horario.getMibi2());
+                                    horariosValues.put("doab2", horario.getDoab2());
+                                    horariosValues.put("dobi2", horario.getDobi2());
+                                    horariosValues.put("frab2", horario.getFrab2());
+                                    horariosValues.put("frbi2", horario.getFrbi2());
+                                    horariosValues.put("saab2", horario.getSaab2());
+                                    horariosValues.put("sabi2", horario.getSabi2());
+                                    horariosValues.put("soab2", horario.getSoab2());
+                                    horariosValues.put("sobi2", horario.getSobi2());
+                                    mDb.insert(VariablesGlobales.getTablaHorariosSolicitud(), null, horariosValues);
+                                    horariosValues.clear();
+                                }
+                            } catch (Exception e) {
+                                Toasty.error(getApplicationContext(), "Error Insertando Adjuntos de Solicitud. "+e.getMessage(), Toasty.LENGTH_SHORT).show();
+                            }
                     }
                 }
             }
@@ -4324,6 +4516,33 @@ public class SolicitudActivity extends AppCompatActivity {
                     tb_impuestos.getDataAdapter().getData().get(indice).setTaxkd("1");
                 }
                 tb_impuestos.getDataAdapter().notifyDataSetChanged();
+            }
+        }
+    }
+
+    private static void  AsignarTipoImpuesto(AdapterView<?> parent) {
+        String pais = PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","");
+        if (pais.equals("1661") || pais.equals("Z001")) {
+            final OpcionSpinner tipo_nif = (OpcionSpinner) parent.getSelectedItem();
+            Spinner fityp;
+            switch (tipo_nif.getId()) {
+                case "25":
+                case "42":
+                    fityp = (Spinner)mapeoCamposDinamicos.get("W_CTE-FITYP");
+                    fityp.setSelection(VariablesGlobales.getIndex(fityp,"05"));
+                    break;
+                case "88":
+                    fityp = (Spinner)mapeoCamposDinamicos.get("W_CTE-FITYP");
+                    CheckBox zona_franca = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ZONA_FRANCA");
+                    if (zona_franca != null && zona_franca.isChecked()) {
+                        fityp.setSelection(VariablesGlobales.getIndex(fityp,"04"));
+                    } else {
+                        fityp.setSelection(VariablesGlobales.getIndex(fityp,"01"));
+                    }
+                    break;
+                default:
+                    fityp = (Spinner)mapeoCamposDinamicos.get("W_CTE-FITYP");
+                    fityp.setSelection(VariablesGlobales.getIndex(fityp,"05"));
             }
         }
     }

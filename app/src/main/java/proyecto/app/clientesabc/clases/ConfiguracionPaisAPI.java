@@ -4,7 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.BitmapFactory;
+import android.content.Intent;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
@@ -15,20 +16,19 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import es.dmoral.toasty.Toasty;
 import okhttp3.ResponseBody;
@@ -36,57 +36,59 @@ import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.Interfaces.InterfaceApi;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.ConsultaClienteTotalActivity;
-import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
+import proyecto.app.clientesabc.actividades.ConfiguracionGeneralActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class ConsultaClienteAPI extends AsyncTask<Void,String,ArrayList<JsonArray>> {
+public class ConfiguracionPaisAPI extends AsyncTask<Void,String,ArrayList<JsonArray>> {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
-    private String codigoCliente;
+    private String sociedad;
     private boolean xceptionFlag = false;
     private String messageFlag = "";
     private ServerSocket ss;
     private Socket socket;
     ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
-    public ConsultaClienteAPI(WeakReference<Context> c, WeakReference<Activity> a, String codigoCliente){
+    public ConfiguracionPaisAPI(WeakReference<Context> c, WeakReference<Activity> a, String sociedad){
         this.context = c;
         this.activity = a;
-        this.codigoCliente = codigoCliente;
+        this.sociedad = sociedad;
     }
 
     @Override
     protected ArrayList<JsonArray> doInBackground(Void... voids) {
-        ArrayList<JsonArray> estructurasSAP = new ArrayList<>();
+        ArrayList<JsonArray> respuesta = new ArrayList<>();
         //Solo enviamos los datos necesarios para que la sincronizacion sepa que traer
         publishProgress("Estableciendo comunicación...");
         System.out.println("Estableciendo comunicación para enviar archivos...");
         String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
         if(mensaje.equals("")) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-            String version = "";
+            String bukrs = String.format("%4s", String.valueOf(sociedad)).replace(' ', '0');
 
-            version = dateFormat.format(BuildConfig.BuildDate).replace(":","COLON").replace("-","HYPHEN");
+            Map<String, String> fields = new HashMap<>();
+            fields.put("username", "parsian");
+            fields.put("password", "admin");
+            fields.put("grant_type", "password");
 
-            InterfaceApi apiService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
+            InterfaceApi configuracionService = ServiceGenerator.createService(context, activity,InterfaceApi.class, null);
 
-            Call<ResponseBody> call = apiService.ConsultaCliente(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0'));
-            Response<ResponseBody> response;
-
+            Call<ResponseBody> call = configuracionService.Token(fields);
+            Response<ResponseBody> response = null;
             try {
                 response = call.execute();
-                if (!response.body().contentType().toString().equals("text/html")) {
+                String error = "";
+                if(response.errorBody() != null)
+                    error = response.errorBody().string();
+                if (response != null && response.body() != null && !response.body().contentType().toString().equals("text/html")) {
+                    InputStream is = new BufferedInputStream(response.body().byteStream());
                     publishProgress("Recibiendo datos...");
 
                     long fileSize = response.body().contentLength();
-                    if(fileSize <= 0 )
-                        fileSize = Long.parseLong(response.raw().headers().get("Length").toString());
-                    DataInputStream dis = new DataInputStream(new BufferedInputStream(response.body().byteStream()));
+                    DataInputStream dis = new DataInputStream(is);
 
                     byte[] r = new byte[(int) fileSize];
                     int offset = 0;
@@ -95,33 +97,26 @@ public class ConsultaClienteAPI extends AsyncTask<Void,String,ArrayList<JsonArra
                         offset += bytesRead;
                         publishProgress("Descargando..." + String.format("%.02f", (100f / (fileSize / 1024f)) * (offset / 1024f)) + "%");
                     }
-                    //byte[] r = Arrays.copyOfRange(temp, 0, offset);
-                    //dis.readFully(r);
-                    //String respuestajson = response.body().string();
-
                     String respuestajson = new String(r);
-                    //respuestajson = "["+respuestajson+"]";
-                    String jsoncliente = new String(respuestajson);
                     try {
                         Gson gson = new Gson();
-                        estructurasSAP.add(gson.fromJson(jsoncliente, JsonArray.class));
+                        respuesta.add(gson.fromJson(respuestajson, JsonArray.class));
                         publishProgress("Procesando datos cliente..");
                     }catch(Exception e){
                         xceptionFlag = true;
-                        messageFlag = jsoncliente;
+                        messageFlag = e.getMessage();
                     }
-
                 }else {
+                    messageFlag = response.raw().message()+". "/*+ response.raw().request().url()*/;
+                    if(error.length() < 100  )
+                        messageFlag += error;
                     xceptionFlag = true;
-                    messageFlag = response.body().string();
                 }
-            } catch (Exception e) {
-                xceptionFlag = true;
-                messageFlag = e.getMessage();
+            } catch (IOException e) {
                 e.printStackTrace();
+                messageFlag += e.getMessage();
+                xceptionFlag = true;
             }
-
-
         }else{
             xceptionFlag = true;
             messageFlag = mensaje;
@@ -129,19 +124,8 @@ public class ConsultaClienteAPI extends AsyncTask<Void,String,ArrayList<JsonArra
         publishProgress("Proceso Terminado...");
 
         Log.i("===end of start ====", "==");
-        try{
-            if(socket!=null && !socket.isClosed()){
-                socket.close();
-                Log.i("Socket cerrado", "==");
-            }
-        }
-        catch (Exception e){
-            xceptionFlag = true;
-            messageFlag = e.getMessage();
-            e.printStackTrace();
-        }
 
-        return estructurasSAP;
+        return respuesta;
     }
 
     @Override
@@ -154,25 +138,25 @@ public class ConsultaClienteAPI extends AsyncTask<Void,String,ArrayList<JsonArra
     protected void onPreExecute() {
         super.onPreExecute();
         AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
-        builder.setCancelable(false); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
+        builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
         builder.setView(R.layout.layout_loading_dialog);
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
+                activity.get().finish();
                 messageFlag = "Proceso cancelado por el usuario.";
                 cancel(true);
-                activity.get().finish();
                 Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
             }
         });
         dialog = builder.create();
-        if(activity.get() != null && !activity.get().isFinishing()) {
+        if(!activity.get().isFinishing()) {
             dialog.show();
         }
     }
     @Override
-    protected void onPostExecute(ArrayList<JsonArray> estructuras) {
-        super.onPostExecute(estructuras);
+    protected void onPostExecute(ArrayList<JsonArray> mensajes) {
+        super.onPostExecute(mensajes);
         try {
             dialog.dismiss();
         } catch (final IllegalArgumentException e) {
@@ -184,15 +168,10 @@ public class ConsultaClienteAPI extends AsyncTask<Void,String,ArrayList<JsonArra
             dialog.hide();
         }
         if(xceptionFlag){
-            activity.get().finish();
-            Toasty.error(context.get(),"No se pudo consultar el cliente: "+messageFlag,Toast.LENGTH_LONG).show();
+            //activity.get().finish();
+            Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
         }
-        if(context.get().getClass().getSimpleName().equals("SolicitudModificacionActivity"))
-            SolicitudModificacionActivity.LlenarCampos(context.get(), activity.get(), estructuras);
-        else if(context.get().getClass().getSimpleName().equals("SolicitudAvisosEquipoFrioActivity"))
-            SolicitudAvisosEquipoFrioActivity.LlenarCampos(context.get(), activity.get(), estructuras);
-        else if(context.get().getClass().getSimpleName().equals("ConsultaClienteTotalActivity"))
-            ConsultaClienteTotalActivity.LlenarCampos(context.get(), activity.get(), estructuras);
+        ConfiguracionGeneralActivity.ActualizarConfiguracionPais(context.get(), activity.get(), mensajes);
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

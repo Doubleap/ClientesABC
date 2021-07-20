@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ClientesABC EM</string>
+    <string name="app_name">ClientesABC NI</string>
     <string name="title_activity_login">Maestro Clientes Femsa</string>
 
     <!-- Strings related to login -->
@@ -184,4 +184,21 @@
     </string-array>
     <string name="type_to_search">Buscar...</string>
     <string name="filtrar">Filtrar</string>
+    <string name="configuracion">Configuración General</string>
+    <string name="title_activity_configuracion_general">Configuracion General de Sistema</string>
+    <string-array name="dias_prefijo">
+        <item id="mo">mo</item>
+        <item id="di">di</item>
+        <item id="mi">mi</item>
+        <item id="do">do</item>
+        <item id="fr">fr</item>
+        <item id="sa">sa</item>
+        <item id="so">so</item>
+    </string-array>
+    <string-array name="dias_sufijo">
+        <item id="ab1">ab1</item>
+        <item id="bi1">bi1</item>
+        <item id="ab2">ab2</item>
+        <item id="bi2">bi2</item>
+    </string-array>
 </resources>

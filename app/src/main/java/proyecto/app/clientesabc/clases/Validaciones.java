@@ -1,17 +1,27 @@
 package proyecto.app.clientesabc.clases;
 
+import android.content.Context;
 import android.preference.PreferenceManager;
 import android.text.InputFilter;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.vicmikhailau.maskededittext.MaskedEditText;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 public class Validaciones {
     public static boolean ValidarCoordenadaY(View v){
@@ -93,6 +103,89 @@ public class Validaciones {
         else
             Toasty.error(correo.getContext(),"Formato de correo Invalido!").show();
         return valido;
+    }
+
+    public final static void ejecutarExcepcion(Context context, View elemento,View label, HashMap<String, String> configExcepcion, ArrayList<String> listaCamposObligatorios, String campo){
+        //Posibles tipo de elemento
+        if(elemento instanceof CheckBox)
+        {
+            CheckBox checkbox = (CheckBox) elemento;
+            if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
+                checkbox.setEnabled(false);
+            }else if(configExcepcion.get("vis") != null){
+                checkbox.setEnabled(true);
+            }
+            if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                checkbox.setVisibility(View.GONE);
+            }else if(configExcepcion.get("sup") != null){
+                checkbox.setVisibility(View.VISIBLE);
+            }
+            if (configExcepcion.get("obl").equals("1") || configExcepcion.get("obl").equals("X")) {
+                listaCamposObligatorios.add(campo);
+            } else if (configExcepcion.get("obl") != null && !configExcepcion.get("obl").equals("NULL")) {
+                listaCamposObligatorios.remove(campo);
+            }
+            if (configExcepcion.get("dfaul").trim().length() > 0) {
+                checkbox.setChecked(true);
+            }else if (configExcepcion.get("dfaul") != null && !configExcepcion.get("dfaul").equals("NULL")){
+                checkbox.setChecked(false);
+            }
+        }
+        if(elemento instanceof SearchableSpinner)
+        {
+            SearchableSpinner combo = (SearchableSpinner) elemento;
+            if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
+                combo.setEnabled(false);
+                combo.setBackground(context.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+            } else if (configExcepcion.get("vis") != null && !configExcepcion.get("vis").equals("NULL")) {
+                combo.setEnabled(true);
+                combo.setBackground(context.getResources().getDrawable(R.drawable.spinner_background, null));
+            }
+            if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                combo.setVisibility(View.GONE);
+                label.setVisibility(View.GONE);
+            } else if (configExcepcion.get("sup") != null && !configExcepcion.get("sup").equals("NULL")) {
+                combo.setVisibility(View.VISIBLE);
+                label.setVisibility(View.VISIBLE);
+            }
+            if (configExcepcion.get("obl").equals("1") || configExcepcion.get("obl").equals("X")) {
+                listaCamposObligatorios.add(campo);
+            } else if (configExcepcion.get("obl") != null && !configExcepcion.get("obl").equals("NULL")) {
+                listaCamposObligatorios.remove(campo);
+            }
+            if (!configExcepcion.get("dfaul").isEmpty() && !configExcepcion.get("dfaul").equals("NULL")) {
+                combo.setSelection(VariablesGlobales.getIndex(combo,configExcepcion.get("dfaul").trim()));
+            }
+        }
+        if(elemento instanceof MaskedEditText)
+        {
+            MaskedEditText et = (MaskedEditText) elemento;
+            if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
+                et.setEnabled(false);
+                et.setBackground(context.getResources().getDrawable(R.drawable.textbackground_disabled, null));
+            } else if (configExcepcion.get("vis") != null && configExcepcion.get("vis").trim() != "NULL") {
+                et.setEnabled(true);
+                et.setBackground(context.getResources().getDrawable(R.drawable.textbackground, null));
+            }
+            if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
+                et.setVisibility(View.GONE);
+                label.setVisibility(View.GONE);
+            } else if (configExcepcion.get("sup") != null && configExcepcion.get("sup").trim() != "NULL") {
+                et.setVisibility(View.VISIBLE);
+                label.setVisibility(View.VISIBLE);
+            }
+            if (configExcepcion.get("obl").equals("1") || configExcepcion.get("obl").equals("X")) {
+                listaCamposObligatorios.add(campo);
+            } else if (configExcepcion.get("obl") != null && !configExcepcion.get("obl").equals("NULL")) {
+                listaCamposObligatorios.remove(campo);
+            }
+            if (!configExcepcion.get("dfaul").isEmpty() && !configExcepcion.get("dfaul").equals("NULL")) {
+                et.setText(configExcepcion.get("dfaul").trim());
+            }
+        }
+
+
+
     }
 
     public static InputFilter getEditTextFilter() {

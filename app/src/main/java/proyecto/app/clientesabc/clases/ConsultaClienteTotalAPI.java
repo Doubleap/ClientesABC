@@ -67,16 +67,10 @@ public class ConsultaClienteTotalAPI extends AsyncTask<Void,String,ArrayList<Jso
             String version = "";
 
             version = dateFormat.format(BuildConfig.BuildDate).replace(":","COLON").replace("-","HYPHEN");
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl("http://10.0.2.2:51123/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
 
-            retrofit.create(InterfaceApi.class);
+            InterfaceApi apiService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-            InterfaceApi sincronizacionService = retrofit.create(InterfaceApi.class);
-
-            Call<ResponseBody> call = sincronizacionService.ConsultaClienteTotal(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0'));
+            Call<ResponseBody> call = apiService.ConsultaClienteTotal(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0'), version, String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0'));
             Response<ResponseBody> response;
 
             try {

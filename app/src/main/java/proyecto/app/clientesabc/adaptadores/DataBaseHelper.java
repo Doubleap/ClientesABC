@@ -1245,11 +1245,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             String query = "SELECT FECCRE from FormHvkof_solicitud where id_solicitud = ?";
             Cursor cursor = mDataBase.rawQuery(query,new String[]{idSolicitud});
             if (cursor.moveToNext()){
-                whereVigencia = " AND c.fecini <= '"+cursor.getString(0)+"' AND c.fecfin >= '"+cursor.getString(0)+"'";
+                //whereVigencia = " AND c.fecini <= '"+cursor.getString(0)+"' AND c.fecfin >= '"+cursor.getString(0)+"'";
             }
             cursor.close();
         }else{
-            whereVigencia = " AND c.fecini <= datetime('now') AND c.fecfin >= datetime('now')";
+            //whereVigencia = " AND c.fecini <= datetime('now') AND c.fecfin >= datetime('now')";
         }
         String query = "SELECT * FROM (" +
                 "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo " +
@@ -1704,7 +1704,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Cursor columnas = mDataBase.rawQuery(sql, null);
         //columnas.moveToFirst();
         while (columnas.moveToNext()) {
-            if(columnas.getString(1).trim().equals(columna.trim())){
+            if(columnas.getString(1).trim().toLowerCase().equals(columna.trim().toLowerCase())){
                 columnas.close();
                 return true;
             }
@@ -2510,6 +2510,15 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             preguntasList.add(user);
             break;
         }
+        if(preguntasList.size() == 0){
+            Cursor micursorZat = mDataBase.rawQuery(query,new String[]{bzirk,"ZAT"});
+            while (micursorZat.moveToNext()){
+                HashMap<String, String> user = new HashMap<>();
+                user.put("VWERK", micursorZat.getString(0).trim());
+                preguntasList.add(user);
+                break;
+            }
+        }
         micursor.close();
         return  preguntasList;
     }
@@ -2926,6 +2935,38 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return clase_riesgo;
+    }
+    public String CondicionExpedicionSegunRutaReparto(String vkorg ,String zroute_rep)
+    {
+        //Revisar si existe relacion en la tabla loc_ruta_expedicion para esta ruta
+        String cond_expedicion = "";
+        String res = "";
+        //Trae la Clase de riesgo segun la condicion de pago seleccionada por sociedad
+        String query = "select vsbed FROM loc_ruta_expedicion WHERE vkorg = ? AND zroute_rep = ?";
+        Cursor cursor = mDataBase.rawQuery(query, new String[]{vkorg, zroute_rep});
+        if (cursor.moveToNext()){
+            cond_expedicion = cursor.getString(0);
+        }
+        cursor.close();
+
+        if (cond_expedicion != null && !cond_expedicion.equals("") )
+        {
+            res = cond_expedicion;
+        }
+        else {
+            query = "SELECT [DFAUL] FROM ConfigCampos WHERE CAMPO = 'W_CTE-VSBED' AND KTOKD = ? AND BUKRS = ?";
+            cursor = mDataBase.rawQuery(query, new String[]{PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_KTOKD", ""), PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "")});
+            if (cursor.moveToNext()){
+                cond_expedicion = cursor.getString(0);
+            }
+            cursor.close();
+
+            if (cond_expedicion != null && !cond_expedicion.equals("") )
+            {
+                res = cond_expedicion;
+            }
+        }
+        return res;
     }
     public String getTipoCambio() {//vkorg,ktokd,name1,street,house_num1,suppl1,suppl3,city1,land1
         String valor = "";

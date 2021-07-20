@@ -18,6 +18,12 @@
             app:showAsAction="never|withText">
         </item>
         <item
+            android:id="@+id/configuracion"
+            android:title="@string/configuracion"
+            android:icon="@android:drawable/ic_menu_preferences"
+            app:showAsAction="never|withText">
+        </item>
+        <item
             android:id="@+id/borrar_datos"
             android:title="@string/borrar_datos"
             android:icon="@drawable/icon_delete"

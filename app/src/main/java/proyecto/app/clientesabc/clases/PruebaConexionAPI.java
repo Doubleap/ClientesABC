@@ -23,9 +23,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import es.dmoral.toasty.Toasty;
+import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
+import okhttp3.logging.HttpLoggingInterceptor;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.Interfaces.InterfaceApi;
 import proyecto.app.clientesabc.R;
@@ -58,28 +61,26 @@ public class PruebaConexionAPI extends AsyncTask<Void,Void,Void> {
             String version = "";
 
             version = dateFormat.format(BuildConfig.BuildDate).replace(":","COLON").replace("-","HYPHEN");
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl("http://kofcrofcdesa02:90/MaestroClientes/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
 
-            retrofit.create(InterfaceApi.class);
+            InterfaceApi apiService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-            InterfaceApi sincronizacionService = retrofit.create(InterfaceApi.class);
-
-            Call<ResponseBody> call = sincronizacionService.PruebaConexion(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
+            Call<ResponseBody> call = apiService.PruebaConexion(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
             Response<ResponseBody> response;
 
             try {
                 response = call.execute();
+                if(response.body() == null){
+                    messageFlag =  response.message()+". ";
+                    xceptionFlag = true;
+                }
                 if (!response.body().contentType().toString().equals("text/html")) {
                     xceptionFlag = true;
-                    messageFlag = response.body().string();
+                    messageFlag += response.body().string();
                 }
             } catch (Exception e) {
-                xceptionFlag = true;
-                messageFlag = e.getMessage();
+                messageFlag += e.getMessage();
                 e.printStackTrace();
+                xceptionFlag = true;
             }
 
 
@@ -119,7 +120,7 @@ public class PruebaConexionAPI extends AsyncTask<Void,Void,Void> {
             Toasty.success(context.get(),"Conexion Exitosa!!",Toast.LENGTH_LONG).show();
         }
         else{
-            Toasty.error(context.get(),"No se pudo conectar a servidor."+messageFlag,Toast.LENGTH_LONG).show();
+            Toasty.error(context.get(),"No se pudo conectar a servidor. "+messageFlag,Toast.LENGTH_LONG).show();
         }
         try {
             dialog.dismiss();

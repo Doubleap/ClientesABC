@@ -79,16 +79,9 @@ public class SincronizacionAPI extends AsyncTask<Void,String,Void> {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             String version = "";
             version = dateFormat.format(BuildConfig.BuildDate).replace(":","COLON").replace("-","HYPHEN");
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl("http://kofcrofcdesa02:90/MaestroClientes/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
 
-            retrofit.create(InterfaceApi.class);
-
-            InterfaceApi sincronizacionService = retrofit.create(InterfaceApi.class);
-
-            Call<ResponseBody> call = sincronizacionService.Sincronizacion(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
+            InterfaceApi apiService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
+            Call<ResponseBody> call = apiService.Sincronizacion(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
             Response<ResponseBody> response;
             try {
                 response = call.execute();

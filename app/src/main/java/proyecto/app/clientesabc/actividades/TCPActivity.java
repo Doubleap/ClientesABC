@@ -38,6 +38,7 @@ import org.json.JSONObject;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import de.codecrafters.tableview.listeners.TableDataClickListener;
 import de.codecrafters.tableview.listeners.TableDataLongClickListener;
@@ -47,10 +48,12 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.ConexionTableAdapter;
+import proyecto.app.clientesabc.clases.ObtenerAutenticacionTokenAPI;
 import proyecto.app.clientesabc.clases.PruebaConexionAPI;
 import proyecto.app.clientesabc.clases.PruebaConexionServidor;
 import proyecto.app.clientesabc.clases.SincronizacionAPI;
 import proyecto.app.clientesabc.clases.SincronizacionServidor;
+import proyecto.app.clientesabc.clases.TransmisionAPI;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
 import proyecto.app.clientesabc.modelos.Conexion;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
@@ -177,13 +180,33 @@ public class TCPActivity extends AppCompatActivity
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
-                    PruebaConexionAPI f = new PruebaConexionAPI(weakRef, weakRefA);
-                    if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                        EnableWiFi();
-                    }else{
-                        DisableWiFi();
+                    if (VariablesGlobales.UsarAPI()) {
+                        /*WeakReference<Context> weakRefs1 = new WeakReference<Context>(TCPActivity.this);
+                        WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(TCPActivity.this);
+                        ObtenerAutenticacionTokenAPI o = new ObtenerAutenticacionTokenAPI(weakRefs1, weakRefAs1, "Sociedad", PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("user", ""), PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("password", ""));
+                        try {
+                            o.execute().get();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }*/
+                        PruebaConexionAPI f = new PruebaConexionAPI(weakRef, weakRefA);
+                        if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                            EnableWiFi();
+                        }else{
+                            DisableWiFi();
+                        }
+                        f.execute();
+                    } else {
+                        PruebaConexionServidor f = new PruebaConexionServidor(weakRef, weakRefA);
+                        if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                            EnableWiFi();
+                        }else{
+                            DisableWiFi();
+                        }
+                        f.execute();
                     }
-                    f.execute();
                 }
             }
         });
@@ -210,15 +233,24 @@ public class TCPActivity extends AppCompatActivity
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
-                            //SincronizacionServidor s = new SincronizacionServidor(weakRef, weakRefA);
 
-                            SincronizacionServidor s = new SincronizacionServidor(weakRef, weakRefA);
-                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                EnableWiFi();
-                            }else{
-                                DisableWiFi();
+                            if (VariablesGlobales.UsarAPI()) {
+                                SincronizacionAPI s = new SincronizacionAPI(weakRef, weakRefA);
+                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                    EnableWiFi();
+                                }else{
+                                    DisableWiFi();
+                                }
+                                s.execute();
+                            } else {
+                                SincronizacionServidor s = new SincronizacionServidor(weakRef, weakRefA);
+                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                    EnableWiFi();
+                                }else{
+                                    DisableWiFi();
+                                }
+                                s.execute();
                             }
-                            s.execute();
                         }
                         return true;
                     case R.id.action_transmitir:
@@ -230,13 +262,24 @@ public class TCPActivity extends AppCompatActivity
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
-                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, filePath, wholePath,"");
-                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                EnableWiFi();
-                            }else{
-                                DisableWiFi();
+
+                            if (VariablesGlobales.UsarAPI()) {
+                                TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                    EnableWiFi();
+                                }else{
+                                    DisableWiFi();
+                                }
+                                f.execute();
+                            } else {
+                                TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, filePath, wholePath,"");
+                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                    EnableWiFi();
+                                }else{
+                                    DisableWiFi();
+                                }
+                                f.execute();
                             }
-                            f.execute();
                         }
                 }
                 return true;

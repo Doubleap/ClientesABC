@@ -76,7 +76,9 @@ import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.clases.ActualizacionAPI;
 import proyecto.app.clientesabc.clases.ActualizacionServidor;
+import proyecto.app.clientesabc.clases.ConfiguracionPaisAPI;
 import proyecto.app.clientesabc.clases.DialogHandler;
+import proyecto.app.clientesabc.clases.ObtenerAutenticacionTokenAPI;
 import proyecto.app.clientesabc.modelos.Conexion;
 
 /**
@@ -122,6 +124,8 @@ public class LoginActivity extends AppCompatActivity {
         femsa_logo = findViewById(R.id.femsa_logo);
         if(VariablesGlobales.getLand1().equals("GT"))
             femsa_logo.setImageDrawable(getResources().getDrawable(R.drawable.femsa_logo_gt,null));
+        if(VariablesGlobales.getLand1().equals("UY"))
+            femsa_logo.setImageDrawable(getResources().getDrawable(R.drawable.femsa_logo_uy,null));
         ruta_datos = findViewById(R.id.ruta_datos);
         // Set up the login form.
         mUserView = findViewById(R.id.user);
@@ -145,8 +149,17 @@ public class LoginActivity extends AppCompatActivity {
         femsa_logo.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                DialogHandler appdialog = new DialogHandler();
-                appdialog.Confirm(LoginActivity.this, "Confirmar Sincronización", "Esta seguro que desea sincronizar la información de la ruta?", "NO", "SI", new LoginActivity.SincronizarLogin(LoginActivity.this));
+                if(VariablesGlobales.UsarAPI()){
+                     if(mUserView.getText().toString().isEmpty() || mPasswordView.getText().toString().isEmpty()){
+                        Toasty.warning(getBaseContext(),"Debe Ingresar sus credenciales antes de continuar!").show();
+                    }else{
+                         DialogHandler appdialog = new DialogHandler();
+                         appdialog.Confirm(LoginActivity.this, "Confirmar Sincronización", "Esta seguro que desea sincronizar la información de la ruta?", "NO", "SI", new LoginActivity.SincronizarLogin(LoginActivity.this));
+                    }
+                }else {
+                    DialogHandler appdialog = new DialogHandler();
+                    appdialog.Confirm(LoginActivity.this, "Confirmar Sincronización", "Esta seguro que desea sincronizar la información de la ruta?", "NO", "SI", new LoginActivity.SincronizarLogin(LoginActivity.this));
+                }
             }
         });
 
@@ -183,11 +196,13 @@ public class LoginActivity extends AppCompatActivity {
                         String land1 = el.getElementsByTagName("land1").item(0).getTextContent();
                         String cadenaRM = el.getElementsByTagName("cadenaRM").item(0).getTextContent();
                         String ktokd = el.getElementsByTagName("ktokd").item(0).getTextContent();
+                        String urlapi = el.getElementsByTagName("urlApi").item(0).getTextContent();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("W_CTE_BUKRS", sociedad).apply();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("W_CTE_ORGVTA", orgvta).apply();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("W_CTE_LAND1", land1).apply();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("W_CTE_CADENARM", cadenaRM).apply();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("W_CTE_KTOKD", ktokd).apply();
+                        PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("URL_API", urlapi).apply();
                     }
                     if (el.getNodeName().equals("login")) {
                         //Seccion datos de login
@@ -275,6 +290,10 @@ public class LoginActivity extends AppCompatActivity {
                                 if(name.equals("ktokd")){
                                     VariablesGlobales.setKtokd(text);
                                     PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("W_CTE_KTOKD", text).apply();
+                                }
+                                if(name.equals("urlApi")){
+                                    //VariablesGlobales.setUrlApi(text);
+                                    PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("URL_API", text).apply();
                                 }
 
                                 if(name.equals("nombre")){
@@ -375,6 +394,14 @@ public class LoginActivity extends AppCompatActivity {
                         intent.putExtras(b);
                         startActivity(intent);
                         break;
+                    case R.id.configuracion:
+                        //Bundle b = new Bundle();
+                        //TODO seleccionar el tipo de solicitud por el UI
+                        //b.putBoolean("deshabilitarTransmision", true); //id de solicitud
+                        intent = new Intent(LoginActivity.this, ConfiguracionGeneralActivity.class);
+                        //intent.putExtras(b);
+                        startActivity(intent);
+                        break;
                     case R.id.borrar_datos:
                         DialogHandler appdialog = new DialogHandler();
                         appdialog.Confirm(LoginActivity.this, "Confirmar Eliminacion", "Este proceso eliminara todo formulario que no haya sido transmitido, desea continuar con el proceso de eliminacion de datos?", "No", "Si", new LoginActivity.BorrarBaseDatos(getBaseContext()));
@@ -384,16 +411,27 @@ public class LoginActivity extends AppCompatActivity {
                         WeakReference<Context> weakRefs = new WeakReference<Context>(LoginActivity.this);
                         WeakReference<Activity> weakRefAs = new WeakReference<Activity>(LoginActivity.this);
 
-                        ActualizacionServidor a = new ActualizacionServidor(weakRefs, weakRefAs);
-                        if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("wifi")){
-                            a.EnableWiFi();
-                        }else{
-                            a.DisableWiFi();
+                        if (VariablesGlobales.UsarAPI()) {
+                            ActualizacionAPI a = new ActualizacionAPI(weakRefs, weakRefAs);
+                            if (PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                a.EnableWiFi();
+                            } else {
+                                a.DisableWiFi();
+                            }
+                            a.execute();
+                        } else {
+                            ActualizacionServidor a = new ActualizacionServidor(weakRefs, weakRefAs);
+                            if (PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                a.EnableWiFi();
+                            } else {
+                                a.DisableWiFi();
+                            }
+                            a.execute();
                         }
-                        a.execute();
+
                         break;
                     default:
-                        Toasty.info(getBaseContext(),"Opcion no encontrada!").show();
+                        Toasty.info(getBaseContext(), "Opcion no encontrada!").show();
                 }
                 return false;
             }
@@ -577,7 +615,6 @@ public class LoginActivity extends AppCompatActivity {
             focusView.requestFocus();
         } else {
             //Realizar el login validando la base de datos sincronizada
-
             boolean intentovalido = db.LoginUsuario(user,password);
 
             if(intentovalido){

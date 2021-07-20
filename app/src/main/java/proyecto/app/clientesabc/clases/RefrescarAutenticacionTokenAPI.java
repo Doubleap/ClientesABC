@@ -13,128 +13,110 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Locale;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import es.dmoral.toasty.Toasty;
 import okhttp3.ResponseBody;
-import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.Interfaces.InterfaceApi;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
 import retrofit2.Call;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
-public class ConsultaCreditoClienteAPI extends AsyncTask<Void,String,ArrayList<JsonArray>> {
+public class RefrescarAutenticacionTokenAPI extends AsyncTask<Void,String,ArrayList<JsonArray>> {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
-    private String codigoCliente;
-    private String tipoCreditoSAP;
+    private String username;
     private boolean xceptionFlag = false;
     private String messageFlag = "";
-    private ServerSocket ss;
-    private Socket socket;
-    ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
-
-    public ConsultaCreditoClienteAPI(WeakReference<Context> c, WeakReference<Activity> a, String codigoCliente, String tipoCreditoSAP) {
+    public RefrescarAutenticacionTokenAPI(WeakReference<Context> c, WeakReference<Activity> a, String username){
         this.context = c;
         this.activity = a;
-        this.codigoCliente = codigoCliente;
-        this.tipoCreditoSAP = tipoCreditoSAP;
+        this.username = username;
     }
 
     @Override
     protected ArrayList<JsonArray> doInBackground(Void... voids) {
-        ArrayList<JsonArray> estructurasSAP = new ArrayList<>();
+        ArrayList<JsonArray> respuesta = new ArrayList<>();
         //Solo enviamos los datos necesarios para que la sincronizacion sepa que traer
         publishProgress("Estableciendo comunicación...");
         System.out.println("Estableciendo comunicación para enviar archivos...");
         String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
-        if (mensaje.equals("")) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-            String version = "";
+        if(mensaje.equals("")) {
+            //String bukrs = String.format("%4s", String.valueOf(sociedad)).replace(' ', '0');
+            Map<String, String> fields = new HashMap<>();
+            fields.put("username", username);
+            fields.put("grant_type", "refresh_token");
+            fields.put("refresh_token", PreferenceManager.getDefaultSharedPreferences(context.get()).getString("REFRESH_TOKEN", ""));
 
-            version = dateFormat.format(BuildConfig.BuildDate).replace(":", "COLON").replace("-", "HYPHEN");
+            InterfaceApi configuracionService = ServiceGenerator.createService(context, activity,InterfaceApi.class, null);
 
-            InterfaceApi apiService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
-
-            Call<ResponseBody> call = apiService.ConsultaCreditoCliente(VariablesGlobales.getSociedad(),
-                    PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""),
-                    version,
-                    String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0'),
-                    PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_AREACREDITO", ""),
-                    tipoCreditoSAP);
-            Response<ResponseBody> response;
-
+            Call<ResponseBody> call = configuracionService.RefreshToken(fields);
+            Response<ResponseBody> response = null;
             try {
                 response = call.execute();
-                if (!response.body().contentType().toString().equals("text/html")) {
+                String error = "";
+                if(response.errorBody() != null)
+                    error = response.errorBody().string();
+                if (response != null && response.body() != null && !response.body().contentType().toString().equals("text/html")) {
+                    InputStream is = new BufferedInputStream(response.body().byteStream());
                     publishProgress("Recibiendo datos...");
 
                     long fileSize = response.body().contentLength();
-                    DataInputStream dis = new DataInputStream(new BufferedInputStream(response.body().byteStream()));
+                    if(fileSize == -1){
+                        fileSize = Long.parseLong(response.raw().networkResponse().header("Content-Length"));
+                    }
+                    DataInputStream dis = new DataInputStream(is);
 
-                    byte[] r = new byte[(int) fileSize];
+                    byte[] temp = new byte[750];
                     int offset = 0;
                     int bytesRead;
-                    while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != fileSize) {
+                    while ((bytesRead = dis.read(temp, offset, temp.length - offset)) > -1 && offset != fileSize) {
                         offset += bytesRead;
                         publishProgress("Descargando..." + String.format("%.02f", (100f / (fileSize / 1024f)) * (offset / 1024f)) + "%");
                     }
-                    /*ORDEN DE ESTRUCTURAS SAP RECIBIDAS
-                        String jsonCliente = 0;
-                        String jsonNotaEntrega = 1;
-                        String jsonFactura = 2;
-                        String jsonTelefonos = 3;
-                        String jsonFaxes = 4;
-                        String jsonContactos = 5;
-                        String jsonInterlocutores = 6;
-                        String jsonImpuestos = 7;
-                        String jsonBancos = 8;
-                        String jsonVisitas = 9;
-                        String jsonCredito = 10;*/
-                    String jsoncliente = new String(r);
+                    byte[] r = Arrays.copyOfRange(temp, 0, offset);
+                    //dis.readFully(r);
+                    String respuestajson = new String(r);
+                    respuestajson = "["+respuestajson+"]";
                     try {
                         Gson gson = new Gson();
-                        estructurasSAP.add(gson.fromJson(jsoncliente, JsonArray.class));
+                        respuesta.add(gson.fromJson(respuestajson, JsonArray.class));
                         publishProgress("Procesando datos cliente..");
-                    } catch (Exception e) {
+                    }catch(Exception e){
                         xceptionFlag = true;
-                        messageFlag = jsoncliente;
+                        messageFlag = e.getMessage();
                     }
-
-                } else {
+                }else {
+                    messageFlag = response.raw().message()+". "/*+ response.raw().request().url()*/;
+                    if(error.length() < 100  )
+                        messageFlag += error;
                     xceptionFlag = true;
-                    messageFlag = response.body().string();
                 }
-                publishProgress("Proceso Terminado...");
             } catch (IOException e) {
-                xceptionFlag = true;
-                messageFlag = e.getMessage();
                 e.printStackTrace();
+                messageFlag += e.getMessage();
+                xceptionFlag = true;
             }
         }else{
             xceptionFlag = true;
             messageFlag = mensaje;
         }
+        publishProgress("Proceso Terminado...");
+
         Log.i("===end of start ====", "==");
 
-        return estructurasSAP;
+        return respuesta;
     }
 
     @Override
@@ -164,8 +146,8 @@ public class ConsultaCreditoClienteAPI extends AsyncTask<Void,String,ArrayList<J
         }
     }
     @Override
-    protected void onPostExecute(ArrayList<JsonArray> estructuras) {
-        super.onPostExecute(estructuras);
+    protected void onPostExecute(ArrayList<JsonArray> mensajes) {
+        super.onPostExecute(mensajes);
         try {
             dialog.dismiss();
         } catch (final IllegalArgumentException e) {
@@ -177,10 +159,16 @@ public class ConsultaCreditoClienteAPI extends AsyncTask<Void,String,ArrayList<J
             dialog.hide();
         }
         if(xceptionFlag){
-            activity.get().finish();
+            //activity.get().finish();
             Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
         }
-        SolicitudCreditoActivity.LlenarCampos(context.get(), activity.get(), estructuras);
+        //Actualizar el token interno para uso de la aplicacion
+        if(mensajes.size() > 0) {
+            String miToken = mensajes.get(0).getAsJsonArray().get(0).getAsJsonObject().get("access_token").getAsString();
+            PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("TOKEN", miToken).apply();
+        }else{
+            //PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("TOKEN", "").apply();
+        }
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

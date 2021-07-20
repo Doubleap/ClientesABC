@@ -21,14 +21,19 @@ import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
-    private boolean usarAPI = true;
+    private static boolean usarAPI = true;
+    public static boolean UsarAPI() {
+        return usarAPI;
+    }
 
-    private static String nombrePais = "Guatemala Embocen";
-    private static String sociedad = "F446";
-    private static String orgvta = "0446";
-    private static String land1 = "GT";
-    private static String cadenaRM = "0000170027";
-    private static String ktokd = "GCMA";
+    private static String urlApi = "http://kofcrofcdesa02:90/MaestroClientes/";
+    private static String nombrePais = "Costa Rica";
+    private static String sociedad = "F443";
+    private static String orgvta = "0443";
+    private static String land1 = "CR";
+    private static String cadenaRM = "0000160000";
+    private static String ktokd = "RCMA";
+
     /*
     private static String nombrePais = "Costa Rica";
     private static String sociedad = "F443";
@@ -89,6 +94,24 @@ public class VariablesGlobales extends Application {
     private static String TABLA_ENCUESTA_SOLICITUD = "encuesta_solicitud";
     private static String TABLA_ENCUESTA_GEC_SOLICITUD = "encuesta_gec_solicitud";
 
+    public static String getTablaHorariosSolicitud() {
+        return TABLA_HORARIOS_SOLICITUD;
+    }
+
+    public static void setTablaHorariosSolicitud(String tablaHorariosSolicitud) {
+        TABLA_HORARIOS_SOLICITUD = tablaHorariosSolicitud;
+    }
+
+    public static String getTablaHorariosOldSolicitud() {
+        return TABLA_HORARIOS_OLD_SOLICITUD;
+    }
+
+    public static void setTablaHorariosOldSolicitud(String tablaHorariosOldSolicitud) {
+        TABLA_HORARIOS_OLD_SOLICITUD = tablaHorariosOldSolicitud;
+    }
+
+    private static String TABLA_HORARIOS_SOLICITUD = "horarios_solicitud";
+
     private static String TABLA_BLOQUE_CONTACTO_OLD_HH = "grid_contacto_old_solicitud";
     private static String TABLA_BLOQUE_BANCO_OLD_HH = "grid_bancos_old_solicitud";
     private static String TABLA_BLOQUE_IMPUESTO_OLD_HH = "grid_impuestos_old_solicitud";
@@ -96,6 +119,7 @@ public class VariablesGlobales extends Application {
     private static String TABLA_BLOQUE_VISITA_OLD_HH = "grid_visitas_old_solicitud";
     private static String TABLA_ENCUESTA_OLD_SOLICITUD = "encuesta_old_solicitud";
     private static String TABLA_ENCUESTA_OLD_GEC_SOLICITUD = "encuesta_gec_old_solicitud";
+    private static String TABLA_HORARIOS_OLD_SOLICITUD = "horarios_old_solicitud";
 
     public static String getTablaEncuestaSolicitud() {
         return TABLA_ENCUESTA_SOLICITUD;
@@ -210,6 +234,14 @@ public class VariablesGlobales extends Application {
 
     public static void setOrgvta(String orgvta) {
         VariablesGlobales.orgvta = orgvta;
+    }
+
+    public static String getUrlApi() {
+        return urlApi;
+    }
+
+    public static void setUrlApi(String urlApi) {
+        VariablesGlobales.urlApi = urlApi;
     }
 
     public static String UsuarioHH2UsuarioMC(Context context, String usuarioHH) {

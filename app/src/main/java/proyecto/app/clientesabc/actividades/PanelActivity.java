@@ -113,19 +113,19 @@ public class PanelActivity extends AppCompatActivity {
                 item.setEnabled(false);
                 switch (item.getItemId()) {
                     case R.id.action_solicitudes:
-                        intent = new Intent(getBaseContext(),SolicitudesActivity.class);
+                        intent = new Intent(getBaseContext(), SolicitudesActivity.class);
                         startActivity(intent);
                         break;
                     case R.id.action_nuevo_cliente:
                         item.setEnabled(false);
                         Bundle b = new Bundle();
                         b.putString("tipoSolicitud", "1"); //id de solicitud
-                        intent = new Intent(getApplicationContext(),SolicitudActivity.class);
+                        intent = new Intent(getApplicationContext(), SolicitudActivity.class);
                         intent.putExtras(b); //Pase el parametro el Intent
                         startActivity(intent);
                         break;
                     case R.id.action_clientes:
-                        intent = new Intent(getBaseContext(),MantClienteActivity.class);
+                        intent = new Intent(getBaseContext(), MantClienteActivity.class);
                         startActivity(intent);
                         break;
                     case R.id.action_sincronizar:
@@ -134,28 +134,48 @@ public class PanelActivity extends AppCompatActivity {
                         WeakReference<Context> weakRefs = new WeakReference<Context>(PanelActivity.this);
                         WeakReference<Activity> weakRefAs = new WeakReference<Activity>(PanelActivity.this);
                         //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                        SincronizacionServidor s = new SincronizacionServidor(weakRefs, weakRefAs);
-                        if(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion","").equals("wifi")){
-                            s.EnableWiFi();
-                        }else{
-                            s.DisableWiFi();
+                        if (VariablesGlobales.UsarAPI()) {
+                            SincronizacionAPI s = new SincronizacionAPI(weakRefs, weakRefAs);
+                            if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                s.EnableWiFi();
+                            } else {
+                                s.DisableWiFi();
+                            }
+                            s.execute();
+                        } else {
+                            SincronizacionServidor s = new SincronizacionServidor(weakRefs, weakRefAs);
+                            if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                s.EnableWiFi();
+                            } else {
+                                s.DisableWiFi();
+                            }
+                            s.execute();
                         }
-                        s.execute();
                         break;
                     case R.id.action_transmitir:
                         item.setEnabled(false);
                         //if(validarConexion()) {
-                            //Realizar la transmision de lo que se necesita (Db o txt)
-                            WeakReference<Context> weakRef = new WeakReference<Context>(PanelActivity.this);
-                            WeakReference<Activity> weakRefA = new WeakReference<Activity>(PanelActivity.this);
-                            //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                            TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "","");
-                            if(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion","").equals("wifi")){
+                        //Realizar la transmision de lo que se necesita (Db o txt)
+                        WeakReference<Context> weakRef = new WeakReference<Context>(PanelActivity.this);
+                        WeakReference<Activity> weakRefA = new WeakReference<Activity>(PanelActivity.this);
+
+                        if (VariablesGlobales.UsarAPI()) {
+                            TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "", "");
+                            if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                 f.EnableWiFi();
-                            }else{
+                            } else {
                                 f.DisableWiFi();
                             }
                             f.execute();
+                        } else {
+                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "", "");
+                            if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                f.EnableWiFi();
+                            } else {
+                                f.DisableWiFi();
+                            }
+                            f.execute();
+                        }
                         //}
                         break;
                 }

@@ -29,6 +29,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,6 +45,7 @@ import java.util.Map;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.SolicitudActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
@@ -325,13 +329,23 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
         WeakReference<Context> weakRefs = new WeakReference<Context>(context);
         WeakReference<Activity> weakRefAs = new WeakReference<Activity>(activity);
         //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-        AdjuntoServidor s = new AdjuntoServidor(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
-        if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
-            s.EnableWiFi();
-        }else{
-            s.DisableWiFi();
+        if (VariablesGlobales.UsarAPI()) {
+            AdjuntoAPI s = new AdjuntoAPI(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
+            if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
+                s.EnableWiFi();
+            }else{
+                s.DisableWiFi();
+            }
+            s.execute();
+        } else {
+            AdjuntoServidor s = new AdjuntoServidor(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
+            if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
+                s.EnableWiFi();
+            }else{
+                s.DisableWiFi();
+            }
+            s.execute();
         }
-        s.execute();
 
     }
 
@@ -521,7 +535,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         int imageWidth = options.outWidth;
                         /*CROP*/
                         try {
-                            // call the standard crop action intent (the user device may not
+                            /*// call the standard crop action intent (the user device may not
                             // support it)
                             Intent cropIntent = new Intent("com.android.camera.action.CROP");
                             // indicate image type and Uri
@@ -536,10 +550,15 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                             //cropIntent.putExtra("outputY", imageHeight);
                             // retrieve data on return
                             cropIntent.putExtra("return-data", true);
-                            cropIntent.putExtra("return-eliminar", true);
-                            // start the activity - we handle returning in onActivityResult
+                            //cropIntent.putExtra("return-eliminar", true);
 
-                            activity.startActivityForResult(cropIntent, 210);
+                            // Comienza la actividad de CROP, la imagen recortada se devuelve en activity.onActivityResult
+                            activity.startActivityForResult(cropIntent, 210);*/
+
+                            // start cropping activity for pre-acquired image saved on the device
+                            //CropImage.activity(mPhotoUri).start(activity);
+                            Intent intent = CropImage.activity(mPhotoUri).getIntent(context);
+                            activity.startActivityForResult(intent, 210);
                         }
                         // respond to users whose devices do not support the crop action
                         catch (ActivityNotFoundException anfe) {
@@ -804,14 +823,20 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                     }
                 }
                 break;
+            case CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE:
             case 210://Resultado de crop de camara, si borra archivo
+                Uri uri = null;
                 if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
+                        if (data != null) {
+                            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+                            uri = result.getUri();
+                        }
+                        if (uri == null) {
+                            uri = data.getData();
+                        }
+                        if (uri == null) {
+                            uri = mPhotoUri;
+                        }
                     InputStream iStream = null;
                     try {
                         iStream = context.getContentResolver().openInputStream(uri);

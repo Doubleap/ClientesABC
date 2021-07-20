@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuracion>
     <sistema>
-        <nombrePais>Guatemala Embocen</nombrePais>
-        <sociedad>F446</sociedad>
-        <orgvta>0446</orgvta>
-        <land1>GT</land1>
-        <cadenaRM>0000170027</cadenaRM>
-        <ktokd>GCMA</ktokd>
+        <!--urlApi>http://10.0.2.2:51123/</urlApi-->
+        <urlApi>http://kofcrofcdesa02:90/MaestroClientes/</urlApi>
+        <nombrePais>Costa Rica</nombrePais>
+        <sociedad>F443</sociedad>
+        <orgvta>0443</orgvta>
+        <land1>CR</land1>
+        <cadenaRM>0000160000</cadenaRM>
+        <ktokd>RCMA</ktokd>
+
         <!--
         <nombrePais>Panamá</nombrePais>
         <sociedad>F451</sociedad>
@@ -95,23 +98,23 @@
             <Ip>10.153.50.68</Ip>
             <Puerto>3345</Puerto>
         </conexion>-->
-        <conexion defecto="true">
-            <nombre>Produccion Gprs EM</nombre>
-            <tipo_conexion>gprs</tipo_conexion>
-            <Ip>10.218.40.7</Ip>
-            <Puerto>3348</Puerto>
-        </conexion>
+        <!--conexion defecto="false">
+            <nombre>Calidad UY</nombre>
+            <tipo_conexion>wifi</tipo_conexion>
+            <Ip>10.153.50.68</Ip>
+            <Puerto>3345</Puerto>
+        </conexion-->
         <conexion defecto="false">
             <nombre>Produccion Wifi</nombre>
             <tipo_conexion>wifi</tipo_conexion>
             <Ip>10.124.0.44</Ip>
-            <Puerto>3348</Puerto>
+            <Puerto>3345</Puerto>
         </conexion>
-        <!--<conexion defecto="false">
+        <conexion defecto="true">
             <nombre>Calidad Wifi</nombre>
             <tipo_conexion>wifi</tipo_conexion>
             <Ip>10.153.152.69</Ip>
             <Puerto>3345</Puerto>
-        </conexion>-->
+        </conexion>
     </conexiones>
 </configuracion>

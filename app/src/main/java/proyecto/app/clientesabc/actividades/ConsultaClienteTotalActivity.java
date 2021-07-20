@@ -108,7 +108,9 @@ import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
 import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
+import proyecto.app.clientesabc.clases.AdjuntoAPI;
 import proyecto.app.clientesabc.clases.AdjuntoServidor;
+import proyecto.app.clientesabc.clases.ConsultaClienteTotalAPI;
 import proyecto.app.clientesabc.clases.ConsultaClienteTotalServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
@@ -285,9 +287,13 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
         if(solicitudSeleccionada.size() == 0 ) {
             WeakReference<Context> weakRefs1 = new WeakReference<Context>(this);
             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(this);
-            ConsultaClienteTotalServidor c = new ConsultaClienteTotalServidor(weakRefs1, weakRefAs1, codigoCliente);
-            c.execute();
-
+            if (VariablesGlobales.UsarAPI()) {
+                ConsultaClienteTotalAPI c = new ConsultaClienteTotalAPI(weakRefs1, weakRefAs1, codigoCliente);
+                c.execute();
+            } else {
+                ConsultaClienteTotalServidor c = new ConsultaClienteTotalServidor(weakRefs1, weakRefAs1, codigoCliente);
+                c.execute();
+            }
         }
         if(!modificable) {
             //bottomNavigation.setVisibility(INVISIBLE);
@@ -2439,13 +2445,23 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
         WeakReference<Context> weakRefs = new WeakReference<Context>(context);
         WeakReference<Activity> weakRefAs = new WeakReference<Activity>(activity);
         //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-        AdjuntoServidor s = new AdjuntoServidor(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
-        if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
-            s.EnableWiFi();
-        }else{
-            s.DisableWiFi();
+        if (VariablesGlobales.UsarAPI()) {
+            AdjuntoAPI s = new AdjuntoAPI(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
+            if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
+                s.EnableWiFi();
+            }else{
+                s.DisableWiFi();
+            }
+            s.execute();
+        } else {
+            AdjuntoServidor s = new AdjuntoServidor(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
+            if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
+                s.EnableWiFi();
+            }else{
+                s.DisableWiFi();
+            }
+            s.execute();
         }
-        s.execute();
 
     }
 
