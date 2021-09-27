@@ -201,6 +201,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private static JsonArray impuestos;
     private static JsonArray bancos;
     private static JsonArray visitas;
+    private static JsonArray horarios;
     private static JsonArray credito;
     private static JsonArray creditoCadena;
 
@@ -821,7 +822,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     );
 
                     CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
-                    if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7")) {
+                    if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7") && !campos.get(i).get("modificacion").trim().equals("9")) {
                         listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
                     }
@@ -872,7 +873,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
                     CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
 
-                    if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7")) {
+                    if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7") && !campos.get(i).get("modificacion").trim().equals("9")) {
                         listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
                     }
@@ -905,7 +906,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     fila.addView(checkbox_old);
                     fila.addView(checkbox);
                     ll.addView(fila);
-                    if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7")) {
+                    if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7") && !campos.get(i).get("modificacion").trim().equals("9")) {
                         listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
                     }
@@ -971,7 +972,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     }
                     //Filtros Adicionales para condiciones de pago de contado no deben ser cosideradas como una opcion
                     String filtroAdicional = "";
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-ZTERM")) {
+                    if((campos.get(i).get("campo").trim().equals("W_CTE-ZTERM") || campos.get(i).get("campo").trim().equals("W_CTE-GUZTE")) &&
+                            (!PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1661") && !PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
                         filtroAdicional = "zterm NOT LIKE '%00%'";
                     }
 
@@ -1011,7 +1013,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     combo.setAdapter(dataAdapter);
 
                     combo.setSelection(selectedIndex);
-                    if(campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7")){
+                    if(campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7") || campos.get(i).get("modificacion").trim().equals("9")){
                         combo.setSelection(selectedIndexOld);
                     }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-ZTERM")) {
@@ -1263,9 +1265,32 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                 }
                             });
                         }
+                        if (campos.get(i).get("llamado1").trim().contains("ReplicarValor")) {
+                            int finalI = i;
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    String[] split = campos.get(finalI).get("llamado1").trim().split("'");
+                                    if(split.length < 3)
+                                        split = campos.get(finalI).get("llamado1").trim().split("`");
+                                    if(split.length < 3)
+                                        split = campos.get(finalI).get("llamado1").trim().split("\"");
+                                    final String campoAReplicar = split[1];
+                                    ReplicarValorSpinner(parent, campoAReplicar, position);
+
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }
                     }
                     //Campos de encabezado deben salir todos como deshabilitados en valor viejo
-                    if((campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7")) && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7") || campos.get(i).get("modificacion").trim().equals("9")) && campos.get(i).get("sup").trim().length() == 0){
                         combo.setEnabled(false);
                         combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_old,null));
                         listaCamposDinamicosEnca.add(campos.get(i).get("campo").trim());
@@ -1398,7 +1423,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
 
                     if(!listaCamposDinamicos.contains(campos.get(i).get("campo").trim())) {
-                        if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7")) {
+                        if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7") && !campos.get(i).get("modificacion").trim().equals("9")) {
                             listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                             mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), combo);
                         }
@@ -1595,7 +1620,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             et.setEnabled(false);
                             et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled,null));
                         }
-                        if((campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7")) && solicitudSeleccionadaOld.size()  > 0){
+                        if((campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7")|| campos.get(i).get("modificacion").trim().equals("9")) && solicitudSeleccionadaOld.size()  > 0){
                             et.setText(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim());
                             if(campos.get(i).get("campo").trim().equals("W_CTE-KLIMK") || campos.get(i).get("campo").trim().equals("W_CTE-LIMSUG") || campos.get(i).get("campo").trim().contains("W_CTE-DMBTR")){
                                 et.setText(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim().replace(",","."));
@@ -1622,7 +1647,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         }
                     }
                     //Campos de encabezado deben salir todos como deshabilitados en valor viejo
-                    if((campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7"))  && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("1") || campos.get(i).get("modificacion").trim().equals("7") || campos.get(i).get("modificacion").trim().equals("9"))  && campos.get(i).get("sup").trim().length() == 0){
                         et.setEnabled(false);
                         et.setBackground(getResources().getDrawable(R.drawable.textbackground_old,null));
                         listaCamposDinamicosEnca.add(campos.get(i).get("campo").trim());
@@ -1842,7 +1867,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             }
                         });
                     }
-                    if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7")) {
+                    if (!campos.get(i).get("modificacion").trim().equals("1") && !campos.get(i).get("modificacion").trim().equals("7") && !campos.get(i).get("modificacion").trim().equals("7")) {
                         listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), et);
                     }
@@ -4462,7 +4487,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 String id_aprobador = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
                 insertValues.put("[W_CTE-KUNNR]", codigoCliente);
                 insertValues.put("[SIGUIENTE_APROBADOR]", id_aprobador);
-                insertValues.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_BUKRS",""));
+                insertValues.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("CONFIG_SOCIEDAD",""));
                 insertValues.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_RUTAHH",""));
                 insertValues.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_VKORG",""));
                 insertValues.put("[id_solicitud]", NextId);
@@ -4532,6 +4557,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         visitas = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Visitas");
         credito = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Credito");
         creditoCadena = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("CreditoCadena");
+        horarios = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Horarios");
 
         //Cliene SI tiene credito pero quieren aperturar - NO PERMITIDO
         /*if(credito.size() > 0 && subtitulo.toLowerCase().contains("apertura")){
@@ -4539,16 +4565,18 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             activity.finish();
             return;
         }*/
-        /*if(credito.size() == 0){
+        /*if(credito.size() == 0 && subtitulo.toLowerCase().contains("apertura")){
             Toasty.error(context.getApplicationContext(),"Debe modificar el crédito existente.").show();
             activity.finish();
             return;
         }*/
         String cadenaCliente = cliente.get(0).getAsJsonObject().get("W_CTE-HKUNNR").getAsString();
         //Cliente SI tiene credito y se quiere modificar
-        if(subtitulo.toLowerCase().contains("modifica")) {
+        if((subtitulo.toLowerCase().contains("modifica") || subtitulo.toLowerCase().contains("cambio")) && (!PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1661") && !PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
             String tipo = credito.get(0).getAsJsonObject().get("W_CTE-PSON2").getAsString();
-
+            if(tipo.trim().isEmpty()){
+                tipo = "I";
+            }
             //if(cadenaCliente.trim().equals(VariablesGlobales.getCadenaRM())) {
 
                 if (!tipo.equals("D") && subtitulo.toLowerCase().contains("formal d")) {
@@ -4724,6 +4752,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         int indiceReparto = 0;
                         int indicePreventa = 0;
                         int indiceEspecializada = 0;
+                        int indiceMixta = 0;
+                        int indiceDummy = 0;
 
                         for(int x=0; x < visitas.size(); x++){
                             if(visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZDD")){
@@ -4734,6 +4764,12 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             }
                             if(visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZJV")){
                                 indiceEspecializada = x;
+                            }
+                            if(visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZRM")){
+                                indiceMixta = x;
+                            }
+                            if(visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZDY")){
+                                indiceDummy = x;
                             }
                             visita = gson.fromJson(visitas.get(x), Visitas.class);
                             visitasSolicitud.add(visita);
@@ -4828,7 +4864,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
             ArrayList<HashMap<String, String>> datosNuevoCredito = mDBHelper.getValidaCreditos(tipo, clasi);
 
-            //Campos para aperturas de credito
+            //Campos para modificacion de credito
             Spinner zzauart = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-ZZAUART");
             if(zzauart != null) {
                 if(cliente.get(0).getAsJsonObject().get("W_CTE-ZZAUART").getAsString().contains("28") || cliente.get(0).getAsJsonObject().get("W_CTE-ZZAUART").getAsString().contains("38")){
@@ -4844,6 +4880,22 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             Spinner ctlpc = (Spinner)mapeoCamposDinamicos.get("W_CTE-CTLPC");
             if(ctlpc != null) {
                 ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, datosNuevoCredito.get(0).get("claseriesgo").trim()));
+            }
+            ctlpc = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CTLPC");
+            if(ctlpc != null) {
+                ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, datosNuevoCredito.get(0).get("claseriesgo").trim()));
+            }
+
+            try {
+                Spinner pson2 = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
+                if (pson2 != null) {
+                    pson2.setSelection(VariablesGlobales.getIndex(pson2, clasi));
+                }
+            }catch(Exception e){
+                MaskedEditText pson2 = (MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
+                if (pson2 != null) {
+                    pson2.setText(clasi);
+                }
             }
         }
         //Cliente NO tiene credito y se quiere aperturar - llenar los campos neccesarios con los campos por defecto en tabla ValidaCrecitos
@@ -4864,13 +4916,22 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             String clasicxc = "";
             String condpago = "";
             ArrayList<HashMap<String, String>> datosNuevoCredito = mDBHelper.getValidaCreditos(tipo, clasi);
-            if(cadenaCliente.trim().equals(VariablesGlobales.getCadenaRM())) {
-                cuentacont = datosNuevoCredito.get(0).get("cuentacont").trim();
-                claseriesgo = datosNuevoCredito.get(0).get("claseriesgo").trim();
-                tipocobro = datosNuevoCredito.get(0).get("tipocobro").trim();
-                clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
-                clasicxc = datosNuevoCredito.get(0).get("clasicxc").trim();
-                condpago = datosNuevoCredito.get(0).get("condpago").trim();
+            if(cadenaCliente.trim().equals(PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_CADENARM",""))  || (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1661") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
+                if(tipoSolicitud.equals("44")) {
+                    cuentacont = "A103010001";
+                    claseriesgo = "RL5";
+                    tipocobro = "001";
+                    clasedocven = "ZU28";
+                    clasicxc = "I";
+                    condpago = "UF00";
+                }else{
+                    cuentacont = datosNuevoCredito.get(0).get("cuentacont").trim();
+                    claseriesgo = datosNuevoCredito.get(0).get("claseriesgo").trim();
+                    tipocobro = datosNuevoCredito.get(0).get("tipocobro").trim();
+                    clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
+                    clasicxc = datosNuevoCredito.get(0).get("clasicxc").trim();
+                    condpago = datosNuevoCredito.get(0).get("condpago").trim();
+                }
             }else{
                 String errordesc="";
                 String meserr="";
@@ -4917,19 +4978,19 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     return;
                 }
             }
-            if ( (tipo.equals("ABC")) && ( !clasicxc.equals("A") && !clasicxc.equals("B") && !clasicxc.equals("C")))
+            if ( (tipo.equals("ABC")) && ( !clasicxc.equals("A") && !clasicxc.equals("B") && !clasicxc.equals("C")) && (!PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1661") && !PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001")))
             {
                 Toasty.error(context.getApplicationContext(),"Clasificacion CxC del cliente es '"+clasicxc+"'").show();
                 activity.finish();
                 return;
             }
-            if (tipo.equals("D") && !clasicxc.equals("D"))
+            if (tipo.equals("D") && !clasicxc.equals("D") && (!PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1661") && !PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001")))
             {
                 Toasty.error(context.getApplicationContext(),"Clasificacion CxC del cliente es '"+clasicxc+"'").show();
                 activity.finish();
                 return;
             }
-            if (tipo.equals("I") && !clasicxc.equals("I"))
+            if (tipo.equals("I") && !clasicxc.equals("I") && (!PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1661") && !PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001")))
             {
                 Toasty.error(context.getApplicationContext(),"Clasificacion CxC del cliente es '"+clasicxc+"'").show();
                 activity.finish();
@@ -4941,17 +5002,43 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 zzauart.setSelection(VariablesGlobales.getIndex(zzauart, clasedocven));
             }
 
-            Spinner pson2 = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
-            if(pson2 != null) {
-                pson2.setSelection(VariablesGlobales.getIndex(pson2, clasicxc));
+            //Casos de los paises que NO utilizan el PSON2 (Clasificacion CxC)
+            try {
+                Spinner pson2 = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
+                if (pson2 != null) {
+                    pson2.setSelection(VariablesGlobales.getIndex(pson2, clasicxc));
+                }
+            }catch(Exception e){
+                MaskedEditText pson2 = (MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
+                if (pson2 != null) {
+                    pson2.setText(clasicxc);
+                }
             }
 
             Spinner zterm = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTERM");
             if(zterm != null) {
                 zterm.setSelection(VariablesGlobales.getIndex(zterm, condpago));
             }
+            zterm = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-ZTERM");
+            if(zterm != null) {
+                zterm.setSelection(VariablesGlobales.getIndex(zterm, condpago));
+            }
 
-            Spinner ctlpc = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CTLPC");
+            Spinner guzte = (Spinner)mapeoCamposDinamicos.get("W_CTE-GUZTE");
+            if(guzte != null) {
+                guzte.setSelection(VariablesGlobales.getIndex(guzte, condpago));
+            }
+            guzte = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-GUZTE");
+            if(guzte != null) {
+                guzte.setSelection(VariablesGlobales.getIndex(guzte, condpago));
+            }
+
+            Spinner ctlpc = (Spinner)mapeoCamposDinamicos.get("W_CTE-CTLPC");
+            if(ctlpc != null) {
+                ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, claseriesgo));
+            }
+
+            ctlpc = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CTLPC");
             if(ctlpc != null) {
                 ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, claseriesgo));
             }
@@ -4972,6 +5059,118 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 }
             }
 
+            //Caso para cheque diferido vias de pago
+            try {
+                Spinner pson2 = (Spinner) mapeoCamposDinamicos.get("W_CTE-ZWELS");
+                if (pson2 != null) {
+                    pson2.setSelection(VariablesGlobales.getIndex(pson2, "E"));
+                }
+            }catch(Exception e){}
+
+        }
+
+        if(tipoSolicitud.equals("44")) {
+
+            String cuentacont = "";
+            String claseriesgo = "";
+            String tipocobro = "";
+            String clasedocven = "";
+            String clasicxc = "";
+            String condpago = "";
+            ArrayList<HashMap<String, String>> datosNuevoCredito = mDBHelper.getValidaCreditos(tipo, clasi);
+            cuentacont = "A103010001";
+            claseriesgo = "RL5";
+            tipocobro = "001";
+            clasedocven = "ZU28";
+            clasicxc = "I";
+            condpago = "UF00";
+
+            //Campos para aperturas de credito
+            Spinner zzauart = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-ZZAUART");
+            if(zzauart != null) {
+                zzauart.setSelection(VariablesGlobales.getIndex(zzauart, clasedocven));
+            }
+
+            //Casos de los paises que NO utilizan el PSON2 (Clasificacion CxC)
+            try {
+                Spinner pson2 = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
+                if (pson2 != null) {
+                    pson2.setSelection(VariablesGlobales.getIndex(pson2, clasicxc));
+                }
+            }catch(Exception e){}
+
+            Spinner zterm = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTERM");
+            if(zterm != null) {
+                zterm.setSelection(VariablesGlobales.getIndex(zterm, condpago));
+            }
+            zterm = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-ZTERM");
+            if(zterm != null) {
+                zterm.setSelection(VariablesGlobales.getIndex(zterm, condpago));
+            }
+
+            Spinner guzte = (Spinner)mapeoCamposDinamicos.get("W_CTE-GUZTE");
+            if(guzte != null) {
+                guzte.setSelection(VariablesGlobales.getIndex(guzte, condpago));
+                guzte.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                        String dias = opcion.getId().substring(2,4);
+                        bancosSolicitud.get(0).setBkref("CHD A "+dias+" DIAS");
+                        tb_bancos.getDataAdapter().getData().get(0).setBkref("CHD A "+dias+" DIAS");
+                        tb_bancos.setDataAdapter(new BancoTableAdapter(context, bancosSolicitud));
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                });
+            }
+            guzte = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-GUZTE");
+            if(guzte != null) {
+                guzte.setSelection(VariablesGlobales.getIndex(guzte, condpago));
+            }
+
+            Spinner ctlpc = (Spinner)mapeoCamposDinamicos.get("W_CTE-CTLPC");
+            if(ctlpc != null) {
+                ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, claseriesgo));
+            }
+
+            ctlpc = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CTLPC");
+            if(ctlpc != null) {
+                ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, claseriesgo));
+            }
+
+            Spinner kvgr2 = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-KVGR2");
+            if(kvgr2 != null) {
+                kvgr2.setSelection(VariablesGlobales.getIndex(kvgr2, tipocobro));
+            }
+            try {
+                Spinner akont = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-AKONT");
+                if (akont != null) {
+                    akont.setSelection(VariablesGlobales.getIndex(akont, cuentacont));
+                }
+            }catch(Exception e){
+                MaskedEditText akont = (MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-AKONT");
+                if (akont != null) {
+                    akont.setText(cuentacont);
+                }
+            }
+
+            //Caso para cheque diferido vias de pago
+            try {
+                Spinner pson2 = (Spinner) mapeoCamposDinamicos.get("W_CTE-ZWELS");
+                if (pson2 != null) {
+                    pson2.setSelection(VariablesGlobales.getIndex(pson2, "E"));
+                }
+            }catch(Exception e){}
+
+            //Actualizar el bloque de bancos = [{ "bankl": "'001'", "banks": "'UY'", "bankn": "001", "koinh": "IGUAL A RAZÓN SOCIAL", "bkref": "CHEQUE AL DIA", "bkont": "CJ" }];
+            tb_bancos.getDataAdapter().getData().get(0).setBkref("CHEQUE DIFERIDO");
+            tb_bancos.getDataAdapter().getData().get(0).setBkont("CR");
+            bancosSolicitud.get(0).setBkref("CHEQUE DIFERIDO");
+            bancosSolicitud.get(0).setBkont("CR");
         }
     }
 

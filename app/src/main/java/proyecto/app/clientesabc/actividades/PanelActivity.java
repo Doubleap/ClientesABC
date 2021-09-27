@@ -218,7 +218,11 @@ public class PanelActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.comunicacion:
-                        intent = new Intent(getBaseContext(),TCPActivity.class);
+                        if(!VariablesGlobales.UsarAPI()) {
+                            intent = new Intent(getBaseContext(), TCPActivity.class);
+                        }else{
+                            intent = new Intent(getBaseContext(), APIConfigActivity.class);
+                        }
                         startActivity(intent);
                         break;
                     case R.id.clientes:

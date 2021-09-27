@@ -68,15 +68,9 @@ public class ConfiguracionPaisAPI extends AsyncTask<Void,String,ArrayList<JsonAr
         String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
         if(mensaje.equals("")) {
             String bukrs = String.format("%4s", String.valueOf(sociedad)).replace(' ', '0');
+            InterfaceApi configuracionService = ServiceGenerator.createService(context, activity, InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-            Map<String, String> fields = new HashMap<>();
-            fields.put("username", "parsian");
-            fields.put("password", "admin");
-            fields.put("grant_type", "password");
-
-            InterfaceApi configuracionService = ServiceGenerator.createService(context, activity,InterfaceApi.class, null);
-
-            Call<ResponseBody> call = configuracionService.Token(fields);
+            Call<ResponseBody> call = configuracionService.ConfiguracionPais(bukrs);
             Response<ResponseBody> response = null;
             try {
                 response = call.execute();
@@ -171,7 +165,11 @@ public class ConfiguracionPaisAPI extends AsyncTask<Void,String,ArrayList<JsonAr
             //activity.get().finish();
             Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
         }
-        ConfiguracionGeneralActivity.ActualizarConfiguracionPais(context.get(), activity.get(), mensajes);
+        try {
+            ConfiguracionGeneralActivity.ActualizarConfiguracionPais(context.get(), activity.get(), mensajes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

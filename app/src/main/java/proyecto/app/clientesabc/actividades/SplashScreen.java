@@ -2,6 +2,7 @@ package proyecto.app.clientesabc.actividades;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,7 +27,7 @@ public class SplashScreen extends AppCompatActivity {
         int[] ids = new int[]{R.drawable.splash,R.drawable.splash_gt, R.drawable.splash_volcanes, R.drawable.splash_abasa, R.drawable.splash_uruguay};
         //Random randomGenerator = new Random();
         //int r= randomGenerator.nextInt(ids.length);
-        switch(VariablesGlobales.getSociedad()){
+        switch(PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_SOCIEDAD","")){
             case "F443":
             case "F445":
             case "F451":

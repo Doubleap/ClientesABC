@@ -75,7 +75,7 @@ public class ConsultaClienteAPI extends AsyncTask<Void,String,ArrayList<JsonArra
 
             InterfaceApi apiService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-            Call<ResponseBody> call = apiService.ConsultaCliente(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0'));
+            Call<ResponseBody> call = apiService.ConsultaCliente(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",""), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0'));
             Response<ResponseBody> response;
 
             try {

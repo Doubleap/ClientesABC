@@ -79,7 +79,7 @@ public class AdjuntoAPI extends AsyncTask<Void,String,Bitmap> {
 
             InterfaceApi adjuntoService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-            Call<ResponseBody> call = adjuntoService.Adjunto(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, nombre);
+            Call<ResponseBody> call = adjuntoService.Adjunto(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",""), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, nombre);
             Response<ResponseBody> response;
             try {
                 response = call.execute();

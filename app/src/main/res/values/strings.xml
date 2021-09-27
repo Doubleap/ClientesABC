@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ClientesABC NI</string>
+    <string name="app_name">ClientesABC UY</string>
     <string name="title_activity_login">Maestro Clientes Femsa</string>
 
     <!-- Strings related to login -->
@@ -12,9 +12,7 @@
     <string name="error_invalid_password">Contrasena Invalida</string>
     <string name="error_incorrect_password">Contrasena Incorrecta</string>
     <string name="error_field_required">Este campo es requerido</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email completions."</string>
     <string name="solicitud">Solicitud Inclusion</string>
     <string name="comunicacion">Comunicacion</string>
     <string name="title_activity_comunicacion">Actualización de Datos</string>
@@ -60,7 +58,7 @@
     <string name="aceptar">Aceptar</string>
     <string name="limpiar">Limpiar</string>
     <string name="signo_mas">+</string>
-    <string name="no_activity">Ninguna aplicacion puede escoger archivos. Mostrando alternativas.</string>
+    <string name="no_activity">Ninguna aplicacion en el dispositivo puede escoger archivos. Mostrando alternativas.</string>
     <string name="navigation_drawer_open">Abrir</string>
     <string name="navigation_drawer_close">Cerrar</string>
     <string name="politica_privacidad">En cumplimiento de la Ley de Protección de la Persona frente al Tratamiento de sus Datos Personales No. 8968 y su Reglamento, COCA-COLA FEMSA DE COSTA RICA, S.A, garantiza la protección de todos los datos personales que le sean facilitados en virtud del presente Formulario. Los datos personales recopilados serán utilizados única y exclusivamente para fines internos de COCA-COLA FEMSA DE COSTA RICA, S.A, y no serán de ninguna manera comercializados o transferidos a terceras personas. Los clientes podrán ejercer en todo momento su derecho al acceso, rectificación, supresión de sus datos personales. Para la recopilación y tratamiento de datos personales se aplicarán los protocolos de seguridad necesarios para proteger los datos personales contra su destrucción, pérdida, alteración, acceso, divulgación o uso accidental, ilegal o no autorizado. Los protocolos de seguridad utilizados para la recopilación y tratamiento de datos personales son: Custodiar, almacenar o transportar las bases de datos solamente en dispositivos KOF que están bajo los estándares de seguridad de T.I. de la empresa.  2- El usuario no debe custodiar, almacenar o transportar las bases de datos en dispositivos USB, discos externos, CD, u otros dispositivos externos. 3- El usuario no debe enviar las bases de datos a correos electrónicos personales, de proveedores, clientes u otros que no sean KOF.4- El usuario no debe colocar bases de datos en Share Point, en la nube o en carpetas compartidas.5- El envió de bases de datos por medio de correos electrónicos KOF se debe realizar cuando tiene conexión a la red KOF o cuando está utilizando VPN. 6- El usuario no debe prestar los accesos a sistemas a ningún colaborador interno o externo, incluyendo niveles superiores. 7- La entrega de la base de datos a terceros autorizados, se debe realizar en el medio físico o electrónico que establezca T.I., previo, contrato de confidencialidad formal Cualquier consulta relacionada con esta política de privacidad, así como cualquier solicitud de acceso, rectificación, supresión de datos personales, deberá realizarse escribiendo al correo electrónico: ciscam@kof.com.mx Asimismo, con la firma del presente formulario  se autoriza expresamente a COCA-COLA FEMSA DE COSTA RICA, S.A a recopilar sus datos personales y se aceptan las condiciones de esta política de privacidad.</string>
@@ -86,6 +84,7 @@
     Mantenemos sistemas de control y procedimientos de registro contable y administrativo, para prevenir y detectar pagos ilícitos o de naturaleza corrupta. Todos los pagos y transacciones son registrados de manera íntegra, correcta y oportuna.
     ]]>
     </string>
+    <string name="politica_privacidad_uy">En cumplimiento de la Ley de Protección de Datos Personales No. 18.331 y sus Decretos Reglamentarios, Montevideo Refrescos S.R.L. (COCA-COLA FEMSA URUGUAY), garantiza la protección de todos los datos personales que le sean facilitados en virtud del presente Formulario. Los datos personales recopilados serán utilizados única y exclusivamente para fines internos de COCA-COLA FEMSA DE URUGUAY, y no serán de ninguna manera comercializados o transferidos a terceras personas. Los clientes podrán ejercer en todo momento su derecho al acceso, rectificación, supresión de sus datos personales. Para la recopilación y tratamiento de datos personales se aplicarán los protocolos de seguridad necesarios para proteger los datos personales contra su destrucción, pérdida, alteración, acceso, divulgación o uso accidental, ilegal o no autorizado. Los protocolos de seguridad utilizados para la recopilación y tratamiento de datos personales son: Custodiar, almacenar o transportar las bases de datos solamente en dispositivos KOF que están bajo los estándares de seguridad de T.I. de la empresa. 2- El usuario no debe custodiar, almacenar o transportar las bases de datos en dispositivos USB, discos externos, CD, u otros dispositivos externos. 3- El usuario no debe enviar las bases de datos a correos electrónicos personales, de proveedores, clientes u otros que no sean KOF.4- El usuario no debe colocar bases de datos en Share Point, en la nube o en carpetas compartidas.5- El envío de bases de datos por medio de correos electrónicos KOF se debe realizar cuando tiene conexión a la red KOF o cuando está utilizando VPN. 6- El usuario no debe prestar los accesos a sistemas a ningún colaborador interno o externo, incluyendo niveles superiores. 7- La entrega de la base de datos a terceros autorizados, se debe realizar en el medio físico o electrónico que establezca T.I., previo, contrato de confidencialidad formal. Con la firma del presente formulario se autoriza expresamente a Montevideo Refrescos S.R.L. (COCA-COLA FEMSA URUGUAY) a recopilar sus datos personales y se aceptan las condiciones de esta política de privacidad.</string>
     <string name="firma_t4">El cliente hace constar que ha solicitado la INSTALACIÓN de equipo frio de Coca Cola Femsa.</string>
     <string name="firma_t5">El cliente hace constar que ha solicitado el RETIRO de equipo frio de Coca Cola Femsa.</string>
     <string name="firma_credito">Estoy enterado que el plazo que la empresa Coca Cola Femsa me otorga para el pago de las facturas es de %1$s días contados a partir de la fecha de emisión de la factura. Adicionalmente,
@@ -171,6 +170,9 @@
     </string-array>
     <string-array name="OpcionesKvgr4Autoventa">
         <item>0DA</item>
+    </string-array>
+    <string-array name="OpcionesKvgr4Uruguay">
+        <item>1DA</item>
     </string-array>
     <string-array name="OpcionesFcalid">
         <item id="1">Cada Semana</item>

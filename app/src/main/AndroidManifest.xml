@@ -117,6 +117,10 @@
             android:label="@string/title_activity_TCP"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".actividades.APIConfigActivity"
+            android:label="@string/title_activity_TCP"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".actividades.ConfiguracionGeneralActivity"
             android:label="@string/title_activity_configuracion_general"
             android:screenOrientation="portrait" />

@@ -55,7 +55,7 @@ public class ObtenerAutenticacionTokenAPISinc {
         //Solo enviamos los datos necesarios para que la sincronizacion sepa que traer
         //publishProgress("Estableciendo comunicación...");
         System.out.println("Estableciendo comunicación para enviar archivos...");
-        String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
+        String mensaje = "";//VariablesGlobales.validarConexionDePreferencia(context.get());
         if(mensaje.equals("")) {
             //String bukrs = String.format("%4s", String.valueOf(sociedad)).replace(' ', '0');
             Map<String, String> fields = new HashMap<>();

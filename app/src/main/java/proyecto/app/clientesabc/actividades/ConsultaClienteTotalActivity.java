@@ -798,12 +798,12 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
                         if(campos.get(i).get("campo").trim().equals("W_CTE-STCD3")){
                             et.setInputType(InputType.TYPE_CLASS_NUMBER);
                             et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( 18 ) });
-                            if(VariablesGlobales.getSociedad().equals("F446") || VariablesGlobales.getSociedad().equals("1657") || VariablesGlobales.getSociedad().equals("1658")){
+                            if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("F446") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1658")){
                                 et.setOnFocusChangeListener(new OnFocusChangeListener() {
                                     @Override
                                     public void onFocusChange(View v, boolean hasFocus) {
                                         if (!hasFocus) {
-                                            ValidarIDFiscal();
+                                            ValidarIDFiscal(getContext());
                                         }
                                     }
                                 });
@@ -3462,14 +3462,14 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
         }
     }
 
-    private static boolean ValidarIDFiscal(){
+    private static boolean ValidarIDFiscal(Context context){
         //SearchableSpinner regimen = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
         MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
         if(idfiscal.getText().toString().trim().length() == 0){
             idFiscalValidado = false;
             return true;
         }
-        if(VariablesGlobales.getSociedad().equals("F446") || VariablesGlobales.getSociedad().equals("1657") || VariablesGlobales.getSociedad().equals("1658")){
+        if(PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("F446") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1658")){
             String regexp_dpi = "[0-9]{12,14}";
             String regexp_idfiscal = "[0-9][0-9]{1,7}-[0-9A-Z]";
             String regexp_cf = "CF";

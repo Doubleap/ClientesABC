@@ -41,8 +41,8 @@ public class TokenAuthenticator  implements Authenticator {
     @Nullable
     @Override
     public Request authenticate(@Nullable Route route, @NotNull Response response) throws IOException {
-        String newAccessToken = PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", "");
-        String expires_date = PreferenceManager.getDefaultSharedPreferences(context.get()).getString("EXPIRES_DATE", "");
+        String newAccessToken = "";//PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", "");
+        String expires_date = "";//PreferenceManager.getDefaultSharedPreferences(context.get()).getString("EXPIRES_DATE", "");
         String user = PreferenceManager.getDefaultSharedPreferences(context.get()).getString("user", "");
         String password = PreferenceManager.getDefaultSharedPreferences(context.get()).getString("password", "");
         // Refresh your access_token using a synchronous api request
@@ -82,10 +82,10 @@ public class TokenAuthenticator  implements Authenticator {
                     newAccessToken = PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", "");
                 }
             }
-            if (refrescado.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error") != null || refrescado.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error_description") != null) {
+            if (refrescado == null || refrescado.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error") != null || refrescado.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error_description") != null) {
                 ObtenerAutenticacionTokenAPISinc v = new ObtenerAutenticacionTokenAPISinc(context, activity, "sociedad", user, password);
                 ArrayList<JsonArray> respuesta = v.ObtenerToken((Void[]) null);
-                if(respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error_description") != null){
+                if(respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error_description") != null && respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error") != null){
                     String errorServer = respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error_description").getAsString();
                     if(respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error") != null && respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error_description") == null)
                         errorServer = respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error").getAsString();

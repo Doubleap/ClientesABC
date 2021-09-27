@@ -73,7 +73,7 @@ public class ConsultaCreditoClienteAPI extends AsyncTask<Void,String,ArrayList<J
 
             InterfaceApi apiService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-            Call<ResponseBody> call = apiService.ConsultaCreditoCliente(VariablesGlobales.getSociedad(),
+            Call<ResponseBody> call = apiService.ConsultaCreditoCliente(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",""),
                     PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""),
                     version,
                     String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0'),

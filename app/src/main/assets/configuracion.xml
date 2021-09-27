@@ -2,13 +2,13 @@
 <configuracion>
     <sistema>
         <!--urlApi>http://10.0.2.2:51123/</urlApi-->
-        <urlApi>http://kofcrofcdesa02:90/MaestroClientes/</urlApi>
-        <nombrePais>Costa Rica</nombrePais>
-        <sociedad>F443</sociedad>
-        <orgvta>0443</orgvta>
-        <land1>CR</land1>
-        <cadenaRM>0000160000</cadenaRM>
-        <ktokd>RCMA</ktokd>
+        <urlApi>http://10.0.2.2:51123/MaestroClientes/</urlApi>
+        <nombrePais>Uruguay</nombrePais>
+        <sociedad>1661</sociedad>
+        <orgvta>0661</orgvta>
+        <land1>UY</land1>
+        <cadenaRM>0000240000</cadenaRM>
+        <ktokd>UYDE</ktokd>
 
         <!--
         <nombrePais>Panamá</nombrePais>
@@ -83,7 +83,7 @@
         <conexion defecto="true">
             <nombre>Produccion Gprs AB_VO</nombre>
             <tipo_conexion>gprs</tipo_conexion>
-            <Ip>10.124.0.44</Ip>
+            <Ip>10.153.56.71</Ip>
             <Puerto>3348</Puerto>
         </conexion>
         <conexion defecto="true">
@@ -97,6 +97,12 @@
             <tipo_conexion>wifi</tipo_conexion>
             <Ip>10.153.50.68</Ip>
             <Puerto>3345</Puerto>
+        </conexion>
+        <conexion defecto="false">
+            <nombre>Produccion Wifi</nombre>
+            <tipo_conexion>wifi</tipo_conexion>
+            <Ip>10.153.56.71</Ip>
+            <Puerto>3346</Puerto>
         </conexion>-->
         <!--conexion defecto="false">
             <nombre>Calidad UY</nombre>
@@ -104,16 +110,10 @@
             <Ip>10.153.50.68</Ip>
             <Puerto>3345</Puerto>
         </conexion-->
-        <conexion defecto="false">
-            <nombre>Produccion Wifi</nombre>
-            <tipo_conexion>wifi</tipo_conexion>
-            <Ip>10.124.0.44</Ip>
-            <Puerto>3345</Puerto>
-        </conexion>
         <conexion defecto="true">
-            <nombre>Calidad Wifi</nombre>
+            <nombre>Calidad UY</nombre>
             <tipo_conexion>wifi</tipo_conexion>
-            <Ip>10.153.152.69</Ip>
+            <Ip>10.153.50.68</Ip>
             <Puerto>3345</Puerto>
         </conexion>
     </conexiones>

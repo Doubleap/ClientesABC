@@ -55,7 +55,7 @@ public class PruebaConexionAPI extends AsyncTask<Void,Void,Void> {
     protected Void doInBackground(Void... voids) {
         //Solo enviamos los datos necesarios para que la sincronizacion sepa que traer
         System.out.println("Estableciendo comunicación");
-        String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
+        String mensaje = "";//VariablesGlobales.validarConexionDePreferencia(context.get());
         if(mensaje.equals("")) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             String version = "";
@@ -64,7 +64,7 @@ public class PruebaConexionAPI extends AsyncTask<Void,Void,Void> {
 
             InterfaceApi apiService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-            Call<ResponseBody> call = apiService.PruebaConexion(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
+            Call<ResponseBody> call = apiService.PruebaConexion(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",""), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
             Response<ResponseBody> response;
 
             try {

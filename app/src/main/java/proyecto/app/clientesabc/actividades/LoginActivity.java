@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.drawable.Drawable;
@@ -19,6 +20,7 @@ import android.preference.PreferenceManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -106,12 +108,13 @@ public class LoginActivity extends AppCompatActivity {
     private Intent intent;
     private TextView versionLogin;
     private Button SignInButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.AppThemeNoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        setTitle(getTitle()+VariablesGlobales.getNombrePais());
+        setTitle(getTitle()+PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("CONFIG_PAIS",""));
         /*Notificacion notificacion = new Notificacion(getBaseContext());
         notificacion.crearNotificacion(0,"Actualizar Aplicacion", "Andres Aymerich codigo 9000214432", R.drawable.logo_mc, R.drawable.icon_add_client, R.color.aprobados);
         notificacion.crearNotificacion(1,"Solicitud con incidencia!", "Codigo de solicitud o nombre de cliente", R.drawable.logo_mc, R.drawable.icon_info_title, R.color.devuelto);
@@ -122,9 +125,9 @@ public class LoginActivity extends AppCompatActivity {
         versionLogin.setText("Versión: "+ BuildConfig.VERSION_NAME+" ("+dateFormat.format(buildDate)+")");
 
         femsa_logo = findViewById(R.id.femsa_logo);
-        if(VariablesGlobales.getLand1().equals("GT"))
+        if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("CONFIG_LAND1","").equals("GT"))
             femsa_logo.setImageDrawable(getResources().getDrawable(R.drawable.femsa_logo_gt,null));
-        if(VariablesGlobales.getLand1().equals("UY"))
+        if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("CONFIG_LAND1","").equals("UY"))
             femsa_logo.setImageDrawable(getResources().getDrawable(R.drawable.femsa_logo_uy,null));
         ruta_datos = findViewById(R.id.ruta_datos);
         // Set up the login form.
@@ -191,6 +194,7 @@ public class LoginActivity extends AppCompatActivity {
                     Element el = (Element) nl.item(i);
                     if (el.getNodeName().equals("sistema")) {
                         //Seccion datos de sistema
+                        String nombrePais = el.getElementsByTagName("nombrePais").item(0).getTextContent();
                         String sociedad = el.getElementsByTagName("sociedad").item(0).getTextContent();
                         String orgvta = el.getElementsByTagName("orgvta").item(0).getTextContent();
                         String land1 = el.getElementsByTagName("land1").item(0).getTextContent();
@@ -203,6 +207,13 @@ public class LoginActivity extends AppCompatActivity {
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("W_CTE_CADENARM", cadenaRM).apply();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("W_CTE_KTOKD", ktokd).apply();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("URL_API", urlapi).apply();
+
+                        PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("CONFIG_PAIS", nombrePais).apply();
+                        PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("CONFIG_SOCIEDAD", sociedad).apply();
+                        PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("CONFIG_ORGVENTAS", orgvta).apply();
+                        PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("CONFIG_LAND1", land1).apply();
+                        PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("CONFIG_CADENARM", cadenaRM).apply();
+                        PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("CONFIG_GRUPOCUENTAS", ktokd).apply();
                     }
                     if (el.getNodeName().equals("login")) {
                         //Seccion datos de login
@@ -224,7 +235,9 @@ public class LoginActivity extends AppCompatActivity {
                         con.setIp(Ip);
                         con.setPuerto(Puerto);
                         con.setDefecto(defecto);
-                        TCPActivity.AgregarNuevaConexion(LoginActivity.this,con);
+                        if(!VariablesGlobales.UsarAPI()) {
+                            TCPActivity.AgregarNuevaConexion(LoginActivity.this, con);
+                        }
 
                         if(el.getAttribute("defecto").equals("true")) {
                             PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("tipo_conexion", tipo_conexion).apply();
@@ -274,30 +287,37 @@ public class LoginActivity extends AppCompatActivity {
                                 if(name.equals("sociedad")){
                                     VariablesGlobales.setSociedad(text);
                                     PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("W_CTE_BUKRS", text).apply();
+                                    PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("CONFIG_SOCIEDAD", text).apply();
                                 }
-                                if(name.equals("organizacion")){
+                                if(name.equals("orgvta")){
                                     VariablesGlobales.setOrgvta(text);
                                     PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("W_CTE_ORGVTA", text).apply();
+                                    PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("CONFIG_ORGVENTAS", text).apply();
                                 }
                                 if(name.equals("land1")){
                                     VariablesGlobales.setLand1(text);
                                     PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("W_CTE_LAND1", text).apply();
+                                    PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("CONFIG_LAND1", text).apply();
                                 }
                                 if(name.equals("cadenaRM")){
                                     VariablesGlobales.setCadenaRM(text);
                                     PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("W_CTE_HKUNNR", text).apply();
+                                    PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("CONFIG_CADENARM", text).apply();
                                 }
                                 if(name.equals("ktokd")){
                                     VariablesGlobales.setKtokd(text);
                                     PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("W_CTE_KTOKD", text).apply();
+                                    PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("CONFIG_GRUPOCUENTAS", text).apply();
                                 }
                                 if(name.equals("urlApi")){
                                     //VariablesGlobales.setUrlApi(text);
                                     PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("URL_API", text).apply();
+                                    //PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("CONFIG_URLAPI", text).apply();
                                 }
 
                                 if(name.equals("nombre")){
                                     nombre = text;
+                                    PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("CONFIG_PAIS", text).apply();
                                 }
                                 if(name.equals("tipo_conexion")){
                                     tipo_conexion = text;
@@ -315,7 +335,9 @@ public class LoginActivity extends AppCompatActivity {
                                     con.setIp(Ip);
                                     con.setPuerto(Puerto);
                                     con.setDefecto(defecto);
-                                    TCPActivity.AgregarNuevaConexion(LoginActivity.this,con);
+                                    if(!VariablesGlobales.UsarAPI()) {
+                                        TCPActivity.AgregarNuevaConexion(LoginActivity.this, con);
+                                    }
                                     if(defecto && PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("Ip","").equals("")) {
                                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("tipo_conexion", tipo_conexion).apply();
                                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("Ip", Ip).apply();
@@ -359,7 +381,7 @@ public class LoginActivity extends AppCompatActivity {
         Drawable d = getResources().getDrawable(R.drawable.botella_coca_header_der,null);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
-        toolbar.setTitle(getResources().getString(R.string.titulo_login) +" "+ VariablesGlobales.getNombrePais());
+        toolbar.setTitle(getResources().getString(R.string.titulo_login) +" "+ PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("CONFIG_PAIS",""));
         toolbar.setBackground(d);
         final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -390,9 +412,14 @@ public class LoginActivity extends AppCompatActivity {
                         Bundle b = new Bundle();
                         //TODO seleccionar el tipo de solicitud por el UI
                         b.putBoolean("deshabilitarTransmision", true); //id de solicitud
-                        intent = new Intent(LoginActivity.this, TCPActivity.class);
+                        if(!VariablesGlobales.UsarAPI()) {
+                            intent = new Intent(LoginActivity.this, TCPActivity.class);
+                        }else{
+                            intent = new Intent(LoginActivity.this, APIConfigActivity.class);
+                        }
                         intent.putExtras(b);
                         startActivity(intent);
+
                         break;
                     case R.id.configuracion:
                         //Bundle b = new Bundle();
@@ -482,6 +509,8 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         };
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle(getResources().getString(R.string.titulo_login) +" "+ PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("CONFIG_PAIS",""));
         this.registerReceiver(myReceiver, intentFilter);
         SignInButton.setEnabled(true);
     }
@@ -564,12 +593,24 @@ public class LoginActivity extends AppCompatActivity {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+
+        DataBaseHelper db = new DataBaseHelper(getBaseContext());
         if(ultimaSincronizacion.equals("No hay") || hours > 24){
+            if(VariablesGlobales.UsarAPI()){
+                String id_usuarioMC = VariablesGlobales.UsuarioHH2UsuarioMC(LoginActivity.this, mUserView.getText().toString());
+                PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", mUserView.getText().toString()).apply();
+                PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("userMC", id_usuarioMC).apply();
+                PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("password", mPasswordView.getText().toString()).apply();
+            }
             Toasty.warning(getBaseContext(),"Los datos del dispositivo ya no están vigentes(+24 horas). Por favor SINCRONIZAR la información para poder continuar.", Toasty.LENGTH_LONG).show();
             Bundle b = new Bundle();
             //TODO seleccionar el tipo de solicitud por el UI
             b.putBoolean("deshabilitarTransmision", true); //id de solicitud
-            intent = new Intent(LoginActivity.this, TCPActivity.class);
+            if(!VariablesGlobales.UsarAPI()) {
+                intent = new Intent(LoginActivity.this, TCPActivity.class);
+            }else{
+                intent = new Intent(LoginActivity.this, APIConfigActivity.class);
+            }
             intent.putExtras(b);
             startActivity(intent);
             return;
@@ -588,12 +629,15 @@ public class LoginActivity extends AppCompatActivity {
             SignInButton.setEnabled(true);
             return;
         }
-        /*if(ruta_datos.getText().equals("Sin Datos!")){
-            Toasty.error(getBaseContext(),"No hay datos para trabajar, debe sincronizar el dispositivo antes de ingresar.").show();
+        //Validar que la ruta sincronizada sea la ruta de la misma sociedad que el pais configurado en las preferencias del sistema, debe sincronizar una ruta correcta o cambiar el pais de configuracion de aplicacion.
+        boolean rutaCorrecta = db.validarRutaSincronizada(PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_ORGVENTAS",""),PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_RUTAHH",""));
+        if(!rutaCorrecta){
+            Toasty.warning(getBaseContext(),"La ruta no pertenece al pais configurado en la aplicación. \nDEBE sincronizar una ruta diferente o cambiar el pais de la configuracion general.",Toasty.LENGTH_LONG).show();
+            SignInButton.setEnabled(true);
             return;
-        }*/
+        }
+
         // Check for a valid user.
-        DataBaseHelper db = new DataBaseHelper(getBaseContext());
         if (TextUtils.isEmpty(user)) {
             mUserView.setError(getString(R.string.error_field_required));
             focusView = mUserView;
@@ -690,7 +734,11 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intent);
                 break;
             case R.id.comunicacion:
-                intent = new Intent(this,TCPActivity.class);
+                if(!VariablesGlobales.UsarAPI()) {
+                    intent = new Intent(this,TCPActivity.class);
+                }else{
+                    intent = new Intent(this, APIConfigActivity.class);
+                }
                 startActivity(intent);
                 break;
             case R.id.clientes:
@@ -722,10 +770,20 @@ public class LoginActivity extends AppCompatActivity {
             context = baseContext;
         }
         public void run() {
+            if(VariablesGlobales.UsarAPI()){
+                String id_usuarioMC = VariablesGlobales.UsuarioHH2UsuarioMC(LoginActivity.this, mUserView.getText().toString());
+                PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", mUserView.getText().toString()).apply();
+                PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("userMC", id_usuarioMC).apply();
+                PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("password", mPasswordView.getText().toString()).apply();
+            }
             Bundle b = new Bundle();
             //TODO seleccionar el tipo de solicitud por el UI
             b.putBoolean("deshabilitarTransmision", true); //id de solicitud
-            intent = new Intent(LoginActivity.this, TCPActivity.class);
+            if(!VariablesGlobales.UsarAPI()) {
+                intent = new Intent(LoginActivity.this, TCPActivity.class);
+            }else{
+                intent = new Intent(LoginActivity.this, APIConfigActivity.class);
+            }
             intent.putExtras(b);
             startActivity(intent);
         }

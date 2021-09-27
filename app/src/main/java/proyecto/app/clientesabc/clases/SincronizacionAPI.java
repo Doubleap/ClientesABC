@@ -74,14 +74,14 @@ public class SincronizacionAPI extends AsyncTask<Void,String,Void> {
         //Solo enviamos los datos necesarios para que la sincronizacion sepa que traer
         publishProgress("Estableciendo comunicación...");
         System.out.println("Estableciendo comunicación para enviar archivos...");
-        String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
+        String mensaje = "";//VariablesGlobales.validarConexionDePreferencia(context.get());
         if(mensaje.equals("")) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             String version = "";
             version = dateFormat.format(BuildConfig.BuildDate).replace(":","COLON").replace("-","HYPHEN");
 
             InterfaceApi apiService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
-            Call<ResponseBody> call = apiService.Sincronizacion(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
+            Call<ResponseBody> call = apiService.Sincronizacion(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",""), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
             Response<ResponseBody> response;
             try {
                 response = call.execute();

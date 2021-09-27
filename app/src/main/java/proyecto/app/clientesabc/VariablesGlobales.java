@@ -26,13 +26,16 @@ public class VariablesGlobales extends Application {
         return usarAPI;
     }
 
-    private static String urlApi = "http://kofcrofcdesa02:90/MaestroClientes/";
-    private static String nombrePais = "Costa Rica";
-    private static String sociedad = "F443";
-    private static String orgvta = "0443";
-    private static String land1 = "CR";
-    private static String cadenaRM = "0000160000";
-    private static String ktokd = "RCMA";
+    //private static String urlApi = "http://kofcrofcdesa02:90/MaestroClientes/";//Ambiente calidad CAM
+    //private static String urlApi = "http://10.0.2.2:51123/";//Local host
+    //private static String urlApi = "http://10.153.58.132/";//Servidor produccion, pero ambiente calidad en VM uruguay
+    private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/";
+    private static String nombrePais = "Uruguay";
+    private static String sociedad = "1661";
+    private static String orgvta = "0661";
+    private static String land1 = "UY";
+    private static String cadenaRM = "0000240000";
+    private static String ktokd = "UYDE";
 
     /*
     private static String nombrePais = "Costa Rica";
@@ -110,7 +113,7 @@ public class VariablesGlobales extends Application {
         TABLA_HORARIOS_OLD_SOLICITUD = tablaHorariosOldSolicitud;
     }
 
-    private static String TABLA_HORARIOS_SOLICITUD = "horarios_solicitud";
+    private static String TABLA_HORARIOS_SOLICITUD = "grid_horarios_solicitud";
 
     private static String TABLA_BLOQUE_CONTACTO_OLD_HH = "grid_contacto_old_solicitud";
     private static String TABLA_BLOQUE_BANCO_OLD_HH = "grid_bancos_old_solicitud";
@@ -119,7 +122,7 @@ public class VariablesGlobales extends Application {
     private static String TABLA_BLOQUE_VISITA_OLD_HH = "grid_visitas_old_solicitud";
     private static String TABLA_ENCUESTA_OLD_SOLICITUD = "encuesta_old_solicitud";
     private static String TABLA_ENCUESTA_OLD_GEC_SOLICITUD = "encuesta_gec_old_solicitud";
-    private static String TABLA_HORARIOS_OLD_SOLICITUD = "horarios_old_solicitud";
+    private static String TABLA_HORARIOS_OLD_SOLICITUD = "grid_horarios_old_solicitud";
 
     public static String getTablaEncuestaSolicitud() {
         return TABLA_ENCUESTA_SOLICITUD;
@@ -205,16 +208,18 @@ public class VariablesGlobales extends Application {
         String IP_REGEXP = zeroTo255 + "\\." + zeroTo255 + "\\." + zeroTo255 + "\\." + zeroTo255;
         Pattern IP_PATTERN = Pattern.compile(IP_REGEXP);
         String retorno = "";
-        try {
-            if(!IP_PATTERN.matcher(PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()).matches())
-                return "La IP '"+PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()+"' es inválida. Revise los datos de comunicación.";
-        }catch (Exception e){
-            return "La IP '"+PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()+"' es inválida. Revise los datos de comunicación.";
-        }
-        try {
-            Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto","").trim());
-        }catch (Exception e){
-            return "El puerto '"+PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto","").trim()+"' es inválido. Revise los datos de comunicación.";
+        if(!VariablesGlobales.UsarAPI()) {
+            try {
+                if (!IP_PATTERN.matcher(PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()).matches())
+                    return "La IP '" + PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim() + "' es inválida. Revise los datos de comunicación.";
+            } catch (Exception e) {
+                return "La IP '" + PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim() + "' es inválida. Revise los datos de comunicación.";
+            }
+            try {
+                Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto", "").trim());
+            } catch (Exception e) {
+                return "El puerto '" + PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto", "").trim() + "' es inválido. Revise los datos de comunicación.";
+            }
         }
 
         return retorno;

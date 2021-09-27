@@ -74,7 +74,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
 
                 publishProgress("Comunicacion establecida...");
                 //Enviar pais de procedencia
-                dos.writeUTF(VariablesGlobales.getSociedad());
+                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",""));
                 dos.flush();
                 //Version con la que quiere transmitir
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());

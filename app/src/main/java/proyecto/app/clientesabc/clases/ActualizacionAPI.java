@@ -92,7 +92,7 @@ public class ActualizacionAPI extends AsyncTask<Void,String,Void> {
 
             String version = "";
             version = dateFormat.format(BuildConfig.BuildDate).replace(":","COLON").replace("-","HYPHEN");
-            Call<ResponseBody> call = actualizacionService.Actualizacion(VariablesGlobales.getSociedad(), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
+            Call<ResponseBody> call = actualizacionService.Actualizacion(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",""), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
 
             Response<ResponseBody> response;
             try {

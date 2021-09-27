@@ -217,7 +217,7 @@ public class Validaciones {
 
             private boolean isCharAllowed(char c) {
                 //[¡”#$%&/(),:]
-                Pattern ps = Pattern.compile("^[a-zA-Z 0-9.]+$");
+                Pattern ps = Pattern.compile("^[a-zA-Z 0-9.-]+$");
                 Matcher ms = ps.matcher(String.valueOf(c));
                 return ms.matches();
             }

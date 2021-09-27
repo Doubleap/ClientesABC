@@ -1,39 +1,73 @@
 package proyecto.app.clientesabc.modelos;
 
-public class Horarios {
+import com.google.gson.annotations.SerializedName;
+
+public class Horarios implements Cloneable{
 
     private String id_formulario;
     private String id_solicitud;
+    @SerializedName("MOAB1")
     private String moab1;
+    @SerializedName("MOBI1")
     private String mobi1;
+    @SerializedName("DIAB1")
     private String diab1;
+    @SerializedName("DIBI1")
     private String dibi1;
+    @SerializedName("MIAB1")
     private String miab1;
+    @SerializedName("MIBI1")
     private String mibi1;
+    @SerializedName("DOAB1")
     private String doab1;
+    @SerializedName("DOBI1")
     private String dobi1;
+    @SerializedName("FRAB1")
     private String frab1;
+    @SerializedName("FRBI1")
     private String frbi1;
+    @SerializedName("SAAB1")
     private String saab1;
+    @SerializedName("SABI1")
     private String sabi1;
+    @SerializedName("SOAB1")
     private String soab1;
+    @SerializedName("SOBI1")
     private String sobi1;
+    @SerializedName("MOAB2")
     private String moab2;
+    @SerializedName("MOBI2")
     private String mobi2;
+    @SerializedName("DIAB2")
     private String diab2;
+    @SerializedName("DIBI2")
     private String dibi2;
+    @SerializedName("MIAB2")
     private String miab2;
+    @SerializedName("MIBI2")
     private String mibi2;
+    @SerializedName("DOAB2")
     private String doab2;
+    @SerializedName("DOBI2")
     private String dobi2;
+    @SerializedName("FRAB2")
     private String frab2;
+    @SerializedName("FRBI2")
     private String frbi2;
+    @SerializedName("SAAB2")
     private String saab2;
+    @SerializedName("SABI2")
     private String sabi2;
+    @SerializedName("SOAB2")
     private String soab2;
+    @SerializedName("SOBI2")
     private String sobi2;
 
     public Horarios(){}
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
 
     public Horarios(String id_solicitud, String valorInicial){
         this.id_solicitud = id_solicitud;
@@ -428,5 +462,173 @@ public class Horarios {
                 setSobi2(valor);
                 break;
         }
+    }
+
+    public void copiarHorario(int dia){
+        String man1= "00:00:00",man2= "00:00:00",tar1= "00:00:00",tar2 = "00:00:00";
+        switch(dia){
+            case 0:
+                man1 = getMoab1();
+                man2 = getMobi1();
+                tar1 = getMoab2();
+                tar2 = getMobi2();
+                break;
+            case 1:
+                man1 = getDiab1();
+                man2 = getDibi1();
+                tar1 = getDiab2();
+                tar2 = getDibi2();
+                break;
+            case 2:
+                man1 = getMiab1();
+                man2 = getMibi1();
+                tar1 = getMiab2();
+                tar2 = getMibi2();
+                break;
+            case 3:
+                man1 = getDoab1();
+                man2 = getDobi1();
+                tar1 = getDoab2();
+                tar2 = getDobi2();
+                break;
+            case 4:
+                man1 = getFrab1();
+                man2 = getFrbi1();
+                tar1 = getFrab2();
+                tar2 = getFrbi2();
+                break;
+            case 5:
+                man1 = getSaab1();
+                man2 = getSabi1();
+                tar1 = getSaab2();
+                tar2 = getSabi2();
+                break;
+            case 6:
+                man1 = getSoab1();
+                man2 = getSobi1();
+                tar1 = getSoab2();
+                tar2 = getSobi2();
+                break;
+        }
+            this.moab1 = man1;
+            this.mobi1 = man2;
+            this.diab1 = man1;
+            this.dibi1 = man2;
+            this.miab1 = man1;
+            this.mibi1 = man2;
+            this.doab1 = man1;
+            this.dobi1 = man2;
+            this.frab1 = man1;
+            this.frbi1 = man2;
+            this.saab1 = man1;
+            this.sabi1 = man2;
+            this.soab1 = man1;
+            this.sobi1 = man2;
+            this.moab2 = tar1;
+            this.mobi2 = tar2;
+            this.diab2 = tar1;
+            this.dibi2 = tar2;
+            this.miab2 = tar1;
+            this.mibi2 = tar2;
+            this.doab2 = tar1;
+            this.dobi2 = tar2;
+            this.frab2 = tar1;
+            this.frbi2 = tar2;
+            this.saab2 = tar1;
+            this.sabi2 = tar2;
+            this.soab2 = tar1;
+            this.sobi2 = tar2;
+    }
+
+    public String getPorNombre(String nombre) {
+        String valor = "";
+        switch(nombre){
+            case "moab1":
+                valor = getMoab1();
+                break;
+            case "mobi1":
+                valor = getMobi1();
+                break;
+            case "diab1":
+                valor = getDiab1();
+                break;
+            case "dibi1":
+                valor = getDibi1();
+                break;
+            case "miab1":
+                valor = getMiab1();
+                break;
+            case "mibi1":
+                valor = getMibi1();
+                break;
+            case "doab1":
+                valor = getDoab1();
+                break;
+            case "dobi1":
+                valor = getDobi1();
+                break;
+            case "frab1":
+                valor = getFrab1();
+                break;
+            case "frbi1":
+                valor = getFrbi1();
+                break;
+            case "saab1":
+                valor = getSaab1();
+                break;
+            case "sabi1":
+                valor = getSabi1();
+                break;
+            case "soab1":
+                valor = getSoab1();
+                break;
+            case "sobi1":
+                valor = getSobi1();
+                break;
+
+            case "moab2":
+                valor = getMoab2();
+                break;
+            case "mobi2":
+                valor = getMobi2();
+                break;
+            case "diab2":
+                valor = getDiab2();
+                break;
+            case "dibi2":
+                valor = getDibi2();
+                break;
+            case "miab2":
+                valor = getMiab2();
+                break;
+            case "mibi2":
+                valor = getMibi2();
+                break;
+            case "doab2":
+                valor = getDoab2();
+                break;
+            case "dobi2":
+                valor = getDobi2();
+                break;
+            case "frab2":
+                valor = getFrab2();
+                break;
+            case "frbi2":
+                valor = getFrbi2();
+                break;
+            case "saab2":
+                valor = getSaab2();
+                break;
+            case "sabi2":
+                valor = getSabi2();
+                break;
+            case "soab2":
+                valor = getSoab2();
+                break;
+            case "sobi2":
+                valor = getSobi2();
+                break;
+        }
+        return valor;
     }
 }

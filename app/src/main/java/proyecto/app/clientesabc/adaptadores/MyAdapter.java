@@ -35,11 +35,14 @@ import java.util.Date;
 import java.util.HashMap;
 
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.SolicitudActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
+import proyecto.app.clientesabc.clases.TransmisionAPI;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
+import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 import static androidx.core.content.ContextCompat.startActivity;
 
@@ -297,8 +300,15 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                                 WeakReference<Context> weakRef = new WeakReference<Context>(context);
                                 WeakReference<Activity> weakRefA = new WeakReference<Activity>((Activity)context);
                                 //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                                TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "", formListFiltered.get(position).get("id_solicitud").trim());
-                                f.execute();
+                                if (VariablesGlobales.UsarAPI()) {
+                                    TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",formListFiltered.get(position).get("id_solicitud").trim());
+
+                                    f.execute();
+                                } else {
+                                    TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "",formListFiltered.get(position).get("id_solicitud").trim());
+
+                                    f.execute();
+                                }
                                 break;
                         }
                         return false;
