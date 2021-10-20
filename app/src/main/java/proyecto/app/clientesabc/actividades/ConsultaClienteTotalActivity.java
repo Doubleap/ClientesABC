@@ -798,7 +798,7 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
                         if(campos.get(i).get("campo").trim().equals("W_CTE-STCD3")){
                             et.setInputType(InputType.TYPE_CLASS_NUMBER);
                             et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( 18 ) });
-                            if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("F446") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1658")){
+                            if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F446") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1658")){
                                 et.setOnFocusChangeListener(new OnFocusChangeListener() {
                                     @Override
                                     public void onFocusChange(View v, boolean hasFocus) {
@@ -2446,7 +2446,7 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
         WeakReference<Activity> weakRefAs = new WeakReference<Activity>(activity);
         //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
         if (VariablesGlobales.UsarAPI()) {
-            AdjuntoAPI s = new AdjuntoAPI(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
+            AdjuntoAPI s = new AdjuntoAPI(weakRefs, weakRefAs, adjunto_img, adjunto_txt, d);
             if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
                 s.EnableWiFi();
             }else{
@@ -3469,7 +3469,7 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
             idFiscalValidado = false;
             return true;
         }
-        if(PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("F446") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1658")){
+        if(PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F446") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1658")){
             String regexp_dpi = "[0-9]{12,14}";
             String regexp_idfiscal = "[0-9][0-9]{1,7}-[0-9A-Z]";
             String regexp_cf = "CF";

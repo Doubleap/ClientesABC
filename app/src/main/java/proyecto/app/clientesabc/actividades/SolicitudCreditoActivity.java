@@ -456,7 +456,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             numErrores++;
                             mensajeError += "- El cliente debe firmar la verificación apc!\n";
                         }
-                        if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-KLIMK")).getText().toString().replace("0","").replace(".","").isEmpty()){
+                        if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-KLIMK")) != null && ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-KLIMK")).getText().toString().replace("0","").replace(".","").isEmpty()){
                             numErrores++;
                             mensajeError += "- Límite de créditos debe ser mayor a 0.00!\n";
                         }
@@ -973,7 +973,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     //Filtros Adicionales para condiciones de pago de contado no deben ser cosideradas como una opcion
                     String filtroAdicional = "";
                     if((campos.get(i).get("campo").trim().equals("W_CTE-ZTERM") || campos.get(i).get("campo").trim().equals("W_CTE-GUZTE")) &&
-                            (!PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1661") && !PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
+                            (!PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") && !PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
                         filtroAdicional = "zterm NOT LIKE '%00%'";
                     }
 
@@ -4487,7 +4487,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 String id_aprobador = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
                 insertValues.put("[W_CTE-KUNNR]", codigoCliente);
                 insertValues.put("[SIGUIENTE_APROBADOR]", id_aprobador);
-                insertValues.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("CONFIG_SOCIEDAD",""));
+                insertValues.put("[W_CTE-BUKRS]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()));
                 insertValues.put("[W_CTE-RUTAHH]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_RUTAHH",""));
                 insertValues.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_VKORG",""));
                 insertValues.put("[id_solicitud]", NextId);
@@ -4572,7 +4572,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }*/
         String cadenaCliente = cliente.get(0).getAsJsonObject().get("W_CTE-HKUNNR").getAsString();
         //Cliente SI tiene credito y se quiere modificar
-        if((subtitulo.toLowerCase().contains("modifica") || subtitulo.toLowerCase().contains("cambio")) && (!PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1661") && !PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
+        if((subtitulo.toLowerCase().contains("modifica") || subtitulo.toLowerCase().contains("cambio")) && (!PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") && !PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
             String tipo = credito.get(0).getAsJsonObject().get("W_CTE-PSON2").getAsString();
             if(tipo.trim().isEmpty()){
                 tipo = "I";
@@ -4916,7 +4916,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             String clasicxc = "";
             String condpago = "";
             ArrayList<HashMap<String, String>> datosNuevoCredito = mDBHelper.getValidaCreditos(tipo, clasi);
-            if(cadenaCliente.trim().equals(PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_CADENARM",""))  || (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1661") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
+            if(cadenaCliente.trim().equals(PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_CADENARM",""))  || (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("Z001"))) {
                 if(tipoSolicitud.equals("44")) {
                     cuentacont = "A103010001";
                     claseriesgo = "RL5";
@@ -4935,7 +4935,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             }else{
                 String errordesc="";
                 String meserr="";
-                if(cadenaCliente.length() > 0) {
+                if(cadenaCliente.length() > 0 && creditoCadena.size() > 0) {
                     cuentacont = creditoCadena.get(0).getAsJsonObject().get("W_CTE-AKONT").getAsString();
                     claseriesgo = "RR7";
                     tipocobro = creditoCadena.get(0).getAsJsonObject().get("W_CTE-KVGR2").getAsString();
@@ -4978,19 +4978,19 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     return;
                 }
             }
-            if ( (tipo.equals("ABC")) && ( !clasicxc.equals("A") && !clasicxc.equals("B") && !clasicxc.equals("C")) && (!PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1661") && !PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001")))
+            if ( (tipo.equals("ABC")) && ( !clasicxc.equals("A") && !clasicxc.equals("B") && !clasicxc.equals("C")) && (!PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") && !PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("Z001")))
             {
                 Toasty.error(context.getApplicationContext(),"Clasificacion CxC del cliente es '"+clasicxc+"'").show();
                 activity.finish();
                 return;
             }
-            if (tipo.equals("D") && !clasicxc.equals("D") && (!PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1661") && !PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001")))
+            if (tipo.equals("D") && !clasicxc.equals("D") && (!PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") && !PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("Z001")))
             {
                 Toasty.error(context.getApplicationContext(),"Clasificacion CxC del cliente es '"+clasicxc+"'").show();
                 activity.finish();
                 return;
             }
-            if (tipo.equals("I") && !clasicxc.equals("I") && (!PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1661") && !PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001")))
+            if (tipo.equals("I") && !clasicxc.equals("I") && (!PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") && !PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("Z001")))
             {
                 Toasty.error(context.getApplicationContext(),"Clasificacion CxC del cliente es '"+clasicxc+"'").show();
                 activity.finish();
@@ -5168,9 +5168,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
             //Actualizar el bloque de bancos = [{ "bankl": "'001'", "banks": "'UY'", "bankn": "001", "koinh": "IGUAL A RAZÓN SOCIAL", "bkref": "CHEQUE AL DIA", "bkont": "CJ" }];
             tb_bancos.getDataAdapter().getData().get(0).setBkref("CHEQUE DIFERIDO");
-            tb_bancos.getDataAdapter().getData().get(0).setBkont("CR");
+            tb_bancos.getDataAdapter().getData().get(0).setBkont("CJ");
             bancosSolicitud.get(0).setBkref("CHEQUE DIFERIDO");
-            bancosSolicitud.get(0).setBkont("CR");
+            bancosSolicitud.get(0).setBkont("CJ");
         }
     }
 

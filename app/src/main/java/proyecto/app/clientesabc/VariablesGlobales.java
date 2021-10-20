@@ -28,8 +28,8 @@ public class VariablesGlobales extends Application {
 
     //private static String urlApi = "http://kofcrofcdesa02:90/MaestroClientes/";//Ambiente calidad CAM
     //private static String urlApi = "http://10.0.2.2:51123/";//Local host
-    //private static String urlApi = "http://10.153.58.132/";//Servidor produccion, pero ambiente calidad en VM uruguay
-    private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/";
+    private static String urlApi = "http://10.153.58.132/";//Servidor produccion, pero ambiente calidad en VM uruguay
+    //private static String urlApi = "http://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API
     private static String nombrePais = "Uruguay";
     private static String sociedad = "1661";
     private static String orgvta = "0661";

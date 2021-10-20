@@ -1866,7 +1866,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
                             newFilters[editFilters.length] = new InputFilter.LengthFilter( 18 );
                             et.setFilters(newFilters);
-                            if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("F446") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1658")){
+                            if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F446") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1658")){
                                 et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                                     @Override
                                     public void onFocusChange(View v, boolean hasFocus) {
@@ -1876,7 +1876,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     }
                                 });
                             }
-                        }else if(campos.get(i).get("campo").trim().equals("W_CTE-PSTLZ") && (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1661") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))){
+                        }else if(campos.get(i).get("campo").trim().equals("W_CTE-PSTLZ") && (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))){
                             et.setInputType(InputType.TYPE_CLASS_NUMBER);
                             editFilters = et.getFilters();
                             newFilters = new InputFilter[editFilters.length + 1];
@@ -4184,8 +4184,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             spinnerArrayAdapter =new ArrayAdapter<String>(this,R.layout.spinner_item, getResources().getStringArray(R.array.OpcionesKvgr4Autoventa));
         else
             spinnerArrayAdapter =new ArrayAdapter<String>(this,R.layout.spinner_item, getResources().getStringArray(R.array.OpcionesKvgr4));
-        if(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("CONFIG_SOCIEDAD","").equals("1661")
-                || PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("CONFIG_SOCIEDAD","").equals("Z001")){
+        if(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661")
+                || PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("Z001")){
             spinnerArrayAdapter =new ArrayAdapter<String>(this,R.layout.spinner_item, getResources().getStringArray(R.array.OpcionesKvgr4Uruguay));
         }
         //spinnerArrayAdapter.setDropDownViewResource(R.layout.spinner_item);
@@ -5053,7 +5053,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         Gson gson = new Gson();
         //Si es un cierre de URUGUAY se debe validar el cliente es una cuenta pagadora para que se realice por el formulario correcto ID = 45
         //Para saber si es cuenta pagadora voy a validar el interlocutor RG de SAP
-        if(interlocutores.size() > 0 && (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1661") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
+        if(interlocutores.size() > 0 && (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
             Interlocutor interlocutor = null;
 
             for (int x = 0; x < interlocutores.size(); x++) {
@@ -5109,7 +5109,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             if (cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().replace("-", "").equals("00000000"))
                                 tv.setText("99991231");
                             else
-                                tv.setText(cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString());
+                                tv.setText(cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().replace("-",""));
                         }
                         if (listaFinal.get(i).equals("W_CTE-DATAB"))
                         {
@@ -5151,8 +5151,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     try {
                         Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaFinal.get(i)));
-                        if(sp != null)
-                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
+                        if(sp != null) {
+                            sp.setSelection(VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
+                            if (listaFinal.get(i).trim().equals("W_CTE-VSBED") && PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZAT")) {
+                                String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_VKORG",""), PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_RUTAHH",""));
+                                sp.setSelection(VariablesGlobales.getIndex(sp, condicionExpedicion));
+                            }
+                        }
 
                         sp = ((Spinner) mapeoCamposDinamicosOld.get(listaFinal.get(i)));
                         if(sp != null)
@@ -5161,6 +5166,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaFinal.get(i)));
                         if(sp != null)
                             sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
+
                     } catch (Exception e2) {
                         try {
                             CheckBox check = ((CheckBox) mapeoCamposDinamicos.get(listaFinal.get(i)));
@@ -6076,7 +6082,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             idFiscalValidado = false;
             return true;
         }
-        if(PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("F446") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1658")){
+        if(PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F446") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1658")){
             String regexp_dpi = "[0-9]{12,14}";
             String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
             String regexp_cf = "CF";

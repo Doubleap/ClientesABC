@@ -377,7 +377,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 }
                             }
                         }
-                        if(mapeoCamposDinamicos.get("W_CTE-PSTLZ") != null && (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_SOCIEDAD","").equals("1661") || PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))){
+                        if(mapeoCamposDinamicos.get("W_CTE-PSTLZ") != null && (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))){
                             MaskedEditText texto = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-PSTLZ"));
                             if(texto.getText().toString().length() != 5){
                                 if(!listaCamposObligatorios.contains("W_CTE-PSTLZ")){
@@ -1395,7 +1395,11 @@ public class SolicitudActivity extends AppCompatActivity {
                                 }
                             });
                         }
-                            if (campos.get(i).get("llamado1").trim().contains("Provincia")) {
+                        if (campos.get(i).get("campo").trim().equals("W_CTE-VSBED") && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZAT")) {
+                            String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG",""), PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH",""));
+                            combo.setSelection(VariablesGlobales.getIndex(combo, condicionExpedicion));
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("Provincia")) {
                                 combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -1806,7 +1810,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
                                 newFilters[editFilters.length] = new InputFilter.LengthFilter(18);
                                 et.setFilters(newFilters);
-                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("F446") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1658")){
+                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F446") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1658")){
                                     et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                                         @Override
                                         public void onFocusChange(View v, boolean hasFocus) {
@@ -1816,7 +1820,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         }
                                     });
                                 }
-                            }else if(campos.get(i).get("campo").trim().equals("W_CTE-PSTLZ") && (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1661") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))){
+                            }else if(campos.get(i).get("campo").trim().equals("W_CTE-PSTLZ") && (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))){
                                 et.setInputType(InputType.TYPE_CLASS_NUMBER);
                                 editFilters = et.getFilters();
                                 newFilters = new InputFilter[editFilters.length + 1];
@@ -4116,8 +4120,8 @@ public class SolicitudActivity extends AppCompatActivity {
         else
             spinnerArrayAdapter =new ArrayAdapter<String>(this,R.layout.spinner_item, getResources().getStringArray(R.array.OpcionesKvgr4));
 
-        if(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("CONFIG_SOCIEDAD","").equals("1661")
-        || PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("CONFIG_SOCIEDAD","").equals("Z001")){
+        if(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661")
+        || PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("Z001")){
             spinnerArrayAdapter =new ArrayAdapter<String>(this,R.layout.spinner_item, getResources().getStringArray(R.array.OpcionesKvgr4Uruguay));
         }
         //spinnerArrayAdapter.setDropDownViewResource(R.layout.spinner_item);
@@ -4130,8 +4134,20 @@ public class SolicitudActivity extends AppCompatActivity {
         f_finEditText.setText(seleccionado.getF_fin());
 
         Spinner centro_suministro = (Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK");
+
         String valor_centro_suministro = ((OpcionSpinner)centro_suministro.getSelectedItem()).getId().trim();
-        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
+        String filtroxPais = "";
+        switch(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad())){
+            case "1661":
+            case "Z001":
+                Spinner gec = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
+                if(gec != null)
+                    filtroxPais = " AND kvgr3 = '"+((OpcionSpinner)gec.getSelectedItem()).getId().trim()+"'";
+                break;
+            default:
+                filtroxPais = "";
+        }
+        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(Objects.requireNonNull(context), R.layout.simple_spinner_item, rutas_reparto);
         // Drop down layout style - list view with radio button
@@ -5179,7 +5195,7 @@ public class SolicitudActivity extends AppCompatActivity {
         //SearchableSpinner regimen = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
         MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
         if(idfiscal != null) {
-            switch (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","")) {
+            switch (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad())) {
                 case "F443":
                     if (idfiscal.getText().toString().trim().length() == 0) {
                         if (!listaCamposObligatorios.contains("W_CTE-STCD3")) {

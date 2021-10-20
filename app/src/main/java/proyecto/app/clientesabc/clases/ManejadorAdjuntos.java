@@ -28,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
@@ -44,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.SolicitudActivity;
@@ -297,16 +299,26 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            Intent target = new Intent(Intent.ACTION_VIEW);
-            target.setDataAndType(Uri.fromFile(file),adjunto.getType());
+            MimeTypeMap mime = MimeTypeMap.getSingleton();
+            int index = nombre_adjunto.lastIndexOf('.')+1;
+            String ext = nombre_adjunto.substring(index).toLowerCase();
+            String type = mime.getMimeTypeFromExtension(ext);
+            Uri fileURI = FileProvider.getUriForFile(context.getApplicationContext() , BuildConfig.APPLICATION_ID + ".providers.FileProvider", file);
+            /*Intent target = new Intent(Intent.ACTION_VIEW);
+            target.setDataAndType(fileURI,adjunto.getType());
             target.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 
-            Intent intent = Intent.createChooser(target, "Ver archivo con: ");
+            Intent intent = Intent.createChooser(target, "Ver archivo con: ");*/
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(fileURI, type);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.putExtra("Adjunto", fileURI);
             try {
                 context.startActivity(intent);
             } catch (ActivityNotFoundException e) {
-                // Instruct the user to install a PDF reader here, or something
+                Toasty.warning(context,"No se pudo abrir el archivo:"+e.getMessage()).show();
             }
         }
     }
@@ -330,7 +342,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
         WeakReference<Activity> weakRefAs = new WeakReference<Activity>(activity);
         //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
         if (VariablesGlobales.UsarAPI()) {
-            AdjuntoAPI s = new AdjuntoAPI(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
+            AdjuntoAPI s = new AdjuntoAPI(weakRefs, weakRefAs, adjunto_img, adjunto_txt, d);
             if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
                 s.EnableWiFi();
             }else{
@@ -602,6 +614,13 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                     }
 
                 }
+                break;
+            case 3:
+                //if (resultCode == RESULT_OK) {
+                    Uri uriD = (Uri)data.getExtras().get("Adjunto");
+                    File fileD = new File(uriD.getPath());
+                    boolean deleted = fileD.delete();
+                //}
                 break;
             case 100://resultado firma de aceptaciones
                 if (resultCode == RESULT_OK) {

@@ -78,7 +78,7 @@ public class ValidarFlujoClienteAPI extends AsyncTask<Void,String,ArrayList<Json
 
             InterfaceApi apiService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-            Call<ResponseBody> call = apiService.ValidarFlujoCliente(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",""), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, codigo, tipoFormulario, numEquipo);
+            Call<ResponseBody> call = apiService.ValidarFlujoCliente(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, codigo, tipoFormulario, numEquipo);
             Response<ResponseBody> response;
             try {
                 response = call.execute();

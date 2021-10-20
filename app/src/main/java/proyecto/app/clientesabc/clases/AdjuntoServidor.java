@@ -14,8 +14,11 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.core.content.FileProvider;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -74,7 +77,7 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
                 //Comando String que indicara que se quiere realizar una Sincronizacion
                 publishProgress("Comunicacion establecida...");
                 //Enviar Pais de procedencia
-                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",""));
+                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()));
                 dos.flush();
                 //Version con la que quiere transmitir
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -185,9 +188,14 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
                 imagen.setImageBitmap(Bitmap.createScaledBitmap(adjunto, adjunto.getWidth(), adjunto.getHeight(), true));
             }else{
                 File tempPDF;
+                String ext="";
                 try {
+                    MimeTypeMap mime = MimeTypeMap.getSingleton();
+                    int index = nombre.lastIndexOf('.')+1;
+                    ext = nombre.substring(index).toLowerCase();
+                    String type = mime.getMimeTypeFromExtension(ext);
                     File folder = new File(Environment.getExternalStorageDirectory(), "Download");
-                    tempPDF = new File(folder, "Temp.pdf");
+                    tempPDF = new File(folder, "TempMC."+ext);
                     //tempPDF = File.createTempFile("temp", ".pdf", context.get().getExternalCacheDir());
                     //RandomAccessFile raf = new RandomAccessFile(tempPDF, "r");
                     tempPDF.deleteOnExit();
@@ -196,14 +204,17 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
                     //FileOutputStream fos = context.get().openFileOutput(nombre, Context.MODE_WORLD_READABLE);
                     fos.write(adjuntoArray);
                     fos.close();
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setDataAndType(Uri.fromFile(tempPDF), "application/pdf");
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                    intent.putExtra("Adjunto", Uri.fromFile(tempPDF));
-                    activity.get().startActivity(intent);
 
+                    Uri fileURI = FileProvider.getUriForFile(context.get(), BuildConfig.APPLICATION_ID + ".providers.FileProvider", tempPDF);
+
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(fileURI, type);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    intent.putExtra("Adjunto", fileURI);
+                    activity.get().startActivity(intent);
                 } catch (ActivityNotFoundException e) {
-                    Toasty.success(context.get(),"No existe aplicacion para ver PDFs!",Toasty.LENGTH_LONG).show();
+                    Toasty.success(context.get(),"No existe aplicacion para ver este tipo de archivo("+ext+")!",Toasty.LENGTH_LONG).show();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -218,15 +229,14 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
         }
         try {
             dialog.dismiss();
+            if(dialog.isShowing()) {
+                dialog.hide();
+            }
         } catch (final IllegalArgumentException e) {
             // Do nothing.
         } catch (final Exception e) {
             // Do nothing.
         }
-        if(dialog.isShowing()) {
-            dialog.hide();
-        }
-
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

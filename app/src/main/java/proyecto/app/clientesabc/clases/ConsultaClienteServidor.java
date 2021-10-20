@@ -69,7 +69,7 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                 //Comando String que indicara que se quiere realizar una Sincronizacion
                 publishProgress("Comunicacion establecida...");
                 //Enviar Pais de procedencia
-                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",""));
+                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()));
                 dos.flush();
                 //Version con la que quiere transmitir
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());

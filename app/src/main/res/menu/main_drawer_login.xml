@@ -21,7 +21,8 @@
             android:icon="@drawable/icon_app_settings"
             android:title="@string/configuracion"
             android:visible="true"
-            app:showAsAction="never|withText"></item>
+            app:showAsAction="never|withText"
+            android:enabled="true"></item>
         <item
             android:id="@+id/borrar_datos"
             android:title="@string/borrar_datos"

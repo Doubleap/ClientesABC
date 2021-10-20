@@ -20,6 +20,7 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -28,26 +29,29 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
+import okhttp3.ResponseBody;
 import proyecto.app.clientesabc.BuildConfig;
+import proyecto.app.clientesabc.Interfaces.InterfaceApi;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.ConsultaClienteTotalActivity;
-import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
+import proyecto.app.clientesabc.actividades.ConfiguracionGeneralActivity;
+import retrofit2.Call;
+import retrofit2.Response;
 
-public class ConsultaClienteTotalServidor extends AsyncTask<Void,String,ArrayList<JsonArray>> {
+public class ConfiguracionPaisServidor extends AsyncTask<Void,String,ArrayList<JsonArray>> {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
-    private String codigoCliente;
+    private String sociedad;
     private boolean xceptionFlag = false;
     private String messageFlag = "";
     private ServerSocket ss;
     private Socket socket;
     ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
-    public ConsultaClienteTotalServidor(WeakReference<Context> c, WeakReference<Activity> a, String codigoCliente){
+    public ConfiguracionPaisServidor(WeakReference<Context> c, WeakReference<Activity> a, String sociedad){
         this.context = c;
         this.activity = a;
-        this.codigoCliente = codigoCliente;
+        this.sociedad = sociedad;
     }
 
     @Override
@@ -59,7 +63,7 @@ public class ConsultaClienteTotalServidor extends AsyncTask<Void,String,ArrayLis
             System.out.println("Estableciendo comunicación para enviar archivos...");
             String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
             if(mensaje.equals("")) {
-                socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", "").trim(), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "").trim()));
+                socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", ""), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "")));
 
                 System.out.println("Creando Streams de datos...");
                 DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
@@ -78,10 +82,7 @@ public class ConsultaClienteTotalServidor extends AsyncTask<Void,String,ArrayLis
                 dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
                 dos.flush();
 
-                dos.writeUTF("ConsultaClienteTotal");
-                dos.flush();
-
-                dos.writeUTF(String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0'));
+                dos.writeUTF("ConfiguracionPais");
                 dos.flush();
 
                 dos.writeUTF("FIN");
@@ -90,15 +91,14 @@ public class ConsultaClienteTotalServidor extends AsyncTask<Void,String,ArrayLis
                 //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la consulta para modificacion
                 long s = dis.readLong();
                 if (s < 0) {
-                    publishProgress("Error en Consulta Creditos Cliente...");
+                    publishProgress("Error en Configuracion País...");
                     s = dis.readLong();
                     byte[] e = new byte[(int) s];
                     dis.readFully(e);
                     String error = new String(e);
                     xceptionFlag = true;
-                    messageFlag = "" + error;
+                    messageFlag = "Error: " + error;
                 } else {
-                    publishProgress("Procesando datos recibidos...");
                 /*ORDEN DE ESTRUCTURAS SAP RECIBIDAS
                         String jsonCliente = 0;
                         String jsonNotaEntrega = 1;
@@ -109,19 +109,26 @@ public class ConsultaClienteTotalServidor extends AsyncTask<Void,String,ArrayLis
                         String jsonInterlocutores = 6;
                         String jsonImpuestos = 7;
                         String jsonBancos = 8;
-                        String jsonVisitas = 9;
-                        String jsonCredito = 9;*/
+                        String jsonVisitas = 9;*/
 
                     //Toda la info de cliente
-                    publishProgress("Recibiendo informacion..");
+                    publishProgress("Iniciando descarga...");
                     byte[] r = new byte[(int) s];
-                    dis.readFully(r);
+                    int offset = 0;
+                    int bytesRead;
+                    while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
+                        offset += bytesRead;
+                        publishProgress("Descargando..." + String.format("%.02f", (100f / (s / 1024f)) * (offset / 1024f)) + "%");
+                    }
                     dos.writeUTF("END");
                     dos.flush();
+                    publishProgress("Procesando datos recibidos...");
+
                     String jsoncliente = new String(r);
                     Gson gson = new Gson();
                     estructurasSAP.add(gson.fromJson(jsoncliente, JsonArray.class));
                     publishProgress("Procesando datos cliente..");
+
                 }
             }else{
                 xceptionFlag = true;
@@ -160,7 +167,7 @@ public class ConsultaClienteTotalServidor extends AsyncTask<Void,String,ArrayLis
     protected void onPreExecute() {
         super.onPreExecute();
         AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
-        builder.setCancelable(false); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
+        builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
         builder.setView(R.layout.layout_loading_dialog);
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
@@ -177,8 +184,8 @@ public class ConsultaClienteTotalServidor extends AsyncTask<Void,String,ArrayLis
         }
     }
     @Override
-    protected void onPostExecute(ArrayList<JsonArray> estructuras) {
-        super.onPostExecute(estructuras);
+    protected void onPostExecute(ArrayList<JsonArray> mensajes) {
+        super.onPostExecute(mensajes);
         try {
             dialog.dismiss();
         } catch (final IllegalArgumentException e) {
@@ -190,10 +197,14 @@ public class ConsultaClienteTotalServidor extends AsyncTask<Void,String,ArrayLis
             dialog.hide();
         }
         if(xceptionFlag){
-            activity.get().finish();
+            //activity.get().finish();
             Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
         }
-        ConsultaClienteTotalActivity.LlenarCampos(context.get(), activity.get(), estructuras);
+        try {
+            ConfiguracionGeneralActivity.ActualizarConfiguracionPais(context.get(), activity.get(), mensajes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

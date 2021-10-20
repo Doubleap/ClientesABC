@@ -356,7 +356,7 @@ public class MantClienteActivity extends AppCompatActivity {
                     //inflating menu from xml resource
                     popup.inflate(R.menu.mant_clientes_item_menu);
                     //adding click listener
-                    if(PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("CONFIG_SOCIEDAD","").equals("1661") || PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("CONFIG_SOCIEDAD","").equals("Z001")){
+                    if(PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("CONFIG_SOCIEDAD","").equals("Z001")){
                         MenuItem menuItem = (MenuItem)popup.getMenu().getItem(4).setVisible(false);
                     }
 

@@ -83,6 +83,7 @@ import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.ConexionTableAdapter;
 import proyecto.app.clientesabc.clases.ConfiguracionPaisAPI;
+import proyecto.app.clientesabc.clases.ConfiguracionPaisServidor;
 import proyecto.app.clientesabc.clases.PruebaConexionAPI;
 import proyecto.app.clientesabc.clases.PruebaConexionServidor;
 import proyecto.app.clientesabc.clases.SincronizacionServidor;
@@ -136,18 +137,19 @@ public class ConfiguracionGeneralActivity extends AppCompatActivity
         }
 
         ArrayList<OpcionSpinner> listapaises = new ArrayList<>();
-        /*OpcionSpinner opCR = new OpcionSpinner("F443","Costa Rica");
+        OpcionSpinner opCR = new OpcionSpinner("F443","Costa Rica");
         OpcionSpinner opNI = new OpcionSpinner("F445","Nicaragua");
         OpcionSpinner opPA = new OpcionSpinner("F451","Panamá");
         OpcionSpinner opEM = new OpcionSpinner("F446","Guatemala Embocen");
         OpcionSpinner opVO = new OpcionSpinner("1657","Guatemala Volcanes");
-        OpcionSpinner opAB = new OpcionSpinner("1658","Guatemala Abasa");*/
+        OpcionSpinner opAB = new OpcionSpinner("1658","Guatemala Abasa");
         OpcionSpinner opUY = new OpcionSpinner("1661","Uruguay");
         OpcionSpinner opDI = new OpcionSpinner("Z001","Uruguay Distribuidores");
         //OpcionSpinner opLocal = new OpcionSpinner("local","Local");
         /*listapaises.add(opCR);listapaises.add(opNI);listapaises.add(opPA);
-        listapaises.add(opEM);listapaises.add(opVO);listapaises.add(opAB);*/
+        listapaises.add(opEM);listapaises.add(opVO);listapaises.add(opAB);listapaises.add(opEM);*/
         listapaises.add(opUY);listapaises.add(opDI);
+
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(this, R.layout.simple_spinner_item, listapaises);
         // Drop down layout style - list view with radio button
@@ -161,7 +163,7 @@ public class ConfiguracionGeneralActivity extends AppCompatActivity
         sociedad_text = (EditText)findViewById(R.id.txtSociedad);
         sociedad_text.setText(PreferenceManager.getDefaultSharedPreferences(ConfiguracionGeneralActivity.this).getString("CONFIG_SOCIEDAD",""));
         orgventas_text = (EditText)findViewById(R.id.txtOrgVentas);
-        orgventas_text.setText(PreferenceManager.getDefaultSharedPreferences(ConfiguracionGeneralActivity.this).getString("CONFIG_ORGVENTAS",""));
+        orgventas_text.setText(PreferenceManager.getDefaultSharedPreferences(ConfiguracionGeneralActivity.this).getString("CONFIG_ORGVENTAS",VariablesGlobales.getOrgvta()));
         land1_text = (EditText)findViewById(R.id.txtLand1);
         land1_text.setText(PreferenceManager.getDefaultSharedPreferences(ConfiguracionGeneralActivity.this).getString("CONFIG_LAND1",""));
         cadenaRM_text = (EditText)findViewById(R.id.txtCadenaRM);
@@ -188,9 +190,13 @@ public class ConfiguracionGeneralActivity extends AppCompatActivity
                 final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
                 WeakReference<Context> weakRefs1 = new WeakReference<Context>(parent.getContext());
                 WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(ConfiguracionGeneralActivity.this);
-                ConfiguracionPaisAPI v = new ConfiguracionPaisAPI(weakRefs1, weakRefAs1, opcion.getId());
-                //PruebaConexionAPI v = new PruebaConexionAPI(weakRefs1,weakRefAs1);
-                v.execute();
+                if(VariablesGlobales.UsarAPI()) {
+                    ConfiguracionPaisAPI v = new ConfiguracionPaisAPI(weakRefs1, weakRefAs1, opcion.getId());
+                    v.execute();
+                }else{
+                    ConfiguracionPaisServidor v = new ConfiguracionPaisServidor(weakRefs1, weakRefAs1, opcion.getId());
+                    v.execute();
+                }
             }
 
             @Override

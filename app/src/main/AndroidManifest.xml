@@ -163,6 +163,7 @@
                 android:resource="@xml/filepaths"
                 tools:replace="android:resource" />
         </provider>
+
     </application>
 
 </manifest>

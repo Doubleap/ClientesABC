@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuracion>
     <sistema>
-        <!--urlApi>http://10.0.2.2:51123/</urlApi-->
-        <urlApi>http://10.0.2.2:51123/MaestroClientes/</urlApi>
         <nombrePais>Uruguay</nombrePais>
         <sociedad>1661</sociedad>
         <orgvta>0661</orgvta>
@@ -110,11 +108,17 @@
             <Ip>10.153.50.68</Ip>
             <Puerto>3345</Puerto>
         </conexion-->
+        <!--<conexion defecto="true">
+          <nombre>Calidad UY</nombre>
+          <tipo_conexion>wifi</tipo_conexion>
+          <Ip>10.153.50.68</Ip>
+          <Puerto>3345</Puerto>
+      </conexion>-->
         <conexion defecto="true">
             <nombre>Calidad UY</nombre>
             <tipo_conexion>wifi</tipo_conexion>
             <Ip>10.153.50.68</Ip>
             <Puerto>3345</Puerto>
         </conexion>
-    </conexiones>
+  </conexiones>
 </configuracion>

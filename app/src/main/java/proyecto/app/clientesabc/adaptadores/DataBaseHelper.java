@@ -1008,7 +1008,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<HashMap<String, String>> getCamposPestana(String id_formulario, String pestana ){
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
-        String BUKRS = PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_SOCIEDAD","");
+        String BUKRS = PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad());
         String KTOKD = PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_GRUPOCUENTAS","");
         /*String query = "SELECT c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION FROM configuracion c" +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' and cc.ktokd = 'RCMA')" +
@@ -1086,8 +1086,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
     public ArrayList<HashMap<String, String>> getCamposPestana(String id_formulario, String pestana, String idSolicitud ){
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
-        String BUKRS = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","");
-        String KTOKD = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_KTOKD","");
+        String BUKRS = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS",VariablesGlobales.getSociedad());
+        String KTOKD = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_KTOKD",VariablesGlobales.getKtokd());
         /*String query = "SELECT c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION FROM configuracion c" +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' and cc.ktokd = 'RCMA')" +
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion)" +
@@ -1685,7 +1685,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         while (cursor.moveToNext()){
             ret = true;
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KTOKD", PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_GRUPOCUENTAS", "") ).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KTOKD", PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_GRUPOCUENTAS", VariablesGlobales.getKtokd()) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKORG", cursor.getString(cursor.getColumnIndex("vkorg")) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BUKRS", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg")) )).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg")) )).apply();
@@ -1879,16 +1879,45 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<Adjuntos> getAdjuntosDB(String id_solicitud){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<Adjuntos> adjuntosList = new ArrayList<>();
-        String query = "SELECT * FROM "+VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD()+" WHERE id_solicitud = ?";
+        String queryName = "SELECT adjunto FROM adjuntos WHERE idform = (Select idform from formhvkof_solicitud where id_solicitud = ?)";
+        String query = "SELECT id_solicitud,tipo,nombre,length(imagen) as tamano FROM "+VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD()+" WHERE id_solicitud = ?";
+        String queryImage = "SELECT imagen FROM "+VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD()+" WHERE id_solicitud = ? AND nombre = ?";
         Cursor cursor = mDataBase.rawQuery(query,new String[]{id_solicitud});
         while (cursor.moveToNext()){
             Adjuntos adjunto = new Adjuntos();
-            adjunto.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")) );
-            adjunto.setType(cursor.getString(cursor.getColumnIndex("tipo")) );
-            adjunto.setName(cursor.getString(cursor.getColumnIndex("nombre")) );
-            adjunto.setImage(cursor.getBlob(cursor.getColumnIndex("imagen")) );
-
-            adjuntosList.add(adjunto);
+            int tamImagen = cursor.getInt(cursor.getColumnIndex("tamano"));
+            try {
+                if(tamImagen < 1000000) {
+                    adjunto.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")));
+                    adjunto.setType(cursor.getString(cursor.getColumnIndex("tipo")));
+                    adjunto.setName(cursor.getString(cursor.getColumnIndex("nombre")));
+                    Cursor cursorInner = mDataBase.rawQuery(queryImage,new String[]{id_solicitud,cursor.getString(cursor.getColumnIndex("nombre"))});
+                    while (cursorInner.moveToNext()) {
+                        adjunto.setImage(cursorInner.getBlob(cursorInner.getColumnIndex("imagen")));
+                    }
+                    adjuntosList.add(adjunto);
+                }else{
+                    adjunto.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")));
+                    adjunto.setType(cursor.getString(cursor.getColumnIndex("tipo")));
+                    adjunto.setName(cursor.getString(cursor.getColumnIndex("nombre")));
+                    int buffer = 1000000;
+                    byte[] totalImagen = new byte[tamImagen];
+                    int tamAcumulado = 0;
+                    for (int x = 1; x < tamImagen;x = x + buffer) {
+                        String queryImagePart = "SELECT substr(imagen, ?, ?) as parteImagen FROM " + VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD() + " WHERE id_solicitud = ? AND nombre = ?";
+                        Cursor cursorInner = mDataBase.rawQuery(queryImagePart, new String[]{Integer.toString(x), Integer.toString(buffer) ,id_solicitud, cursor.getString(cursor.getColumnIndex("nombre"))});
+                        while (cursorInner.moveToNext()) {
+                            byte[] parteImagen = cursorInner.getBlob(cursorInner.getColumnIndex("parteImagen"));
+                            System.arraycopy(parteImagen, 0, totalImagen, tamAcumulado, parteImagen.length);
+                            tamAcumulado += parteImagen.length;
+                        }
+                    }
+                    adjunto.setImage(totalImagen);
+                    adjuntosList.add(adjunto);
+                }
+            }catch(Exception e){
+                String error = e.getMessage();
+            }
         }
         cursor.close();
         return  adjuntosList;
@@ -2197,7 +2226,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<Impuesto> impuestoList = new ArrayList<>();
         String query = query = "SELECT * FROM cat_impstos WHERE taxkd = 1 AND talnd = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")+"'";
-        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_SOCIEDAD","").equals("1661") || PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_SOCIEDAD","").equals("Z001"))
+        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_SOCIEDAD","").equals("Z001"))
             query = "SELECT * FROM cat_impstos WHERE taxkd = 2 AND talnd = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")+"'";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
@@ -2505,7 +2534,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " LEFT OUTER JOIN loc_gec_x_canal b ON(a.zcanal = b.zcanal and a.vkorg = b.vkorg)" +
                 " WHERE a.zcanal = ? AND a.vkorg = ?";
         ArrayList<HashMap<String, String>> valoresList = new ArrayList<>();
-        Cursor micursor = mDataBase.rawQuery(query,new String[]{zcanal,PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_ORGVENTAS","")});
+        Cursor micursor = mDataBase.rawQuery(query,new String[]{zcanal,PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_ORGVENTAS",VariablesGlobales.getOrgvta())});
         while (micursor.moveToNext()){
             HashMap<String, String> user = new HashMap<>();
             user.put("ztpocanal", micursor.getString(0).trim());
@@ -2520,7 +2549,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<HashMap<String, String>> getRespuestasEncuesta(String id_solicitud){
         ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD","") + "'";
+        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()) + "'";
         String sql_encuesta = "select id_Grupo as id_grupo,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10 from encuesta_solicitud where id_solicitud = ?";
         Cursor micursor = mDataBase.rawQuery(sql_encuesta,new String[]{id_solicitud});
         while (micursor.moveToNext()){

@@ -315,7 +315,7 @@ public class LoginActivity extends AppCompatActivity {
                                     //PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("CONFIG_URLAPI", text).apply();
                                 }
 
-                                if(name.equals("nombre")){
+                                if(name.equals("nombrePais")){
                                     nombre = text;
                                     PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("CONFIG_PAIS", text).apply();
                                 }
@@ -380,7 +380,7 @@ public class LoginActivity extends AppCompatActivity {
         /**/
         Drawable d = getResources().getDrawable(R.drawable.botella_coca_header_der,null);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
+        //setSupportActionBar(toolbar);PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("CONFIG_PAIS","")
         toolbar.setTitle(getResources().getString(R.string.titulo_login) +" "+ PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("CONFIG_PAIS",""));
         toolbar.setBackground(d);
         final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -630,7 +630,7 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
         //Validar que la ruta sincronizada sea la ruta de la misma sociedad que el pais configurado en las preferencias del sistema, debe sincronizar una ruta correcta o cambiar el pais de configuracion de aplicacion.
-        boolean rutaCorrecta = db.validarRutaSincronizada(PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_ORGVENTAS",""),PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_RUTAHH",""));
+        boolean rutaCorrecta = db.validarRutaSincronizada(PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_ORGVENTAS",VariablesGlobales.getOrgvta()),PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_RUTAHH",""));
         if(!rutaCorrecta){
             Toasty.warning(getBaseContext(),"La ruta no pertenece al pais configurado en la aplicación. \nDEBE sincronizar una ruta diferente o cambiar el pais de la configuracion general.",Toasty.LENGTH_LONG).show();
             SignInButton.setEnabled(true);

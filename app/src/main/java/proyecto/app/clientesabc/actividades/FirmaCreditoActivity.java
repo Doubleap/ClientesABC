@@ -134,7 +134,7 @@ public class FirmaCreditoActivity extends AppCompatActivity {
                 String fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
                 if(indicadorFirma.equals("Pagare")){
                     texto_titulo.setText(R.string.title_activity_firma_credito_ni);
-                    texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_credito_ni),name12, montoCredito, fechaLetras, name34, cedula, estadoCivil, actividadEconomica, montoCredito, NumerosALetras.Convertir(montoCreditoDolares,false," DOLARES"), montoCreditoDolares, fechaLetras , fechaLetras2),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                    texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_credito_ni),name12, montoCredito, fechaLetras, name34, cedula, estadoCivil, actividadEconomica, montoCredito, NumerosALetras.Convertir(montoCreditoDolares,false," DOLARES"), montoCreditoDolares, "______________________________" , fechaLetras2),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 }
                 if(indicadorFirma.equals("Contrato")){
                     texto_titulo.setText(R.string.title_activity_firma_contrato_ni);

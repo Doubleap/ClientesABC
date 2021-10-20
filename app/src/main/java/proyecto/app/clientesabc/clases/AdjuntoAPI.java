@@ -2,6 +2,7 @@ package proyecto.app.clientesabc.clases;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -17,8 +18,12 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.core.content.FileProvider;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -59,11 +64,13 @@ public class AdjuntoAPI extends AsyncTask<Void,String,Bitmap> {
     private Bitmap adjunto;
     private byte[] adjuntoArray;
     AlertDialog dialog;
-    public AdjuntoAPI(WeakReference<Context> c, WeakReference<Activity> a, ImageView imagen, TextView tv_nombre){
+    private Dialog d;
+    public AdjuntoAPI(WeakReference<Context> c, WeakReference<Activity> a, ImageView imagen, TextView tv_nombre, Dialog d){
         this.context = c;
         this.activity = a;
         this.imagen = imagen;
         this.tv_nombre = tv_nombre;
+        this.d = d;
     }
     @Override
     protected Bitmap doInBackground(Void... voids) {
@@ -79,7 +86,7 @@ public class AdjuntoAPI extends AsyncTask<Void,String,Bitmap> {
 
             InterfaceApi adjuntoService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-            Call<ResponseBody> call = adjuntoService.Adjunto(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",""), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, nombre);
+            Call<ResponseBody> call = adjuntoService.Adjunto(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, nombre);
             Response<ResponseBody> response;
             try {
                 response = call.execute();
@@ -97,7 +104,7 @@ public class AdjuntoAPI extends AsyncTask<Void,String,Bitmap> {
                         publishProgress("Descargando..." + String.format("%.02f", (100f / (fileSize / 1024f)) * (offset / 1024f)) + "%");
                     }
 
-                    if (nombre.toLowerCase().contains(".pdf")) {
+                    if (nombre.toLowerCase().contains(".pdf") || nombre.toLowerCase().contains(".xls") || nombre.toLowerCase().contains(".msg")  || nombre.toLowerCase().contains(".doc") || nombre.toLowerCase().contains(".zip")) {
                         adjuntoArray = r;
                     } else {
                         adjunto = BitmapFactory.decodeByteArray(r, 0, r.length);
@@ -164,28 +171,44 @@ public class AdjuntoAPI extends AsyncTask<Void,String,Bitmap> {
             }else{
                 File tempPDF;
                 try {
+                    MimeTypeMap mime = MimeTypeMap.getSingleton();
+                    int index = nombre.lastIndexOf('.')+1;
+                    String ext = nombre.substring(index).toLowerCase();
+                    String type = mime.getMimeTypeFromExtension(ext);
                     File folder = new File(Environment.getExternalStorageDirectory(), "Download");
-                    tempPDF = new File(folder, "Temp.pdf");
+                    tempPDF = new File(folder, "TempMC."+ext);
                     //tempPDF = File.createTempFile("temp", ".pdf", context.get().getExternalCacheDir());
                     //RandomAccessFile raf = new RandomAccessFile(tempPDF, "r");
-                    tempPDF.deleteOnExit();
 
                     FileOutputStream fos = new FileOutputStream(tempPDF);
                     //FileOutputStream fos = context.get().openFileOutput(nombre, Context.MODE_WORLD_READABLE);
                     fos.write(adjuntoArray);
                     fos.close();
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setDataAndType(Uri.fromFile(tempPDF), "application/pdf");
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                    intent.putExtra("Adjunto", Uri.fromFile(tempPDF));
-                    activity.get().startActivity(intent);
 
+                    Uri fileURI = FileProvider.getUriForFile(context.get(), BuildConfig.APPLICATION_ID + ".providers.FileProvider", tempPDF);
+
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(fileURI, type);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    intent.putExtra("Adjunto", fileURI);
+                    activity.get().startActivity(intent);
                 } catch (ActivityNotFoundException e) {
                     Toasty.success(context.get(),"No existe aplicacion para ver PDFs!",Toasty.LENGTH_LONG).show();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
+                }
+                try {
+                    if(d.isShowing()) {
+                        d.hide();
+                    }
+                    d.dismiss();
+                } catch (final IllegalArgumentException e) {
+                    // Do nothing.
+                } catch (final Exception e) {
+                    // Do nothing.
                 }
             }
             tv_nombre.setText(nombre);
@@ -195,16 +218,15 @@ public class AdjuntoAPI extends AsyncTask<Void,String,Bitmap> {
             Toasty.error(context.get(),"No se pudo obtener el adjunto: "+messageFlag).show();
         }
         try {
+            if(dialog.isShowing()) {
+                dialog.hide();
+            }
             dialog.dismiss();
         } catch (final IllegalArgumentException e) {
             // Do nothing.
         } catch (final Exception e) {
             // Do nothing.
         }
-        if(dialog.isShowing()) {
-            dialog.hide();
-        }
-
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

@@ -6,7 +6,7 @@ android {
         applicationId "clientesabc.app.uruguay"
         minSdkVersion 23
         targetSdkVersion 28
-        versionCode 3
+        versionCode 4
         versionName "3.0.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "java.util.Date", "BuildDate", "new java.util.Date(" + System.currentTimeMillis() + "L)"

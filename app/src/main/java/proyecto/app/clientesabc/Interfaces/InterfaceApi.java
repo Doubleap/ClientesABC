@@ -21,6 +21,7 @@ import retrofit2.http.Query;
 import retrofit2.http.Streaming;
 public interface InterfaceApi {
 
+    String ftp = "/ftp";//vacio para api sin servidor FTP
     @Streaming
     @FormUrlEncoded
     @POST("Token")
@@ -35,42 +36,42 @@ public interface InterfaceApi {
     Call<ResponseBody> token();*/
 
     @Streaming
-    @GET("api/Adjunto/{bukrs}/{ruta}/{version}")
+    @GET("api"+ftp+"/Adjunto/{bukrs}/{ruta}/{version}/{nombre}")
     Call<ResponseBody> Adjunto(@Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("version") String version, @Query("nombre") String nombre);
 
     @Streaming
-    @GET("api/Actualizacion/{bukrs}/{ruta}/{version}")
+    @GET("api"+ftp+"/Actualizacion/{bukrs}/{ruta}/{version}")
     Call<ResponseBody> Actualizacion(@Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("version") String version);
 
     @Streaming
-    @GET("api/ConsultaCliente/{bukrs}/{ruta}/{version}/{codigo}")
+    @GET("api"+ftp+"/ConsultaCliente/{bukrs}/{ruta}/{version}/{codigo}")
     Call<ResponseBody> ConsultaCliente(@Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("version") String version, @Path("codigo") String codigo);
 
     @Streaming
-    @GET("api/ConsultaClienteTotal/{bukrs}/{ruta}/{cliente}/{version}/{codigo}")
+    @GET("api"+ftp+"/ConsultaClienteTotal/{bukrs}/{ruta}/{cliente}/{version}/{codigo}")
     Call<ResponseBody> ConsultaClienteTotal(@Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("cliente") String cliente, @Path("version") String version, @Path("codigo") String codigo);
 
     @Streaming
-    @GET("api/ConsultaCreditoCliente/{bukrs}/{ruta}/{version}/{codigo}/{areacred}/{tipocred}")
+    @GET("api"+ftp+"/ConsultaCreditoCliente/{bukrs}/{ruta}/{version}/{codigo}/{areacred}/{tipocred}")
     Call<ResponseBody> ConsultaCreditoCliente(@Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("version") String version, @Path("codigo") String codigo, @Path("areacred") String areacred, @Path("tipocred") String tipocred);
 
     @Streaming
-    @GET("api/Sincronizacion/{bukrs}/{ruta}/{version}")
+    @GET("api"+ftp+"/Sincronizacion/{bukrs}/{ruta}/{version}")
     Call<ResponseBody> Sincronizacion(@Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("version") String version);
 
     @Streaming
-    @GET("api/ValidarFlujoCliente/{bukrs}/{ruta}/{version}/{codigo}/{tipoformulario}/{numequipo}")
+    @GET("api"+ftp+"/ValidarFlujoCliente/{bukrs}/{ruta}/{version}/{codigo}/{tipoformulario}/{numequipo}")
     Call<ResponseBody> ValidarFlujoCliente(@Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("version") String version, @Path("codigo") String codigo, @Path("tipoformulario") String tipoformulario, @Path("numequipo") String numequipo);
 
     @Streaming
-    @GET("api/PruebaConexion/{bukrs}/{ruta}/{version}")
+    @GET("api"+ftp+"/PruebaConexion/{bukrs}/{ruta}/{version}")
     Call<ResponseBody> PruebaConexion(@Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("version") String version);
 
     @Multipart
-    @POST("api/Transmision/{bukrs}/{ruta}/{version}")
+    @POST("api"+ftp+"/Transmision/{bukrs}/{ruta}/{version}")
     Call<ResponseBody> Transmision(@Part("description") RequestBody description, @Part MultipartBody.Part file, @Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("version") String version);
 
     @Streaming
-    @GET("api/ConfiguracionPais/{bukrs}")
+    @GET("api"+ftp+"/ConfiguracionPais/{bukrs}")
     Call<ResponseBody> ConfiguracionPais(@Path("bukrs") String bukrs);
 }

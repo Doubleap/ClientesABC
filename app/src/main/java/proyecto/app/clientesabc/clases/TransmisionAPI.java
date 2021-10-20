@@ -197,7 +197,7 @@ public class TransmisionAPI extends AsyncTask<Void,String,Void> {
                 RequestBody description = RequestBody.create(okhttp3.MultipartBody.FORM, descriptionString);
 
                 // finally, execute the request
-                Call<ResponseBody> call = apiService.Transmision(description, body, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",""), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
+                Call<ResponseBody> call = apiService.Transmision(description, body, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version);
 
                 Response<ResponseBody> response;
 
