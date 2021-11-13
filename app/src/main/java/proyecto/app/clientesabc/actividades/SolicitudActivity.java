@@ -145,7 +145,7 @@ import static com.google.android.material.tabs.TabLayout.INDICATOR_GRAVITY_TOP;
 
 public class SolicitudActivity extends AppCompatActivity {
 
-    final static int alturaFilaTableView = 80;
+    final static int alturaFilaTableView = 100;
     static String tipoSolicitud ="";
     static String idSolicitud = "";
     static String idForm = "";
@@ -193,7 +193,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private static ArrayList<Adjuntos> adjuntosSolicitud;
     private static ArrayList<Horarios> horariosSolicitud;
     private static ArrayList<Comentario> comentarios;
-
+    private static LinearLayout ll_visitas;
     private AidcManager manager;
     private BarcodeReader reader;
 
@@ -418,13 +418,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         String tipoVisita = PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_TIPORUTA","ZPV").toString();//"ZPV";
                         if(comboModalidad != null) {
                             modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
-                        /*if(comboModalidad.getSelectedItem() != null) {
-                            modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
-                            if(modalidad.equals("GV"))
-                                tipoVisita = "ZAT";
-                            if(modalidad.equals("TA"))
-                                tipoVisita = "ZTV";
-                        }*/
+
                             int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
                             if (!modalidad.equals("GV") && indiceReparto == -1 && visitasSolicitud.size() > 0) {
                                 numErrores++;
@@ -433,7 +427,13 @@ public class SolicitudActivity extends AppCompatActivity {
 
                             if (!modalidad.equals("GV") && indiceReparto != -1 && visitasSolicitud.size() > 0 && visitasSolicitud.get(indiceReparto).getRuta().trim().length() < 6) {
                                 numErrores++;
-                                mensajeError += "- Falta ruta de reparto en planes de visita!\n";
+                                mensajeError += "- Falta ruta de reparto en PLANES DE VISITA!\n";
+                            }
+
+                            int indiceDummy = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDY");
+                            if (modalidad.equals("TA") && indiceDummy != -1 && visitasSolicitud.size() > 0 && visitasSolicitud.get(indiceDummy).getRuta().trim().length() < 6) {
+                                numErrores++;
+                                mensajeError += "- Falta asignar ruta Dummy en PLANES DE VISITA!\n";
                             }
                         }
                         //Al menos 1 dia de visita
@@ -497,7 +497,12 @@ public class SolicitudActivity extends AppCompatActivity {
                 return true;
             }
         });
+        ll_visitas = new LinearLayout(getBaseContext());
+        LinearLayout.LayoutParams hhlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 
+        ll_visitas.setLayoutParams(hhlp);
+        ll_visitas.setPadding(5, 10, 5, 10);
+        ll_visitas.setOrientation(LinearLayout.VERTICAL);
         new MostrarFormulario(this).execute();
 
         if(modificable) {
@@ -1092,7 +1097,6 @@ public class SolicitudActivity extends AppCompatActivity {
                                     }
                                 }
                             }
-
                         }
                         // Creando el adaptador(opciones) para el comboBox deseado
                         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, listaopciones);
@@ -1325,7 +1329,21 @@ public class SolicitudActivity extends AppCompatActivity {
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                     Spinner zona_transporte = (Spinner) mapeoCamposDinamicos.get("W_CTE-LZONE");
                                     String valor_centro_suministro = ((OpcionSpinner) combo.getSelectedItem()).getId().trim();
-                                    ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont", "vwerks='" + valor_centro_suministro + "'");
+                                    String filtroxPais = "";
+                                    switch(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad())){
+                                        case "1661":
+                                        case "Z001":
+                                            Spinner gec = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
+                                            if(gec != null)
+                                                filtroxPais = " AND kvgr3 = '"+((OpcionSpinner)gec.getSelectedItem()).getId().trim()+"'";
+                                            Spinner bzirk_sel = (Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK");
+                                            if(bzirk_sel != null)
+                                                filtroxPais += " AND bzirk = '"+((OpcionSpinner)bzirk_sel.getSelectedItem()).getId().trim()+"'";
+                                            break;
+                                        default:
+                                            filtroxPais = "";
+                                    }
+                                    ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);
                                     // Creando el adaptador(opciones) para el comboBox deseado
                                     ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                     // Drop down layout style - list view with radio button
@@ -1378,12 +1396,19 @@ public class SolicitudActivity extends AppCompatActivity {
                                     final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
                                     if (solicitudSeleccionada.size() == 0) {
                                         visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG", ""), opcion.getId());
-
+                                        int dummy = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDY");
+                                        if(dummy != -1) {
+                                            visitasSolicitud.get(dummy).setDom_a("0001");
+                                            visitasSolicitud.get(dummy).setDom_de("0001");
+                                        }
                                         tb_visitas.setDataAdapter(new VisitasTableAdapter(view.getContext(), visitasSolicitud));
                                         if (tb_visitas.getLayoutParams() != null) {
                                             tb_visitas.getLayoutParams().height = 50;
                                             tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView) * visitasSolicitud.size());
                                         }
+
+                                        //new ResetearVisitas(getContext(), getActivity());
+                                        DesplegarBloque(db,ll,campos.get(getIndexOFkey("W_CTE-VISITAS",  campos)));
                                     }
                                     if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
@@ -1642,8 +1667,21 @@ public class SolicitudActivity extends AppCompatActivity {
                                     if (nombreCampo.equals("W_CTE-VWERK")) {
                                         Spinner zona_transporte = (Spinner) mapeoCamposDinamicos.get("W_CTE-LZONE");
                                         String valor_centro_suministro = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
-                                        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont", "vwerks='" + valor_centro_suministro + "'");
-                                        // Creando el adaptador(opciones) para el comboBox deseado
+                                        String filtroxPais = "";
+                                        switch(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad())){
+                                            case "1661":
+                                            case "Z001":
+                                                Spinner gec = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
+                                                if(gec != null)
+                                                    filtroxPais = " AND kvgr3 = '"+((OpcionSpinner)gec.getSelectedItem()).getId().trim()+"'";
+                                                Spinner bzirk_sel = (Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK");
+                                                if(bzirk_sel != null)
+                                                    filtroxPais += " AND bzirk = '"+((OpcionSpinner)bzirk_sel.getSelectedItem()).getId().trim()+"'";
+                                                break;
+                                            default:
+                                                filtroxPais = "";
+                                        }
+                                        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);// Creando el adaptador(opciones) para el comboBox deseado
                                         ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                         // Drop down layout style - list view with radio button
                                         dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
@@ -1688,8 +1726,21 @@ public class SolicitudActivity extends AppCompatActivity {
                                     if (nombreCampo.equals("W_CTE-VWERK")) {
                                         Spinner zona_transporte = (Spinner) mapeoCamposDinamicos.get("W_CTE-LZONE");
                                         String valor_centro_suministro = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
-                                        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont", "vwerks='" + valor_centro_suministro + "'");
-                                        // Creando el adaptador(opciones) para el comboBox deseado
+                                        String filtroxPais = "";
+                                        switch(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad())){
+                                            case "1661":
+                                            case "Z001":
+                                                Spinner gec = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
+                                                if(gec != null)
+                                                    filtroxPais = " AND kvgr3 = '"+((OpcionSpinner)gec.getSelectedItem()).getId().trim()+"'";
+                                                Spinner bzirk_sel = (Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK");
+                                                if(bzirk_sel != null)
+                                                    filtroxPais += " AND bzirk = '"+((OpcionSpinner)bzirk_sel.getSelectedItem()).getId().trim()+"'";
+                                                break;
+                                            default:
+                                                filtroxPais = "";
+                                        }
+                                        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);// Creando el adaptador(opciones) para el comboBox deseado
                                         ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                         // Drop down layout style - list view with radio button
                                         dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
@@ -2257,9 +2308,12 @@ public class SolicitudActivity extends AppCompatActivity {
             seccion_layout.setBackground(getResources().getDrawable(R.color.colorPrimary, null));
             seccion_layout.setPadding(5, 5, 5, 5);
             seccion_layout.addView(seccion_header);
-            if(!campo.get("campo").trim().equals("W_CTE-HORARIOS"))
+            if(!campo.get("campo").trim().equals("W_CTE-HORARIOS") && !campo.get("campo").trim().equals("W_CTE-VISITAS"))
                 ll.addView(seccion_layout);
-
+            if(campo.get("campo").trim().equals("W_CTE-VISITAS")) {
+                ll_visitas.removeAllViews();
+                ll_visitas.addView(seccion_layout);
+            }
             RelativeLayout rl = new RelativeLayout(getContext());
             CoordinatorLayout.LayoutParams rlp = new CoordinatorLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
             rl.setLayoutParams(rlp);
@@ -2522,8 +2576,8 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     tb_visitas.setHeaderAdapter(sta);
                     tb_visitas.setDataRowBackgroundProvider(TableDataRowBackgroundProviders.alternatingRowColors(colorEvenRows, colorOddRows));
-                    rl.addView(tb_visitas);
-                    ll.addView(rl);
+                    //rl.addView(tb_visitas);
+                    ll_visitas.addView(tb_visitas);
                     //Textos de dias de visita
                     //Desplegar textos para las secuencias de los dias de visita de la preventa.
                     //TODO Generar segun la Modalidad de venta seleccionada para usuarios tipo jefe de ventas y no preventas
@@ -2533,23 +2587,17 @@ public class SolicitudActivity extends AppCompatActivity {
                     String modalidad = "";
                     String tipoVisita = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "ZPV").toString();//"ZPV";
                     modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
-                    /*if(comboModalidad.getSelectedItem() != null) {
-                        modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
-                        if(modalidad.equals("GV")) {
-                            tipoVisita = "ZAT";
-                        }
-                        if(modalidad.equals("TA")) {
-                            tipoVisita = "ZTV";
-                        }
-                    }*/
+
                     int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
                     int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZJV");
                     int indiceKafe = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZKV");
                     int indiceTeleventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZTV");
+                    int indiceAutoventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZAT");
                     int indiceMixta = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZRM");
+                    int indiceDummy = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDY");
                     //int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDD");
-                    int totalvp_preventa = 1;
-                    if(indicePreventa != -1 && !tipoVisita.equals("ZAT")){
+                    int totalvp_preventa = visitasSolicitud.size();
+                    /*if(indicePreventa != -1 && !tipoVisita.equals("ZAT")){
                         totalvp_preventa++;
                     }
                     if(indiceEspecializada != -1){
@@ -2558,11 +2606,17 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(indiceTeleventa != -1){
                         totalvp_preventa++;
                     }
+                    if(indiceAutoventa != -1){
+                        totalvp_preventa++;
+                    }
                     if(indiceMixta != -1){
                         totalvp_preventa++;
                     }
+                    if(indiceDummy != -1){
+                        totalvp_preventa++;
+                    }*/
                     if(visitasSolicitud.size() == 0){
-                        totalvp_preventa = 4;
+                        totalvp_preventa = 7;
                     }
                     String tipoVisitaActual = tipoVisita;
 
@@ -2581,6 +2635,12 @@ public class SolicitudActivity extends AppCompatActivity {
                                 tipoVisitaActual = "ZRM";
                             }
                             if (i == 4) {
+                                tipoVisitaActual = "ZDY";
+                            }
+                            if (i == 5) {
+                                tipoVisitaActual = "ZAT";
+                            }
+                            if (i == 6) {
                                 tipoVisitaActual = "ZKV";
                             }
                         } else {
@@ -2589,7 +2649,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 continue;
                             }
                         }
-                        if(mDBHelper.ExisteTipoVisita(tipoVisitaActual)) {
+                        if(mDBHelper.ExisteTipoVisita(tipoVisitaActual) && mDBHelper.ExisteEnVisitPlanActual(modalidad, tipoVisitaActual) ) {
                             CardView seccion_visitas = new CardView(Objects.requireNonNull(getContext()));
                             mapeoVisitas.put(tipoVisitaActual, seccion_visitas);
 
@@ -2608,7 +2668,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             seccion_visitas.setPadding(5, 5, 5, 5);
 
                             seccion_visitas.addView(header_visitas);
-                            ll.addView(seccion_visitas);
+                            ll_visitas.addView(seccion_visitas);
 
                             TableLayout v_ll = new TableLayout(getContext());
                             LinearLayout.LayoutParams hlpll = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -2617,8 +2677,11 @@ public class SolicitudActivity extends AppCompatActivity {
                             TableRow tr = new TableRow(getContext());
                             tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 6f));
                             tr.setPadding(0, 0, 0, 0);
-
-                            for (int x = 0; x < 6; x++) {
+                            /*for (int x = 0; x <= 6; x++) {
+                                ((TextInputEditText)mapeoCamposDinamicos.get(tipoVisitaActual + "_" + diaLabel[x])).setNextFocusForwardId(((TextInputEditText)mapeoCamposDinamicos.get(tipoVisitaActual + "_" + diaLabel[x+1])).getId());
+                            }*/
+                            TextInputEditText et_anterior = null;
+                            for (int x = 0; x <= 6; x++) {
                                 TextInputLayout label = new TextInputLayout(getContext());
                                 label.setHint("" + diaLabelVisible[x]);
                                 label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
@@ -2632,6 +2695,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 et.setTag(tipoVisitaActual + "_" + diaLabel[x]);
                                 et.setMaxLines(1);
                                 et.setTextSize(16);
+                                et.setId(Integer.parseInt("1000"+i+x));
 
                                 et.setInputType(InputType.TYPE_CLASS_NUMBER);
                                 et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(4)});
@@ -2664,8 +2728,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                             et.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud.get(i).getDom_de()));
                                             break;
                                     }
+                                }else if(tipoVisitaActual.equals("ZDY") && x == 6){//Tipo ZDY debe llevar SOLAMENTE dia Domingo por obligacion
+                                    et.setText("1");
                                 }
-                                if (!modificable) {
+                                //Esconder el domingo si el tipo NO ES ZDY
+                                if(!tipoVisitaActual.equals("ZDY") && x == 6){
+                                    et.setVisibility(View.GONE);
+                                    label.setVisibility(View.GONE);
+                                }
+
+                                if (!modificable || tipoVisitaActual.equals("ZDY")) {
                                     et.setEnabled(false);
                                     et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
                                 }
@@ -2678,34 +2750,52 @@ public class SolicitudActivity extends AppCompatActivity {
                                     public void onFocusChange(View v, boolean hasFocus) {
                                         Spinner comboModalidad = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR5"));
                                         String modalidad = "";
-                                        //String tipoVisita = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "ZPV").toString();//"ZPV";
                                         modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
-                                /*if(comboModalidad.getSelectedItem() != null) {
-                                    modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
-                                    if(modalidad.equals("GV")) {
-                                        tipoVisita = "ZAT";
-                                    }
-                                    if(modalidad.equals("TA")) {
-                                        tipoVisita = "ZTV";
-                                    }
-                                }*/
+
                                         int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZPV");
+                                        int indiceTeleventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZTV");
                                         int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
+                                        int indiceAutoventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZAT");
                                         int indiceMixta = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZRM");
+                                        //int indiceDummy = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDY");
 
                                         final int finalIndicePreventa = indicePreventa;
+                                        final int finalIndiceTeleventa = indiceTeleventa;
                                         final int finalIndiceReparto = indiceReparto;
                                         final int finalIndiceMixta = indiceMixta;
+                                        final int finalIndiceAutoventa = indiceAutoventa;
+                                        //final int finalIndiceDummy = indiceDummy;
                                         if (!hasFocus) {
-                                            Visitas visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
                                             int diaReparto = 0;
                                             int diasParaReparto = 1;
-                                            if(visitaPreventa.getKvgr4() != null)
-                                                diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA",""));
-                                            if ((finalX + diasParaReparto) > 5) {
-                                                diaReparto = ((finalX + diasParaReparto) - 6);
-                                            } else {
-                                                diaReparto = (finalX + diasParaReparto);
+                                            Visitas visitaPreventa = null;
+                                            if(finalIndicePreventa != -1) {
+                                                visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
+                                                if (visitaPreventa.getKvgr4() != null)
+                                                    diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
+                                                if ((finalX + diasParaReparto) > 5) {
+                                                    diaReparto = ((finalX + diasParaReparto) - 6);
+                                                } else {
+                                                    diaReparto = (finalX + diasParaReparto);
+                                                }
+                                            }else if(finalIndiceTeleventa != -1) {
+                                                visitaPreventa = visitasSolicitud.get(finalIndiceTeleventa);
+                                                if (visitaPreventa.getKvgr4() != null)
+                                                    diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
+                                                if ((finalX + diasParaReparto) > 5) {
+                                                    diaReparto = ((finalX + diasParaReparto) - 6);
+                                                } else {
+                                                    diaReparto = (finalX + diasParaReparto);
+                                                }
+                                            }else if(finalIndiceAutoventa != -1) {
+                                                visitaPreventa = visitasSolicitud.get(finalIndiceAutoventa);
+                                                if (visitaPreventa.getKvgr4() != null)
+                                                    diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
+                                                if ((finalX + diasParaReparto) > 5) {
+                                                    diaReparto = ((finalX + diasParaReparto) - 6);
+                                                } else {
+                                                    diaReparto = (finalX + diasParaReparto);
+                                                }
                                             }
 
                                             Visitas visitaMixta = null;
@@ -2716,7 +2806,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             if (!modalidad.equals("GV")) {
                                                 visitaReparto = visitasSolicitud.get(finalIndiceReparto);
                                             }
-                                            if (!((TextView) v).getText().toString().equals("") && Integer.valueOf(((TextView) v).getText().toString()) > 1440) {
+                                            if (!((TextView) v).getText().toString().equals("") && Integer.valueOf(((TextView) v).getText().toString()) > 1339) {
                                                 switch (finalX) {
                                                     case 0:
                                                         visitaPreventa.setLun_a(getResources().getString(R.string.max_secuencia));
@@ -2809,7 +2899,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 }
                                                 ((TextView) v).setText(getResources().getString(R.string.max_secuencia));
                                                 if(finalIndiceMixta != -1) {
-                                                    copiarDia(et);
+                                                    copiarDia(et,finalIndiceMixta,finalIndicePreventa);
                                                 }
                                                 Toasty.warning(getContext(), R.string.error_max_secuencia).show();
                                             }
@@ -2911,7 +3001,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     }
                                                 }
                                                 if(finalIndiceMixta != -1) {
-                                                    copiarDia(et);
+                                                    copiarDia(et,finalIndiceMixta,finalIndicePreventa);
                                                 }
                                             } else {
                                                 String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView) v).getText().toString());
@@ -3006,31 +3096,53 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     }
                                                 }
                                                 if(finalIndiceMixta != -1) {
-                                                    copiarDia(et);
+                                                    copiarDia(et,finalIndiceMixta,finalIndicePreventa);
                                                 }
                                             }
 
                                         }
                                     }
 
-                                    private void copiarDia(TextInputEditText et) {
-                                        if(et.getTag().toString().contains("ZRM")){
-                                            TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get(et.getTag().toString().replace("ZRM","ZPV"));
+                                    private void copiarDia(TextInputEditText et, int finalIndPreventa, int finalIndMixta) {
+                                        if (et.getTag().toString().contains("ZRM")) {
+                                            TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get(et.getTag().toString().replace("ZRM", "ZPV"));
                                             if(copiar != null)
                                                 copiar.setText(et.getText());
+                                            if(finalIndPreventa > 0 && finalIndMixta > 0 && visitasSolicitud.size() > 0) {
+                                                String valor = visitasSolicitud.get(finalIndMixta).getValorDiaSegunIndice(finalX);
+                                                visitasSolicitud.get(finalIndPreventa).setValorDiaSegunIndice(finalX, valor);
+                                            }
                                         }
-                                        if(et.getTag().toString().contains("ZPV") && mDBHelper.ExisteTipoVisita("ZRM")){
-                                            TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get(et.getTag().toString().replace("ZPV","ZRM"));
+                                        if (et.getTag().toString().contains("ZPV") && mDBHelper.ExisteTipoVisita("ZRM")) {
+                                            TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get(et.getTag().toString().replace("ZPV", "ZRM"));
                                             if(copiar != null)
                                                 copiar.setText(et.getText());
+                                            if(finalIndPreventa > 0 && finalIndMixta > 0 && visitasSolicitud.size() > 0) {
+                                                String valor = visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(finalX);
+                                                visitasSolicitud.get(finalIndMixta).setValorDiaSegunIndice(finalX, valor);
+                                            }
                                         }
                                     }
                                 });
+                                if(et_anterior != null){
+                                    et_anterior.setNextFocusForwardId(et.getId());
+                                    et_anterior.setNextFocusRightId(et.getId());
+                                    et_anterior.setNextFocusLeftId(et.getId());
+                                    et_anterior.setNextFocusUpId(et.getId());
+                                    et_anterior.setNextFocusDownId(et.getId());
+                                }
+                                et_anterior = et;
+
                                 tr.addView(label);
                                 label.addView(et);
                             }
+
                             v_ll.addView(tr);
-                            ll.addView(v_ll);
+                            if(v_ll.getParent() != null)
+                                ((ViewGroup)v_ll.getParent()).removeView(v_ll);
+                            ll_visitas.addView(v_ll);
+                            if(ll_visitas.getParent() == null)
+                                ll.addView(ll_visitas);
                         }
                     }
                     break;
@@ -3767,7 +3879,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                Toasty.warning(context,"Seleccion el Grupo Isscom para generar la encuesta.").show();
+                Toasty.warning(context,"Seleccione el Grupo Isscom para generar la encuesta.").show();
             }
         });
 
@@ -4143,6 +4255,9 @@ public class SolicitudActivity extends AppCompatActivity {
                 Spinner gec = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
                 if(gec != null)
                     filtroxPais = " AND kvgr3 = '"+((OpcionSpinner)gec.getSelectedItem()).getId().trim()+"'";
+                Spinner bzirk_sel = (Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK");
+                if(bzirk_sel != null)
+                    filtroxPais += " AND bzirk = '"+((OpcionSpinner)bzirk_sel.getSelectedItem()).getId().trim()+"'";
                 break;
             default:
                 filtroxPais = "";
@@ -4157,7 +4272,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
         //Validar si existe ruta mixta para determinar si puede modificar o no la ruta de su VP
         if(!reparto){
-            if((seleccionado.getVptyp().equals("ZPV") && !mDBHelper.ExisteRutaMixta()) || seleccionado.getVptyp().equals("ZAT")) {
+            if((seleccionado.getVptyp().equals("ZPV") && !mDBHelper.ExisteRutaMixta()) || seleccionado.getVptyp().equals("ZAT") || (PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_TIPORUTA","").equals("ZTV") && seleccionado.getVptyp().equals("ZTV"))  ) {
                 ruta_reparto.setVisibility(View.GONE);
                 ruta_reparto_label.setVisibility(View.GONE);
             }else{
@@ -4180,6 +4295,7 @@ public class SolicitudActivity extends AppCompatActivity {
             f_finEditText.setVisibility(GONE);
         }*/
 
+        //Se quito para la inclusion para evitar que pusieran exclusiones por error, si quieren excluirlo ddeben realizar un formulario de modificacion
        // EditTextDatePicker prueba = new EditTextDatePicker(context, f_icoEditText,"yyyymmdd");
         //EditTextDatePicker prueba2 = new EditTextDatePicker(context, f_fcoEditText,"yyyymmdd");
         //EditTextDatePicker prueba3 = new EditTextDatePicker(context, f_iniEditText,"yyyymmdd");
@@ -4214,7 +4330,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
                     ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
                 }else{
-                    if(mDBHelper.ExisteTipoVisita("ZRM")){
+                    if(mDBHelper.ExisteTipoVisita("ZRM") || mDBHelper.ExisteTipoVisita("ZDY")){
                         seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
                     }else {
                         seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH", ""));
@@ -4293,7 +4409,7 @@ public class SolicitudActivity extends AppCompatActivity {
             //Si no es tipo de reparto debemos tomar en cuenta para calcular su reparto
             boolean esReparto = mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK",""), vp.getVptyp());
             //TODO cambiar el valor "PR" por el valor dinamico del comboBox de Modalidad de venta
-            if(!esReparto && !vp.getVptyp().equals("ZRM")){
+            if(!esReparto && !vp.getVptyp().equals("ZRM") && !vp.getVptyp().equals("ZDY")){
                 String rutaReparto = "";
                 if(rutaReparto.equals("ZAT")){//Autoventa no ocupa recalcular su reparto
                     return;
@@ -4340,7 +4456,7 @@ public class SolicitudActivity extends AppCompatActivity {
     }
 
     public static void asignarDiaReparto(int metodo, int diaPreventa, String secuencia, Visitas vp_reparto){
-        if(secuencia != null){
+        if(secuencia != null && secuencia.trim().length() > 0 && vp_reparto != null){
             int diaReparto;
             if ((diaPreventa+metodo) > 6) {
                 diaReparto = ((diaPreventa+metodo) - 6);
@@ -4557,53 +4673,31 @@ public class SolicitudActivity extends AppCompatActivity {
                                 }
                                 for (int c = 0; c < visitasSolicitud.size(); c++) {
                                     visitaValues.put("id_solicitud", NextId);
-                                    if (mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BZIRK", ""), visitasSolicitud.get(c).getVptyp())) {
-                                        //Tipo visita de Reparto
 
-                                        visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
-                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
-                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
-                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
-                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
-                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
-                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
-                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
-                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
-                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
-                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
-                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
-                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
-                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
-                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
-                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
-                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
-                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
-                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
-                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
-                                    } else {//Tipo Visita de Preventa
-                                        visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
-                                        visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
-                                        visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
-                                        visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
-                                        visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
-                                        visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
-                                        visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
-                                        visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
-                                        visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
-                                        visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
-                                        visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
-                                        visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
-                                        visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
-                                        visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
-                                        visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
-                                        visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
-                                        visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
-                                        visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
-                                        visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
-                                        visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
-                                        visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
-                                    }
+                                    visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
+                                    visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
+                                    visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
+                                    visitaValues.put("f_frec", visitasSolicitud.get(c).getF_frec());
+                                    visitaValues.put("lun_de", visitasSolicitud.get(c).getLun_de());
+                                    visitaValues.put("mar_de", visitasSolicitud.get(c).getMar_de());
+                                    visitaValues.put("mier_de", visitasSolicitud.get(c).getMier_de());
+                                    visitaValues.put("jue_de", visitasSolicitud.get(c).getJue_de());
+                                    visitaValues.put("vie_de", visitasSolicitud.get(c).getVie_de());
+                                    visitaValues.put("sab_de", visitasSolicitud.get(c).getSab_de());
+                                    visitaValues.put("dom_de", visitasSolicitud.get(c).getDom_de());
+                                    visitaValues.put("lun_a", visitasSolicitud.get(c).getLun_a());
+                                    visitaValues.put("mar_a", visitasSolicitud.get(c).getMar_a());
+                                    visitaValues.put("mier_a", visitasSolicitud.get(c).getMier_a());
+                                    visitaValues.put("jue_a", visitasSolicitud.get(c).getJue_a());
+                                    visitaValues.put("vie_a", visitasSolicitud.get(c).getVie_a());
+                                    visitaValues.put("sab_a", visitasSolicitud.get(c).getSab_a());
+                                    visitaValues.put("dom_a", visitasSolicitud.get(c).getDom_a());
+                                    visitaValues.put("f_ico", visitasSolicitud.get(c).getF_ico());
+                                    visitaValues.put("f_fco", visitasSolicitud.get(c).getF_fco());
+                                    visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
+                                    visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
+                                    visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
+
                                     mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
                                     visitaValues.clear();
                                 }
@@ -5360,7 +5454,19 @@ public class SolicitudActivity extends AppCompatActivity {
         }
         return -1; // Not found.
     }
+    public static int getIndexOFkey(String key, ArrayList<HashMap<String,String>> listMap) {
 
+        int i = 0;
+        for (i=0; i<listMap.size(); i++)
+        {
+            if(listMap.get(i).get("campo").equalsIgnoreCase(key))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch(keyCode){

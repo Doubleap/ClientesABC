@@ -165,6 +165,13 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
+        if(!VariablesGlobales.UsarAPI()){
+            File externalStorage = Environment.getExternalStorageDirectory();
+            String externalStoragePath = externalStorage.getAbsolutePath();
+            File file = new File(externalStoragePath + File.separator + getPackageName() + File.separator +"configuracion.xml");
+            if(file.exists())
+                file.delete();
+        }
 
         File externalStorage = Environment.getExternalStorageDirectory();
         String externalStoragePath = externalStorage.getAbsolutePath();
@@ -189,18 +196,35 @@ public class LoginActivity extends AppCompatActivity {
             NodeList nl = docEle.getChildNodes();
             NodeList conexiones = document.getElementsByTagName("conexiones");
             //Seccion datos de conexion guardados o defectos
-            for (int i = 0; i < conexiones.getLength(); i++) {
+            for (int i = 0; i < nl.getLength(); i++) {
                 if (nl.item(i).getNodeType() == Node.ELEMENT_NODE) {
                     Element el = (Element) nl.item(i);
                     if (el.getNodeName().equals("sistema")) {
                         //Seccion datos de sistema
-                        String nombrePais = el.getElementsByTagName("nombrePais").item(0).getTextContent();
-                        String sociedad = el.getElementsByTagName("sociedad").item(0).getTextContent();
-                        String orgvta = el.getElementsByTagName("orgvta").item(0).getTextContent();
-                        String land1 = el.getElementsByTagName("land1").item(0).getTextContent();
-                        String cadenaRM = el.getElementsByTagName("cadenaRM").item(0).getTextContent();
-                        String ktokd = el.getElementsByTagName("ktokd").item(0).getTextContent();
-                        String urlapi = el.getElementsByTagName("urlApi").item(0).getTextContent();
+                        String urlapi = "";
+                        String nombrePais = "";
+                        String sociedad = "";
+                        String orgvta = "";
+                        String land1 = "";
+                        String cadenaRM = "";
+                        String ktokd = "";
+
+                        if(el.getElementsByTagName("nombrePais").item(0) != null)
+                            nombrePais = el.getElementsByTagName("nombrePais").item(0).getTextContent();
+                        if(el.getElementsByTagName("sociedad").item(0) != null)
+                            sociedad = el.getElementsByTagName("sociedad").item(0).getTextContent();
+                        if(el.getElementsByTagName("orgvta").item(0) != null)
+                            orgvta = el.getElementsByTagName("orgvta").item(0).getTextContent();
+                        if(el.getElementsByTagName("land1").item(0) != null)
+                            land1 = el.getElementsByTagName("land1").item(0).getTextContent();
+                        if(el.getElementsByTagName("cadenaRM").item(0) != null)
+                            cadenaRM = el.getElementsByTagName("cadenaRM").item(0).getTextContent();
+                        if(el.getElementsByTagName("ktokd").item(0) != null)
+                            ktokd = el.getElementsByTagName("ktokd").item(0).getTextContent();
+                        if(el.getElementsByTagName("urlApi").item(0) != null)
+                            urlapi = el.getElementsByTagName("urlApi").item(0).getTextContent();
+                        else
+                            urlapi = VariablesGlobales.getUrlApi();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("W_CTE_BUKRS", sociedad).apply();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("W_CTE_ORGVTA", orgvta).apply();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("W_CTE_LAND1", land1).apply();
@@ -217,19 +241,34 @@ public class LoginActivity extends AppCompatActivity {
                     }
                     if (el.getNodeName().equals("login")) {
                         //Seccion datos de login
-                        String usr = document.getElementsByTagName("user").item(0).getTextContent();
-                        String pwd = document.getElementsByTagName("password").item(0).getTextContent();
-                        String guardar_contrasena = document.getElementsByTagName("guardar_contrasena").item(0).getTextContent();
+                        String usr = "";
+                        String pwd = "";
+                        String guardar_contrasena = "";
+                        if(el.getElementsByTagName("user").item(0) != null)
+                            usr = el.getElementsByTagName("user").item(0).getTextContent();
+                        if(el.getElementsByTagName("password").item(0) != null)
+                            pwd = el.getElementsByTagName("password").item(0).getTextContent();
+                        if(el.getElementsByTagName("guardar_contrasena").item(0) != null)
+                            guardar_contrasena = el.getElementsByTagName("guardar_contrasena").item(0).getTextContent();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", usr).apply();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("password", pwd).apply();
                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("guarda_contrasena", guardar_contrasena).apply();
                     }
                     if (el.getNodeName().equals("conexion")) {
-                        String nombre = document.getElementsByTagName("nombre").item(i).getTextContent();
-                        String tipo_conexion = document.getElementsByTagName("tipo_conexion").item(i).getTextContent();
-                        String Ip = document.getElementsByTagName("Ip").item(i).getTextContent();
-                        String Puerto = document.getElementsByTagName("Puerto").item(i).getTextContent();
-                        boolean defecto = el.getAttribute("defecto").equals("true")?true:false;
+                        String nombre = "";
+                        String tipo_conexion = "";
+                        String Ip = "";
+                        String Puerto = "";
+
+                        if(el.getElementsByTagName("nombre").item(0) != null)
+                            nombre = el.getElementsByTagName("nombre").item(0).getTextContent();
+                        if(el.getElementsByTagName("tipo_conexion").item(0) != null)
+                            tipo_conexion = el.getElementsByTagName("tipo_conexion").item(0).getTextContent();
+                        if(el.getElementsByTagName("Ip").item(0) != null)
+                            Ip = el.getElementsByTagName("Ip").item(0).getTextContent();
+                        if(el.getElementsByTagName("Puerto").item(0) != null)
+                            Puerto = document.getElementsByTagName("Puerto").item(0).getTextContent();
+                        boolean defecto = (el.getAttribute("defecto") != null && el.getAttribute("defecto").equals("true"))?true:false;
                         Conexion con = new Conexion();
                         con.setTipo(tipo_conexion);
                         con.setIp(Ip);
@@ -318,6 +357,9 @@ public class LoginActivity extends AppCompatActivity {
                                 if(name.equals("nombrePais")){
                                     nombre = text;
                                     PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("CONFIG_PAIS", text).apply();
+                                }
+                                if(name.equals("nombre")){
+                                    nombreCon = text;
                                 }
                                 if(name.equals("tipo_conexion")){
                                     tipo_conexion = text;
@@ -409,6 +451,12 @@ public class LoginActivity extends AppCompatActivity {
                         startActivity(intent);*/
                         break;
                     case R.id.comunicacion:
+                        if(VariablesGlobales.UsarAPI()){
+                            String id_usuarioMC = VariablesGlobales.UsuarioHH2UsuarioMC(LoginActivity.this, mUserView.getText().toString());
+                            PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", mUserView.getText().toString()).apply();
+                            PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("userMC", id_usuarioMC).apply();
+                            PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("password", mPasswordView.getText().toString()).apply();
+                        }
                         Bundle b = new Bundle();
                         //TODO seleccionar el tipo de solicitud por el UI
                         b.putBoolean("deshabilitarTransmision", true); //id de solicitud
@@ -442,8 +490,6 @@ public class LoginActivity extends AppCompatActivity {
                             ActualizacionAPI a = new ActualizacionAPI(weakRefs, weakRefAs);
                             if (PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                 a.EnableWiFi();
-                            } else {
-                                a.DisableWiFi();
                             }
                             a.execute();
                         } else {

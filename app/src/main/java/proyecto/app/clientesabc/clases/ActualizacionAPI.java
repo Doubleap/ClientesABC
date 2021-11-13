@@ -136,7 +136,7 @@ public class ActualizacionAPI extends AsyncTask<Void,String,Void> {
                             //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                             Date buildDate = BuildConfig.BuildDate;
                             if (unzip) {
-                                CrearArchivoConfiguracion(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
+                                //CrearArchivoConfiguracion(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
                                 if (buildDate.after(lastModDate)) {
                                     activity.get().runOnUiThread(new Runnable() {
                                         public void run() {

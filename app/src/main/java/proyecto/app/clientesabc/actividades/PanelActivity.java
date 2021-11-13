@@ -138,8 +138,6 @@ public class PanelActivity extends AppCompatActivity {
                             SincronizacionAPI s = new SincronizacionAPI(weakRefs, weakRefAs);
                             if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                 s.EnableWiFi();
-                            } else {
-                                s.DisableWiFi();
                             }
                             s.execute();
                         } else {
@@ -163,8 +161,6 @@ public class PanelActivity extends AppCompatActivity {
                             TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "", "");
                             if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                 f.EnableWiFi();
-                            } else {
-                                f.DisableWiFi();
                             }
                             f.execute();
                         } else {

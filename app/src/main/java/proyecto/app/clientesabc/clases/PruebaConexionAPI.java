@@ -55,7 +55,7 @@ public class PruebaConexionAPI extends AsyncTask<Void,Void,Void> {
     protected Void doInBackground(Void... voids) {
         //Solo enviamos los datos necesarios para que la sincronizacion sepa que traer
         System.out.println("Estableciendo comunicación");
-        String mensaje = "";//VariablesGlobales.validarConexionDePreferencia(context.get());
+        String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
         if(mensaje.equals("")) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             String version = "";

@@ -289,6 +289,68 @@ public class Visitas implements Cloneable{
         this.fcalid = fcalid;
     }
 
+    public String getValorDiaSegunIndice(int columnIndex){
+        String valorCelda = "";
+        switch(columnIndex){
+            case 0:
+                valorCelda = getLun_de();
+                break;
+            case 1:
+                valorCelda = getMar_de();
+                break;
+            case 2:
+                valorCelda = getMier_de();
+                break;
+            case 3:
+                valorCelda = getJue_de();
+                break;
+            case 4:
+                valorCelda = getVie_de();
+                break;
+            case 5:
+                valorCelda = getSab_de();
+                break;
+            case 6:
+                valorCelda = getDom_de();
+                break;
+        }
+        return valorCelda;
+    }
+
+    public void setValorDiaSegunIndice(int columnIndex, String valor){
+        String valorCelda = "";
+        switch(columnIndex){
+            case 0:
+                setLun_de(valor);
+                setLun_a(valor);
+                break;
+            case 1:
+                setMar_de(valor);
+                setMar_a(valor);
+                break;
+            case 2:
+                setMier_de(valor);
+                setMier_a(valor);
+                break;
+            case 3:
+                setJue_de(valor);
+                setJue_a(valor);
+                break;
+            case 4:
+                setVie_de(valor);
+                setVie_a(valor);
+                break;
+            case 5:
+                setSab_de(valor);
+                setSab_a(valor);
+                break;
+            case 6:
+                setDom_de(valor);
+                setDom_a(valor);
+                break;
+        }
+    }
+
     public String getValueFromColumn(int columnIndex){
         String valorCelda = "";
         switch(columnIndex){

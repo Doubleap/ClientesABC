@@ -21,21 +21,21 @@ import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
-    private static boolean usarAPI = true;
+    private static boolean usarAPI = false;
     public static boolean UsarAPI() {
         return usarAPI;
     }
 
     //private static String urlApi = "http://kofcrofcdesa02:90/MaestroClientes/";//Ambiente calidad CAM
     //private static String urlApi = "http://10.0.2.2:51123/";//Local host
-    private static String urlApi = "http://10.153.58.132/";//Servidor produccion, pero ambiente calidad en VM uruguay
-    //private static String urlApi = "http://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API
-    private static String nombrePais = "Uruguay";
-    private static String sociedad = "1661";
-    private static String orgvta = "0661";
-    private static String land1 = "UY";
-    private static String cadenaRM = "0000240000";
-    private static String ktokd = "UYDE";
+    //private static String urlApi = "http://10.153.58.132/";//Servidor produccion, pero ambiente calidad en VM uruguay
+    private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API
+    private static String nombrePais = "Nicaragua";
+    private static String sociedad = "F445";
+    private static String orgvta = "0445";
+    private static String land1 = "NI";
+    private static String cadenaRM = "0000180000";
+    private static String ktokd = "NCMA";
 
     /*
     private static String nombrePais = "Costa Rica";
@@ -219,6 +219,10 @@ public class VariablesGlobales extends Application {
                 Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto", "").trim());
             } catch (Exception e) {
                 return "El puerto '" + PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto", "").trim() + "' es inválido. Revise los datos de comunicación.";
+            }
+        }else{
+            if(PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("")){
+                return "Por favor cargue los datos de la sociedad en la opcion 'Configuracion General' del menu principal.";
             }
         }
 

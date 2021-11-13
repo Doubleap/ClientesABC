@@ -13,6 +13,8 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
+
+import android.text.InputFilter;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -35,6 +37,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.OptionalDataException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -130,6 +133,13 @@ public class TCPActivity extends AppCompatActivity
         puerto_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("Puerto",""));
         ruta_text = findViewById(R.id.txtRuta);
         ruta_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("W_CTE_RUTAHH",""));
+        InputFilter[]  editFilters = ruta_text.getFilters();
+        InputFilter[] newFilters = new InputFilter[editFilters.length + 1];
+        System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
+        newFilters[editFilters.length] = new InputFilter.AllCaps();
+        ruta_text.setFilters(newFilters);
+        ruta_text.setAllCaps(true);
+
         tv_conexiones = findViewById(R.id.tv_conexiones);
         tv_conexiones.setColumnCount(4);
         tv_conexiones.setHeaderBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
@@ -181,21 +191,9 @@ public class TCPActivity extends AppCompatActivity
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
                     if (VariablesGlobales.UsarAPI()) {
-                        /*WeakReference<Context> weakRefs1 = new WeakReference<Context>(TCPActivity.this);
-                        WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(TCPActivity.this);
-                        ObtenerAutenticacionTokenAPI o = new ObtenerAutenticacionTokenAPI(weakRefs1, weakRefAs1, "Sociedad", PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("user", ""), PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("password", ""));
-                        try {
-                            o.execute().get();
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }*/
                         PruebaConexionAPI f = new PruebaConexionAPI(weakRef, weakRefA);
                         if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                             EnableWiFi();
-                        }else{
-                            DisableWiFi();
                         }
                         f.execute();
                     } else {
@@ -238,8 +236,6 @@ public class TCPActivity extends AppCompatActivity
                                 SincronizacionAPI s = new SincronizacionAPI(weakRef, weakRefA);
                                 if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                                     EnableWiFi();
-                                }else{
-                                    DisableWiFi();
                                 }
                                 s.execute();
                             } else {
@@ -267,8 +263,6 @@ public class TCPActivity extends AppCompatActivity
                                 TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, filePath, wholePath,"");
                                 if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                                     EnableWiFi();
-                                }else{
-                                    DisableWiFi();
                                 }
                                 f.execute();
                             } else {

@@ -358,8 +358,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 ConsultaClienteAPI c = new ConsultaClienteAPI(weakRefs1, weakRefAs1, codigoCliente);
                 if(PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion","").equals("wifi")){
                     c.EnableWiFi();
-                }else{
-                    c.DisableWiFi();
                 }
                 c.execute();
             } else {
@@ -374,10 +372,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
 
         }
-        //cliente = c.execute().get();
 
         if(!modificable) {
-            //bottomNavigation.setVisibility(INVISIBLE);
             LinearLayout ll = findViewById(R.id.LinearLayoutMain);
             DrawerLayout.LayoutParams h = new DrawerLayout.LayoutParams(MATCH_PARENT,MATCH_PARENT);
 
@@ -387,11 +383,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             bottomNavigation.animate().translationY(150);
         }
 
-        //View title = getWindow().findViewById(android.R.id.title);
-        //View titleBar = (View) title.getParent();
-        //titleBar.setBackground(gd);
         Drawable d=getResources().getDrawable(R.drawable.botella_coca_header_der,null);
-        //Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 0);
             //return;

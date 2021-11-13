@@ -1219,11 +1219,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             if(filtro.length() > 0)
                 filtros.append(" AND ").append(filtro);
         }
-
         if(tabla.equals("cat_tzont")){
-            selectQuery = "SELECT * " +
+            selectQuery = "SELECT DISTINCT a.* " +
                     " FROM " + tabla +" a INNER JOIN" +
-                    " EX_T_RUTAS_VP AS b ON (trim(a.zone1) = trim(b.zroute_rep) OR trim(a.zone1) = trim(b.zroute_pr))";
+                    " EX_T_RUTAS_VP AS b ON (trim(a.zone1) = trim(b.zroute_rep) OR trim(a.zone1) = trim(b.zroute_pr)) WHERE trim(zone1) != '' ";
         }
         //Cadena = cat_zesdvt_00561, Keyaccount = cat_ztmdcmc_00038t
         if(tabla.equals("cat_zesdvt_00561") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001")){
@@ -1290,6 +1289,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             seleccione.put("id","");
             seleccione.put("descripcion","Seleccione...");
             listaCatalogo.add(seleccione);
+            Toasty.error(mContext,"No se pudo extraer los datos de Catalogo "+tabla+". "+e.getMessage());
         }
         return listaCatalogo;
     }
@@ -1313,7 +1313,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             filtros.append(" AND ").append(filtro);
         }
         if(tabla.equals("cat_tzont")){
-            selectQuery = "SELECT DISTINCT * " +
+            selectQuery = "SELECT DISTINCT a.* " +
                     " FROM " + tabla +" a INNER JOIN" +
                     " EX_T_RUTAS_VP AS b ON (trim(a.zone1) = trim(b.zroute_rep) OR trim(a.zone1) = trim(b.zroute_pr)) WHERE trim(zone1) != '' ";
         }
@@ -1380,47 +1380,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             e.getMessage();
             e.printStackTrace();
             listaopciones.add(new OpcionSpinner("","Seleccione*..."));
-        }
-        return listaopciones;
-    }
-
-    public ArrayList<OpcionSpinner> getEstadosCatalogoParaSpinner(){
-        ArrayList<HashMap<String, String>> listaCatalogo = new ArrayList<>();
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        // Select All Query
-        try {
-            //SQLiteDatabase db = this.getReadableDatabase();
-            Cursor cursor = mDataBase.rawQuery("Select estado as id, estado as descripcion from formHvKof_solicitud group by estado", null);//selectQuery,selectedArguments
-            HashMap<String,String> seleccione = new HashMap<>();
-            seleccione.put("id","");
-            seleccione.put("descripcion","Seleccione...");
-            listaCatalogo.add(seleccione);
-            // looping through all rows and adding to list
-            if (cursor.moveToFirst()) {
-                do {
-                    HashMap<String,String> lista = new HashMap<>();
-                    lista.put("id",cursor.getString(0).trim());//1era columna del query
-                    lista.put("descripcion",cursor.getString(1).trim());//1era y 2da columna del query
-                    listaCatalogo.add(lista);
-                } while (cursor.moveToNext());
-            }
-            // closing connection
-            cursor.close();
-
-            int selectedIndex = 0;
-            for (int j = 0; j < listaCatalogo.size(); j++){
-                listaopciones.add(new OpcionSpinner(listaCatalogo.get(j).get("id"), listaCatalogo.get(j).get("descripcion")) );
-            }
-
-            //db.close();
-            // returning lables
-        }catch (Exception e){
-            e.getMessage();
-            e.printStackTrace();
-            HashMap<String,String> seleccione = new HashMap<>();
-            seleccione.put("id","");
-            seleccione.put("descripcion","Seleccione...");
-            listaCatalogo.add(seleccione);
         }
         return listaopciones;
     }
@@ -1650,7 +1609,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     public boolean validarRutaSincronizada(String vkorg, String rutaSincronizada){
-        String selectQuery = "SELECT count(*) FROM ex_t_rutas_vp WHERE vkorg = '" + vkorg +"' AND zroute_pr = '" + rutaSincronizada +"'";
+        String selectQuery = "SELECT count(*) FROM EX_T_RUTAS_VP WHERE vkorg = '" + vkorg +"' AND zroute_pr = '" + rutaSincronizada +"'";
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
             Cursor cursor = mDataBase.rawQuery(selectQuery, null);//selectQuery,selectedArguments
@@ -1687,13 +1646,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             ret = true;
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KTOKD", PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_GRUPOCUENTAS", VariablesGlobales.getKtokd()) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKORG", cursor.getString(cursor.getColumnIndex("vkorg")) ).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BUKRS", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg")) )).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg")) )).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BUKRS", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg"))) ).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg"))) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KDGRP", cursor.getString(cursor.getColumnIndex("kdgrp")) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KVGR3", cursor.getString(cursor.getColumnIndex("kvgr3")) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BZIRK", cursor.getString(cursor.getColumnIndex("bzirk")) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKBUR", cursor.getString(cursor.getColumnIndex("vkbur")) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKGRP", cursor.getString(cursor.getColumnIndex("vkgrp")) ).apply();
+
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_SOCIEDAD", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg"))) ).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_ORGVENTAS", cursor.getString(cursor.getColumnIndex("vkorg")) ).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg"))) ).apply();
+
             if(!cursor.getString(cursor.getColumnIndex("vwerks")).isEmpty()){
                 PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VWERK", cursor.getString(cursor.getColumnIndex("vwerks")) ).apply();
             }
@@ -2289,9 +2253,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(modalidad.equals("GV")){
             metodo = "0DA";
         }
-        String query = "select vpore as vptyp, '' as descripcion, '"+metodo+"' as kvgr4, '' as ruta,'' as fec_frec, '" + fechaSistema + "' as f_ico, '99991231' as f_fco, '' as f_ini, '' as f_fin, '1' as fcalid FROM cat_ztsdvto_00185_x WHERE zopcional != 'X' and vkorg = '" + vkorg.trim() + "' and kvgr5 = '" + modalidad + "'";
+        String query = "select vpore as vptyp, '' as descripcion, '"+metodo+"' as kvgr4, '' as ruta,'' as fec_frec, '" + fechaSistema + "' as f_ico, '99991231' as f_fco, '' as f_ini, '' as f_fin, '01' as fcalid FROM cat_ztsdvto_00185_x WHERE zopcional != 'X' and vkorg = '" + vkorg.trim() + "' and kvgr5 = '" + modalidad + "'";
         Cursor cursor = mDataBase.rawQuery(query,null);
-
+        int count = 0;
         while (cursor.moveToNext()){
             Visitas visita = new Visitas();
             visita.setVptyp(cursor.getString(cursor.getColumnIndex("vptyp")) );
@@ -2301,11 +2265,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 //Validar que el tipo de visita ZPV no viene en ruta mixta
                 String queryI = "select * FROM EX_T_RUTAS_VP WHERE vptyp = 'ZRM' and vkorg = '" + vkorg.trim() + "'";
                 Cursor cursorI = mDataBase.rawQuery(queryI,null);
-                int count = cursorI.getCount();
+                count = cursorI.getCount();
                 if(count > 0 && visita.getVptyp().equals("ZRM")){
                     cursorI.moveToFirst();
                     visita.setRuta(cursorI.getString(cursorI.getColumnIndex("zroute_pr")) );
-                }else if(count == 0){
+                }else if(count == 0 && !cursor.getString(cursor.getColumnIndex("vptyp")).equals("ZDY")){
                     visita.setRuta(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH", ""));
                 }else{
                     visita.setRuta(cursor.getString(cursor.getColumnIndex("ruta")) );
@@ -2318,7 +2282,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             visita.setF_fin(cursor.getString(cursor.getColumnIndex("f_fin")) );
             visita.setFcalid(cursor.getString(cursor.getColumnIndex("fcalid")) );
 
-            visitasList.add(visita);
+            if( !(count == 0 && visita.getVptyp().equals("ZRM") && PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA", "").equals("ZPV")) ) {
+                visitasList.add(visita);
+            }
         }
         cursor.close();
         return  visitasList;
@@ -2354,6 +2320,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public boolean ExisteTipoVisita(String tipoVisita)
     {
         String query = "select * FROM EX_T_RUTAS_VP WHERE vptyp = '"+tipoVisita+"' and vkorg = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG", "").trim() + "'";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        int count = cursor.getCount();
+        boolean retorno = false;
+        if (count > 0){
+            retorno = true;
+        }
+        cursor.close();
+        return retorno;
+    }
+    public boolean ExisteEnVisitPlanActual(String modalidad,String tipoVisita)
+    {
+        String query = "SELECT id FROM cat_ztsdvto_00185_x where vkorg = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG", "").trim()+"' and kvgr5 = '"+modalidad+"' and vpore = '"+tipoVisita+"'";
         Cursor cursor = mDataBase.rawQuery(query,null);
         int count = cursor.getCount();
         boolean retorno = false;

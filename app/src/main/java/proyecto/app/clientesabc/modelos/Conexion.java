@@ -92,8 +92,10 @@ public class Conexion {
         if (conexion == this) return true;
         if (!(conexion instanceof Conexion))return false;
         Conexion otherConexion = (Conexion)conexion;
-        if(this.getTipo().equals(otherConexion.getTipo())  && this.getNombre().equals(otherConexion.getNombre())
-                && this.getIp().equals(otherConexion.getIp()) && this.getPuerto().equals(otherConexion.getPuerto())){
+        if((this.getTipo() != null && this.getTipo().equals(otherConexion.getTipo()) || (this.getTipo() == null && otherConexion.getTipo() == null))
+                && (this.getNombre() != null && this.getNombre().equals(otherConexion.getNombre()) || (this.getNombre() == null && otherConexion.getNombre() == null))
+                && (this.getIp() != null && this.getIp().equals(otherConexion.getIp())  || (this.getIp() == null && otherConexion.getIp() == null))
+                && (this.getPuerto() != null && this.getPuerto().equals(otherConexion.getPuerto()) || (this.getPuerto() == null && otherConexion.getPuerto() == null)) ){
             return true;
         }
         return false;

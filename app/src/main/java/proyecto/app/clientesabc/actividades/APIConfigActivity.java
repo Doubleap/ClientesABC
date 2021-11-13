@@ -153,8 +153,6 @@ public class APIConfigActivity extends AppCompatActivity
                         PruebaConexionAPI f = new PruebaConexionAPI(weakRef, weakRefA);
                         if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                             EnableWiFi();
-                        }else{
-                            DisableWiFi();
                         }
                         f.execute();
                     } else {
@@ -196,8 +194,6 @@ public class APIConfigActivity extends AppCompatActivity
                                 SincronizacionAPI s = new SincronizacionAPI(weakRef, weakRefA);
                                 if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                                     EnableWiFi();
-                                }else{
-                                    DisableWiFi();
                                 }
                                 s.execute();
                             } else {
@@ -224,8 +220,6 @@ public class APIConfigActivity extends AppCompatActivity
                                 TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, filePath, wholePath,"");
                                 if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                                     EnableWiFi();
-                                }else{
-                                    DisableWiFi();
                                 }
                                 f.execute();
                             } else {

@@ -21,7 +21,7 @@ import retrofit2.http.Query;
 import retrofit2.http.Streaming;
 public interface InterfaceApi {
 
-    String ftp = "/ftp";//vacio para api sin servidor FTP
+    String ftp = "/ftp";//vacio para api sin servidor FTP o '/ftp' para uso de servidor de FTP por app service azure
     @Streaming
     @FormUrlEncoded
     @POST("Token")

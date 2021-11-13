@@ -2449,8 +2449,6 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
             AdjuntoAPI s = new AdjuntoAPI(weakRefs, weakRefAs, adjunto_img, adjunto_txt, d);
             if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
                 s.EnableWiFi();
-            }else{
-                s.DisableWiFi();
             }
             s.execute();
         } else {
@@ -2598,7 +2596,21 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
 
         Spinner centro_suministro = (Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK");
         String valor_centro_suministro = ((OpcionSpinner)centro_suministro.getSelectedItem()).getId().trim();
-        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'");
+        String filtroxPais = "";
+        switch(PreferenceManager.getDefaultSharedPreferences(ConsultaClienteTotalActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad())){
+            case "1661":
+            case "Z001":
+                Spinner gec = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
+                if(gec != null)
+                    filtroxPais = " AND kvgr3 = '"+((OpcionSpinner)gec.getSelectedItem()).getId().trim()+"'";
+                Spinner bzirk_sel = (Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK");
+                if(bzirk_sel != null)
+                    filtroxPais += " AND bzirk = '"+((OpcionSpinner)bzirk_sel.getSelectedItem()).getId().trim()+"'";
+                break;
+            default:
+                filtroxPais = "";
+        }
+        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(Objects.requireNonNull(context), R.layout.simple_spinner_item, rutas_reparto);
         // Drop down layout style - list view with radio button

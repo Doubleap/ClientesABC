@@ -137,12 +137,10 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
                         boolean unzip = FileHelper.unzip(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "ClientesABC", externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
                         final File file = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "ClientesABC.apk");
 
-                        Date lastModDate = new Date(file.lastModified());
-                        //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                        Date buildDate = proyecto.app.clientesabc.BuildConfig.BuildDate;
-
-                        if (unzip) {
-                            CrearArchivoConfiguracion(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
+                        if (unzip && file != null) {
+                            Date lastModDate = new Date(file.lastModified());
+                            //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                            Date buildDate = proyecto.app.clientesabc.BuildConfig.BuildDate;
                             if (buildDate.after(lastModDate)) {
                                 activity.get().runOnUiThread(new Runnable() {
                                     public void run() {
@@ -183,6 +181,10 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
             }
             publishProgress("Proceso Terminado...");
         } catch (IOException e) {
+            xceptionFlag = true;
+            messageFlag = e.getMessage();
+            e.printStackTrace();
+        }catch (Exception e) {
             xceptionFlag = true;
             messageFlag = e.getMessage();
             e.printStackTrace();
@@ -243,6 +245,10 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
         }
         if(xceptionFlag){
             Toasty.error(context.get(),"No se pudo actualizar: "+messageFlag,Toast.LENGTH_LONG).show();
+        }else{
+            File externalStorage = Environment.getExternalStorageDirectory();
+            String externalStoragePath = externalStorage.getAbsolutePath();
+            CrearArchivoConfiguracion(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
         }
     }
     public void EnableWiFi(){
@@ -316,7 +322,11 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
         Element sistema = doc.createElement("sistema");
         rootElement.appendChild(sistema);
 
-        Element bukrs = doc.createElement("bukrs");
+        Element nombrePais = doc.createElement("nombrePais");
+        nombrePais.appendChild(doc.createTextNode(VariablesGlobales.getNombrePais()));
+        sistema.appendChild(nombrePais);
+
+        Element bukrs = doc.createElement("sociedad");
         bukrs.appendChild(doc.createTextNode(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_BUKRS","")));
         sistema.appendChild(bukrs);
 
@@ -329,7 +339,7 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
         sistema.appendChild(land1);
 
         Element cadenaRM = doc.createElement("cadenaRM");
-        cadenaRM.appendChild(doc.createTextNode(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_CADENARM","")));
+        cadenaRM.appendChild(doc.createTextNode(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_CADENARM", VariablesGlobales.getCadenaRM())));
         sistema.appendChild(cadenaRM);
 
         Element ktokd = doc.createElement("ktokd");
@@ -365,7 +375,8 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
             conexion.setAttribute("defecto", String.valueOf(misConexiones.get(x).isDefecto()) );
 
             Element nombre = doc.createElement("nombre");
-            nombre.appendChild(doc.createTextNode(misConexiones.get(x).getNombre()));
+            String nombreConexion = misConexiones.get(x).getNombre() == null ? "Conexion "+x : misConexiones.get(x).getNombre();
+            nombre.appendChild(doc.createTextNode(nombreConexion));
             conexion.appendChild(nombre);
 
             Element tipo_conexion = doc.createElement("tipo_conexion");

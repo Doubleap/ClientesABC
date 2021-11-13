@@ -976,6 +976,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             (!PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") && !PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
                         filtroAdicional = "zterm NOT LIKE '%00%'";
                     }
+                    if((campos.get(i).get("campo").trim().equals("W_CTE-GUZTE") && tipoFormulario.equals("44")) && (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
+                        filtroAdicional = "zterm IN ('UF05','UF07','UF10','UF15','UF30')";
+                    }
 
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(), filtroAdicional);
                     if(opciones.size() == 0){
@@ -2044,7 +2047,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     //Check Box para la aceptacion de las politicas de privacidad
                     final CheckBox checkboxC = new CheckBox(getContext());
                     checkboxC.setText("Firma Aceptación de Contrato");
-                    /*//Solo se activiran si el limite de credito e mayor a 175000 cordobas
+                    /*//Solo se activiran si el limite de credito es mayor a 175000 cordobas
                     checkboxC.setVisibility(View.GONE);
                     ((Spinner)mapeoCamposDinamicos.get("W_CTE-TIPO_CREDITO")).setVisibility(View.GONE);
                     ((Spinner)mapeoCamposDinamicos.get("W_CTE-DURACION_CONTRATO")).setVisibility(View.GONE);*/
@@ -3969,7 +3972,24 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         f_iniEditText.setText(seleccionado.getF_ini());
         f_finEditText.setText(seleccionado.getF_fin());
 
-        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont");
+        Spinner centro_suministro = (Spinner)mapeoCamposDinamicos.get("W_CTE-VWERK");
+        String valor_centro_suministro = ((OpcionSpinner)centro_suministro.getSelectedItem()).getId().trim();
+
+        String filtroxPais = "";
+        switch(PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad())){
+            case "1661":
+            case "Z001":
+                Spinner gec = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
+                if(gec != null)
+                    filtroxPais = " AND kvgr3 = '"+((OpcionSpinner)gec.getSelectedItem()).getId().trim()+"'";
+                Spinner bzirk_sel = (Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK");
+                if(bzirk_sel != null)
+                    filtroxPais += " AND bzirk = '"+((OpcionSpinner)bzirk_sel.getSelectedItem()).getId().trim()+"'";
+                break;
+            default:
+                filtroxPais = "";
+        }
+        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(Objects.requireNonNull(context), R.layout.simple_spinner_item, rutas_reparto);
         // Drop down layout style - list view with radio button
@@ -5115,10 +5135,12 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-                        String dias = opcion.getId().substring(2,4);
-                        bancosSolicitud.get(0).setBkref("CHD A "+dias+" DIAS");
-                        tb_bancos.getDataAdapter().getData().get(0).setBkref("CHD A "+dias+" DIAS");
-                        tb_bancos.setDataAdapter(new BancoTableAdapter(context, bancosSolicitud));
+                        if(opcion != null) {
+                            String dias = opcion.getId().substring(2, 4);
+                            bancosSolicitud.get(0).setBkref("CHD A " + dias + " DIAS");
+                            tb_bancos.getDataAdapter().getData().get(0).setBkref("CHD A " + dias + " DIAS");
+                            tb_bancos.setDataAdapter(new BancoTableAdapter(context, bancosSolicitud));
+                        }
                     }
 
                     @Override

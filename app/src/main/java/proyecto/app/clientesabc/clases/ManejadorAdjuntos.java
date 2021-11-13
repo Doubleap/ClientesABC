@@ -345,8 +345,6 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
             AdjuntoAPI s = new AdjuntoAPI(weakRefs, weakRefAs, adjunto_img, adjunto_txt, d);
             if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
                 s.EnableWiFi();
-            }else{
-                s.DisableWiFi();
             }
             s.execute();
         } else {
