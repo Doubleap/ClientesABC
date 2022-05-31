@@ -76,17 +76,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal">
+
             <TextView
                 android:id="@+id/texto_fecha"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:singleLine="false"
                 android:maxLines="2"
+                android:paddingTop="10dp"
+                android:singleLine="false"
                 android:text="Fecha de Entrega: 01/01/2021"
                 android:textAlignment="textStart"
-                android:paddingTop="10dp"
-                android:textColor="@color/black"
-                />
+                android:textColor="@color/black" />
                 <View
                     android:layout_width="0dp"
                     android:layout_height="0dp"
@@ -103,17 +103,17 @@
                 android:textColor="@color/black"
                 />
 
-                <TextView
-                    android:id="@+id/texto_motivo"
-                    android:layout_width="140dp"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/textbackground"
-                    android:maxLines="2"
-                    android:paddingTop="10dp"
-                    android:singleLine="false"
-                    android:text="REGALÍA"
-                    android:textAlignment="center"
-                    android:textColor="@color/black" />
+            <TextView
+                android:id="@+id/texto_motivo"
+                android:layout_width="150dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/textbackground"
+                android:maxLines="2"
+                android:paddingTop="10dp"
+                android:singleLine="false"
+                android:text="REGALÍA"
+                android:textAlignment="center"
+                android:textColor="@color/black" />
         </LinearLayout>
         <TextView
             android:id="@+id/texto_cuadro"
@@ -131,12 +131,23 @@
             android:textColor="@color/colorTextView"
             android:maxLength="1000000"
             />
-        <de.codecrafters.tableview.TableView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/cuadro_tarjetas"
-            >
-        </de.codecrafters.tableview.TableView>
+        <TextView
+            android:id="@+id/texto_cuadro_condiciones"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_below="@+id/texto_cuadro"
+            android:singleLine="false"
+            android:text="@string/firma_tarjetas_condiciones_cr"
+            android:maxLines="1000"
+            android:minLines="3"
+            android:padding="@dimen/margin_medium"
+            android:textAlignment="textStart"
+            android:textColor="@color/colorTextView"
+            android:maxLength="1000000"
+            android:background="@drawable/textbackground"
+            />
     </LinearLayout>
         <LinearLayout
             android:id="@+id/canvasLL"

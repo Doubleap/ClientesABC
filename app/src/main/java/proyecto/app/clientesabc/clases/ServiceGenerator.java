@@ -30,7 +30,7 @@ public class ServiceGenerator {
     private static OkHttpClient.Builder httpClient = new OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(5, TimeUnit.MINUTES)
-            .writeTimeout(60, TimeUnit.SECONDS);
+            .writeTimeout(120, TimeUnit.SECONDS);
 
     private static Retrofit.Builder builder =
             new Retrofit.Builder()

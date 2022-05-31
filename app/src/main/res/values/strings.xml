@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ClientesABC NI</string>
+    <string name="app_name">ClientesABC Panama</string>
     <string name="title_activity_login">Maestro Clientes Femsa</string>
 
     <!-- Strings related to login -->
@@ -21,7 +21,12 @@
     <string name="title_activity_firma_credito">Aceptación condiciones de crédito</string>
     <string name="title_activity_solicitud">Crear Solicitud</string>
     <string name="title_activity_aviso">Avisos de Equipo frio</string>
-    <string name="title_activity_firma_tarjeta">ACTA DE ENTREGA DE TARJETA DE REGALO</string>
+    <string name="title_activity_firma_tarjeta_cr">ACTA DE ENTREGA DE TARJETA DE REGALO</string>
+    <string name="title_activity_firma_tarjeta_ni">ACTA DE ENTREGA DE TARJETA DE REGALO</string>
+    <string name="title_activity_firma_tarjeta_pa">ACTA DE ENTREGA DE TARJETA DE REGALO</string>
+    <string name="title_activity_firma_tarjeta_em">ACTA DE ENTREGA DE TARJETA DE REGALO</string>
+    <string name="title_activity_firma_tarjeta_ab">ACTA DE ENTREGA DE TARJETA DE REGALO</string>
+    <string name="title_activity_firma_tarjeta_vo">ACTA DE ENTREGA DE TARJETA DE REGALO</string>
 
     <string name="inicial">MAESTRO CLIENTES APP</string>
     <string name="welcome_back">Bienvenido</string>
@@ -94,7 +99,7 @@
     sobre mi persona según artículo 64 Ley de Acceso a la Información Pública</string>
     <string name="firma_credito_ni"><![CDATA[ Cliente: %1$s<br/>Acreedor: INDUSTRIA NACIONAL DE REFRESCOS S.A<br/>Dirección del Acreedor: Km. 4.5 Carretera Norte. Managua<br/><br/>Por: C$ %2$s<br/>Fecha de Suscripción: %3$s<br/><br/>
         Por este medio Yo, %4$s con cédula %5$s Estado Civil %6$s, %7$s, <b>PAGARE A LA ORDEN</b> de <b>INDUSTRIA NACIONAL DE REFRESCOS S.A</b> en sus oficinas principales de la ciudad de Managua, Nicaragua ubicadas en Kilómetro 4 ½ de  Carretera Norte,
-        o a su cesionaria o  sucesora o a su orden, la cantidad de C$%8$s equivalentes, según el tipo de cambio oficial del día de hoy, a la cantidad de %9$s DOLARES ( U$ %10$s) el día %11$s, que es la fecha de vencimiento de este pagaré a la Orden. El pago se hará en la cuenta que para tal efecto tiene el ACREEDOR en el BANPRO cuyo titular bajo el número 10025302218644.  Por la suma debida reconozco y me obligo a pagar un interés corriente del cuatro por ciento mensual (4.0%%), que pagaré junto con el principal mediante el pago de una sola cuota de Principal e intereses por el monto total el mismo día del vencimiento.  Incurriré en mora sin necesidad de intimidación o requerimiento judicial o extrajudicial alguno, por el solo hecho de mi incumplimiento en el pago de la suma referida en el presente pagaré a la orden en cuyo caso reconoceré y pagaré a INDUSTRIA NACIONAL DE REFRESCOS S.A una tasa de Interés Moratorio de los dos puntos sesenta por ciento (2.60%%) mensual. Todas y cada una de las obligaciones que se derivan del presente Pagaré a la Orden y que están expresadas en córdobas, mantengan su valor con relación al dólar de los Estados Unidos de América, de tal manera que el principal y demás obligaciones pecuniarias que se derivan del presente Pagaré y que se han pactado en córdobas, deberán mantener el valor que al día de hoy tienen en relación con el dólar de los Estados Unidos de América. Que consecuentemente las modificaciones que se produzcan a partir del día de hoy en el tipo de cambio del córdoba con relación al dólar de los Estados Unidos de América, determinarán que los montos expresados o calculados en córdobas deban ajustarse en la misma proporción a las modificaciones operadas. Que todo ello es en conformidad con el Artículo Dieciséis (16) de la Ley Monetaria vigente y demás normas sobre el particular de acuerdo a la legislación de Nicaragua. Mi acreedor podrá declarar vencido anticipadamente el plazo de vencimiento de este Pagaré a la Orden en caso de que cualquier Persona Natural o Jurídica entablare ejecución en mi contra, en cuyos casos mi Acreedor quedará en absoluta libertad para exigir judicialmente y sin previo aviso, el inmediato cumplimiento de la presente obligación, por medio de la acción que elija. En caso de mi incumplimiento a las obligaciones que adquiero, mi acreedor la sociedad INDUSTRIA NACIONAL DE REFRESCOS S.A podrá reclamar los daños y perjuicios que le ocasionen mi incumplimiento, así como los gastos y honorarios judiciales y extrajudiciales diferidos a su promesa Estimatoria.  En beneficio de INDUSTRIA NACIONAL DE REFRESCOS S.A Renuncio: A) a mi domicilio, sometiéndome al que mi Acreedor elija, B) a las excepciones del caso fortuito y fuerza mayor, los cuales por imprevisibles que sean asumo por mi cuenta y riesgo y desde ahora declaro excusado el protesto, la presentación para el pago y el aviso de rechazo, si alguna ley llegare a establecer estos requisitos previos al cobro. -
+        o a su cesionaria o  sucesora o a su orden, la cantidad de C$%8$s equivalentes, según el tipo de cambio oficial del día de hoy, a la cantidad de %9$s ( U$ %10$s) el día %11$s, que es la fecha de vencimiento de este pagaré a la Orden. El pago se hará en la cuenta que para tal efecto tiene el ACREEDOR en el BANPRO cuyo titular bajo el número 10025302218644.  Por la suma debida reconozco y me obligo a pagar un interés corriente del cuatro por ciento mensual (4.0%%), que pagaré junto con el principal mediante el pago de una sola cuota de Principal e intereses por el monto total el mismo día del vencimiento.  Incurriré en mora sin necesidad de intimidación o requerimiento judicial o extrajudicial alguno, por el solo hecho de mi incumplimiento en el pago de la suma referida en el presente pagaré a la orden en cuyo caso reconoceré y pagaré a INDUSTRIA NACIONAL DE REFRESCOS S.A una tasa de Interés Moratorio de los dos puntos sesenta por ciento (2.60%%) mensual. Todas y cada una de las obligaciones que se derivan del presente Pagaré a la Orden y que están expresadas en córdobas, mantengan su valor con relación al dólar de los Estados Unidos de América, de tal manera que el principal y demás obligaciones pecuniarias que se derivan del presente Pagaré y que se han pactado en córdobas, deberán mantener el valor que al día de hoy tienen en relación con el dólar de los Estados Unidos de América. Que consecuentemente las modificaciones que se produzcan a partir del día de hoy en el tipo de cambio del córdoba con relación al dólar de los Estados Unidos de América, determinarán que los montos expresados o calculados en córdobas deban ajustarse en la misma proporción a las modificaciones operadas. Que todo ello es en conformidad con el Artículo Dieciséis (16) de la Ley Monetaria vigente y demás normas sobre el particular de acuerdo a la legislación de Nicaragua. Mi acreedor podrá declarar vencido anticipadamente el plazo de vencimiento de este Pagaré a la Orden en caso de que cualquier Persona Natural o Jurídica entablare ejecución en mi contra, en cuyos casos mi Acreedor quedará en absoluta libertad para exigir judicialmente y sin previo aviso, el inmediato cumplimiento de la presente obligación, por medio de la acción que elija. En caso de mi incumplimiento a las obligaciones que adquiero, mi acreedor la sociedad INDUSTRIA NACIONAL DE REFRESCOS S.A podrá reclamar los daños y perjuicios que le ocasionen mi incumplimiento, así como los gastos y honorarios judiciales y extrajudiciales diferidos a su promesa Estimatoria.  En beneficio de INDUSTRIA NACIONAL DE REFRESCOS S.A Renuncio: A) a mi domicilio, sometiéndome al que mi Acreedor elija, B) a las excepciones del caso fortuito y fuerza mayor, los cuales por imprevisibles que sean asumo por mi cuenta y riesgo y desde ahora declaro excusado el protesto, la presentación para el pago y el aviso de rechazo, si alguna ley llegare a establecer estos requisitos previos al cobro. -
         En fe de lo cual suscribo el presente PAGARE A LA ORDEN, en la ciudad de Managua, %12$s. ]]> </string>
     <string name="firma_credito_ni_contrato"><![CDATA[
         <b><u>LA ACREEDORA:</u> INDUSTRIA NACIONAL DE REFRESCOS, S.A.</b>, sociedad anónima constituida como empresa comercial del domicilio de Managua, constituida y organizada conforme las leyes de la República de Nicaragua, autorizada en Testimonio de Escritura Pública Número Cien (100), a las cuatro de la tarde del día nueve de abril de mil novecientos cincuenta y ocho, suscrita por el Notario Joaquín Cuadra Chamorro, la cual fue inscrita bajo el Número un mil seiscientos setenta y nueve (1,679), Páginas doscientos sesenta y ocho  a las doscientos ochenta y dos (268/282), Tomo cincuenta y cinco (55), del Libro Segundo Mercantil de Sociedades, y bajo el Número seis mil ciento setenta y cuatro (6,174), Páginas doscientos setenta y cuatro y doscientos setenta y cinco (274/275), Tomo veintisiete (27), del Libro de Personas, ambos del Registro Público Mercantil del Departamento de Managua y sus reformas debidamente inscritas.<br/><br/>
@@ -147,13 +152,68 @@
         Por este medio, el suscrito, autorizo expresamente y de manera irrevocable a <b>Coca Cola FEMSA de Panamá, S. A. y Ventas y Mercadeo, S. A.</b>, sus representantes y/o agentes para solicitar información e investigar mi historial de crédito en todas y cada una de las agencias de información de datos existentes o agentes económicos, en cualquier momento y a su entera discreción, sin ser necesaria la autorización expresa del suscrito cada vez que sea indispensable la obtención de dichas referencias.<br/>
         Igualmente autorizo a intercambiar mi historial de crédito con otros agentes económicos.  El suscrito reconoce que <b>Coca Cola FEMSA de Panamá, S. A. y Ventas y Mercadeo, S. A.</b>, sus representantes y/o agentes no serán responsables por errores en los datos existentes en mi historial de crédito y por los daños y perjuicios que los mismos puedan ocasionar.
     ]]></string>
-    <string name="firma_tarjetas_cr"><![CDATA[ Por este medio, y con el objetivo de acordar la negociación del plan y condiciones requeridas se negocia el espacio dentro del punto de venta por un periodo de: <b>%1$s</b> y se hace entrega de una tarjeta de regalo por un monto de: <b>₡ %2$s</b> al siguiente beneficiario:  ]]> </string>
+    <string name="firma_tarjetas_cr"><![CDATA[ Por este medio, y con el objetivo de acordar la negociación del plan y condiciones requeridas se negocia el espacio dentro del punto de venta por un periodo de: <b>%1$s</b> y se hace entrega de una tarjeta de regalo por un monto de: <b>₡ %2$s</b> al siguiente beneficiario:
+    <br/><br/>
+    <b>Codigo cliente :</b> %3$s<br/>
+    <b>Nombre :</b> %4$s<br/>
+    <b>Cédula :</b> %5$s<br/>
+    <b>Teléfonos :</b> %6$s<br/>
+    <b>Ruta Preventa :</b> %7$s<br/>
+    <b>Número de Tarjeta :</b> %8$s<br/>]]></string>
+    <string name="firma_tarjetas_condiciones_cr"><![CDATA[ Términos y condiciones<br/><br/>Todas las tarjetas de regalo de Credomatic son exclusivas para utilizar en comercios con datafonos de Bac Credomatic, de lo contrario la transacción NO puede ser procesada.<br/><br/>El portador de la tarjeta debe estar anuente a la fecha de vencimiento (embozada en cada  plástico) por lo que una vez vencida la tarjeta se inactiva automaticamente y el saldo no es reintegrable. (Términos y condiciones al reverso de cada tarjeta)<br/><br/>Consultas de Saldos y detalle de compras en Tarjetas de Regalo realizarlas a la central teléfonica 2295-9908  ]]> </string>
+    <string name="firma_tarjetas_ni"><![CDATA[ Por este medio, y con el objetivo de acordar la negociación del plan y condiciones requeridas se negocia la iniciativa dentro del punto de venta por un periodo de: <b>%1$s</b> y se hace entrega de una tarjeta de regalo por un monto de: <b>C$ %2$s</b> al siguiente beneficiario:
+    <br/><br/>
+    <b>Codigo cliente :</b> %3$s<br/>
+    <b>Nombre :</b> %4$s<br/>
+    <b>Cédula :</b> %5$s<br/>
+    <b>Teléfonos :</b> %6$s<br/>
+    <b>Ruta Preventa :</b> %7$s<br/>
+    <b>Número de Tarjeta :</b> %8$s<br/>]]></string>
+    <string name="firma_tarjetas_condiciones_ni"><![CDATA[ Términos y condiciones<br/><br/>TODAS LAS TARJETAS DE REGALO SON EXCLUSIVAS PARA UTILIZAR EN LOS COMERCIOS DEL PROVEEDOR QUE SE INDICA EN LA TARJETA ENTREGADA ]]> </string>
+    <string name="firma_tarjetas_pa"><![CDATA[ Por este medio, y con el objetivo de acordar la negociación del plan y condiciones requeridas se negocia la iniciativa dentro del punto de venta por un periodo de: <b>%1$s</b> y se hace entrega de una tarjeta de regalo por un monto de: <b>₡ %2$s</b> al siguiente beneficiario:
+    <br/><br/>
+    <b>Codigo cliente :</b> %3$s<br/>
+    <b>Nombre :</b> %4$s<br/>
+    <b>Cédula :</b> %5$s<br/>
+    <b>Teléfonos :</b> %6$s<br/>
+    <b>Ruta Preventa :</b> %7$s<br/>
+    <b>Número de Tarjeta :</b> %8$s<br/>]]></string>
+    <string name="firma_tarjetas_condiciones_pa"><![CDATA[  ]]> </string>
+    <string name="firma_tarjetas_em"><![CDATA[ Por este medio, y con el objetivo de acordar la negociación del plan y condiciones requeridas se negocia la iniciativa dentro del punto de venta por un periodo de: <b>%1$s</b> y se hace entrega de una tarjeta de regalo por un monto de: <b>Q %2$s</b> al siguiente beneficiario:
+    <br/><br/>
+    <b>Codigo cliente :</b> %3$s<br/>
+    <b>Nombre :</b> %4$s<br/>
+    <b>Cédula :</b> %5$s<br/>
+    <b>Teléfonos :</b> %6$s<br/>
+    <b>Ruta Preventa :</b> %7$s<br/>
+    <b>Número de Tarjeta :</b> %8$s<br/>]]></string>
+    <string name="firma_tarjetas_condiciones_em"><![CDATA[ Términos y condiciones<br/><br/>Todas las tarjetas de regalo de Credomatic son exclusivas para utilizar en comercios con datafonos de Bac Credomatic, de lo contrario la transacción NO puede ser procesada.<br/><br/>El portador de la tarjeta debe estar anuente a la fecha de vencimiento (embozada en cada  plástico) por lo que una vez vencida la tarjeta se inactiva automaticamente y el saldo no es reintegrable. (Términos y condiciones al reverso de cada tarjeta)<br/><br/>  ]]> </string>
+    <string name="firma_tarjetas_ab"><![CDATA[ Por este medio, y con el objetivo de acordar la negociación del plan y condiciones requeridas se negocia la iniciativa dentro del punto de venta por un periodo de: <b>%1$s</b> y se hace entrega de una tarjeta de regalo por un monto de: <b>Q %2$s</b> al siguiente beneficiario:
+    <br/><br/>
+    <b>Codigo cliente :</b> %3$s<br/>
+    <b>Nombre :</b> %4$s<br/>
+    <b>Cédula :</b> %5$s<br/>
+    <b>Teléfonos :</b> %6$s<br/>
+    <b>Ruta Preventa :</b> %7$s<br/>
+    <b>Número de Tarjeta :</b> %8$s<br/>]]></string>
+    <string name="firma_tarjetas_condiciones_ab"><![CDATA[ Términos y condiciones<br/><br/>Todas las tarjetas de regalo de Credomatic son exclusivas para utilizar en comercios con datafonos de Bac Credomatic, de lo contrario la transacción NO puede ser procesada.<br/><br/>El portador de la tarjeta debe estar anuente a la fecha de vencimiento (embozada en cada  plástico) por lo que una vez vencida la tarjeta se inactiva automaticamente y el saldo no es reintegrable. (Términos y condiciones al reverso de cada tarjeta)<br/><br/>  ]]> </string>
+    <string name="firma_tarjetas_vo"><![CDATA[ Por este medio, y con el objetivo de acordar la negociación del plan y condiciones requeridas se negocia la iniciativa dentro del punto de venta por un periodo de: <b>%1$s</b> y se hace entrega de una tarjeta de regalo por un monto de: <b>Q %2$s</b> al siguiente beneficiario:
+    <br/><br/>
+    <b>Codigo cliente :</b> %3$s<br/>
+    <b>Nombre :</b> %4$s<br/>
+    <b>Cédula :</b> %5$s<br/>
+    <b>Teléfonos :</b> %6$s<br/>
+    <b>Ruta Preventa :</b> %7$s<br/>
+    <b>Número de Tarjeta :</b> %8$s<br/>]]></string>
+    <string name="firma_tarjetas_condiciones_vo"><![CDATA[ Términos y condiciones<br/><br/>Todas las tarjetas de regalo de Credomatic son exclusivas para utilizar en comercios con datafonos de Bac Credomatic, de lo contrario la transacción NO puede ser procesada.<br/><br/>El portador de la tarjeta debe estar anuente a la fecha de vencimiento (embozada en cada  plástico) por lo que una vez vencida la tarjeta se inactiva automaticamente y el saldo no es reintegrable. (Términos y condiciones al reverso de cada tarjeta)<br/><br/>  ]]> </string>
+
+
     <string name="ID_FORM_CONSULTA_CLIENTE">35</string>
     <string name="ID_FORM_INSTALACION_EQ">39</string>
     <string name="ID_FORM_CAMBIO_EQ">41</string>
     <string name="acercade">Info. sistema</string>
     <string name="borrar_datos">Eliminar Datos</string>
-    <string name="title_activity_scanner">Escanear codigo</string>
+    <string name="title_activity_scanner">Escanear codigo de barras</string>
     <string name="titulo_login">Maestro Clientes </string>
     <string name="title_activity_firma_credito_ni">PAGARE A LA ORDEN CON MANTENIMIENTO DE VALOR</string>
     <string name="title_activity_firma_contrato_ni">CONTRATO DE LINEA DE CREDITO REVOLVENTE PARA LA COMPRAVENTA AL CREDITO DE PRODUCTOS GARANTIZADO CON PRENDA COMERCIAL</string>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuracion>
     <sistema>
-        <nombrePais>Nicaragua</nombrePais>
-        <sociedad>F445</sociedad>
-        <orgvta>0445</orgvta>
-        <land1>NI</land1>
-        <cadenaRM>0000180000</cadenaRM>
-        <ktokd>NCMA</ktokd>
+        <nombrePais>Panamá</nombrePais>
+        <sociedad>F451</sociedad>
+        <orgvta>0451</orgvta>
+        <land1>PA</land1>
+        <cadenaRM>0000200000</cadenaRM>
+        <ktokd>PCMA</ktokd>
         <!--
         <nombrePais>Panamá</nombrePais>
         <sociedad>F451</sociedad>
@@ -50,12 +50,19 @@
         <cadenaRM>0000190027</cadenaRM>
         <ktokd>GCMB</ktokd>
 
-        <nombrePais>Uruguay</nombrePais>
+        <nombrePais>Uruguay Monresa</nombrePais>
         <sociedad>1661</sociedad>
         <orgvta>0661</orgvta>
         <land1>UY</land1>
         <cadenaRM>0000240000</cadenaRM>
         <ktokd>UYDE</ktokd>
+
+        <nombrePais>Uruguay Distribuidores</nombrePais>
+        <sociedad>Z001</sociedad>
+        <orgvta>Z001</orgvta>
+        <land1>UY</land1>
+        <cadenaRM>0000245000</cadenaRM>
+        <ktokd>UYDD</ktokd>
         -->
     </sistema>
     <login>
@@ -114,10 +121,10 @@
           <Puerto>3345</Puerto>
       </conexion>-->
         <conexion defecto="true">
-            <nombre>Produccion Gprs NI</nombre>
+            <nombre>Produccion Gprs PA</nombre>
             <tipo_conexion>gprs</tipo_conexion>
-            <Ip>192.168.105.77</Ip>
-            <Puerto>3346</Puerto>
+            <Ip>172.23.109.137</Ip>
+            <Puerto>3347</Puerto>
         </conexion>
   </conexiones>
 </configuracion>

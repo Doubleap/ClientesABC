@@ -1341,7 +1341,7 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
                                         Visitas visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
                                         Visitas visitaReparto = visitasSolicitud.get(finalIndiceReparto);
                                         //Visitas visitaEspecializada = visitasSolicitud.get(finalIndiceEspecializada);
-                                        if (!((TextView) v).getText().toString().equals("") && Integer.valueOf(((TextView) v).getText().toString()) > 1440) {
+                                        if (!((TextView) v).getText().toString().equals("") && Integer.valueOf(((TextView) v).getText().toString()) > 1339) {
                                             switch (finalX) {
                                                 case 0:
                                                     visitaPreventa.setLun_a(getResources().getString(R.string.max_secuencia));
@@ -3071,22 +3071,22 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
                             TextInputEditText diaV = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_V"));
                             TextInputEditText diaS = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_S"));
                             if (diaL != null) {
-                                diaL.setText(visitasSolicitud.get(indicePreventa).getLun_de());
+                                diaL.setText(visitasSolicitud.get(indicePreventa).getLun_a());
                             }
                             if (diaK != null) {
-                                diaK.setText(visitasSolicitud.get(indicePreventa).getMar_de());
+                                diaK.setText(visitasSolicitud.get(indicePreventa).getMar_a());
                             }
                             if (diaM != null) {
-                                diaM.setText(visitasSolicitud.get(indicePreventa).getMier_de());
+                                diaM.setText(visitasSolicitud.get(indicePreventa).getMier_a());
                             }
                             if (diaJ != null) {
-                                diaJ.setText(visitasSolicitud.get(indicePreventa).getJue_de());
+                                diaJ.setText(visitasSolicitud.get(indicePreventa).getJue_a());
                             }
                             if (diaV != null) {
-                                diaV.setText(visitasSolicitud.get(indicePreventa).getVie_de());
+                                diaV.setText(visitasSolicitud.get(indicePreventa).getVie_a());
                             }
                             if (diaS != null) {
-                                diaS.setText(visitasSolicitud.get(indicePreventa).getSab_de());
+                                diaS.setText(visitasSolicitud.get(indicePreventa).getSab_a());
                             }
                         }else{
                             CardView tituloV = ((CardView)mapeoVisitas.get("ZPV"));
@@ -3114,22 +3114,22 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
                             TextInputEditText diaEV = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_V"));
                             TextInputEditText diaES = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_S"));
                             if ( diaEL != null) {
-                                diaEL.setText(visitasSolicitud.get(indiceEspecializada).getLun_de());
+                                diaEL.setText(visitasSolicitud.get(indiceEspecializada).getLun_a());
                             }
                             if ( diaEK != null) {
-                                diaEK.setText(visitasSolicitud.get(indiceEspecializada).getMar_de());
+                                diaEK.setText(visitasSolicitud.get(indiceEspecializada).getMar_a());
                             }
                             if ( diaEM != null) {
-                                diaEM.setText(visitasSolicitud.get(indiceEspecializada).getMier_de());
+                                diaEM.setText(visitasSolicitud.get(indiceEspecializada).getMier_a());
                             }
                             if ( diaEJ != null) {
-                                diaEJ.setText(visitasSolicitud.get(indiceEspecializada).getJue_de());
+                                diaEJ.setText(visitasSolicitud.get(indiceEspecializada).getJue_a());
                             }
                             if ( diaEV != null) {
-                                diaEV.setText(visitasSolicitud.get(indiceEspecializada).getVie_de());
+                                diaEV.setText(visitasSolicitud.get(indiceEspecializada).getVie_a());
                             }
                             if ( diaES != null) {
-                                diaES.setText(visitasSolicitud.get(indiceEspecializada).getSab_de());
+                                diaES.setText(visitasSolicitud.get(indiceEspecializada).getSab_a());
                             }
                         }else{
                             CardView tituloV = ((CardView)mapeoVisitas.get("ZJV"));
@@ -3157,22 +3157,22 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
                             TextInputEditText diaTV = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_V"));
                             TextInputEditText diaTS = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_S"));
                             if ( diaTL != null) {
-                                diaTL.setText(visitasSolicitud.get(indiceTeleventa).getLun_de());
+                                diaTL.setText(visitasSolicitud.get(indiceTeleventa).getLun_a());
                             }
                             if ( diaTK != null) {
-                                diaTK.setText(visitasSolicitud.get(indiceTeleventa).getMar_de());
+                                diaTK.setText(visitasSolicitud.get(indiceTeleventa).getMar_a());
                             }
                             if ( diaTM != null) {
-                                diaTM.setText(visitasSolicitud.get(indiceTeleventa).getMier_de());
+                                diaTM.setText(visitasSolicitud.get(indiceTeleventa).getMier_a());
                             }
                             if ( diaTJ != null) {
-                                diaTJ.setText(visitasSolicitud.get(indiceTeleventa).getJue_de());
+                                diaTJ.setText(visitasSolicitud.get(indiceTeleventa).getJue_a());
                             }
                             if ( diaTV != null) {
-                                diaTV.setText(visitasSolicitud.get(indiceTeleventa).getVie_de());
+                                diaTV.setText(visitasSolicitud.get(indiceTeleventa).getVie_a());
                             }
                             if ( diaTS != null) {
-                                diaTS.setText(visitasSolicitud.get(indiceTeleventa).getSab_de());
+                                diaTS.setText(visitasSolicitud.get(indiceTeleventa).getSab_a());
                             }
                         }else{
                             CardView tituloT = ((CardView)mapeoVisitas.get("ZTV"));

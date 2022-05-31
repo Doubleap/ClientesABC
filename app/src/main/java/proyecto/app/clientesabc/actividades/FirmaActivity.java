@@ -57,14 +57,18 @@ public class FirmaActivity extends AppCompatActivity {
     private Bitmap bitmap;
 
     // Creating Separate Directory for saving Generated Images
-    String DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/Signature/";
-    String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-    String StoredPath = DIRECTORY + "PoliticaPrivacidad_"+pic_name + ".jpg";
+    //String DIRECTORY = getExternalFilesDir(null).getPath() + "/Signature/";
+    //String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+    //String StoredPath = DIRECTORY + "PoliticaPrivacidad_"+pic_name + ".jpg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_firma);
+
+        String DIRECTORY = getExternalFilesDir(null).getPath() + "/Signature/";
+        String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String StoredPath = DIRECTORY + "PoliticaPrivacidad_"+pic_name + ".jpg";
 
         completo = findViewById(R.id.completo);
         documento = findViewById(R.id.documento);

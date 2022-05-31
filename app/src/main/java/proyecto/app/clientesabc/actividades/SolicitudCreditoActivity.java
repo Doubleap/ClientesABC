@@ -74,6 +74,7 @@ import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -267,6 +268,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             minAdjuntos = mDBHelper.CantidadAdjuntosMinima(tipoSolicitud);
             getSupportActionBar().setSubtitle(subtitulo);
         }
+        minAdjuntos = mDBHelper.CantidadAdjuntosMinima(tipoSolicitud);
         if(solicitudSeleccionada.size() > 0) {
             firma = true;
             correoValidado = true;
@@ -631,7 +633,11 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudCreditoActivity.this);
-        ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
+        try {
+            ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -888,7 +894,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
                     CheckBox checkbox_old = new CheckBox(getContext());
                     checkbox_old.setLayoutParams(lp_old);
-                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
                         checkbox_old.setEnabled(false);
                         mapeoCamposDinamicosOld.put(campos.get(i).get("campo").trim(), checkbox_old);
                     }
@@ -914,7 +920,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion, listaCamposObligatorios, campos.get(i).get("campo").trim());
+                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion, listaCamposObligatorios, campos.get(i));
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
@@ -922,7 +928,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
                         }
                     }
                     if(solicitudSeleccionada.size() > 0){
@@ -1307,7 +1313,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     final Spinner combo_old = new Spinner(getContext(), Spinner.MODE_DROPDOWN);
                     combo_old.setVisibility(View.GONE);
                     combo_old.setEnabled(false);
-                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
                         Button btnAyudai=null;
                         TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
                         TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75,1f);
@@ -1412,7 +1418,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         mapeoCamposDinamicosOld.put(campos.get(i).get("campo").trim(),combo_old);
                     }
 
-                    if(combo_old != null && (campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10"))) {
+                    if(combo_old != null && (campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10"))) {
                         ll.addView(label);
                         fila.addView(combo);
                         fila.addView(combo_old);
@@ -1500,7 +1506,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i));
 
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
@@ -1509,7 +1515,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
                         }
                     }
                 } else {
@@ -1538,7 +1544,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     // Atributos del Texto a crear
                     //TableLayout.LayoutParams lp =  new TableLayout.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT,0.5f);
                     TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f);
-                    if(campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10"))
+                    if(campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10"))
                         lp.setMargins(0, 15, 75, 15);
                     else
                         lp.setMargins(0, 15, 0, 15);
@@ -1671,7 +1677,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     et_old.setEnabled(false);
 
                     //Crear campo para valor viejo exclusivo.
-                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
                         //textbox de valor viejo
                         TableRow.LayoutParams lp_old = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f);
                         lp_old.setMargins(0, 15, 0, 15);
@@ -1888,7 +1894,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i));
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
@@ -1896,7 +1902,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
                         }
                     }
                 }

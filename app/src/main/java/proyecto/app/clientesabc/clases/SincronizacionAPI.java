@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import es.dmoral.toasty.Toasty;
 import okhttp3.ResponseBody;
@@ -77,6 +78,7 @@ public class SincronizacionAPI extends AsyncTask<Void,String,Void> {
         String mensaje = "";//VariablesGlobales.validarConexionDePreferencia(context.get());
         if(mensaje.equals("")) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT-6"));
             String version = "";
             version = dateFormat.format(BuildConfig.BuildDate).replace(":","COLON").replace("-","HYPHEN");
 
@@ -89,7 +91,7 @@ public class SincronizacionAPI extends AsyncTask<Void,String,Void> {
                     boolean writtenToDisk = writeResponseBodyToDisk(response.body());
 
                     File tranFileDir;
-                    File externalStorage = Environment.getExternalStorageDirectory();
+                    File externalStorage = context.get().getExternalFilesDir(null);
                     String externalStoragePath = externalStorage.getAbsolutePath();
                     tranFileDir = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision");
                     boolean ex = tranFileDir.mkdirs();
@@ -323,7 +325,7 @@ public class SincronizacionAPI extends AsyncTask<Void,String,Void> {
     private boolean writeResponseBodyToDisk(ResponseBody body) {
         try {
             // todo change the file location/name according to your needs
-            File externalStorage = Environment.getExternalStorageDirectory();
+            File externalStorage = context.get().getExternalFilesDir(null);
             if (externalStorage != null) {
                 String externalStoragePath = externalStorage.getAbsolutePath();
                 File tranFileDir = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision");

@@ -33,6 +33,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
@@ -81,6 +82,7 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
                 dos.flush();
                 //Version con la que quiere transmitir
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                dateFormat.setTimeZone(TimeZone.getTimeZone("GMT-6"));
                 dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
                 dos.flush();
                 //Enviar Ruta que se quiere sincronizar
@@ -194,7 +196,7 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
                     int index = nombre.lastIndexOf('.')+1;
                     ext = nombre.substring(index).toLowerCase();
                     String type = mime.getMimeTypeFromExtension(ext);
-                    File folder = new File(Environment.getExternalStorageDirectory(), "Download");
+                    File folder = new File(context.get().getExternalFilesDir(null), "Download");
                     tempPDF = new File(folder, "TempMC."+ext);
                     //tempPDF = File.createTempFile("temp", ".pdf", context.get().getExternalCacheDir());
                     //RandomAccessFile raf = new RandomAccessFile(tempPDF, "r");

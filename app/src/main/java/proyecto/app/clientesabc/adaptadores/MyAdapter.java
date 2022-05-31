@@ -341,7 +341,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
             intent = new Intent(context, SolicitudActivity.class);
             intent.putExtras(b); //Pase el parametro el Intent
             context.startActivity(intent);
-        }else if(formListFiltered.get(position).get("ind_modelo").trim().equals("M") || formListFiltered.get(position).get("ind_modelo").trim().equals("B")){
+        }else if(formListFiltered.get(position).get("ind_modelo").trim().equals("M") || formListFiltered.get(position).get("ind_modelo").trim().equals("B") || formListFiltered.get(position).get("ind_modelo").trim().equals("L")){
             if(formListFiltered.get(position).get("ind_credito").trim().equals("0")) {
                 intent = new Intent(context, SolicitudModificacionActivity.class);
                 intent.putExtras(b); //Pase el parametro el Intent

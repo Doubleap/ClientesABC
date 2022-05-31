@@ -34,6 +34,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -87,6 +88,7 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
                 dos.flush();
                 //Version con la que quiere transmitir
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                dateFormat.setTimeZone(TimeZone.getTimeZone("GMT-6"));
                 dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
                 dos.flush();
                 //Enviar Ruta que se quiere sincronizar
@@ -121,7 +123,7 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
                     dos.flush();
                     publishProgress("Procesando datos recibidos...");
                     File tranFileDir;
-                    File externalStorage = Environment.getExternalStorageDirectory();
+                    File externalStorage = context.get().getExternalFilesDir(null);
                     if (externalStorage != null) {
                         String externalStoragePath = externalStorage.getAbsolutePath();
                         tranFileDir = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
@@ -246,7 +248,7 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
         if(xceptionFlag){
             Toasty.error(context.get(),"No se pudo actualizar: "+messageFlag,Toast.LENGTH_LONG).show();
         }else{
-            File externalStorage = Environment.getExternalStorageDirectory();
+            File externalStorage = context.get().getExternalFilesDir(null);
             String externalStoragePath = externalStorage.getAbsolutePath();
             CrearArchivoConfiguracion(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
         }

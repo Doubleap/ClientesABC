@@ -130,6 +130,10 @@ public class ObtenerAutenticacionTokenAPISinc {
             PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("EXPIRES_IN", expiresIn).apply();
             PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("EXPIRES_DATE", expiresDate).apply();
         }else{
+            PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("TOKEN", "").apply();
+            PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("REFRESH_TOKEN", "").apply();
+            PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("EXPIRES_IN", "").apply();
+            PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("EXPIRES_DATE", "").apply();
             JsonArray probando = new JsonArray(1);
             Gson gson = new Gson();
             //messageFlag = "["+messageFlag+"]";

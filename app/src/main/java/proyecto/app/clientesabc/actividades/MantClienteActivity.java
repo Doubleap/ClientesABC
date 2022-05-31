@@ -359,6 +359,9 @@ public class MantClienteActivity extends AppCompatActivity {
                     if(PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("CONFIG_SOCIEDAD","").equals("Z001")){
                         MenuItem menuItem = (MenuItem)popup.getMenu().getItem(4).setVisible(false);
                     }
+                    if(!db.ExistenIniciativas()){
+                        MenuItem menuItem = (MenuItem)popup.getMenu().getItem(5).setVisible(false);
+                    }
 
                     popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         @Override
@@ -378,7 +381,7 @@ public class MantClienteActivity extends AppCompatActivity {
                                     startActivity(intent);
                                     break;
                                 case R.id.modificar:
-                                    showDialogFormulariosModificacion(codigoCliente,false, false);
+                                    showDialogFormulariosModificacion(codigoCliente,false, false, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Modificaciones NO disponible de momento.").show();
                                     break;
                                 case R.id.cierre:
@@ -391,13 +394,17 @@ public class MantClienteActivity extends AppCompatActivity {
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Cierre NO disponible de momento.").show();
                                     break;
                                 case R.id.credito:
-                                    showDialogFormulariosModificacion(codigoCliente,true, false);
+                                    showDialogFormulariosModificacion(codigoCliente,true, false, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Credito NO disponible de momento.").show();
                                     break;
                                 case R.id.equipofrio:
                                     //EQUIPO FRIO
-                                    showDialogFormulariosModificacion(codigoCliente,false, true);
+                                    showDialogFormulariosModificacion(codigoCliente,false, true, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
+                                    break;
+                                case R.id.iniciativas:
+                                    //INICIATIVAS, estos formularios son locales y nunca van a SAP
+                                    showDialogFormulariosModificacion(codigoCliente,false, false, true);
                                     break;
                                 case R.id.comollegar:
                                     String uri = "";
@@ -484,7 +491,7 @@ public class MantClienteActivity extends AppCompatActivity {
         }
     }
 
-    private void showDialogFormulariosModificacion(final String codigoCliente, boolean credito, boolean equipofrio) {
+    private void showDialogFormulariosModificacion(final String codigoCliente, boolean credito, boolean equipofrio, boolean iniciativas) {
         ArrayList<HashMap<String,String>> formulariosPermitidos = null;
         if(credito) {
             formulariosPermitidos = db.getModificacionesCreditoPermitidas();
@@ -496,6 +503,12 @@ public class MantClienteActivity extends AppCompatActivity {
             formulariosPermitidos = db.getOrdenesServicioPermitidas();
             if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
                 Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de Equipo frio para HH.").show();
+                return;
+            }
+        }else if(iniciativas) {
+            formulariosPermitidos = db.getIniciativasLocalesPermitidas();
+            if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
+                Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de Iniciativas para HH.").show();
                 return;
             }
         }else {
@@ -565,7 +578,6 @@ public class MantClienteActivity extends AppCompatActivity {
                         intent = new Intent(getApplicationContext(), SolicitudCreditoActivity.class);
                         intent.putExtras(b); //Pase el parametro el Intent
                         startActivity(intent);
-
                     } else if(forms[selectedPosition].toLowerCase().contains("eq.") || forms[selectedPosition].toLowerCase().contains("frio") || forms[selectedPosition].toLowerCase().contains("equipo")) {
                         if(forms[selectedPosition].toLowerCase().contains("instal")) {//Si es de instalacion no ocupa numero de maquina de equipo frio
                             dialog.dismiss();

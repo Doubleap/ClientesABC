@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
@@ -39,6 +40,7 @@ import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
+import static androidx.core.content.ContextCompat.getExternalFilesDirs;
 import static androidx.core.content.ContextCompat.startActivity;
 
 public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
@@ -78,6 +80,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                 dos.flush();
                 //Version con la que quiere transmitir
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                dateFormat.setTimeZone(TimeZone.getTimeZone("GMT-6"));
                 dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
                 dos.flush();
                 //Enviar Ruta que se quiere sincronizar
@@ -117,7 +120,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                     dos.flush();
                     publishProgress("Procesando datos recibidos...");
                     File tranFileDir;
-                    File externalStorage = Environment.getExternalStorageDirectory();
+                    File externalStorage = context.get().getExternalFilesDir(null);
                     if (externalStorage != null) {
                         String externalStoragePath = externalStorage.getAbsolutePath();
                         tranFileDir = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision");

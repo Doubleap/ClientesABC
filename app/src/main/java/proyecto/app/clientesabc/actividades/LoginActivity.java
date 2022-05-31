@@ -27,6 +27,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.text.InputFilter;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -66,6 +67,7 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -98,7 +100,7 @@ public class LoginActivity extends AppCompatActivity {
     private RelativeLayout rootView, afterAnimationView;
     private BroadcastReceiver myReceiver;
     // UI references.
-    private AutoCompleteTextView mUserView;
+    private EditText mUserView;
     private EditText mPasswordView;
     private CheckBox mCheckbox;
     private View mProgressView;
@@ -121,6 +123,8 @@ public class LoginActivity extends AppCompatActivity {
         */
         versionLogin = findViewById(R.id.versionPanel);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT-6"));
+
         Date buildDate = BuildConfig.BuildDate;
         versionLogin.setText("Versión: "+ BuildConfig.VERSION_NAME+" ("+dateFormat.format(buildDate)+")");
 
@@ -132,6 +136,13 @@ public class LoginActivity extends AppCompatActivity {
         ruta_datos = findViewById(R.id.ruta_datos);
         // Set up the login form.
         mUserView = findViewById(R.id.user);
+        InputFilter[]  editFilters = mUserView.getFilters();
+        InputFilter[] newFilters = new InputFilter[editFilters.length + 1];
+        System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
+        newFilters[editFilters.length] = new InputFilter.AllCaps();
+        mUserView.setFilters(newFilters);
+        mUserView.setAllCaps(true);
+
         mCheckbox = findViewById(R.id.guardar_contrasena);
         mPasswordView = findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -156,6 +167,10 @@ public class LoginActivity extends AppCompatActivity {
                      if(mUserView.getText().toString().isEmpty() || mPasswordView.getText().toString().isEmpty()){
                         Toasty.warning(getBaseContext(),"Debe Ingresar sus credenciales antes de continuar!").show();
                     }else{
+                         String id_usuarioMC = VariablesGlobales.UsuarioHH2UsuarioMC(LoginActivity.this, mUserView.getText().toString());
+                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", mUserView.getText().toString()).apply();
+                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("userMC", id_usuarioMC).apply();
+                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("password", mPasswordView.getText().toString()).apply();
                          DialogHandler appdialog = new DialogHandler();
                          appdialog.Confirm(LoginActivity.this, "Confirmar Sincronización", "Esta seguro que desea sincronizar la información de la ruta?", "NO", "SI", new LoginActivity.SincronizarLogin(LoginActivity.this));
                     }
@@ -166,14 +181,14 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
         if(!VariablesGlobales.UsarAPI()){
-            File externalStorage = Environment.getExternalStorageDirectory();
+            File externalStorage = getExternalFilesDir(null);
             String externalStoragePath = externalStorage.getAbsolutePath();
             File file = new File(externalStoragePath + File.separator + getPackageName() + File.separator +"configuracion.xml");
             if(file.exists())
                 file.delete();
         }
 
-        File externalStorage = Environment.getExternalStorageDirectory();
+        File externalStorage = getExternalFilesDir(null);
         String externalStoragePath = externalStorage.getAbsolutePath();
         File file = new File(externalStoragePath + File.separator + getPackageName() + File.separator +"configuracion.xml");
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();

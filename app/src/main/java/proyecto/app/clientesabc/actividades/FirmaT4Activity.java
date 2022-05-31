@@ -51,7 +51,7 @@ public class FirmaT4Activity extends AppCompatActivity {
     private Bitmap bitmap;
 
     // Creating Separate Directory for saving Generated Images
-    String DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/Signature/";
+    String DIRECTORY = getApplicationContext().getExternalFilesDir(null).getPath() + "/Signature/";
     String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
     String StoredPath = DIRECTORY + "ConstanciaSolicitudT4_"+pic_name + ".jpg";
 

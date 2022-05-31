@@ -10,6 +10,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
@@ -38,6 +39,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -86,6 +88,7 @@ import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
@@ -149,6 +152,7 @@ public class SolicitudActivity extends AppCompatActivity {
     static String tipoSolicitud ="";
     static String idSolicitud = "";
     static String idForm = "";
+    static int minAdjuntos = 0;
     @SuppressLint("StaticFieldLeak")
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
@@ -167,7 +171,7 @@ public class SolicitudActivity extends AppCompatActivity {
     static boolean cedulaValidada;
     static boolean idFiscalValidado;
     static BottomNavigationView bottomNavigation;
-
+    public static TextWatcher tw = null;
     static Uri mPhotoUri;
 
     @SuppressLint("StaticFieldLeak")
@@ -244,6 +248,7 @@ public class SolicitudActivity extends AppCompatActivity {
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             getSupportActionBar().setSubtitle(descripcion);
         }
+        minAdjuntos = mDBHelper.CantidadAdjuntosMinima(tipoSolicitud);
         if(solicitudSeleccionada.size() > 0) {
             firma = true;
             correoValidado = true;
@@ -435,19 +440,47 @@ public class SolicitudActivity extends AppCompatActivity {
                                 numErrores++;
                                 mensajeError += "- Falta asignar ruta Dummy en PLANES DE VISITA!\n";
                             }
+
+                            int indiceMixta = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZRM");
+                            int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZPV");
+                            if (modalidad.equals("PR") && indiceMixta != -1 && indicePreventa != -1 && visitasSolicitud.size() > 0 && visitasSolicitud.get(indicePreventa).getRuta().trim().length() < 6) {
+                                numErrores++;
+                                mensajeError += "- Falta asignar ruta de Preventa(ZPV) en PLANES DE VISITA!\n";
+                            }
+                        }else{
+                            numErrores++;
+                            mensajeError += "- Modalidad de Venta!\n";
                         }
-                        //Al menos 1 dia de visita
-                        if(((TextInputEditText)mapeoCamposDinamicos.get(tipoVisita+"_L")) != null) {
-                            if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_L")).getText().toString().isEmpty())
-                                if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_K")).getText().toString().isEmpty())
-                                    if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_M")).getText().toString().isEmpty())
-                                        if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_J")).getText().toString().isEmpty())
-                                            if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_V")).getText().toString().isEmpty())
-                                                if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_S")).getText().toString().isEmpty()) {
-                                                    numErrores++;
-                                                    mensajeError += "- El cliente debe tener al menos 1 día de visita!\n";
-                                                }
+                        if(visitasSolicitud.size() > 0) {
+                            //Al menos 1 dia de visita
+                            if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_L")) != null) {
+                                if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_L")).getText().toString().isEmpty())
+                                    if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_K")).getText().toString().isEmpty())
+                                        if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_M")).getText().toString().isEmpty())
+                                            if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_J")).getText().toString().isEmpty())
+                                                if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_V")).getText().toString().isEmpty())
+                                                    if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_S")).getText().toString().isEmpty()) {
+                                                        numErrores++;
+                                                        mensajeError += "- El cliente debe tener al menos 1 día de visita!\n";
+                                                    }
+                            }
+                            int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZJV");
+                            if(indiceEspecializada != -1){
+                                //Al menos 1 dia de visita
+                                if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_L")) != null) {
+                                    if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_L")).getText().toString().isEmpty())
+                                        if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_K")).getText().toString().isEmpty())
+                                            if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_M")).getText().toString().isEmpty())
+                                                if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_J")).getText().toString().isEmpty())
+                                                    if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_V")).getText().toString().isEmpty())
+                                                        if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_S")).getText().toString().isEmpty()) {
+                                                            numErrores++;
+                                                            mensajeError += "- El cliente debe tener al menos 1 día de visita especializada!\n";
+                                                        }
+                                }
+                            }
                         }
+
                         //Validacion de politica de privacidad firmada por el cliente.
                         if(!firma){
                             numErrores++;
@@ -469,11 +502,21 @@ public class SolicitudActivity extends AppCompatActivity {
                             numErrores++;
                             mensajeError += "- ID Fiscal Inválido!\n";
                         }
+                        if(minAdjuntos > adjuntosSolicitud.size()){
+                            numErrores++;
+                            mensajeError += "- Debe adjuntar al menos "+minAdjuntos+" documentos a la solicitud!\n";
+                        }
+                        if(horariosSolicitud.size() > 0) {
+                            String errorHorarios = ValidarHorarios(horariosSolicitud);
+                            if (errorHorarios != "") {
+                                mensajeError += errorHorarios;
+                            }
+                        }
+
                         //Validacion de siguiente aprobador seleccionado
                         Spinner combo = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
                         if(combo.getSelectedItem() != null) {
                             String valor = ((OpcionSpinner)combo.getAdapter().getItem((int) combo.getSelectedItemId())).getId();
-
                             if (combo.getAdapter().getCount() == 0 || (combo.getAdapter().getCount() > 0 && valor.isEmpty() )) {
                                 ((TextView) combo.getChildAt(0)).setError("El campo es obligatorio!");
                                 numErrores++;
@@ -742,7 +785,11 @@ public class SolicitudActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudActivity.this);
-        ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
+        try {
+            ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static class ViewPagerAdapter extends FragmentPagerAdapter {
@@ -1017,12 +1064,12 @@ public class SolicitudActivity extends AppCompatActivity {
                         int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                         if (excepcion >= 0) {
                             HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion,listaCamposObligatorios, campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion,listaCamposObligatorios, campos.get(i));
 
                             int excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                             if (excepcionxAgencia >= 0) {
                                 HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                                Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios, campos.get(i).get("campo").trim());
+                                Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios, campos.get(i));
                             }
                         }
                         if (solicitudSeleccionada.size() > 0) {
@@ -1128,8 +1175,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                         if (opcion.getId().startsWith("N")) {
                                             cedula.setMask("AAAAAAAAAAAAAA");
                                         }
+
                                         if (opcion.getId().equals("P1")) {
-                                            cedula.addTextChangedListener(new TextWatcher() {
+                                            tw = new TextWatcher() {
                                                 @Override
                                                 public void afterTextChanged(Editable s) { }
                                                 @Override
@@ -1137,7 +1185,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 @Override
                                                 public void onTextChanged(CharSequence s, int start, int before, int count) {
                                                     if(s.toString().equals("")){
-                                                        //cedula.setMask("");
+                                                        cedula.setMask("");
                                                     }
                                                     if(s.toString().equals("N")){
                                                         cedula.setMask("N-####-######");
@@ -1149,10 +1197,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                                         cedula.setMask("PE-####-#####");
                                                     }
                                                 }
-                                            });
+                                            };
+                                            cedula.addTextChangedListener(tw);
+                                        }else{
+                                            if(tw != null){
+                                                cedula.removeTextChangedListener(tw);
+                                                tw = null;
+                                            }
                                         }
                                         if (opcion.getId().equals("P2")) {
-                                            cedula.setMask("AAAAAAAAAAAAAAAA");
+                                            cedula.setMask("****************");
                                         }
                                         if (opcion.getId().equals("P3")) {
                                             cedula.setMask("E-####-######");
@@ -1210,22 +1264,26 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
                                                 @Override
                                                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                                                    if(s.toString().length() <= 7) {
+                                                    if(s.toString().length() <= 8) {
                                                         String cantidad="";
                                                         for(int x = 0; x < s.toString().length(); x++){
                                                             cantidad += "#";
                                                         }
-                                                        if(opcion.getId().equals("25"))
-                                                            cedula.setMask(cantidad);
+                                                        Spinner  tipoIdentificacion = (Spinner) mapeoCamposDinamicos.get("W_CTE-STCDT");
+                                                        if(tipoIdentificacion != null) {
+                                                            final OpcionSpinner opcionActual = (OpcionSpinner) tipoIdentificacion.getSelectedItem();
+                                                            if (opcionActual.getId().equals("25"))
+                                                                cedula.setMask(cantidad);
+                                                        }
                                                     }
                                                 }
                                             });
                                         }
                                         if (opcion.getId().equals("42")) {
-                                            cedula.setMask("");
+                                            cedula.setMask("AAAAAAAAAAAAAAAA");
                                         }
                                         if (opcion.getId().equals("88")) {
-                                            cedula.setMask("############");
+                                            cedula.setMask("###########A");
                                         }
 
                                         cedula.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -1272,6 +1330,11 @@ public class SolicitudActivity extends AppCompatActivity {
                                     if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
 
+                                    String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                    PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
+
+                                    ActualizarAprobadores();
+
                                     //Si tiene diferenciacion por agencia para algun campo llamarlo aqui
                                     /*final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
                                     String campo = "";
@@ -1299,19 +1362,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    String id_flujo = db.getIdFlujoDeTipoSolicitud(tipoSolicitud);
-
-                                    ArrayList<OpcionSpinner> opciones = db.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_flujo = "+id_flujo+"");
-                                    // Creando el adaptador(opciones) para el comboBox deseado
-                                    ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, opciones);
-                                    // Drop down layout style - list view with radio button
-                                    dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-                                    // attaching data adapter to spinner
-                                    Drawable d = getResources().getDrawable(R.drawable.spinner_background, null);
-                                    Spinner aprobadores = (Spinner)mapeoCamposDinamicos.get("SIGIUENTE_APROBADOR");
-                                    //aprobadores.setBackground(d);
-                                    if(aprobadores != null)
-                                        aprobadores.setAdapter(dataAdapter);
+                                    ActualizarAprobadores();
 
                                     if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
@@ -1330,7 +1381,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     Spinner zona_transporte = (Spinner) mapeoCamposDinamicos.get("W_CTE-LZONE");
                                     String valor_centro_suministro = ((OpcionSpinner) combo.getSelectedItem()).getId().trim();
                                     String filtroxPais = "";
-                                    switch(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad())){
+                                    switch(PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad())){
                                         case "1661":
                                         case "Z001":
                                             Spinner gec = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
@@ -1345,7 +1396,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     }
                                     ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);
                                     // Creando el adaptador(opciones) para el comboBox deseado
-                                    ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
+                                    ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(parent.getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                     // Drop down layout style - list view with radio button
                                     dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
                                     if (zona_transporte != null) {
@@ -1358,10 +1409,10 @@ public class SolicitudActivity extends AppCompatActivity {
                                             }
                                         }
                                         //Campos zona de transporte se comporta diferente para Autoventa, debe ser la misma ruta de preventa y no puede ser seleccionable.
-                                        if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZAT")) {
+                                        if (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZAT")) {
                                             zona_transporte.setEnabled(false);
                                             zona_transporte.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-                                            zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte,PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH","").trim()));
+                                            zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte,PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_RUTAHH","").trim()));
                                         }
                                     }
                                     if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
@@ -1584,7 +1635,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
                                             @Override
                                             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                                                if(s.toString().length() <= 7) {
+                                                if(s.toString().length() <= 8) {
                                                     String cantidad="";
                                                     for(int x = 0; x <= s.toString().length(); x++){
                                                         cantidad += "#";
@@ -1598,10 +1649,10 @@ public class SolicitudActivity extends AppCompatActivity {
                                         editText_cedula.addTextChangedListener(miTextWatcher);
                                     }
                                     if (opcion.getId().equals("42")) {
-                                        editText_cedula.setMask("");
+                                        editText_cedula.setMask("AAAAAAAAAAAAAAAA");
                                     }
                                     if (opcion.getId().equals("88")) {
-                                        editText_cedula.setMask("############");
+                                        editText_cedula.setMask("###########A");
                                     }
 
                                     AsignarTipoImpuesto(parent);
@@ -1622,12 +1673,20 @@ public class SolicitudActivity extends AppCompatActivity {
                             if (split.length < 3)
                                 split = campos.get(i).get("llamado1").trim().split("\"");
                             final String campoAReplicar = split[1];
+                            int finalI1 = i;
                             combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    ReplicarValorSpinner(parent, campoAReplicar, position);
+                                    ReplicarValorSpinner(parent, campoAReplicar, ((OpcionSpinner) parent.getSelectedItem()).getId().trim());
                                     if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+
+                                    if(campos.get(finalI1).get("campo").trim().equals("W_CTE-BZIRK")){
+                                        String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                        PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
+
+                                        ActualizarAprobadores();
+                                    }
                                 }
 
                                 @Override
@@ -1703,7 +1762,14 @@ public class SolicitudActivity extends AppCompatActivity {
                                         }
                                     }
 
-                                    ReplicarValorSpinner(parent, nombreCampo + "1", position);
+                                    if(nombreCampo.equals("W_CTE-BZIRK")){
+                                        String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                        PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
+
+                                        ActualizarAprobadores();
+                                    }
+
+                                    ReplicarValorSpinner(parent, nombreCampo + "1", ((OpcionSpinner) parent.getSelectedItem()).getId().trim());
                                     if (position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
@@ -1761,7 +1827,15 @@ public class SolicitudActivity extends AppCompatActivity {
                                             }
                                         }
                                     }
-                                    ReplicarValorSpinner(parent, nombreCampo, position);
+
+                                    if(nombreCampo.equals("W_CTE-BZIRK")){
+                                        String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                        PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
+
+                                        ActualizarAprobadores();
+                                    }
+
+                                    ReplicarValorSpinner(parent, nombreCampo, ((OpcionSpinner) parent.getSelectedItem()).getId().trim());
                                     if (position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
@@ -1795,12 +1869,12 @@ public class SolicitudActivity extends AppCompatActivity {
                         int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                         if (excepcion >= 0) {
                             HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios, campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios, campos.get(i));
 
                             int excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                             if (excepcionxAgencia >= 0) {
                                 HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                                Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios, campos.get(i).get("campo").trim());
+                                Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios, campos.get(i));
                             }
                         }
                     } else {
@@ -2138,12 +2212,12 @@ public class SolicitudActivity extends AppCompatActivity {
                         int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                         if (excepcion >= 0) {
                             HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i));
 
                             int excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                             if (excepcionxAgencia >= 0) {
                                 HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                                Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                                Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
                             }
                         }
                     }
@@ -2243,6 +2317,26 @@ public class SolicitudActivity extends AppCompatActivity {
 
                     CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
                     mapeoCamposDinamicos.put("politica",checkbox);
+                }
+            }
+        }
+
+        private void ActualizarAprobadores() {
+            String id_flujo = mDBHelper.getIdFlujoDeTipoSolicitud(tipoSolicitud);
+
+            ArrayList<OpcionSpinner> opciones = mDBHelper.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_flujo = "+id_flujo+"");
+            // Creando el adaptador(opciones) para el comboBox deseado
+            ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, opciones);
+            // Drop down layout style - list view with radio button
+            dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+            // attaching data adapter to spinner
+            Drawable d = getResources().getDrawable(R.drawable.spinner_background, null);
+            Spinner aprobadores = (Spinner)mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR");
+            //aprobadores.setBackground(d);
+            if(aprobadores != null) {
+                aprobadores.setAdapter(dataAdapter);
+                if(solicitudSeleccionada.size() > 0){
+                    aprobadores.setSelection(VariablesGlobales.getIndex(aprobadores,solicitudSeleccionada.get(0).get("SIGUIENTE_APROBADOR").toString().trim()));
                 }
             }
         }
@@ -2565,6 +2659,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         stda.setGravity(GRAVITY_CENTER);
                         tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + (visitasSolicitud.size() * alturaFilaTableView);
                         tb_visitas.setDataAdapter(stda);
+                        tb_visitas.getDataAdapter().notifyDataSetChanged();
                     }
                     headers = ((VisitasTableAdapter) tb_visitas.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
@@ -2754,12 +2849,14 @@ public class SolicitudActivity extends AppCompatActivity {
 
                                         int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZPV");
                                         int indiceTeleventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZTV");
+                                        int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZJV");
                                         int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
                                         int indiceAutoventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZAT");
                                         int indiceMixta = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZRM");
                                         //int indiceDummy = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDY");
 
                                         final int finalIndicePreventa = indicePreventa;
+                                        final int finalIndiceEspecializada = indiceEspecializada;
                                         final int finalIndiceTeleventa = indiceTeleventa;
                                         final int finalIndiceReparto = indiceReparto;
                                         final int finalIndiceMixta = indiceMixta;
@@ -2769,7 +2866,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             int diaReparto = 0;
                                             int diasParaReparto = 1;
                                             Visitas visitaPreventa = null;
-                                            if(finalIndicePreventa != -1) {
+                                            if(finalIndicePreventa != -1 && PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_TIPORUTA", "").equals("ZPV") ) {
                                                 visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
                                                 if (visitaPreventa.getKvgr4() != null)
                                                     diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
@@ -2778,8 +2875,17 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 } else {
                                                     diaReparto = (finalX + diasParaReparto);
                                                 }
-                                            }else if(finalIndiceTeleventa != -1) {
+                                            }else if(finalIndiceTeleventa != -1 && PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_TIPORUTA", "").equals("ZTV")) {
                                                 visitaPreventa = visitasSolicitud.get(finalIndiceTeleventa);
+                                                if (visitaPreventa.getKvgr4() != null)
+                                                    diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
+                                                if ((finalX + diasParaReparto) > 5) {
+                                                    diaReparto = ((finalX + diasParaReparto) - 6);
+                                                } else {
+                                                    diaReparto = (finalX + diasParaReparto);
+                                                }
+                                            }else if(finalIndiceEspecializada != -1 && PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_TIPORUTA", "").equals("ZJV")) {
+                                                visitaPreventa = visitasSolicitud.get(finalIndiceEspecializada);
                                                 if (visitaPreventa.getKvgr4() != null)
                                                     diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
                                                 if ((finalX + diasParaReparto) > 5) {
@@ -2801,6 +2907,14 @@ public class SolicitudActivity extends AppCompatActivity {
                                             Visitas visitaMixta = null;
                                             if(finalIndiceMixta != -1){
                                                 visitaMixta = visitasSolicitud.get(finalIndiceMixta);
+                                                visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
+                                                if (visitaMixta.getKvgr4() != null)
+                                                    diasParaReparto = Integer.valueOf(visitaMixta.getKvgr4().replace("DA", ""));
+                                                if ((finalX + diasParaReparto) > 5) {
+                                                    diaReparto = ((finalX + diasParaReparto) - 6);
+                                                } else {
+                                                    diaReparto = (finalX + diasParaReparto);
+                                                }
                                             }
                                             Visitas visitaReparto = null;
                                             if (!modalidad.equals("GV")) {
@@ -2901,14 +3015,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 if(finalIndiceMixta != -1) {
                                                     copiarDia(et,finalIndiceMixta,finalIndicePreventa);
                                                 }
-                                                Toasty.warning(getContext(), R.string.error_max_secuencia).show();
+                                                Toasty.warning(v.getContext(), R.string.error_max_secuencia).show();
                                             }
 
                                             //Si el valor es vacio, borrar si existe el dia
-                                            if (((TextView) v).getText().toString().trim().replace("0", "").equals("")) {
-                                                if (((TextView) v).getText().toString().trim().length() > 0) {
+                                            if (((TextView) v).getText().toString().trim().replace("0", "").equals("")
+                                                    && !VariablesGlobales.AceptarVisitaCero()) {
+                                                if (((TextView) v).getText().toString().trim().length() > 0
+                                                        && !VariablesGlobales.AceptarVisitaCero()) {
                                                     ((TextView) v).setText("");
-                                                    Toasty.warning(getContext(), "La Secuencia debe ser mayor a 0").show();
+                                                    Toasty.warning(v.getContext(), "La Secuencia debe ser mayor a 0").show();
                                                 }
                                                 switch (finalX) {
                                                     case 0:
@@ -3131,6 +3247,14 @@ public class SolicitudActivity extends AppCompatActivity {
                                     et_anterior.setNextFocusUpId(et.getId());
                                     et_anterior.setNextFocusDownId(et.getId());
                                 }
+                                if(x == 6){
+                                    et_anterior.setImeOptions(EditorInfo.IME_ACTION_DONE);
+                                    et_anterior.setNextFocusForwardId(0);
+                                    et_anterior.setNextFocusRightId(0);
+                                    et_anterior.setNextFocusLeftId(0);
+                                    et_anterior.setNextFocusUpId(0);
+                                    et_anterior.setNextFocusDownId(0);
+                                }
                                 et_anterior = et;
 
                                 tr.addView(label);
@@ -3214,6 +3338,9 @@ public class SolicitudActivity extends AppCompatActivity {
                     final String[] dias_sufijo = {"ab1", "bi1", "ab2", "bi2"};
                     if(solicitudSeleccionada.size() > 0){
                         horariosSolicitud = mDBHelper.getHorariosDB(GUID);
+                        if(horariosSolicitud.size() == 0){
+                            horariosSolicitud.add(new Horarios(GUID,"00:00:00"));
+                        }
                     }else{
                         horariosSolicitud.add(new Horarios(GUID,"00:00:00"));
                     }
@@ -3319,6 +3446,20 @@ public class SolicitudActivity extends AppCompatActivity {
                                     mTimePicker = new TimePickerDialog(getContext(), new TimePickerDialog.OnTimeSetListener() {
                                         @Override
                                         public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+                                            if(et.getTag().toString().contains("ab1") || et.getTag().toString().contains("bi1")){
+                                                if(selectedHour > 18){
+                                                    Toasty.warning(getContext(),"Rangos de horas en la mañana invalido! Solo horas entre 0 y 12 son permitidas.").show();
+                                                    return;
+                                                }
+                                            }
+                                            if(et.getTag().toString().contains("ab2") || et.getTag().toString().contains("bi2")){
+                                                if(selectedHour < 6){
+                                                    if(selectedHour > 0 && selectedMinute > 0) {
+                                                        Toasty.warning(getContext(), "Rangos de horas de la tarde invalido! Solo horas entre 12 y 23 son permitidas").show();
+                                                        return;
+                                                    }
+                                                }
+                                            }
                                             String mivalor = "00".substring(String.valueOf(selectedHour).length()) + String.valueOf(selectedHour) + ":" + "00".substring(String.valueOf(selectedMinute).length()) + String.valueOf(selectedMinute) + ":00";
                                             et.setText(mivalor);
                                             horariosSolicitud.get(0).actualizarCampo(et.getTag().toString(),mivalor);
@@ -3377,7 +3518,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
                 }
                 if(solicitudSeleccionada.size() == 0){
-                    horariosSolicitud.add(new Horarios(GUID,"00:00:00"));
+                    //horariosSolicitud.add(new Horarios(GUID,"00:00:00"));
                 }
                     ll.addView(h_tl);
                 break;
@@ -5073,6 +5214,12 @@ public class SolicitudActivity extends AppCompatActivity {
         if(hasta != null)
             hasta.setSelection(selection);
     }
+    private static void ReplicarValorSpinner(View v, String campo,String valorSeleccioando){
+        Spinner desde = (Spinner)v;
+        Spinner hasta = (Spinner)mapeoCamposDinamicos.get(campo);
+        if(hasta != null)
+            hasta.setSelection(VariablesGlobales.getIndex(hasta,valorSeleccioando));
+    }
     private static boolean ValidarCedula(View v, String tipoCedula){
         TextView texto = (TextView)v;
         String cedula = "";
@@ -5097,8 +5244,9 @@ public class SolicitudActivity extends AppCompatActivity {
                 pattern = Pattern.compile(cedula);
                 matcher = pattern.matcher(texto.getText());
                 if (!matcher.matches()) {
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     cedulaValidada = false;
+                    Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     return true;
                 }
                 cedulaValidada = true;
@@ -5113,8 +5261,8 @@ public class SolicitudActivity extends AppCompatActivity {
                 break;
             case "F445"://Nicaragua
                 if (texto.getText().toString().trim().length() < 3) {
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     cedulaValidada = false;
+                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     return true;
                 }
                 if (texto.getText().toString().trim().length() < 14) {
@@ -5125,8 +5273,9 @@ public class SolicitudActivity extends AppCompatActivity {
                 pattern = Pattern.compile(cedula);
                 matcher = pattern.matcher(texto.getText());
                 if (!matcher.matches()) {
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+                    Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
                     cedulaValidada = false;
+                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     return true;
                 }
                 cedulaValidada = true;
@@ -5146,7 +5295,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         break;
                     case "P2":
-                        cedula = "[0-9a-zA-Z]{16,16}";
+                        cedula = "[1-9a-zA-Z][0-9a-zA-Z\\-]{3,15}";
                         break;
                     case "P3":
                         cedula = "E-[0-9]{4,4}-[0-9]{6,6}";
@@ -5155,8 +5304,9 @@ public class SolicitudActivity extends AppCompatActivity {
                 pattern = Pattern.compile(cedula);
                 matcher = pattern.matcher(texto.getText());
                 if (!matcher.matches()) {
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     cedulaValidada = false;
+                    Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     return true;
                 }
                 cedulaValidada = true;
@@ -5173,15 +5323,15 @@ public class SolicitudActivity extends AppCompatActivity {
                 Matcher matcherCF = patternCF.matcher(texto.getText());
 
                     if (!matcherFi.matches() && !matcherCF.matches()) {
-                        texto.setError("NIT valor/formato inválido!");
                         cedulaValidada = false;
+                        texto.setError("NIT valor/formato inválido!");
                         return true;
                     }
                     /*Despues del formato se realiza validacion MOD 11*/
                     String[] nit = texto.getText().toString().split("-");
                     if(texto.getText().toString().replace("-","").replace("0","").length() == 0){
-                        texto.setError("NIT no puede tener solo ceros!");
                         cedulaValidada = false;
+                        texto.setError("NIT no puede tener solo ceros!");
                         return true;
                     }
                     Integer cantDigitos = nit[0].length();
@@ -5202,84 +5352,160 @@ public class SolicitudActivity extends AppCompatActivity {
                         digitoVerificador = "K";
                     }
                     if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
-                        texto.setError("NIT inválido por digito verificador!");
                         cedulaValidada = false;
+                        texto.setError("NIT inválido por digito verificador!");
                         return true;
                     }
                 cedulaValidada = true;
                 break;
             case "1661":
             case "Z001":
-                String[] nit_uy = texto.getText().toString().split("-");
-                if(texto.getText().toString().replace("-","").replace("0","").length() == 0){
-                    texto.setError("CI no puede tener solo ceros!");
-                    cedulaValidada = false;
-                    return true;
-                }
-                Integer cantDigitos_uy = nit_uy[0].length();
-                String ci =  nit_uy[0].trim();
-
-                int digVerificador = -1 ;
-                if (nit_uy.length == 1) {
-                    cantDigitos_uy--;
-                    digVerificador = Integer.parseInt(nit_uy[0].trim().substring(cantDigitos_uy) + "" );
-                    ci = nit_uy[0].substring(0,cantDigitos_uy);
-                } else {
-                    digVerificador = Integer.parseInt(nit_uy[1].trim() + "" );
-                }
-
-                if(ci.length() != 6 && ci.length() != 7 && ci.length() != 11){
-                    cedulaValidada = false;
-                }else{
-                    try{
-                        Integer.parseInt(ci);
-                    }catch (NumberFormatException e){
-                        cedulaValidada = false;
-                    }
-                }
-                /*if(nit_uy.length == 1){
-                    Toasty.warning(texto.getContext(),"Formato Regimen "+tipoCedula+" invalido!",Toasty.LENGTH_SHORT).show();
-                    return true;
-                }*/
-
+                String[] nit_uy = new String[2];
+                Integer cantDigitos_uy;
+                String ci;
+                int digVerificador = -1;
                 int[] factores = null;
-                if(ci.length() == 6){ // CI viejas
-                    factores = new int[]{9, 8, 7, 6, 3, 4};
-                }else if(ci.length() == 7){
-                    factores = new int[]{2, 9, 8, 7, 6, 3, 4};
-                }else if(ci.length() == 11){
-                    factores = new int[]{2,3,4,5,6,7,8,9,2,3,4};
-                }
-
-                if(factores == null){
-                    cedulaValidada = false;
-                    Toasty.warning(texto.getContext(),"Formato Regimen "+tipoCedula+" invalido!",Toasty.LENGTH_SHORT).show();
-                    return true;
-                }
-
-                int suma = 0;
-                for(int i=0; i < (cantDigitos_uy) ; i++){
-                    int digito = Integer.parseInt(ci.charAt(i) + "" );
-                    suma += digito * factores[ i ];
-                }
-
+                int suma=0;
                 int factor = 10;
-                if (ci.length() == 11) {
-                    factor = 11;
-                }
-                int resto = suma % factor;
-                int checkdigit = factor - resto;
+                int resto = 0;
+                int checkdigit = 0;
+                switch (tipoCedula) {
+                    case "25":
+                        nit_uy = texto.getText().toString().split("-");
+                        if (texto.getText().toString().replace("-", "").replace("0", "").length() == 0) {
+                            cedulaValidada = false;
+                            texto.setError("CI no puede tener solo ceros!");
+                            return true;
+                        }
+                        cantDigitos_uy = nit_uy[0].length();
+                        ci = nit_uy[0].trim();
 
-                if(checkdigit == factor){
-                    cedulaValidada =  (digVerificador == 0);
-                }else {
-                    cedulaValidada =  (checkdigit == digVerificador) ;
+                        digVerificador = -1;
+                        if (nit_uy.length == 1) {
+                            cantDigitos_uy--;
+                            digVerificador = Integer.parseInt(nit_uy[0].trim().substring(cantDigitos_uy) + "");
+                            ci = nit_uy[0].substring(0, cantDigitos_uy);
+                        } else {
+                            digVerificador = Integer.parseInt(nit_uy[1].trim() + "");
+                        }
+
+                        if (ci.length() != 6 && ci.length() != 7 && ci.length() != 11) {
+                            cedulaValidada = false;
+                        } else {
+                            try {
+                                Integer.parseInt(ci);
+                            } catch (NumberFormatException e) {
+                                cedulaValidada = false;
+                            }
+                        }
+
+                        if (ci.length() == 6) { // CI viejas
+                            factores = new int[]{9, 8, 7, 6, 3, 4};
+                        } else if (ci.length() == 7) {
+                            factores = new int[]{2, 9, 8, 7, 6, 3, 4};
+                        } else if (ci.length() == 11) {
+                            factores = new int[]{2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4};
+                        }
+
+                        if (factores == null) {
+                            cedulaValidada = false;
+                            Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            return true;
+                        }
+
+                        suma = 0;
+                        for (int i = 0; i < (cantDigitos_uy); i++) {
+                            int digito = Integer.parseInt(ci.charAt(i) + "");
+                            suma += digito * factores[i];
+                        }
+
+                        factor = 10;
+                        if (ci.length() == 11) {
+                            factor = 11;
+                        }
+                        resto = suma % factor;
+                        checkdigit = factor - resto;
+
+                        if (checkdigit == factor) {
+                            cedulaValidada = (digVerificador == 0);
+                        } else {
+                            cedulaValidada = (checkdigit == digVerificador);
+                        }
+                        if (!cedulaValidada) {
+                            Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            return true;
+                        }
+                        break;
+                    case "88":
+                        if(texto.getText().toString().length() == 0){
+                            cedulaValidada = false;
+                            texto.setError("RUT no puede estar vacio!");
+                            return true;
+                        }
+                        nit_uy[0] = texto.getText().toString().substring(0,texto.getText().toString().length()-1);
+                        if (texto.getText().toString().replace("-", "").replace("0", "").length() == 0) {
+                            cedulaValidada = false;
+                            texto.setError("RUT no puede tener solo ceros!");
+                            return true;
+                        }
+                        cantDigitos_uy = nit_uy[0].length();//Debe ser 11
+                        ci = nit_uy[0].trim();
+
+                        try {
+                            digVerificador = Integer.parseInt(texto.getText().toString().substring(texto.getText().toString().length() - 1, texto.getText().toString().length()) + "");
+                        }catch(Exception e){
+
+                        }
+                        if (ci.length() != 11) {
+                            cedulaValidada = false;
+                        } else {
+                            try {
+                                Integer.parseInt(ci);
+                            } catch (NumberFormatException e) {
+                                cedulaValidada = false;
+                            }
+                        }
+
+                        if (ci.length() == 11) { // RUT
+                            factores = new int[]{4,3,2,9,8,7,6,5,4,3,2};
+                        }
+
+                        if (factores == null) {
+                            cedulaValidada = false;
+                            Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            return true;
+                        }
+
+                        suma = 0;
+                        for (int i = 0; i < (cantDigitos_uy); i++) {
+                            int digito = Integer.parseInt(ci.charAt(i) + "");
+                            suma += digito * factores[i];
+                        }
+
+                        factor = 10;
+                        if (ci.length() == 11) {
+                            factor = 11;
+                        }
+                        resto = suma % factor;
+                        checkdigit = factor - resto;
+
+                        if (checkdigit == factor) {
+                            cedulaValidada = (digVerificador == 0);
+                        }else if (checkdigit == 10) {
+                            cedulaValidada = true;//String.valueOf(digVerificador) == "K";
+                        } else {
+                            cedulaValidada = (checkdigit == digVerificador);
+                        }
+                        if (!cedulaValidada) {
+                            Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            return true;
+                        }
+                        cedulaValidada = true;
+                        break;
+                    case "42":
+                        cedulaValidada = true;
+                        break;
                 }
-                if(!cedulaValidada) {
-                    Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
-                    return true;
-                }
-                break;
         }
 
         Toasty.success(texto.getContext(),"Formato Regimen "+tipoCedula+" valido!",Toasty.LENGTH_SHORT).show();
@@ -5366,6 +5592,114 @@ public class SolicitudActivity extends AppCompatActivity {
         }
         idFiscalValidado = true;
         return true;
+    }
+    //Devuelve string vacio si estan los horarios correcctos, de lo contrario devuelve string de error.
+    private String ValidarHorarios(ArrayList<Horarios> horariosSolicitud) {
+        String mensajeHorarios = "";
+        try {
+            int moab1 = Integer.parseInt(horariosSolicitud.get(0).getMoab1().replaceAll(":", ""));
+            int mobi1 = Integer.parseInt(horariosSolicitud.get(0).getMobi1().replaceAll(":", ""));
+            int diab1 = Integer.parseInt(horariosSolicitud.get(0).getDiab1().replaceAll(":", ""));
+            int dibi1 = Integer.parseInt(horariosSolicitud.get(0).getDibi1().replaceAll(":", ""));
+            int miab1 = Integer.parseInt(horariosSolicitud.get(0).getMiab1().replaceAll(":", ""));
+            int mibi1 = Integer.parseInt(horariosSolicitud.get(0).getMibi1().replaceAll(":", ""));
+            int doab1 = Integer.parseInt(horariosSolicitud.get(0).getDoab1().replaceAll(":", ""));
+            int dobi1 = Integer.parseInt(horariosSolicitud.get(0).getDobi1().replaceAll(":", ""));
+            int frab1 = Integer.parseInt(horariosSolicitud.get(0).getFrab1().replaceAll(":", ""));
+            int frbi1 = Integer.parseInt(horariosSolicitud.get(0).getFrbi1().replaceAll(":", ""));
+            int saab1 = Integer.parseInt(horariosSolicitud.get(0).getSaab1().replaceAll(":", ""));
+            int sabi1 = Integer.parseInt(horariosSolicitud.get(0).getSabi1().replaceAll(":", ""));
+            int soab1 = Integer.parseInt(horariosSolicitud.get(0).getSoab1().replaceAll(":", ""));
+            int sobi1 = Integer.parseInt(horariosSolicitud.get(0).getSobi1().replaceAll(":", ""));
+
+            int moab2 = Integer.parseInt(horariosSolicitud.get(0).getMoab2().replaceAll(":", ""));
+            int mobi2 = Integer.parseInt(horariosSolicitud.get(0).getMobi2().replaceAll(":", ""));
+            int diab2 = Integer.parseInt(horariosSolicitud.get(0).getDiab2().replaceAll(":", ""));
+            int dibi2 = Integer.parseInt(horariosSolicitud.get(0).getDibi2().replaceAll(":", ""));
+            int miab2 = Integer.parseInt(horariosSolicitud.get(0).getMiab2().replaceAll(":", ""));
+            int mibi2 = Integer.parseInt(horariosSolicitud.get(0).getMibi2().replaceAll(":", ""));
+            int doab2 = Integer.parseInt(horariosSolicitud.get(0).getDoab2().replaceAll(":", ""));
+            int dobi2 = Integer.parseInt(horariosSolicitud.get(0).getDobi2().replaceAll(":", ""));
+            int frab2 = Integer.parseInt(horariosSolicitud.get(0).getFrab2().replaceAll(":", ""));
+            int frbi2 = Integer.parseInt(horariosSolicitud.get(0).getFrbi2().replaceAll(":", ""));
+            int saab2 = Integer.parseInt(horariosSolicitud.get(0).getSaab2().replaceAll(":", ""));
+            int sabi2 = Integer.parseInt(horariosSolicitud.get(0).getSabi2().replaceAll(":", ""));
+            int soab2 = Integer.parseInt(horariosSolicitud.get(0).getSoab2().replaceAll(":", ""));
+            int sobi2 = Integer.parseInt(horariosSolicitud.get(0).getSobi2().replaceAll(":", ""));
+
+            if (moab1 > mobi1 && mobi1 != 0) {
+                mensajeHorarios += "En el dia Lunes en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (diab1 > dibi1 && dibi1 != 0) {
+                mensajeHorarios += "En el dia Martes en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (miab1 > mibi1 && mibi1 != 0) {
+                mensajeHorarios += "En el dia Miercoles en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (doab1 > dobi1 && dobi1 != 0) {
+                mensajeHorarios += "En el dia Jueves en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (frab1 > frbi1 && frbi1 != 0) {
+                mensajeHorarios += "En el dia Viernes en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (saab1 > sabi1 && sabi1 != 0) {
+                mensajeHorarios += "En el dia Sabado en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (soab1 > sobi1 && sobi1 != 0) {
+                mensajeHorarios += "En el dia Domingo en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+
+            if (moab2 > mobi2 && moab2 != 0) {
+                mensajeHorarios += "En el dia Lunes en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (diab2 > dibi2 && diab2 != 0) {
+                mensajeHorarios += "En el dia Martes en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (miab2 > mibi2 && miab2 != 0) {
+                mensajeHorarios += "En el dia Miercoles en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (doab2 > dobi2 && doab2 != 0) {
+                mensajeHorarios += "En el dia Jueves en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (frab2 > frbi2 && frab2 != 0) {
+                mensajeHorarios += "En el dia Viernes en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (saab2 > sabi2 && saab2 != 0) {
+                mensajeHorarios += "En el dia Sabado en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (soab2 > sobi2 && soab2 != 0) {
+                mensajeHorarios += "En el dia Domingo en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+
+            if (moab1 != 0 && mobi2 != 0 && mobi1 == 0 && moab2 == 0 && moab1 > mobi2) {
+                mensajeHorarios += "En el dia Lunes, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+            if (diab1 != 0 && dibi2 != 0 && dibi1 == 0 && diab2 == 0 && diab1 > dibi2) {
+                mensajeHorarios += "En el dia Martes, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+            if (miab1 != 0 && mibi2 != 0 && mibi1 == 0 && miab2 == 0 && miab1 > mibi2) {
+                mensajeHorarios += "En el dia Miercoles, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+            if (doab1 != 0 && dobi2 != 0 && dobi1 == 0 && doab2 == 0 && doab1 > dobi2) {
+                mensajeHorarios += "En el dia Jueves, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+            if (frab1 != 0 && frbi2 != 0 && frbi1 == 0 && frab2 == 0 && frab1 > frbi2) {
+                mensajeHorarios += "En el dia Viernes, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+            if (saab1 != 0 && sabi2 != 0 && sabi1 == 0 && saab2 == 0 && saab1 > sabi2) {
+                mensajeHorarios += "En el dia Sabado, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+            if (soab1 != 0 && sobi2 != 0 && sobi1 == 0 && soab2 == 0 && soab1 > sobi2) {
+                mensajeHorarios += "En el dia Domingo, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+
+        } catch (Exception exc) {
+            mensajeHorarios += "Revise los horarios digitados, no pueden ser calculados!";
+        }
+        if (mensajeHorarios != "") {
+            return mensajeHorarios;
+        }
+        return "";
     }
     /*CORRER EN NUEVO THREAD Para poder mostrar avance o loading image*/
     private class MostrarFormulario extends AsyncTask<String, Integer, Void> {
@@ -5514,6 +5848,4 @@ public class SolicitudActivity extends AppCompatActivity {
             (byte)0x03,            (byte)0xD0,            (byte)0x00,            (byte)0xDf,
             (byte)0x00
     };
-
-
 }

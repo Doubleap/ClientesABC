@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
@@ -173,6 +174,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                     dos.flush();
                     //Version con la que quiere transmitir
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    dateFormat.setTimeZone(TimeZone.getTimeZone("GMT-6"));
                     dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
                     dos.flush();
                     //Enviar Ruta que se quiere sincronizar

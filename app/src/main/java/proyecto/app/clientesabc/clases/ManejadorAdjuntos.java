@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Parcel;
 import android.preference.PreferenceManager;
 import android.provider.OpenableColumns;
 import android.util.Log;
@@ -28,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ComponentActivity;
 import androidx.core.content.FileProvider;
 
 import com.theartofdev.edmodo.cropper.CropImage;
@@ -40,10 +42,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Map;
 
+import de.codecrafters.tableview.TableView;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
@@ -83,6 +88,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
         this.tb_adjuntos = tb_adjuntos;
         this.mapeoCamposDinamicos = mapeoCamposDinamicos;
     }
+
     public static void MostrarGaleriaAdjuntosHorizontal(HorizontalScrollView hsv, final Context context, final Activity activity, ArrayList<Adjuntos> adjuntosSolicitud, boolean modificable, boolean firma, de.codecrafters.tableview.TableView<Adjuntos> tb_adjuntos, Map<String, View> mapeoCamposDinamicos) {
         hsv.removeAllViews();
         hsv.setBackground(context.getResources().getDrawable(R.drawable.squared_textbackground,null));
@@ -288,7 +294,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                 window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             }
         }else{//Si no es una imagen debo abrirlo con algun app
-            File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +"/"+ nombre_adjunto);
+            File file = new File(context.getExternalFilesDir(null).getAbsolutePath() +"/"+ nombre_adjunto);
             FileOutputStream fos = null;
             try {
                 fos = new FileOutputStream(file);
@@ -490,6 +496,21 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
                 }
             }
+            if(adjuntosSolicitud.get(rowIndex).getName().contains("Tarjeta")) {
+                CheckBox entregaTarjeta = (CheckBox) mapeoCamposDinamicos.get("entregaTarjeta");
+                if(entregaTarjeta != null) {
+                    entregaTarjeta.setChecked(false);
+                    entregaTarjeta.setEnabled(true);
+                    if (activity instanceof SolicitudActivity)
+                        ((SolicitudActivity) activity).firma = false;
+                    if (activity instanceof SolicitudModificacionActivity)
+                        ((SolicitudModificacionActivity) activity).firma = false;
+                    if (activity instanceof SolicitudCreditoActivity)
+                        ((SolicitudCreditoActivity) activity).firma = false;
+                    if (activity instanceof SolicitudAvisosEquipoFrioActivity)
+                        ((SolicitudAvisosEquipoFrioActivity) activity).firma = false;
+                }
+            }
             adjuntosSolicitud.remove(rowIndex);
             tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(context, adjuntosSolicitud));
 
@@ -499,7 +520,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
         }
     }
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
-    public static void ActivityResult(int requestCode, int resultCode, Intent data, Context context, Activity activity, Uri mPhotoUri, DataBaseHelper mDBHelper, ArrayList<Adjuntos> adjuntosSolicitud, boolean modificable, boolean firma, String GUID, de.codecrafters.tableview.TableView<Adjuntos> tb_adjuntos, Map<String, View> mapeoCamposDinamicos){
+    public static void ActivityResult(int requestCode, int resultCode, Intent data, Context context, Activity activity, Uri mPhotoUri, DataBaseHelper mDBHelper, ArrayList<Adjuntos> adjuntosSolicitud, boolean modificable, boolean firma, String GUID, TableView<Adjuntos> tb_adjuntos, Map<String, View> mapeoCamposDinamicos) throws IOException {
         switch (requestCode) {
             //Captura de imagen por medio de la camara del dispositivo, aqui se realiza el crop
             case 1:
@@ -524,7 +545,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         byte[] inputData = ManejadorAdjuntos.getBytes(iStream);
                         File file = null;
                         try {
-                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
+                            file = new File(context.getExternalFilesDir(null).getAbsolutePath());
                             if (!file.exists()) {
                                 file.createNewFile();
                             }
@@ -534,7 +555,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         } catch (Exception e) {
                             Log.e("thumbnail", e.getMessage());
                         }
-                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
+                        File file2 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//" + name);
 
 
                         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -567,6 +588,13 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
 
                             // start cropping activity for pre-acquired image saved on the device
                             //CropImage.activity(mPhotoUri).start(activity);
+
+                            //ActivityResultLauncher<Uri> takePicture = (ActivityResultLauncher<Uri>) registerForActivityResult(new ActivityResultContracts.TakePicture(), ActivityResult( requestCode, resultCode, data, context, activity, mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos));
+
+                            //ActivityResultLauncher<CropImageContractOptions> cropImage = registerForActivityResult(new CropImageContract(), presenter::onCropImageResult);
+
+                            //CropImage.ActivityBuilder builder = new CropImage.ActivityBuilder(mPhotoUri);
+                            //Intent intent = builder.getIntent(context);
                             Intent intent = CropImage.activity(mPhotoUri).getIntent(context);
                             activity.startActivityForResult(intent, 210);
                         }
@@ -709,6 +737,19 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                             ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
                         aceptacion_letra.setEnabled(false);
                     }
+                    CheckBox entregaTarjeta = (CheckBox) mapeoCamposDinamicos.get("entregaTarjeta");
+                    if(entregaTarjeta != null) {
+                        entregaTarjeta.setChecked(true);
+                        if(activity instanceof SolicitudActivity)
+                            ((SolicitudActivity) activity).firma = true;
+                        if(activity instanceof SolicitudModificacionActivity)
+                            ((SolicitudModificacionActivity) activity).firma = true;
+                        if(activity instanceof SolicitudCreditoActivity)
+                            ((SolicitudCreditoActivity) activity).firma = true;
+                        if(activity instanceof SolicitudAvisosEquipoFrioActivity)
+                            ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
+                        entregaTarjeta.setEnabled(false);
+                    }
 
                     Toasty.success(context, "Documento asociado correctamente.").show();
                 }
@@ -801,7 +842,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         byte[] inputData = ManejadorAdjuntos.getBytes(iStream);
                         File file = null;
                         try {
-                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
+                            file = new File(context.getExternalFilesDir(null).getAbsolutePath());
                             if (!file.exists()) {
                                 file.createNewFile();
                             }
@@ -811,7 +852,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         } catch (Exception e) {
                             Log.e("thumbnail", e.getMessage());
                         }
-                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
+                        File file2 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//" + name);
                         file2 = FileHelper.saveBitmapToFile(file2);
 
                         byte[] bytesArray = new byte[(int) file2.length()];
@@ -843,11 +884,31 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
             case CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE:
             case 210://Resultado de crop de camara, si borra archivo
                 Uri uri = null;
+                Uri uriCopia = null;
                 if (resultCode == RESULT_OK) {
                         if (data != null) {
                             CropImage.ActivityResult result = CropImage.getActivityResult(data);
                             uri = result.getUri();
+                            uriCopia = result.getOriginalUri();
+                            /*Copiar el archivo a un Uri que si puedo utilizar*/
+                            InputStream is = null;
+                            try {
+                                is = context.getContentResolver().openInputStream(uri);
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                            OutputStream os = context.getContentResolver().openOutputStream(uriCopia);
+                            byte[] b = new byte[4096];
+                            int read = 0;
+                            while ((read = is.read(b)) != -1) {
+                                os.write(b, 0, read);
+                            }
+                            os.flush();
+                            os.close();
+                            is.close();
+                            uri = uriCopia;
                         }
+
                         if (uri == null) {
                             uri = data.getData();
                         }
@@ -870,7 +931,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         byte[] inputData = ManejadorAdjuntos.getBytes(iStream);
                         File file = null;
                         try {
-                            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
+                            file = new File(context.getExternalFilesDir(null).getAbsolutePath());
                             if (!file.exists()) {
                                 file.createNewFile();
                             }
@@ -880,7 +941,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         } catch (Exception e) {
                             Log.e("thumbnail", e.getMessage());
                         }
-                        File file2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//" + name);
+                        File file2 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//" + name);
                         file2 = FileHelper.saveBitmapToFile(file2);
 
                         byte[] bytesArray = new byte[(int) file2.length()];
@@ -889,6 +950,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         fis.read(bytesArray); //read file into bytes[]
                         fis.close();
                         file2.delete();
+                        file.delete();
                         //Agregar al tableView del UI
                         Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
 
@@ -904,7 +966,9 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         ManejadorAdjuntos.MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), activity, adjuntosSolicitud, modificable, firma, tb_adjuntos, mapeoCamposDinamicos);
 
                         //Intento de borrar el archivo que se guarda automatico en Pictures
-                        File file3 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "//Pictures//" + name);
+                        //File file3 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//Pictures//" + name);
+
+                        File file3 = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)+"//"+ name);
                         file3.delete();
 
                         Toasty.success(context, "Documento asociado correctamente.").show();
@@ -914,6 +978,8 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                     }
                 }
                 break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + requestCode);
         }
     }
 
@@ -928,8 +994,22 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
         }
         return byteBuffer.toByteArray();
     }
-
     public static String getFileName(ContentResolver resolver, Uri uri) {
+        String name = "";
+        try {
+            Cursor returnCursor = resolver.query(uri, null, null, null, null);
+            assert returnCursor != null;
+            int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+            returnCursor.moveToFirst();
+            name = returnCursor.getString(nameIndex);
+            returnCursor.close();
+        }catch (Exception e){
+            name = new File(uri.getPath()).getName();
+        }
+        return name;
+    }
+
+    public static String getFileName(ContentResolver resolver, Uri uri, Uri originalUri) {
         String name = "";
         try {
             Cursor returnCursor = resolver.query(uri, null, null, null, null);

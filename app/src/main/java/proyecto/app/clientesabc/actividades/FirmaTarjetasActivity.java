@@ -32,6 +32,7 @@ import androidx.core.text.HtmlCompat;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -49,56 +50,63 @@ public class FirmaTarjetasActivity extends AppCompatActivity {
     private ScrollView scroll;
     private LinearLayout documento;
     private LinearLayout canvasLL;
+    private TextView texto_fecha;
     private TextView texto_titulo;
+    private TextView texto_titulo2;
+    private TextView texto_motivo;
+    private TextView texto_nombre_cliente;
     private TextView texto_cuadro;
+    private TextView texto_cuadro_condiciones;
     private View view;
     private signature mSignature;
     private Bitmap bitmap;
-    private String montoCredito;
+    private String numeroTarjeta;
+    private String montoTarjeta;
     private String montoCreditoDolares;
-    private String plazoCredito;
+    private String plazoTarjeta;
     private String name12;
     private String name34;
-    private String cedula;
-    private String estadoCivil;
-    private String actividadEconomica;
-    private String duracionContrato;
-    private String tipoCredito;
-    private String location;
+    private String codigoCliente;
+    private String cedulaRecibe;
+    private String nombreRecibe;
+    private String telefonoRecibe;
+    private String conceptoEntrega;
+    private String periodoValidez;
     private String indicadorFirma;
     private String tipoCambio;
 
     // Creating Separate Directory for saving Generated Images
-    String DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/Signature/";
+    String DIRECTORY = getApplicationContext().getExternalFilesDir(null).getPath() + "/Signature/";
     String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
     String StoredPath = DIRECTORY + "Aceptacion#indicadorFirma#_"+pic_name + ".jpg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_firma);
+        setContentView(R.layout.activity_firma_tarjeta);
 
         Bundle b = getIntent().getExtras();
         if(b != null) {
-            montoCredito = b.getString("montoCredito");
-            plazoCredito = b.getString("plazoCredito");
+            numeroTarjeta = b.getString("numeroTarjeta");
+            montoTarjeta = b.getString("montoTarjeta");
+            plazoTarjeta = b.getString("plazoTarjeta");
             name12 = b.getString("name12");
             name34 = b.getString("name34");
-            cedula = b.getString("cedula");
-            estadoCivil = b.getString("estadoCivil");
-            actividadEconomica = b.getString("actividadEconomica");
-            duracionContrato = b.getString("duracionContrato");
-            tipoCredito = b.getString("tipoCredito");
-            location = b.getString("location");
+            codigoCliente = b.getString("codigoCliente");
+            cedulaRecibe = b.getString("cedulaRecibe");
+            nombreRecibe = b.getString("nombreRecibe");
+            telefonoRecibe = b.getString("telefonoRecibe");
+            conceptoEntrega = b.getString("conceptoEntrega");
+            periodoValidez = b.getString("periodoValidez");
             indicadorFirma = b.getString("indicadorFirma");
             tipoCambio = b.getString("tipoCambio");
         }
-        if(!montoCredito.contains(".") && montoCredito != null && !montoCredito.trim().equals(""))
-            montoCredito = montoCredito+".00";
-        if(tipoCambio != null && !tipoCambio.trim().equals("") && montoCredito != null && !montoCredito.trim().equals("")){
+        if(!montoTarjeta.contains(".") && montoTarjeta != null && !montoTarjeta.trim().equals(""))
+            montoTarjeta = montoTarjeta+".00";
+        if(tipoCambio != null && !tipoCambio.trim().equals("") && montoTarjeta != null && !montoTarjeta.trim().equals("")){
             if(!tipoCambio.contains("."))
                 tipoCambio = tipoCambio+".00";
-            montoCreditoDolares = String.format(Locale.US, "%.2f", (Double.parseDouble(montoCredito)/Double.parseDouble(tipoCambio)));
+            montoCreditoDolares = String.format(Locale.US, "%.2f", (Double.parseDouble(montoTarjeta)/Double.parseDouble(tipoCambio)));
         }
         if(indicadorFirma.length() == 0)
             StoredPath = StoredPath.replace("#indicadorFirma#","CondicionesTarjeta");
@@ -110,8 +118,13 @@ public class FirmaTarjetasActivity extends AppCompatActivity {
         canvasLL = findViewById(R.id.canvasLL);
         scroll = findViewById(R.id.scroll);
         mSignature = new signature(getApplicationContext(), null);
+        texto_fecha = findViewById(R.id.texto_fecha);
         texto_titulo = findViewById(R.id.texto_titulo);
+        texto_titulo2 = findViewById(R.id.texto_titulo2);
+        texto_motivo = findViewById(R.id.texto_motivo);
+        texto_nombre_cliente = findViewById(R.id.texto_nombre_cliente);
         texto_cuadro = findViewById(R.id.texto_cuadro);
+        texto_cuadro_condiciones = findViewById(R.id.texto_cuadro_condiciones);
 
         Drawable d = getResources().getDrawable(R.drawable.squared_textbackground,null);
         documento.setBackground(d);
@@ -122,25 +135,91 @@ public class FirmaTarjetasActivity extends AppCompatActivity {
         canvasLL.getParent().requestDisallowInterceptTouchEvent(true);
         canvasLL.requestDisallowInterceptTouchEvent(true);
         String fechaLetras="";
+        String fechaLetras2 ="";
+        DecimalFormat df = new DecimalFormat("###,###,###.00");
+        String montoTarjetaFormateado =  df.format(Double.parseDouble(montoTarjeta));
         switch (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","")){
             case "F443":
+                fechaLetras = new SimpleDateFormat("dd/MM/yyyy", new Locale("ES")).format(new Date());
+                texto_fecha.setText("Fecha de Entrega: "+fechaLetras);
+                texto_cuadro.setText("");
+                texto_titulo2.setText(R.string.title_activity_firma_tarjeta_cr);
+                texto_motivo.setText(conceptoEntrega);
+                texto_nombre_cliente.setText(name12+" ("+name34+")");
+                texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_cr), periodoValidez, montoTarjetaFormateado.toString(), codigoCliente, nombreRecibe, cedulaRecibe, telefonoRecibe,PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("W_CTE_RUTAHH","DESCONOCIDA"), numeroTarjeta ),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                texto_cuadro_condiciones.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_condiciones_cr)),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "F445":
+                fechaLetras = new SimpleDateFormat("dd/MM/yyyy", new Locale("ES")).format(new Date());
+                texto_fecha.setText("Fecha de Entrega: "+fechaLetras);
                 texto_cuadro.setText("");
                 fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
-                String fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
-                texto_titulo.setText(R.string.title_activity_firma_tarjeta);
-                texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_cr), plazoCredito),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
+                texto_titulo2.setText(R.string.title_activity_firma_tarjeta_ni);
+                texto_motivo.setText(conceptoEntrega);
+                texto_nombre_cliente.setText(name12+" ("+name34+")");
+                texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_ni), periodoValidez, montoTarjetaFormateado.toString(), codigoCliente, nombreRecibe, cedulaRecibe, telefonoRecibe,PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("W_CTE_RUTAHH","DESCONOCIDA"), numeroTarjeta ),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                texto_cuadro_condiciones.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_condiciones_ni)),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "F451":
-
+                fechaLetras = new SimpleDateFormat("dd/MM/yyyy", new Locale("ES")).format(new Date());
+                texto_fecha.setText("Fecha de Entrega: "+fechaLetras);
+                texto_cuadro.setText("");
+                fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
+                fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
+                texto_titulo2.setText(R.string.title_activity_firma_tarjeta_pa);
+                texto_motivo.setText(conceptoEntrega);
+                texto_nombre_cliente.setText(name12+" ("+name34+")");
+                texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_pa), periodoValidez, montoTarjetaFormateado.toString(), codigoCliente, nombreRecibe, cedulaRecibe, telefonoRecibe,PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("W_CTE_RUTAHH","DESCONOCIDA"), numeroTarjeta ),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                texto_cuadro_condiciones.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_condiciones_pa)),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "F446":
-            case "1657":
-            case "1658":
-                texto_titulo.setText(R.string.title_activity_firma_credito);
-                texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_credito), plazoCredito),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                fechaLetras = new SimpleDateFormat("dd/MM/yyyy", new Locale("ES")).format(new Date());
+                texto_fecha.setText("Fecha de Entrega: "+fechaLetras);
+                texto_cuadro.setText("");
+                fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
+                fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
+                texto_titulo2.setText(R.string.title_activity_firma_tarjeta_em);
+                texto_motivo.setText(conceptoEntrega);
+                texto_nombre_cliente.setText(name12+" ("+name34+")");
+                texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_em), periodoValidez, montoTarjetaFormateado.toString(), codigoCliente, nombreRecibe, cedulaRecibe, telefonoRecibe,PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("W_CTE_RUTAHH","DESCONOCIDA"), numeroTarjeta ),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                texto_cuadro_condiciones.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_condiciones_em)),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
+            case "1657":
+                fechaLetras = new SimpleDateFormat("dd/MM/yyyy", new Locale("ES")).format(new Date());
+                texto_fecha.setText("Fecha de Entrega: "+fechaLetras);
+                texto_cuadro.setText("");
+                fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
+                fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
+                texto_titulo2.setText(R.string.title_activity_firma_tarjeta_ab);
+                texto_motivo.setText(conceptoEntrega);
+                texto_nombre_cliente.setText(name12+" ("+name34+")");
+                texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_ab), periodoValidez, montoTarjetaFormateado.toString(), codigoCliente, nombreRecibe, cedulaRecibe, telefonoRecibe,PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("W_CTE_RUTAHH","DESCONOCIDA"), numeroTarjeta ),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                texto_cuadro_condiciones.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_condiciones_ab)),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                break;
+            case "1658":
+                fechaLetras = new SimpleDateFormat("dd/MM/yyyy", new Locale("ES")).format(new Date());
+                texto_fecha.setText("Fecha de Entrega: "+fechaLetras);
+                texto_cuadro.setText("");
+                fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
+                fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
+                texto_titulo2.setText(R.string.title_activity_firma_tarjeta_vo);
+                texto_motivo.setText(conceptoEntrega);
+                texto_nombre_cliente.setText(name12+" ("+name34+")");
+                texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_vo), periodoValidez, montoTarjetaFormateado.toString(), codigoCliente, nombreRecibe, cedulaRecibe, telefonoRecibe,PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("W_CTE_RUTAHH","DESCONOCIDA"), numeroTarjeta ),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                texto_cuadro_condiciones.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_condiciones_vo)),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                break;
+            default:
+                fechaLetras = new SimpleDateFormat("dd/MM/yyyy", new Locale("ES")).format(new Date());
+                texto_fecha.setText("Fecha de Entrega: "+fechaLetras);
+                texto_cuadro.setText("");
+                fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
+                fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
+                texto_titulo2.setText(R.string.title_activity_firma_tarjeta_cr);
+                texto_motivo.setText(conceptoEntrega);
+                texto_nombre_cliente.setText(name12+" ("+name34+")");
+                texto_cuadro.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_cr), periodoValidez, montoTarjetaFormateado.toString(), codigoCliente, nombreRecibe, cedulaRecibe, telefonoRecibe,PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("W_CTE_RUTAHH","DESCONOCIDA"), numeroTarjeta ),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                texto_cuadro_condiciones.setText(HtmlCompat.fromHtml(String.format(getResources().getString(R.string.firma_tarjetas_condiciones_cr)),HtmlCompat.FROM_HTML_MODE_LEGACY));
         }
 
         btnClear = findViewById(R.id.btnclear);

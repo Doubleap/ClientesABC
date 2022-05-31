@@ -8,6 +8,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -104,26 +105,85 @@ public class Validaciones {
             Toasty.error(correo.getContext(),"Formato de correo Invalido!").show();
         return valido;
     }
+    public static void ComentariosAutomaticos(Context context,MaskedEditText comentariosAuto, View campo, View campoOld, String etiqueta){
+        if(comentariosAuto == null)
+            return;
+        if(campo instanceof SearchableSpinner || campo instanceof Spinner) {
+            Spinner comboOld = (Spinner) campoOld;
+            Spinner combo = (Spinner) campo;
+            if (!((OpcionSpinner)combo.getSelectedItem()).getId().equals( ((OpcionSpinner)comboOld.getSelectedItem()).getId()) ) {
+                if (!comentariosAuto.getText().toString().contains("CAMBIO DE "+etiqueta)) {
+                    if (comentariosAuto.getText().toString().trim().length() > 0)
+                        comentariosAuto.append("\nCAMBIO DE "+etiqueta);
+                    else
+                        comentariosAuto.append("CAMBIO DE "+etiqueta);
+                }
+            } else {
+                if (comentariosAuto.getText().toString().trim().contains("\nCAMBIO DE "+etiqueta)) {
+                    comentariosAuto.setText(comentariosAuto.getText().toString().replace("\nCAMBIO DE "+etiqueta, ""));
+                } else {
+                    comentariosAuto.setText(comentariosAuto.getText().toString().replace("CAMBIO DE "+etiqueta, ""));
+                }
+            }
+        }
 
-    public final static void ejecutarExcepcion(Context context, View elemento,View label, HashMap<String, String> configExcepcion, ArrayList<String> listaCamposObligatorios, String campo){
+        if(campo instanceof MaskedEditText || campo instanceof EditText) {
+            EditText comboOld = (EditText) campoOld;
+            EditText combo = (EditText) campo;
+            if (!combo.getText().toString().trim().equals( comboOld.getText().toString().trim()) ) {
+                if (!comentariosAuto.getText().toString().contains("CAMBIO DE "+etiqueta)) {
+                    if (comentariosAuto.getText().toString().trim().length() > 0)
+                        comentariosAuto.append("\nCAMBIO DE "+etiqueta);
+                    else
+                        comentariosAuto.append("CAMBIO DE "+etiqueta);
+                }
+            } else {
+                if (comentariosAuto.getText().toString().trim().contains("\nCAMBIO DE "+etiqueta)) {
+                    comentariosAuto.setText(comentariosAuto.getText().toString().replace("\nCAMBIO DE "+etiqueta, ""));
+                } else {
+                    comentariosAuto.setText(comentariosAuto.getText().toString().replace("CAMBIO DE "+etiqueta, ""));
+                }
+            }
+        }
+        if(campo instanceof CheckBox) {
+            CheckBox comboOld = (CheckBox) campoOld;
+            CheckBox combo = (CheckBox) campo;
+            if ( (combo.isChecked() && !comboOld.isChecked()) && (!combo.isChecked() && comboOld.isChecked()) ) {
+                if (!comentariosAuto.getText().toString().contains("CAMBIO DE "+etiqueta)) {
+                    if (comentariosAuto.getText().toString().trim().length() > 0)
+                        comentariosAuto.append("\nCAMBIO DE "+etiqueta);
+                    else
+                        comentariosAuto.append("CAMBIO DE "+etiqueta);
+                }
+            } else {
+                if (comentariosAuto.getText().toString().trim().contains("\nCAMBIO DE "+etiqueta)) {
+                    comentariosAuto.setText(comentariosAuto.getText().toString().replace("\nCAMBIO DE "+etiqueta, ""));
+                } else {
+                    comentariosAuto.setText(comentariosAuto.getText().toString().replace("CAMBIO DE "+etiqueta, ""));
+                }
+            }
+        }
+    }
+
+    public final static void ejecutarExcepcion(Context context, View elemento,View label, HashMap<String, String> configExcepcion, ArrayList<String> listaCamposObligatorios, HashMap<String, String> campo){
         //Posibles tipo de elemento
         if(elemento instanceof CheckBox)
         {
             CheckBox checkbox = (CheckBox) elemento;
             if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
                 checkbox.setEnabled(false);
-            }else if(configExcepcion.get("vis") != null){
+            }else if(configExcepcion.get("vis") != null && !configExcepcion.get("vis").equals("NULL") && !campo.get("modificacion").trim().equals("1")){
                 checkbox.setEnabled(true);
             }
             if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
                 checkbox.setVisibility(View.GONE);
-            }else if(configExcepcion.get("sup") != null){
+            }else if(configExcepcion.get("sup") != null && !configExcepcion.get("sup").equals("NULL")){
                 checkbox.setVisibility(View.VISIBLE);
             }
             if (configExcepcion.get("obl").equals("1") || configExcepcion.get("obl").equals("X")) {
-                listaCamposObligatorios.add(campo);
+                listaCamposObligatorios.add(campo.get("campo").trim());
             } else if (configExcepcion.get("obl") != null && !configExcepcion.get("obl").equals("NULL")) {
-                listaCamposObligatorios.remove(campo);
+                listaCamposObligatorios.remove(campo.get("campo").trim());
             }
             if (configExcepcion.get("dfaul").trim().length() > 0) {
                 checkbox.setChecked(true);
@@ -137,7 +197,7 @@ public class Validaciones {
             if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
                 combo.setEnabled(false);
                 combo.setBackground(context.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-            } else if (configExcepcion.get("vis") != null && !configExcepcion.get("vis").equals("NULL")) {
+            } else if (configExcepcion.get("vis") != null && !configExcepcion.get("vis").equals("NULL") && !campo.get("modificacion").trim().equals("1")) {
                 combo.setEnabled(true);
                 combo.setBackground(context.getResources().getDrawable(R.drawable.spinner_background, null));
             }
@@ -149,9 +209,9 @@ public class Validaciones {
                 label.setVisibility(View.VISIBLE);
             }
             if (configExcepcion.get("obl").equals("1") || configExcepcion.get("obl").equals("X")) {
-                listaCamposObligatorios.add(campo);
+                listaCamposObligatorios.add(campo.get("campo").trim());
             } else if (configExcepcion.get("obl") != null && !configExcepcion.get("obl").equals("NULL")) {
-                listaCamposObligatorios.remove(campo);
+                listaCamposObligatorios.remove(campo.get("campo").trim());
             }
             if (!configExcepcion.get("dfaul").isEmpty() && !configExcepcion.get("dfaul").equals("NULL")) {
                 combo.setSelection(VariablesGlobales.getIndex(combo,configExcepcion.get("dfaul").trim()));
@@ -163,7 +223,7 @@ public class Validaciones {
             if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
                 et.setEnabled(false);
                 et.setBackground(context.getResources().getDrawable(R.drawable.textbackground_disabled, null));
-            } else if (configExcepcion.get("vis") != null && configExcepcion.get("vis").trim() != "NULL") {
+            } else if (configExcepcion.get("vis") != null && configExcepcion.get("vis").trim() != "NULL" && !campo.get("modificacion").trim().equals("1")) {
                 et.setEnabled(true);
                 et.setBackground(context.getResources().getDrawable(R.drawable.textbackground, null));
             }
@@ -175,9 +235,9 @@ public class Validaciones {
                 label.setVisibility(View.VISIBLE);
             }
             if (configExcepcion.get("obl").equals("1") || configExcepcion.get("obl").equals("X")) {
-                listaCamposObligatorios.add(campo);
+                listaCamposObligatorios.add(campo.get("campo").trim());
             } else if (configExcepcion.get("obl") != null && !configExcepcion.get("obl").equals("NULL")) {
-                listaCamposObligatorios.remove(campo);
+                listaCamposObligatorios.remove(campo.get("campo").trim());
             }
             if (!configExcepcion.get("dfaul").isEmpty() && !configExcepcion.get("dfaul").equals("NULL")) {
                 et.setText(configExcepcion.get("dfaul").trim());
@@ -217,7 +277,7 @@ public class Validaciones {
 
             private boolean isCharAllowed(char c) {
                 //[¡”#$%&/(),:]
-                Pattern ps = Pattern.compile("^[a-zA-Z 0-9.-]+$");
+                Pattern ps = Pattern.compile("^[a-zA-Z 0-9.\\-@_]+$");
                 Matcher ms = ps.matcher(String.valueOf(c));
                 return ms.matches();
             }

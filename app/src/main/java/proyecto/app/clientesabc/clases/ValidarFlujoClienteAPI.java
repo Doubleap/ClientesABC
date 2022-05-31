@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import es.dmoral.toasty.Toasty;
 import okhttp3.ResponseBody;
@@ -73,6 +74,7 @@ public class ValidarFlujoClienteAPI extends AsyncTask<Void,String,ArrayList<Json
             String codigo = String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0');
             //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la consulta para modificacion
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT-6"));
             String version = "";
             version = dateFormat.format(BuildConfig.BuildDate).replace(":","COLON").replace("-","HYPHEN");
 

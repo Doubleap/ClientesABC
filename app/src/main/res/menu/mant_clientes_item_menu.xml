@@ -29,6 +29,12 @@
         android:title="Solicitud de Equipo Frío"
         app:showAsAction="never|withText"/>
     <item
+        android:id="@+id/iniciativas"
+        android:icon="@drawable/icon_iniciative"
+        android:title="Iniciativas"
+        app:showAsAction="never|withText"
+        android:visible="true"/>
+    <item
         android:id="@+id/comollegar"
         android:icon="@drawable/icon_location"
         android:title="Como llegar"

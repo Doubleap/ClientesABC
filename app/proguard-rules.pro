@@ -22,5 +22,4 @@
 -dontwarn com.mikelau.croperino.**
 -keep class com.mikelau.croperino.** { *; }
 -keep interface com.mikelau.croperino.** { *; }
--minifyEnabled true
--proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), "proguard-rules.pro"
+-keep class androidx.appcompat.widget.** { *; }

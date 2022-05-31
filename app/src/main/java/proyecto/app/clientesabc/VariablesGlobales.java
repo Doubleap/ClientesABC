@@ -15,6 +15,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import proyecto.app.clientesabc.actividades.LoginActivity;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 import proyecto.app.clientesabc.modelos.RegexInputFilter;
 import proyecto.app.clientesabc.modelos.Visitas;
@@ -25,17 +26,25 @@ public class VariablesGlobales extends Application {
     public static boolean UsarAPI() {
         return usarAPI;
     }
+    private static boolean aceptarVisitaCero = false;
+    public static boolean AceptarVisitaCero() {
+        return aceptarVisitaCero;
+    }
+    private static boolean comentariosAutomaticos = false;
+    public static boolean ComentariosAutomaticos() {
+        return comentariosAutomaticos;
+    }
 
     //private static String urlApi = "http://kofcrofcdesa02:90/MaestroClientes/";//Ambiente calidad CAM
     //private static String urlApi = "http://10.0.2.2:51123/";//Local host
     //private static String urlApi = "http://10.153.58.132/";//Servidor produccion, pero ambiente calidad en VM uruguay
     private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API
-    private static String nombrePais = "Nicaragua";
-    private static String sociedad = "F445";
-    private static String orgvta = "0445";
-    private static String land1 = "NI";
-    private static String cadenaRM = "0000180000";
-    private static String ktokd = "NCMA";
+    private static String nombrePais = "Panamá";
+    private static String sociedad = "F451";
+    private static String orgvta = "0451";
+    private static String land1 = "PA";
+    private static String cadenaRM = "0000200000";
+    private static String ktokd = "PCMA";
 
     /*
     private static String nombrePais = "Costa Rica";
@@ -80,12 +89,19 @@ public class VariablesGlobales extends Application {
     private static String cadenaRM = "0000200000";
     private static String ktokd = "PCMA";
 
-    private static String nombrePais = "Uruguay";
+    private static String nombrePais = "Uruguay Monresa";
     private static String sociedad = "1661";
     private static String orgvta = "0661";
     private static String land1 = "UY";
     private static String cadenaRM = "0000240000";
     private static String ktokd = "UYDE";
+
+    private static String nombrePais = "Uruguay Distribuidores";
+    private static String sociedad = "Z001";
+    private static String orgvta = "Z001";
+    private static String land1 = "UY";
+    private static String cadenaRM = "0000245000";
+    private static String ktokd = "UYDD";
     */
 
     private static String TABLA_BLOQUE_CONTACTO_HH = "grid_contacto_solicitud";
@@ -96,6 +112,9 @@ public class VariablesGlobales extends Application {
     private static String TABLA_ADJUNTOS_SOLICITUD = "adjuntos_solicitud";
     private static String TABLA_ENCUESTA_SOLICITUD = "encuesta_solicitud";
     private static String TABLA_ENCUESTA_GEC_SOLICITUD = "encuesta_gec_solicitud";
+
+    public static int ESCANEO_OCR = 2;
+    public static int ESCANEO_TARJETA = 10;
 
     public static String getTablaHorariosSolicitud() {
         return TABLA_HORARIOS_SOLICITUD;
@@ -182,25 +201,36 @@ public class VariablesGlobales extends Application {
     }
 
     public static String SecuenciaToHora(String secuencia) {
-        int hours = Integer.valueOf(secuencia) / 60;
-        int minutes = Integer.valueOf(secuencia) % 60;
-        String h = String.format(Locale.getDefault(),"%02d", hours);
-        String m = String.format(Locale.getDefault(),"%02d", minutes);
-        String secuenciaSAP = h+m;
+        String secuenciaSAP="";
+        try {
+            int hours = Integer.valueOf(secuencia) / 60;
+            int minutes = Integer.valueOf(secuencia) % 60;
+            String h = String.format(Locale.getDefault(), "%02d", hours);
+            String m = String.format(Locale.getDefault(), "%02d", minutes);
+            secuenciaSAP = h + m;
+        }catch(Exception e){
+            secuenciaSAP="";
+        }
         return secuenciaSAP;
     }
 
     public static String HoraToSecuencia(String hora) {
         String secuencia = "";
-        hora = String.format("%1$" + 4 + "s", hora).replace(' ', '0');
+        try{
+                hora = String.format("%1$" + 4 + "s", hora).replace(' ', '0');
+                if ((hora != null && !hora.equals("null")) && !hora.equals("0999") && hora.length() == 4) {
+                    String h = hora.substring(0, 2);
+                    String m = hora.substring(2, 4);
+                    secuencia = String.valueOf(Integer.valueOf(h) * 60 + Integer.valueOf(m));
+                }
 
-        if((hora != null && !hora.equals("null")) && !hora.equals("0999") && hora.length() == 4) {
-            String h = hora.substring(0, 2);
-            String m = hora.substring(2, 4);
-            secuencia = String.valueOf(Integer.valueOf(h) * 60 + Integer.valueOf(m));
+        }catch(Exception e){
+            secuencia = "";
         }
-
-        return secuencia.equals("0")?"":secuencia;
+        if(VariablesGlobales.AceptarVisitaCero())
+            return secuencia;
+        else
+            return secuencia.equals("0")?"":secuencia;
     }
 
     public static String validarConexionDePreferencia(Context context){

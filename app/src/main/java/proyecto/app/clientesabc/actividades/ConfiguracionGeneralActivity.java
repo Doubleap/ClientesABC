@@ -207,143 +207,144 @@ public class ConfiguracionGeneralActivity extends AppCompatActivity
     }
 
     public static void ActualizarConfiguracionPais(Context context, Activity activity, ArrayList<JsonArray> mensajes) throws IOException {
-        JsonObject mensaje=null;
-        if(mensajes.size() > 0 && mensajes.get(0)  != null && mensajes.get(0).size() > 0) {
-            mensaje = mensajes.get(0).getAsJsonArray().get(0).getAsJsonObject();
-            if (!mensaje.isJsonNull()) {
-                EditText sociedad_text = activity.findViewById(R.id.txtSociedad);
-                sociedad_text.setText(mensaje.get("id_bukrs").getAsString());
-                EditText orgventas_text = activity.findViewById(R.id.txtOrgVentas);
-                orgventas_text.setText(mensaje.get("vkorg").getAsString());
-                EditText land1_text = activity.findViewById(R.id.txtLand1);
-                land1_text.setText(mensaje.get("land1").getAsString());
-                EditText cadenaRM_text = activity.findViewById(R.id.txtCadenaRM);
-                cadenaRM_text.setText(mensaje.get("hkunnr").getAsString());
-                EditText bdregional_text = activity.findViewById(R.id.txtBDRegional);
-                bdregional_text.setText(mensaje.get("bd_regional_r40").getAsString());
-                EditText versionhh_text = activity.findViewById(R.id.txtVersionHH);
-                versionhh_text.setText(mensaje.get("versionHH").getAsString());
-                EditText diashistorial_text = activity.findViewById(R.id.txtDiasHistorial);
-                diashistorial_text.setText(mensaje.get("diasHistorialHH").getAsString() + " Días");
+        try {
+            JsonObject mensaje = null;
+            if (mensajes.size() > 0 && mensajes.get(0) != null && mensajes.get(0).size() > 0) {
+                mensaje = mensajes.get(0).getAsJsonArray().get(0).getAsJsonObject();
+                if (!mensaje.isJsonNull()) {
+                    EditText sociedad_text = activity.findViewById(R.id.txtSociedad);
+                    sociedad_text.setText(mensaje.get("id_bukrs").getAsString());
+                    EditText orgventas_text = activity.findViewById(R.id.txtOrgVentas);
+                    orgventas_text.setText(mensaje.get("vkorg").getAsString());
+                    EditText land1_text = activity.findViewById(R.id.txtLand1);
+                    land1_text.setText(mensaje.get("land1").getAsString());
+                    EditText cadenaRM_text = activity.findViewById(R.id.txtCadenaRM);
+                    cadenaRM_text.setText(mensaje.get("hkunnr").getAsString());
+                    EditText bdregional_text = activity.findViewById(R.id.txtBDRegional);
+                    bdregional_text.setText(mensaje.get("bd_regional_r40").getAsString());
+                    EditText versionhh_text = activity.findViewById(R.id.txtVersionHH);
+                    versionhh_text.setText(mensaje.get("versionHH").getAsString());
+                    EditText diashistorial_text = activity.findViewById(R.id.txtDiasHistorial);
+                    diashistorial_text.setText(mensaje.get("diasHistorialHH").getAsString() + " Días");
 
-                EditText grupocuentas_text = activity.findViewById(R.id.txtGrupoCuentas);
-                String grupo_cuentas = "";
-                switch(mensaje.get("id_bukrs").getAsString()){
-                    case "F443":
-                        grupo_cuentas = "RCMA";
-                        break;
-                    case "F445":
-                        grupo_cuentas = "RCMA";
-                        break;
-                    case "F446":
-                        grupo_cuentas = "GCMA";
-                        break;
-                    case "1657":
-                        grupo_cuentas = "GCMC";
-                        break;
-                    case "1658":
-                        grupo_cuentas = "GCMB";
-                        break;
-                    case "1661":
-                        grupo_cuentas = "UYDE";
-                        break;
-                    case "Z001":
-                        grupo_cuentas = "UYDD";
-                        break;
-                    default:
-                        grupo_cuentas = "NO ESPECIFICADO PARA EL PAIS";
-                        break;
-                }
-                grupocuentas_text.setText(grupo_cuentas);
+                    EditText grupocuentas_text = activity.findViewById(R.id.txtGrupoCuentas);
+                    String grupo_cuentas = "";
+                    switch (mensaje.get("id_bukrs").getAsString()) {
+                        case "F443":
+                            grupo_cuentas = "RCMA";
+                            break;
+                        case "F445":
+                            grupo_cuentas = "RCMA";
+                            break;
+                        case "F446":
+                            grupo_cuentas = "GCMA";
+                            break;
+                        case "1657":
+                            grupo_cuentas = "GCMC";
+                            break;
+                        case "1658":
+                            grupo_cuentas = "GCMB";
+                            break;
+                        case "1661":
+                            grupo_cuentas = "UYDE";
+                            break;
+                        case "Z001":
+                            grupo_cuentas = "UYDD";
+                            break;
+                        default:
+                            grupo_cuentas = "NO ESPECIFICADO PARA EL PAIS";
+                            break;
+                    }
+                    grupocuentas_text.setText(grupo_cuentas);
 
-                //Cambiar los valores de la configuracion general TODO
-                InputStream is = context.getAssets().open("configuracion.xml");
+                    //Cambiar los valores de la configuracion general TODO
+                    InputStream is = context.getAssets().open("configuracion.xml");
 
-                File tranFileDir=null;
-                File externalStorage = Environment.getExternalStorageDirectory();
-                String externalStoragePath=null;
-                if (externalStorage != null) {
-                    externalStoragePath = externalStorage.getAbsolutePath();
-                    tranFileDir = new File(externalStoragePath + File.separator + context.getPackageName(),"configuracion.xml");
-                    //boolean ex = tranFileDir.mkdirs();
-                    //File transferFile = new File(tranFileDir, "configuracion.xml");
-                    OutputStream stream = null;
+                    File tranFileDir = null;
+                    File externalStorage = context.getExternalFilesDir(null);
+                    String externalStoragePath = null;
+                    if (externalStorage != null) {
+                        externalStoragePath = externalStorage.getAbsolutePath();
+                        tranFileDir = new File(externalStoragePath + File.separator + context.getPackageName(), "configuracion.xml");
+                        //boolean ex = tranFileDir.mkdirs();
+                        //File transferFile = new File(tranFileDir, "configuracion.xml");
+                        OutputStream stream = null;
+                        try {
+                            stream = new FileOutputStream(tranFileDir);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+
+                        byte[] buffer = new byte[1024];
+                        int read;
+                        while ((read = is.read(buffer)) != -1) {
+                            stream.write(buffer, 0, read);
+                        }
+
+                    }
+
+                    //Modificar xml segun los datos traidos e la Base de Datos
+                    DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+                    documentBuilderFactory.setIgnoringComments(true);
+                    documentBuilderFactory.setIgnoringElementContentWhitespace(true);
+                    DocumentBuilder documentBuilder = null;
                     try {
-                        stream = new FileOutputStream(tranFileDir);
-                    } catch (FileNotFoundException e) {
+                        documentBuilder = documentBuilderFactory.newDocumentBuilder();
+                    } catch (ParserConfigurationException e) {
                         e.printStackTrace();
                     }
-
-                    byte[] buffer = new byte[1024];
-                    int read;
-                    while ((read = is.read(buffer)) != -1) {
-                        stream.write(buffer, 0, read);
+                    Document document = null;
+                    try {
+                        document = documentBuilder.parse(tranFileDir);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (SAXException e) {
+                        e.printStackTrace();
                     }
+                    Element docEle = document.getDocumentElement();
+                    NodeList nl = docEle.getChildNodes();
+                    NodeList conexiones = document.getElementsByTagName("configuracion").item(0).getChildNodes();
+                    //Seccion datos de conexion guardados o defectos
+                    for (int i = 0; i < conexiones.getLength(); i++) {
+                        if (nl.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                            Element el = (Element) nl.item(i);
+                            if (el.getNodeName().equals("sistema")) {
+                                //Seccion datos de sistema
+                                el.getElementsByTagName("sociedad").item(0).setTextContent(mensaje.get("id_bukrs").getAsString());
+                                el.getElementsByTagName("orgvta").item(0).setTextContent(mensaje.get("vkorg").getAsString());
+                                el.getElementsByTagName("land1").item(0).setTextContent(mensaje.get("land1").getAsString());
+                                el.getElementsByTagName("cadenaRM").item(0).setTextContent(mensaje.get("hkunnr").getAsString());
+                                el.getElementsByTagName("ktokd").item(0).setTextContent(grupo_cuentas);
+                                //el.getElementsByTagName("urlApi").item(0).setTextContent(mensaje.get("id_bukrs").getAsString());
+                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("W_CTE_BUKRS", mensaje.get("id_bukrs").getAsString()).apply();
+                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("W_CTE_ORGVTA", mensaje.get("vkorg").getAsString()).apply();
+                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("W_CTE_LAND1", mensaje.get("land1").getAsString()).apply();
+                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("W_CTE_CADENARM", mensaje.get("hkunnr").getAsString()).apply();
+                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("W_CTE_KTOKD", grupo_cuentas).apply();
+                                //PreferenceManager.getDefaultSharedPreferences(context).edit().putString("URL_API", urlapi).apply();
 
-                }
-
-                //Modificar xml segun los datos traidos e la Base de Datos
-                DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-                documentBuilderFactory.setIgnoringComments(true);
-                documentBuilderFactory.setIgnoringElementContentWhitespace(true);
-                DocumentBuilder documentBuilder = null;
-                try {
-                    documentBuilder = documentBuilderFactory.newDocumentBuilder();
-                } catch (ParserConfigurationException e) {
-                    e.printStackTrace();
-                }
-                Document document = null;
-                try {
-                    document = documentBuilder.parse(tranFileDir);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (SAXException e) {
-                    e.printStackTrace();
-                }
-                Element docEle = document.getDocumentElement();
-                NodeList nl = docEle.getChildNodes();
-                NodeList conexiones = document.getElementsByTagName("configuracion").item(0).getChildNodes();
-                //Seccion datos de conexion guardados o defectos
-                for (int i = 0; i < conexiones.getLength(); i++) {
-                    if (nl.item(i).getNodeType() == Node.ELEMENT_NODE) {
-                        Element el = (Element) nl.item(i);
-                        if (el.getNodeName().equals("sistema")) {
-                            //Seccion datos de sistema
-                            el.getElementsByTagName("sociedad").item(0).setTextContent(mensaje.get("id_bukrs").getAsString());
-                            el.getElementsByTagName("orgvta").item(0).setTextContent(mensaje.get("vkorg").getAsString());
-                            el.getElementsByTagName("land1").item(0).setTextContent(mensaje.get("land1").getAsString());
-                            el.getElementsByTagName("cadenaRM").item(0).setTextContent(mensaje.get("hkunnr").getAsString());
-                            el.getElementsByTagName("ktokd").item(0).setTextContent(grupo_cuentas);
-                            //el.getElementsByTagName("urlApi").item(0).setTextContent(mensaje.get("id_bukrs").getAsString());
-                            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("W_CTE_BUKRS", mensaje.get("id_bukrs").getAsString()).apply();
-                            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("W_CTE_ORGVTA", mensaje.get("vkorg").getAsString()).apply();
-                            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("W_CTE_LAND1", mensaje.get("land1").getAsString()).apply();
-                            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("W_CTE_CADENARM", mensaje.get("hkunnr").getAsString()).apply();
-                            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("W_CTE_KTOKD", grupo_cuentas).apply();
-                            //PreferenceManager.getDefaultSharedPreferences(context).edit().putString("URL_API", urlapi).apply();
-
-                            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("CONFIG_PAIS", mensaje.get("desc_bukrs").getAsString().toUpperCase()).apply();
-                            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("CONFIG_SOCIEDAD", mensaje.get("id_bukrs").getAsString()).apply();
-                            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("CONFIG_ORGVENTAS", mensaje.get("vkorg").getAsString()).apply();
-                            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("CONFIG_LAND1", mensaje.get("land1").getAsString()).apply();
-                            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("CONFIG_CADENARM", mensaje.get("hkunnr").getAsString()).apply();
-                            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("CONFIG_GRUPOCUENTAS", grupo_cuentas).apply();
-                        }
-                        if (el.getNodeName().equals("login")) {
-                            //Seccion datos de login
-                            String usr = document.getElementsByTagName("user").item(0).getTextContent();
-                            String pwd = document.getElementsByTagName("password").item(0).getTextContent();
-                            String guardar_contrasena = document.getElementsByTagName("guardar_contrasena").item(0).getTextContent();
-                            if(PreferenceManager.getDefaultSharedPreferences(context).getString("user","").isEmpty()){
-                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("user", usr).apply();
+                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("CONFIG_PAIS", mensaje.get("desc_bukrs").getAsString().toUpperCase()).apply();
+                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("CONFIG_SOCIEDAD", mensaje.get("id_bukrs").getAsString()).apply();
+                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("CONFIG_ORGVENTAS", mensaje.get("vkorg").getAsString()).apply();
+                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("CONFIG_LAND1", mensaje.get("land1").getAsString()).apply();
+                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("CONFIG_CADENARM", mensaje.get("hkunnr").getAsString()).apply();
+                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("CONFIG_GRUPOCUENTAS", grupo_cuentas).apply();
                             }
-                            if(PreferenceManager.getDefaultSharedPreferences(context).getString("password","").isEmpty()){
-                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("password", pwd).apply();
+                            if (el.getNodeName().equals("login")) {
+                                //Seccion datos de login
+                                String usr = document.getElementsByTagName("user").item(0).getTextContent();
+                                String pwd = document.getElementsByTagName("password").item(0).getTextContent();
+                                String guardar_contrasena = document.getElementsByTagName("guardar_contrasena").item(0).getTextContent();
+                                if (PreferenceManager.getDefaultSharedPreferences(context).getString("user", "").isEmpty()) {
+                                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("user", usr).apply();
+                                }
+                                if (PreferenceManager.getDefaultSharedPreferences(context).getString("password", "").isEmpty()) {
+                                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("password", pwd).apply();
+                                }
+                                if (PreferenceManager.getDefaultSharedPreferences(context).getString("guarda_contrasena", "").isEmpty()) {
+                                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("guarda_contrasena", guardar_contrasena).apply();
+                                }
                             }
-                            if(PreferenceManager.getDefaultSharedPreferences(context).getString("guarda_contrasena","").isEmpty()){
-                                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("guarda_contrasena", guardar_contrasena).apply();
-                            }
-                        }
                         /*if (el.getNodeName().equals("conexion")) {
                             String nombre = document.getElementsByTagName("nombre").item(i).getTextContent();
                             String tipo_conexion = document.getElementsByTagName("tipo_conexion").item(i).getTextContent();
@@ -365,43 +366,46 @@ public class ConfiguracionGeneralActivity extends AppCompatActivity
                                 PreferenceManager.getDefaultSharedPreferences(context).edit().putString("Puerto", Puerto).apply();
                             }
                         }*/
+                        }
+                    }
+
+                    //save to file
+                    DOMSource source = new DOMSource(document);
+                    TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                    Transformer transformer = null;
+                    try {
+                        transformer = transformerFactory.newTransformer();
+                    } catch (TransformerConfigurationException e) {
+                        e.printStackTrace();
+                    }
+                    StreamResult result = new StreamResult(new File(externalStoragePath + File.separator + context.getPackageName(), "configuracion.xml"));
+                    try {
+                        transformer.transform(source, result);
+                    } catch (TransformerException e) {
+                        e.printStackTrace();
                     }
                 }
-
-                //save to file
-                DOMSource source = new DOMSource(document);
-                TransformerFactory transformerFactory = TransformerFactory.newInstance();
-                Transformer transformer = null;
-                try {
-                    transformer = transformerFactory.newTransformer();
-                } catch (TransformerConfigurationException e) {
-                    e.printStackTrace();
-                }
-                StreamResult result = new StreamResult(new File(externalStoragePath + File.separator + context.getPackageName(),"configuracion.xml"));
-                try {
-                    transformer.transform(source, result);
-                } catch (TransformerException e) {
-                    e.printStackTrace();
-                }
+            } else {
+                EditText sociedad_text = activity.findViewById(R.id.txtSociedad);
+                sociedad_text.setText("");
+                EditText orgventas_text = activity.findViewById(R.id.txtOrgVentas);
+                orgventas_text.setText("");
+                EditText land1_text = activity.findViewById(R.id.txtLand1);
+                land1_text.setText("");
+                EditText cadenaRM_text = activity.findViewById(R.id.txtCadenaRM);
+                cadenaRM_text.setText("");
+                EditText bdregional_text = activity.findViewById(R.id.txtBDRegional);
+                bdregional_text.setText("");
+                EditText versionhh_text = activity.findViewById(R.id.txtVersionHH);
+                versionhh_text.setText("");
+                EditText diashistorial_text = activity.findViewById(R.id.txtDiasHistorial);
+                diashistorial_text.setText("");
+                EditText grupocuentas_text = activity.findViewById(R.id.txtGrupoCuentas);
+                grupocuentas_text.setText("");
+                Toasty.warning(context, "No se encontro la configuracion de la sociedad seleccionada en cat_bukrs!").show();
             }
-        }else{
-            EditText sociedad_text = activity.findViewById(R.id.txtSociedad);
-            sociedad_text.setText("");
-            EditText orgventas_text = activity.findViewById(R.id.txtOrgVentas);
-            orgventas_text.setText("");
-            EditText land1_text = activity.findViewById(R.id.txtLand1);
-            land1_text.setText("");
-            EditText cadenaRM_text = activity.findViewById(R.id.txtCadenaRM);
-            cadenaRM_text.setText("");
-            EditText bdregional_text = activity.findViewById(R.id.txtBDRegional);
-            bdregional_text.setText("");
-            EditText versionhh_text = activity.findViewById(R.id.txtVersionHH);
-            versionhh_text.setText("");
-            EditText diashistorial_text = activity.findViewById(R.id.txtDiasHistorial);
-            diashistorial_text.setText("");
-            EditText grupocuentas_text = activity.findViewById(R.id.txtGrupoCuentas);
-            grupocuentas_text.setText("");
-            Toasty.warning(context,"No se encontro la configuracion de la sociedad seleccionada en cat_bukrs!").show();
+        }catch(Exception e){
+            Toasty.error(context, "Hubo un error al traer la informacion de la sociedad: "+e.getMessage()).show();
         }
     }
 

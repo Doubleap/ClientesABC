@@ -7,15 +7,30 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.Result;
+
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+
+import es.dmoral.toasty.Toasty;
+import me.dm7.barcodescanner.core.IViewFinder;
+import me.dm7.barcodescanner.zxing.ZXingScannerView;
 import proyecto.app.clientesabc.clases.CustomZXingScannerView;
 
 public class EscanearActivity extends AppCompatActivity implements ZXingScannerView.ResultHandler {
     private ZXingScannerView escanerZXing;
-
+    private String campoEscaneo;
+    private int requestCode;
     @Override
     public void onCreate(Bundle state) {
         super.onCreate(state);
+        Bundle b = getIntent().getExtras();
+        if(b != null) {
+            campoEscaneo = b.getString("campoEscaneo");
+            requestCode = b.getInt("requestCode");
+        }
         //escanerZXing = new ZXingScannerView(this);
         escanerZXing = new ZXingScannerView(this) {
             @Override
@@ -25,7 +40,8 @@ public class EscanearActivity extends AppCompatActivity implements ZXingScannerV
 
         };    // Programmatically initialize the scanner view
         List<BarcodeFormat> formato = new ArrayList<BarcodeFormat>();
-        formato.add(BarcodeFormat.PDF_417);
+        formato.add(BarcodeFormat.CODE_128);
+        formato.add(BarcodeFormat.EAN_13);
         escanerZXing.setFormats(formato);
         escanerZXing.setMinimumWidth(5000);
         escanerZXing.setMinimumHeight(500);
@@ -54,8 +70,9 @@ public class EscanearActivity extends AppCompatActivity implements ZXingScannerV
         // Si quieres que se siga escaneando después de haber leído el código, descomenta lo siguiente:
         // Si la descomentas no recomiendo que llames a finish
 //        escanerZXing.resumeCameraPreview(this);
-        // Obener código/texto leído
+        // Obtener código/texto leído
         String codigo = resultado.getText();
+        Toasty.warning(this, "Codigo leido: "+codigo, Toasty.LENGTH_SHORT).show();
         byte[] raw = new byte[0];
         try {
             raw = codigo.getBytes("ISO-8859-1");
@@ -80,7 +97,10 @@ public class EscanearActivity extends AppCompatActivity implements ZXingScannerV
 
         // Preparar un Intent para regresar datos a la actividad que nos llamó
         Intent intentRegreso = new Intent();
-        intentRegreso.putExtra("codigo", d);
+
+        intentRegreso.putExtra("codigo", codigo);
+        intentRegreso.putExtra("campoEscaneo", campoEscaneo);
+        intentRegreso.putExtra("requestCode", requestCode);
         setResult(Activity.RESULT_OK, intentRegreso);
         // Cerrar la actividad. Ahora mira onActivityResult de
         finish();

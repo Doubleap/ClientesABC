@@ -75,6 +75,7 @@ import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -121,6 +122,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     static String codigoCliente = "";
     static String codigoEquipoFrio = "";
     static String idForm = "";
+    static int minAdjuntos = 0;
     @SuppressLint("StaticFieldLeak")
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
@@ -224,6 +226,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             getSupportActionBar().setSubtitle(descripcion);
         }
+        minAdjuntos = mDBHelper.CantidadAdjuntosMinima(tipoSolicitud);
         if(solicitudSeleccionada.size() > 0) {
             firma = true;
             correoValidado = true;
@@ -319,6 +322,10 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         if(!firma){
                             numErrores++;
                             mensajeError += "- El cliente debe firmar la constancia de solicitud de Instalacion!\n";
+                        }
+                        if(minAdjuntos > adjuntosSolicitud.size()){
+                            numErrores++;
+                            mensajeError += "- Debe adjuntar al menos "+minAdjuntos+" documentos a la solicitud!\n";
                         }
                         //Validacion de siguiente aprobador seleccionado
                         Spinner combo = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
@@ -431,7 +438,11 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudAvisosEquipoFrioActivity.this);
-        ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
+        try {
+            ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static class ViewPagerAdapter extends FragmentPagerAdapter {
@@ -613,7 +624,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion, listaCamposObligatorios, campos.get(i).get("campo").trim());
+                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion, listaCamposObligatorios, campos.get(i));
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
@@ -621,7 +632,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
                         }
                     }
 
@@ -1000,7 +1011,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i));
 
                         int excepcionxAgencia = -1;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
@@ -1009,7 +1020,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
                         }
                     }
                 } else {
@@ -1354,7 +1365,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i));
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
@@ -1362,7 +1373,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
                         }
                     }
                     //if(cliente != null && cliente.get(campos.get(i).get("campo")) != null)

@@ -18,6 +18,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
@@ -25,6 +26,7 @@ import android.provider.MediaStore;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -54,6 +56,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -82,6 +85,7 @@ import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -103,6 +107,7 @@ import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
 import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.Animaciones.CubeTransformer;
+import proyecto.app.clientesabc.Animaciones.FlipPageTransformer;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
@@ -117,6 +122,7 @@ import proyecto.app.clientesabc.clases.ConsultaClienteAPI;
 import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
+import proyecto.app.clientesabc.clases.MultiOnItemSelectedListener;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.Validaciones;
 import proyecto.app.clientesabc.clases.ValidarFlujoClienteAPI;
@@ -148,6 +154,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     static String idSolicitud = "";
     static String codigoCliente = "";
     static String idForm = "";
+    static int minAdjuntos = 0;
     @SuppressLint("StaticFieldLeak")
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
@@ -276,6 +283,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             getSupportActionBar().setSubtitle(descripcion);
         }
+        minAdjuntos = mDBHelper.CantidadAdjuntosMinima(tipoSolicitud);
         if(solicitudSeleccionada.size() > 0) {
             firma = true;
             correoValidado = true;
@@ -293,7 +301,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             correoValidado = true;
             cedulaValidada = true;
             idFiscalValidado = true;
-            if(!tipoSolicitud.equals("1") && !tipoSolicitud.equals("6") && !tipoSolicitud.equals("26") ){
+            if(!tipoSolicitud.equals("1") && !tipoSolicitud.equals("6") && !tipoSolicitud.equals("26") && !tipoSolicitud.equals("46") ){
                 firma = true;
             }
         }
@@ -457,12 +465,23 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 numErrores++;
                                 mensajeError += "- Falta ruta de reparto en planes de visita!\n";
                             }
+
+                            int indiceMixta = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZRM");
+                            int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZPV");
+                            if (modalidad.equals("PR") && indiceMixta != -1 && indicePreventa != -1 && visitasSolicitud.size() > 0 && visitasSolicitud.get(indicePreventa).getRuta().trim().length() < 6) {
+                                numErrores++;
+                                mensajeError += "- Falta asignar ruta de Preventa(ZPV) en PLANES DE VISITA!\n";
+                            }
+
                             int indiceDummy = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDY");
                             if (!modalidad.equals("TA") && indiceDummy != -1 && visitasSolicitud.size() > 0 && visitasSolicitud.get(indiceDummy).getRuta().trim().length() < 6) {
                                 numErrores++;
                                 mensajeError += "- Falta asignar ruta Dummy en PLANES DE VISITA!\n";
                             }
-                        }
+                        }/*else{
+                            numErrores++;
+                            mensajeError += "- Modalidad de Venta!\n";
+                        }*/
                         if(visitasSolicitud.size() > 0) {
                             //Al menos 1 dia de visita
                             if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_L")) != null) {
@@ -492,16 +511,29 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 }
                             }
                         }
-
+                        //Validacion de cedula
+                        if(!cedulaValidada){
+                            numErrores++;
+                            mensajeError += "- Formato de cédula Inválido!\n";
+                        }
                         //Validacion de politica de privacidad firmada por el cliente.
                         if(!firma && tipoSolicitud.equals("26")){
                             numErrores++;
                             mensajeError += "- El cliente nuevo debe firmar las políticas de privacidad!\n";
                         }
+                        //Validacion de politica de privacidad firmada por el cliente.
+                        if(!firma && tipoSolicitud.equals("46")){
+                            numErrores++;
+                            mensajeError += "- El cliente debe firmar el acta de entrega de la tarjeta.\n";
+                        }
                         //Validacion de correo
                         if(mapeoCamposDinamicos.get("W_CTE-SMTP_ADDR") != null && !correoValidado && (listaCamposObligatorios.contains("W_CTE-SMTP_ADDR") || ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-SMTP_ADDR")).getText().toString().trim().length() > 0 )){
                             numErrores++;
                             mensajeError += "- Formato de correo Inválido!\n";
+                        }
+                        if(minAdjuntos > adjuntosSolicitud.size()){
+                            numErrores++;
+                            mensajeError += "- Debe adjuntar al menos "+minAdjuntos+" documentos a la solicitud!\n";
                         }
 
                         //Validacion de siguiente aprobador seleccionado
@@ -519,6 +551,12 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             error.setError("El campo es obligatorio!");
                             numErrores++;
                             mensajeError += "- Siguiente Aprobador\n";
+                        }
+                        if(horariosSolicitud.size() > 0) {
+                            String errorHorarios = ValidarHorarios(horariosSolicitud);
+                            if (errorHorarios != "") {
+                                mensajeError += errorHorarios;
+                            }
                         }
 
                         if(numErrores == 0) {
@@ -899,7 +937,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
                     CheckBox checkbox_old = new CheckBox(getContext());
                     checkbox_old.setLayoutParams(lp_old);
-                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
                         checkbox_old.setEnabled(false);
                         mapeoCamposDinamicosOld.put(campos.get(i).get("campo").trim(), checkbox_old);
                     }
@@ -927,7 +965,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion,listaCamposObligatorios,campos.get(i));
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
@@ -935,7 +973,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
                         }
                     }
                     if(solicitudSeleccionada.size() > 0){
@@ -959,7 +997,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     label.setText(campos.get(i).get("descr"));
                     label.setTextAppearance(R.style.AppTheme_TextFloatLabelAppearance);
                     TableRow.LayoutParams lpl = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
-                    if(campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10")){
+                    if(campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10")){
                         lpl.setMargins(105, 0, 0, -5);
                     }else{
                         lpl.setMargins(35, 0, 0, -5);
@@ -1070,11 +1108,15 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     }
 
                     //Campo de regimen fiscal, se debe cambiar el formato de cedula segun el tipo de cedula
-                    if(campos.get(i).get("campo").trim().equals("W_CTE-KATR3")){
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-KATR3") || campos.get(i).get("campo").trim().equals("W_CTE-STCDT")){
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                final MaskedEditText cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD1");
+                                MaskedEditText cedula = null;
+                                cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD1");
+                                if(cedula == null)
+                                    cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IN_CEDULA_RECIBE");
+                                MaskedEditText finalCedula = cedula;
                                 final MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
                                 final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
                                 if(cedula != null){
@@ -1092,6 +1134,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         cedula.setMask("AAAAAAAAAAAAAA");
                                     }
                                     if (opcion.getId().equals("P1")) {
+
                                         cedula.addTextChangedListener(new TextWatcher() {
                                             @Override
                                             public void afterTextChanged(Editable s) { }
@@ -1103,19 +1146,19 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                     //cedula.setMask("");
                                                 }
                                                 if(s.toString().equals("N")){
-                                                    cedula.setMask("N-####-######");
+                                                    finalCedula.setMask("N-####-######");
                                                 }
                                                 if(s.toString().equals("NA")){
-                                                    cedula.setMask("NA-##-####-#####");
+                                                    finalCedula.setMask("NA-##-####-#####");
                                                 }
                                                 if(s.toString().equals("P")){
-                                                    cedula.setMask("PE-####-#####");
+                                                    finalCedula.setMask("PE-####-#####");
                                                 }
                                             }
                                         });
                                     }
                                     if (opcion.getId().equals("P2")) {
-                                        cedula.setMask("AAAAAAAAAAAAAAAA");
+                                        cedula.setMask("****************");
                                     }
                                     if (opcion.getId().equals("P3")) {
                                         cedula.setMask("E-####-######");
@@ -1124,25 +1167,31 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             && (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F446")
                                             || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("1657")
                                             || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("1658"))) {
-                                        idfiscal.addTextChangedListener(new TextWatcher() {
-                                            @Override
-                                            public void afterTextChanged(Editable s) { }
-                                            @Override
-                                            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-                                            @Override
-                                            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                                                String cantidad="";
-                                                if (s.toString().length() < 13) {
-                                                    for(int x = 0; x <= s.toString().length(); x++){
-                                                        cantidad += "#";
-                                                    }
-                                                    idfiscal.setMask(cantidad);
-                                                    if(s.toString().length() <= 2){
-                                                        idfiscal.setMask("AA");
+                                        if(idfiscal != null) {
+                                            idfiscal.addTextChangedListener(new TextWatcher() {
+                                                @Override
+                                                public void afterTextChanged(Editable s) {
+                                                }
+
+                                                @Override
+                                                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                                                }
+
+                                                @Override
+                                                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                                    String cantidad = "";
+                                                    if (s.toString().length() < 13) {
+                                                        for (int x = 0; x <= s.toString().length(); x++) {
+                                                            cantidad += "#";
+                                                        }
+                                                        idfiscal.setMask(cantidad);
+                                                        if (s.toString().length() <= 2) {
+                                                            idfiscal.setMask("AA");
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        });
+                                            });
+                                        }
                                         cedula.setMask("AA");
                                         cedula.addTextChangedListener(new TextWatcher() {
                                             @Override
@@ -1152,37 +1201,80 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             @Override
                                             public void onTextChanged(CharSequence s, int start, int before, int count) {
                                                 if(s.toString().length() <= 2){
-                                                    cedula.setMask("**");
+                                                    finalCedula.setMask("**");
                                                 }
                                                 if(s.toString().length() > 2 && s.toString().length() < 9 && !s.toString().contains("-")){
                                                     String cantidad="";
                                                     for(int x = 0; x < s.toString().length(); x++){
                                                         cantidad += "#";
                                                     }
-                                                    cedula.setMask(cantidad+"-A");
+                                                    finalCedula.setMask(cantidad+"-A");
                                                 }
                                             }
                                         });
                                     }
+
+                                    //Uruguay
+                                    if (opcion.getId().equals("25")) {
+                                        cedula.addTextChangedListener(new TextWatcher() {
+                                            @Override
+                                            public void afterTextChanged(Editable s) { }
+                                            @Override
+                                            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+                                            @Override
+                                            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                                if(s.toString().length() <= 8) {
+                                                    String cantidad="";
+                                                    for(int x = 0; x < s.toString().length(); x++){
+                                                        cantidad += "#";
+                                                    }
+                                                    Spinner  tipoIdentificacion = (Spinner) mapeoCamposDinamicos.get("W_CTE-STCDT");
+                                                    if(tipoIdentificacion != null) {
+                                                        final OpcionSpinner opcionActual = (OpcionSpinner) tipoIdentificacion.getSelectedItem();
+                                                        if (opcionActual.getId().equals("25"))
+                                                            finalCedula.setMask(cantidad);
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                    if (opcion.getId().equals("42")) {
+                                        cedula.setMask("AAAAAAAAAAAAAAAA");
+                                    }
+                                    if (opcion.getId().equals("88")) {
+                                        cedula.setMask("###########A");
+                                    }
+
                                     cedula.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                                         @Override
                                         public void onFocusChange(View v, boolean hasFocus) {
                                             if (!hasFocus) {
                                                 ValidarCedula(v,opcion.getId());
+                                                if(VariablesGlobales.ComentariosAutomaticos() && campos.get(finalI).get("comentario_auto").equals("1")){
+                                                    Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get("W_CTE-STCD1"),mapeoCamposDinamicosOld.get("W_CTE-STCD1"),"CEDULA");
+                                                }
                                             }
                                         }
                                     });
-                                    idfiscal.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                                        @Override
-                                        public void onFocusChange(View v, boolean hasFocus) {
-                                            if (!hasFocus) {
-                                                ValidarIDFiscal(getContext());
+                                    if(idfiscal != null) {
+                                        idfiscal.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                                            @Override
+                                            public void onFocusChange(View v, boolean hasFocus) {
+                                                if (!hasFocus) {
+                                                    ValidarIDFiscal(getContext());
+                                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get("W_CTE-STCD3"),mapeoCamposDinamicosOld.get("W_CTE-STCD3"),"ID FISCAL");
+                                                    }
+                                                }
                                             }
-                                        }
-                                    });
+                                        });
+                                    }
                                 }
                                 if(position == 0)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                    Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                }
                             }
 
                             @Override
@@ -1204,22 +1296,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    /*ArrayList<HashMap<String, String>> valores = mDBHelper.getValoresKOFSegunZonaVentas(((OpcionSpinner) combo.getSelectedItem()).getId());
-                                    Spinner spinner = (Spinner) mapeoCamposDinamicos.get("W_CTE-VWERK");
-                                    if (spinner != null && valores.size() > 0) {
-                                        spinner.setSelection(VariablesGlobales.getIndex(spinner, valores.get(0).get("VWERK")));
-                                        if (position == 0)
-                                            ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                                    } else {
-                                        spinner = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-VWERK");
-                                        if (spinner != null && valores.size() > 0) {
-                                            spinner.setSelection(VariablesGlobales.getIndex(spinner, valores.get(0).get("VWERK")));
-                                            if (position == 0)
-                                                ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                                        } else {
-                                            ///Toasty.error(getContext(),"No se pudo obtener los datos de KOF segun zona de ventas").show();
-                                        }
-                                    }*/
+                                String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
+                                ActualizarAprobadores();
+
                                 //Si tiene diferenciacion por agencia para algun campo llamarlo aqui
                                     final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
                                     String campo = "";
@@ -1235,6 +1315,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             }
                                         }
                                     }
+                                if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                    Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                }
                             }
 
                             @Override
@@ -1308,7 +1391,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                 if(indiceReparto != -1)
                                                     visitasSolicitud.get(indiceReparto).setRuta("");
                                                 tb_visitas.setDataAdapter(new VisitasTableAdapter(getContext(), visitasSolicitud));
-                                            }else if(valor_centro_suministro.equals(((OpcionSpinner)cs_old.getSelectedItem()).getId().trim())){
+                                            }else if(cs_old != null && valor_centro_suministro.equals(((OpcionSpinner)cs_old.getSelectedItem()).getId().trim())){
                                                 Spinner zona_transporte_old = (Spinner)mapeoCamposDinamicosOld.get("W_CTE-LZONE");
                                                 int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
                                                 if(indiceReparto != -1) {
@@ -1354,6 +1437,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 }
                                 if(position == 0)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+
+                                if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                    Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                }
                             }
                             @Override
                             public void onNothingSelected(AdapterView<?> parent) {
@@ -1390,6 +1477,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 llenarDiasDeVisita(getContext());
                                 if(position == 0)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                    Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                }
                             }
 
                             @Override
@@ -1406,6 +1496,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     Provincias(parent);
                                     if (position == 0 && ((TextView) parent.getSelectedView()) != null)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
 
                                 @Override
@@ -1421,6 +1514,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     Cantones(parent);
                                     if (position == 0 && ((TextView) parent.getSelectedView()) != null)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
 
                                 @Override
@@ -1437,6 +1533,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     Distritos(parent);
                                     if (position == 0 && ((TextView) parent.getSelectedView()) != null)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
 
                                 @Override
@@ -1452,6 +1551,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     DireccionCorta(getContext());
                                     if (position == 0 && ((TextView) parent.getSelectedView()) != null)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
 
                                 @Override
@@ -1467,6 +1569,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     Canales(parent);
                                     if (position == 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
 
                                 @Override
@@ -1482,6 +1587,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     CanalesKof(parent);
                                     if (position == 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
 
                                 @Override
@@ -1508,11 +1616,15 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                 tipo_canal.setSelection(VariablesGlobales.getIndex(tipo_canal, canales.get(0).get("ztpocanal")));
                                             }
                                             if (gec != null) {
-                                                gec.setSelection(VariablesGlobales.getIndex(gec, canales.get(0).get("gec")));
+                                                //gec.setSelection(VariablesGlobales.getIndex(gec, canales.get(0).get("gec")));
                                             }
                                         }
                                         if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+
+                                        if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                            Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                        }
                                     }catch (Exception e){}
                                 }
 
@@ -1529,6 +1641,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     ImpuestoSegunUnidadNegocio(parent);
                                     if (position == 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+
+                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
 
                                 @Override
@@ -1542,8 +1658,177 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                     AsignarTipoImpuesto(parent);
+
+                                    if(campos.get(finalI).get("campo").trim().equals("W_CTE-KATR3") || campos.get(finalI).get("campo").trim().equals("W_CTE-STCDT")){
+                                        MaskedEditText cedula = null;
+                                        cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD1");
+                                        if(cedula == null)
+                                            cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IN_CEDULA_RECIBE");
+                                        MaskedEditText finalCedula = cedula;
+                                        final MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
+                                        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                                        if(cedula != null){
+                                            //cedula.setFilters(new InputFilter[]{new RegexInputFilter("[A-Z-a-z]")});
+                                            if (opcion.getId().equals("C1") && PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F443")) {
+                                                cedula.setMask("0#-####-####-00");
+                                            }
+                                            if (opcion.getId().equals("C2") && PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F443")) {
+                                                cedula.setMask("#-###-######");
+                                            }
+                                            if (opcion.getId().equals("C3") && PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F443")) {
+                                                cedula.setMask("##-####-####-##");
+                                            }
+                                            if (opcion.getId().startsWith("N")) {
+                                                cedula.setMask("****************");
+                                            }
+                                            if (opcion.getId().equals("P1")) {
+
+                                                cedula.addTextChangedListener(new TextWatcher() {
+                                                    @Override
+                                                    public void afterTextChanged(Editable s) { }
+                                                    @Override
+                                                    public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+                                                    @Override
+                                                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                                        if(s.toString().equals("")){
+                                                            //cedula.setMask("");
+                                                        }
+                                                        if(s.toString().equals("N")){
+                                                            finalCedula.setMask("N-####-######");
+                                                        }
+                                                        if(s.toString().equals("NA")){
+                                                            finalCedula.setMask("NA-##-####-#####");
+                                                        }
+                                                        if(s.toString().equals("P")){
+                                                            finalCedula.setMask("PE-####-#####");
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                            if (opcion.getId().equals("P2")) {
+                                                cedula.setMask("****************");
+                                            }
+                                            if (opcion.getId().equals("P3")) {
+                                                cedula.setMask("E-####-######");
+                                            }
+                                            if (opcion.getId().contains("C")
+                                                    && (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F446")
+                                                    || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("1657")
+                                                    || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("1658"))) {
+                                                if(idfiscal != null) {
+                                                    idfiscal.addTextChangedListener(new TextWatcher() {
+                                                        @Override
+                                                        public void afterTextChanged(Editable s) {
+                                                        }
+
+                                                        @Override
+                                                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                                                        }
+
+                                                        @Override
+                                                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                                            String cantidad = "";
+                                                            if (s.toString().length() < 13) {
+                                                                for (int x = 0; x <= s.toString().length(); x++) {
+                                                                    cantidad += "#";
+                                                                }
+                                                                idfiscal.setMask(cantidad);
+                                                                if (s.toString().length() <= 2) {
+                                                                    idfiscal.setMask("AA");
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                                cedula.setMask("AA");
+                                                cedula.addTextChangedListener(new TextWatcher() {
+                                                    @Override
+                                                    public void afterTextChanged(Editable s) { }
+                                                    @Override
+                                                    public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+                                                    @Override
+                                                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                                        if(s.toString().length() <= 2){
+                                                            finalCedula.setMask("**");
+                                                        }
+                                                        if(s.toString().length() > 2 && s.toString().length() < 9 && !s.toString().contains("-")){
+                                                            String cantidad="";
+                                                            for(int x = 0; x < s.toString().length(); x++){
+                                                                cantidad += "#";
+                                                            }
+                                                            finalCedula.setMask(cantidad+"-A");
+                                                        }
+                                                    }
+                                                });
+                                            }
+
+                                            //Uruguay
+                                            if (opcion.getId().equals("25")) {
+                                                TextWatcher textWatcher_UY = new TextWatcher() {
+                                                    @Override
+                                                    public void afterTextChanged(Editable s) { }
+                                                    @Override
+                                                    public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+                                                    @Override
+                                                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                                        if(s.toString().length() <= 8) {
+                                                            String cantidad="";
+                                                            for(int x = 0; x < s.toString().length(); x++){
+                                                                cantidad += "#";
+                                                            }
+                                                            Spinner  tipoIdentificacion = (Spinner) mapeoCamposDinamicos.get("W_CTE-STCDT");
+                                                            if(tipoIdentificacion != null) {
+                                                                final OpcionSpinner opcionActual = (OpcionSpinner) tipoIdentificacion.getSelectedItem();
+                                                                if (opcionActual.getId().equals("25"))
+                                                                    finalCedula.setMask(cantidad);
+                                                            }
+                                                        }
+                                                    }
+                                                };
+                                                cedula.addTextChangedListener(textWatcher_UY);
+                                            }
+                                            if (opcion.getId().equals("42")) {
+                                                cedula.setMask("AAAAAAAAAAAAAAAA");
+                                            }
+                                            if (opcion.getId().equals("88")) {
+                                                cedula.setMask("###########A");
+                                            }
+
+                                            cedula.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                                                @Override
+                                                public void onFocusChange(View v, boolean hasFocus) {
+                                                    if (!hasFocus) {
+                                                        ValidarCedula(v,opcion.getId());
+                                                        if(VariablesGlobales.ComentariosAutomaticos() && campos.get(getIndexOFkey("W_CTE-STCD1",  campos)).get("comentario_auto").trim().equals("1")){
+                                                            Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get("W_CTE-STCD1"),mapeoCamposDinamicosOld.get("W_CTE-STCD1"),"CEDULA");
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                            if(idfiscal != null) {
+                                                idfiscal.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                                                    @Override
+                                                    public void onFocusChange(View v, boolean hasFocus) {
+                                                        if (!hasFocus) {
+                                                            ValidarIDFiscal(getContext());
+                                                            if(VariablesGlobales.ComentariosAutomaticos() && campos.get(getIndexOFkey("W_CTE-STCD3",  campos)).get("comentario_auto").trim().equals("1")){
+                                                                Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get("W_CTE-STCD3"),mapeoCamposDinamicosOld.get("W_CTE-STCD3"),"ID FISCAL");
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }
+                                        if(position == 0)
+                                            ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    }
+
                                     if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+
+                                    if(VariablesGlobales.ComentariosAutomaticos() && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
 
                                 @Override
@@ -1563,9 +1848,19 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                ReplicarValorSpinner(parent, campoAReplicar, position);
+                                ReplicarValorSpinner(parent, campoAReplicar, ((OpcionSpinner) parent.getSelectedItem()).getId().trim());
                                 if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+
+                                if(campos.get(finalI).get("campo").trim().equals("W_CTE-BZIRK")){
+                                    String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                    PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
+                                    ActualizarAprobadores();
+                                }
+
+                                if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                                    Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                }
                             }
 
                             @Override
@@ -1586,7 +1881,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     final Spinner combo_old = new Spinner(getContext(), Spinner.MODE_DROPDOWN);
                     combo_old.setVisibility(View.GONE);
                     combo_old.setEnabled(false);
-                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
                         Button btnAyudai=null;
                         TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
                         TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75,1f);
@@ -1648,6 +1943,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     ProvinciasOld(parent);
                                     if(position == 0 && ((TextView) parent.getSelectedView()) != null)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
 
                                 @Override
@@ -1663,6 +1961,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     CantonesOld(parent);
                                     if(position == 0 && ((TextView) parent.getSelectedView()) != null)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
 
                                 @Override
@@ -1679,6 +1980,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     DistritosOld(parent);
                                     if(position == 0 && ((TextView) parent.getSelectedView()) != null)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
 
                                 @Override
@@ -1691,7 +1995,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         mapeoCamposDinamicosOld.put(campos.get(i).get("campo").trim(),combo_old);
                     }
 
-                    if(combo_old != null && (campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10"))) {
+                    if(combo_old != null && (campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10"))) {
                         ll.addView(label);
                         fila.addView(combo);
                         fila.addView(combo_old);
@@ -1784,9 +2088,19 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         }
                                     }
                                 }
-                                ReplicarValorSpinner(parent,nombreCampo+"1",position);
+
+                                if(nombreCampo.equals("W_CTE-BZIRK")){
+                                    String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                    PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
+                                    ActualizarAprobadores();
+                                }
+                                ReplicarValorSpinner(parent,nombreCampo+"1",((OpcionSpinner) parent.getSelectedItem()).getId().trim());
                                 if(position == 0 && ((TextView) parent.getSelectedView()) != null)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+
+                                if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                                    Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                }
                             }
 
                             @Override
@@ -1850,9 +2164,18 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         }
                                     }
                                 }
-                                ReplicarValorSpinner(parent,nombreCampo,position);
+                                if(nombreCampo.equals("W_CTE-BZIRK")){
+                                    String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                    PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
+                                    ActualizarAprobadores();
+                                }
+                                ReplicarValorSpinner(parent,nombreCampo,((OpcionSpinner) parent.getSelectedItem()).getId().trim());
                                 if(position == 0 && ((TextView) parent.getSelectedView()) != null)
                                     ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+
+                                if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                                    Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                }
                             }
 
                             @Override
@@ -1871,6 +2194,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     final TextView opcion = (TextView) parent.getSelectedView();
                                     if(position == 0 && opcion != null)
                                         opcion.setError("El campo es obligatorio!");
+                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
 
                                 @Override
@@ -1880,11 +2206,12 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             });
                         }
                     }
+
                     //Excepciones de visualizacion y configuracion de campos dados por la tabla ConfigCampos
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i));
 
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
@@ -1893,9 +2220,25 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
                         }
                     }
+
+                    if(VariablesGlobales.ComentariosAutomaticos() && !campos.get(finalI).get("campo").trim().equals("W_CTE-COMENTARIOS")  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                        if(combo.getOnItemSelectedListener() == null){
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+                                }
+                            });
+                        }
+                    }
+
                 } else {
                     //Tipo EditText normal textbox
                     TableRow fila = new TableRow(getContext());
@@ -1929,7 +2272,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     // Atributos del Texto a crear
                     //TableLayout.LayoutParams lp =  new TableLayout.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT,0.5f);
                     TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f);
-                    if(campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10"))
+                    if(campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10"))
                         lp.setMargins(0, 15, 75, 15);
                     else
                         lp.setMargins(0, 15, 0, 15);
@@ -1958,6 +2301,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     public void onFocusChange(View v, boolean hasFocus) {
                                         if (!hasFocus) {
                                             ValidarIDFiscal(getContext());
+                                            if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                                                Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                            }
                                         }
                                     }
                                 });
@@ -2007,7 +2353,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     TableRow.LayoutParams btnlp = new TableRow.LayoutParams(75, 75);
                     if(campos.get(i).get("tooltip") != null && campos.get(i).get("tooltip") != ""){
                         textolp.setMargins(0,0,25,0);
-                        //label.setLayoutParams(textolp);
+                        label.setLayoutParams(textolp);
                         btnAyuda = new ImageView(getContext());
                         btnAyuda.setBackground(getResources().getDrawable(R.drawable.icon_ayuda,null));
                         btnlp.setMargins(0,35,75,0);
@@ -2021,6 +2367,36 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         //builder.setBackgroundColor(getResources().getColor(R.color.gray,null));
                         builder.setGravity(ToolTip.GRAVITY_LEFT);
                         builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+                        btnAyuda.setOnLongClickListener((View.OnLongClickListener) view -> {
+                            mToolTipsManager.show(builder.build());
+                            return true;
+                        });
+                    }
+                    if(campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").toLowerCase().contains("scan") && modificable){
+                        textolp.setMargins(0,0,25,0);
+                        label.setLayoutParams(textolp);
+                        btnAyuda = new ImageView(getContext());
+                        btnAyuda.setBackground(getResources().getDrawable(R.drawable.icon_scan,null));
+                        btnlp.setMargins(0,35,75,0);
+                        btnAyuda.setLayoutParams(btnlp);
+                        btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                        btnAyuda.setForegroundGravity(GRAVITY_CENTER);
+                        //TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                        ToolTipsManager mToolTipsManager = new ToolTipsManager();
+                        ToolTip.Builder builder = new ToolTip.Builder(getContext(), et, (RelativeLayout)_ll.getParent() ,  "Presione para escanear el codigo de barras usando la cámara.", ToolTip.POSITION_ABOVE);
+                        builder.setAlign(ToolTip.ALIGN_LEFT);
+                        //builder.setBackgroundColor(getResources().getColor(R.color.gray,null));
+                        builder.setGravity(ToolTip.GRAVITY_LEFT);
+                        builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+                        int finalI2 = i;
+                        btnAyuda.setOnClickListener((View.OnClickListener) view -> {
+                            Intent intent = new Intent(getContext(), EscanearActivity.class);
+                            Bundle bc = new Bundle();
+                            bc.putString("campoEscaneo", campos.get(finalI2).get("campo")); //id de solicitud
+                            bc.putInt("requestCode", VariablesGlobales.ESCANEO_TARJETA);
+                            intent.putExtras(bc); //Pase el parametro el Intent
+                            startActivityForResult(intent,VariablesGlobales.ESCANEO_TARJETA);
+                        });
                         btnAyuda.setOnLongClickListener((View.OnLongClickListener) view -> {
                             mToolTipsManager.show(builder.build());
                             return true;
@@ -2054,6 +2430,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 public void onFocusChange(View v, boolean hasFocus) {
                                     if (!hasFocus) {
                                         ReplicarValor(v, campoAReplicar);
+                                        if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                                            Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                        }
                                     }
                                 }
                             });
@@ -2077,7 +2456,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     et_old.setEnabled(false);
 
                     //Crear campo para valor viejo exclusivo.
-                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("2")  || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
                         //textbox de valor viejo
                         TableRow.LayoutParams lp_old = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f);
                         lp_old.setMargins(0, 15, 0, 15);
@@ -2256,6 +2635,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             public void onFocusChange(View v, boolean hasFocus) {
                                 if (!hasFocus) {
                                     correoValidado = isValidEmail(v);
+                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
                                 }
                             }
                         });
@@ -2278,19 +2660,32 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i).get("campo").trim());
-                        int excepcionxAgencia = 0;
-                        if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
+                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i));
+                        int excepcionxAgencia = -1;
+                        if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null && !((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId().equals(""))
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
-                        if(((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")) != null)
+                        if(((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")) != null && !((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId().equals(""))
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i).get("campo").trim());
+                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
                         }
                     }
                     //if(cliente != null && cliente.get(campos.get(i).get("campo")) != null)
                         //et.setText(cliente.get(campos.get(i).get("campo").trim()).getAsString());
+
+                    if(VariablesGlobales.ComentariosAutomaticos() && !campos.get(finalI).get("campo").trim().equals("W_CTE-COMENTARIOS")  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                        if(et.getOnFocusChangeListener() == null) {
+                            et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                                @Override
+                                public void onFocusChange(View v, boolean hasFocus) {
+                                    if (!hasFocus) {
+                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    }
+                                }
+                            });
+                        }
+                    }
                 }
 
                 seccionAnterior = campos.get(i).get("id_seccion").trim();
@@ -2392,6 +2787,68 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
                     mapeoCamposDinamicos.put("politica",checkbox);
                 }
+                if(tipoSolicitud.equals("46")) {
+                    //Check Box para la aceptacion de las politicas de privacidad
+                    final CheckBox checkbox = new CheckBox(getContext());
+                    checkbox.setText("Acta de Entrega de Tarjeta de Regalo");
+                    if (solicitudSeleccionada.size() > 0) {
+                        checkbox.setChecked(true);
+                        checkbox.setEnabled(false);
+                        if (!modificable) {
+                            checkbox.setEnabled(false);
+                        }
+                        checkbox.getButtonDrawable().jumpToCurrentState();
+                    }
+                    LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+                    checkbox.setLayoutParams(clp);
+                    checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_privacy,null), null);
+                    ll.addView(checkbox);
+                    checkbox.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            AceptacionTarjeta(v);
+                            if(((CheckBox) v).isChecked())
+                                ((CheckBox) v).setChecked(false);
+                            else
+                                ((CheckBox) v).setChecked(true);
+                            ((CheckBox) v).getButtonDrawable().jumpToCurrentState();
+                        }
+                    });
+
+                    ColorStateList colorStateList = new ColorStateList(
+                            new int[][]{
+                                    new int[]{-android.R.attr.state_checked}, // unchecked
+                                    new int[]{android.R.attr.state_checked} , // checked
+                            },
+                            new int[]{
+                                    Color.parseColor("#110000"),
+                                    Color.parseColor("#00aa00"),
+                            }
+                    );
+
+                    CompoundButtonCompat.setButtonTintList(checkbox,colorStateList);
+                    mapeoCamposDinamicos.put("entregaTarjeta",checkbox);
+                }
+            }
+        }
+
+        private void ActualizarAprobadores() {
+            String id_flujo = mDBHelper.getIdFlujoDeTipoSolicitud(tipoSolicitud);
+
+            ArrayList<OpcionSpinner> opciones = mDBHelper.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_flujo = "+id_flujo+"");
+            // Creando el adaptador(opciones) para el comboBox deseado
+            ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, opciones);
+            // Drop down layout style - list view with radio button
+            dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+            // attaching data adapter to spinner
+            Drawable d = getResources().getDrawable(R.drawable.spinner_background, null);
+            Spinner aprobadores = (Spinner)mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR");
+            //aprobadores.setBackground(d);
+            if(aprobadores != null) {
+                aprobadores.setAdapter(dataAdapter);
+                if(solicitudSeleccionada.size() > 0){
+                    aprobadores.setSelection(VariablesGlobales.getIndex(aprobadores,solicitudSeleccionada.get(0).get("SIGUIENTE_APROBADOR").toString().trim()));
+                }
             }
         }
 
@@ -2414,6 +2871,67 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     intent = new Intent(getContext(),FirmaActivity.class);
                     getActivity().startActivityForResult(intent,100);
             }
+        }
+        private void AceptacionTarjeta(View v) {
+            String name12 = ((MaskedEditText)mapeoCamposDinamicosEnca.get("W_CTE-NAME1")) != null?((MaskedEditText)mapeoCamposDinamicosEnca.get("W_CTE-NAME1")).getText().toString():"";
+            String name34 = ((MaskedEditText)mapeoCamposDinamicosEnca.get("W_CTE-NAME3")) != null?((MaskedEditText)mapeoCamposDinamicosEnca.get("W_CTE-NAME3")).getText().toString():"";
+            String numeroTarjeta = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-IN_NUM_TARJETA")) != null?((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-IN_NUM_TARJETA")).getText().toString():"";
+            String montoTarjeta = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-IN_MONTO_TARJETA")) != null?((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-IN_MONTO_TARJETA")).getText().toString():"";
+            String cedulaRecibe = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-IN_CEDULA_RECIBE")) != null?((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-IN_CEDULA_RECIBE")).getText().toString():"";
+            String nombreRecibe = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-IN_NOMBRE_RECIBE")) != null?((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-IN_NOMBRE_RECIBE")).getText().toString():"";
+            String telefonoRecibe = "";
+            String conceptoEntrega = "";
+            String periodoValidez ="";
+            if(((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER")) != null)
+                telefonoRecibe = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER")).getText().toString().trim();
+            if(((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER2")) != null && ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER2")).getText().toString().trim() != "")
+                telefonoRecibe += " / "+((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-TEL_NUMBER2")).getText().toString();
+            if(((Spinner)mapeoCamposDinamicos.get("W_CTE-IN_CONCEPTO_ENTREGA")) != null && ((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-IN_CONCEPTO_ENTREGA")).getSelectedItem()).getId() != "")
+                conceptoEntrega = ((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-IN_CONCEPTO_ENTREGA")).getSelectedItem()).getName().split(" - ")[1];
+            if(((Spinner)mapeoCamposDinamicos.get("W_CTE-IN_PERIODO_VALIDEZ")) != null && ((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-IN_PERIODO_VALIDEZ")).getSelectedItem()).getId() != "")
+                periodoValidez = ((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-IN_PERIODO_VALIDEZ")).getSelectedItem()).getName().split(" - ")[1];
+            String mensajeError = "";
+            //Validar datos llenos para el llenado automatico del documento a firmar
+            if(numeroTarjeta.length() == 0){
+                mensajeError += "- Número de Tarjeta\n";
+            }
+            if(montoTarjeta.length() == 0){
+                mensajeError += "- Monto de Tarjeta\n";
+            }
+            if(cedulaRecibe.length() == 0){
+                mensajeError += "- Cédula persona que recibe\n";
+            }
+            if(nombreRecibe.length() == 0){
+                mensajeError += "- Nombre persona que recibe\n";
+            }
+            if(conceptoEntrega.length() == 0){
+                mensajeError += "- Concepto de entrega\n";
+            }
+            if(periodoValidez.length() == 0){
+                mensajeError += "- Periodo de validez\n";
+            }
+            if(telefonoRecibe.length() == 0){
+                mensajeError += "- Teléfono\n";
+            }
+            if(mensajeError != ""){
+                mensajeError = "Llene los siguientes campos obligatorios para la firma:\n\n"+mensajeError;
+                Toasty.error(getContext(),mensajeError).show();
+                return;
+            }
+            Intent intent = new Intent(getContext(),FirmaTarjetasActivity.class);
+            intent.putExtra("numeroTarjeta",numeroTarjeta);
+            intent.putExtra("montoTarjeta",montoTarjeta);
+            intent.putExtra("codigoCliente",codigoCliente);
+            intent.putExtra("name12",name12);
+            intent.putExtra("name34",name34);
+            intent.putExtra("cedulaRecibe",cedulaRecibe);
+            intent.putExtra("nombreRecibe",nombreRecibe);
+            intent.putExtra("telefonoRecibe",telefonoRecibe);
+            intent.putExtra("conceptoEntrega",conceptoEntrega);
+            intent.putExtra("periodoValidez",periodoValidez);
+            intent.putExtra("indicadorFirma","TarjetaRegalo");
+
+            getActivity().startActivityForResult(intent,100);
         }
 
         public void DesplegarBloque(DataBaseHelper db, View _ll, HashMap<String, String> campo) {
@@ -2713,6 +3231,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         stda.setGravity(GRAVITY_CENTER);
                         tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height+(visitasSolicitud.size()*alturaFilaTableView);
                         tb_visitas.setDataAdapter(stda);
+                        tb_visitas.getDataAdapter().notifyDataSetChanged();
                     }
                     headers = ((VisitasTableAdapter)tb_visitas.getDataAdapter()).getHeaders();
                     sta = new SimpleTableHeaderAdapter(getContext(), headers);
@@ -2737,6 +3256,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     Spinner comboModalidad = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR5"));
                     String modalidad = "";
                     String tipoVisita = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV");//"ZPV";
+                    if(comboModalidad != null)
                     modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
 
                     int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPV");
@@ -2763,7 +3283,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         totalvp_preventa++;
                     }*/
                     if(visitasSolicitud.size() == 0){
-                        totalvp_preventa = 6;
+                        totalvp_preventa = 7;
                     }
                     String tipoVisitaActual = tipoVisita;
                     for (int i = 0; i < totalvp_preventa; i++) {
@@ -2785,6 +3305,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                             if (i == 5) {
                                 tipoVisitaActual = "ZKV";
+                            }
+                            if (i == 6) {
+                                tipoVisitaActual = "ZDY";
                             }
                         }else{
                             tipoVisitaActual = visitasSolicitud.get(i).getVptyp().trim();
@@ -2889,12 +3412,22 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             et.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud.get(indiceActual).getDom_a()));
                                             break;
                                     }
-                                }
+                                    //Esconder el domingo si el tipo NO ES ZDY
+                                    if (x == 6 && (!tipoVisitaActual.equals("ZDY"))) {
+                                        et.setVisibility(View.GONE);
+                                        label.setVisibility(View.GONE);
+                                    }
+                                    if(x == 6 && et.getText().length() > 0 ){
+                                        et.setVisibility(View.VISIBLE);
+                                        label.setVisibility(View.VISIBLE);
+                                    }
+                                }else {
 
-                                //Esconder el domingo si el tipo NO ES ZDY
-                                if(!tipoVisitaActual.equals("ZDY") && x == 6){
-                                    et.setVisibility(View.GONE);
-                                    label.setVisibility(View.GONE);
+                                    //Esconder el domingo si el tipo NO ES ZDY
+                                    if (x == 6 && (!tipoVisitaActual.equals("ZDY"))) {
+                                        et.setVisibility(View.GONE);
+                                        label.setVisibility(View.GONE);
+                                    }
                                 }
 
                                 //et.setPadding(20, 5, 20, 5);
@@ -2928,7 +3461,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             int diaReparto = 0;
                                             int diasParaReparto = 1;
                                             Visitas visitaPreventa = null;
-                                            if(finalIndicePreventa != -1) {
+                                            if(finalIndicePreventa != -1 && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "").equals("ZPV") ) {
                                                 visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
                                                 if (visitaPreventa.getKvgr4() != null)
                                                     diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
@@ -2937,8 +3470,17 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                 } else {
                                                     diaReparto = (finalX + diasParaReparto);
                                                 }
-                                            }else if(finalIndiceTeleventa != -1) {
+                                            }else if(finalIndiceTeleventa != -1 && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "").equals("ZTV")) {
                                                 visitaPreventa = visitasSolicitud.get(finalIndiceTeleventa);
+                                                if (visitaPreventa.getKvgr4() != null)
+                                                    diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
+                                                if ((finalX + diasParaReparto) > 5) {
+                                                    diaReparto = ((finalX + diasParaReparto) - 6);
+                                                } else {
+                                                    diaReparto = (finalX + diasParaReparto);
+                                                }
+                                            }else if(finalIndiceEspecializada != -1 && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "").equals("ZJV")) {
+                                                visitaPreventa = visitasSolicitud.get(finalIndiceEspecializada);
                                                 if (visitaPreventa.getKvgr4() != null)
                                                     diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
                                                 if ((finalX + diasParaReparto) > 5) {
@@ -2960,73 +3502,27 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             Visitas visitaMixta = null;
                                             if (finalIndiceMixta != -1) {
                                                 visitaMixta = visitasSolicitud.get(finalIndiceMixta);
+                                                visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
+                                                if (visitaMixta.getKvgr4() != null)
+                                                    diasParaReparto = Integer.valueOf(visitaMixta.getKvgr4().replace("DA", ""));
+                                                if ((finalX + diasParaReparto) > 5) {
+                                                    diaReparto = ((finalX + diasParaReparto) - 6);
+                                                } else {
+                                                    diaReparto = (finalX + diasParaReparto);
+                                                }
                                             }
                                             Visitas visitaReparto = null;
                                             if (!modalidad.equals("GV")) {
                                                 visitaReparto = visitasSolicitud.get(finalIndiceReparto);
                                             }
                                             if (!((TextView) v).getText().toString().equals("") && Integer.valueOf(((TextView) v).getText().toString()) > 1339) {
-                                                switch (finalX) {
-                                                    case 0:
-                                                        visitaPreventa.setLun_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setLun_de(getResources().getString(R.string.max_secuencia));
-                                                        break;
-                                                    case 1:
-                                                        visitaPreventa.setMar_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setMar_de(getResources().getString(R.string.max_secuencia));
-                                                        break;
-                                                    case 2:
-                                                        visitaPreventa.setMier_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setMier_de(getResources().getString(R.string.max_secuencia));
-                                                        break;
-                                                    case 3:
-                                                        visitaPreventa.setJue_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setJue_de(getResources().getString(R.string.max_secuencia));
-                                                        break;
-                                                    case 4:
-                                                        visitaPreventa.setVie_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setVie_de(getResources().getString(R.string.max_secuencia));
-                                                        break;
-                                                    case 5:
-                                                        visitaPreventa.setSab_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setSab_de(getResources().getString(R.string.max_secuencia));
-                                                        break;
-                                                    case 6:
-                                                        visitaPreventa.setDom_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setDom_de(getResources().getString(R.string.max_secuencia));
-                                                        break;
+                                                visitaPreventa.setValorDiaSegunIndice(finalX, getResources().getString(R.string.max_secuencia));
+                                                if(finalIndiceMixta != -1) {
+                                                    visitaMixta.setValorDiaSegunIndice(finalX, getResources().getString(R.string.max_secuencia));
                                                 }
+
                                                 if (!modalidad.equals("GV")) {
-                                                    switch (diaReparto) {
-                                                        case 0:
-                                                            visitaReparto.setLun_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setLun_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                        case 1:
-                                                            visitaReparto.setMar_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setMar_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                        case 2:
-                                                            visitaReparto.setMier_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setMier_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                        case 3:
-                                                            visitaReparto.setJue_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setJue_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                        case 4:
-                                                            visitaReparto.setVie_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setVie_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                        case 5:
-                                                            visitaReparto.setSab_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setSab_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                        case 6:
-                                                            visitaReparto.setDom_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setDom_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                    }
+                                                    visitaReparto.setValorDiaSegunIndice(diaReparto, getResources().getString(R.string.max_secuencia));
                                                 }
                                                 ((TextView) v).setText(getResources().getString(R.string.max_secuencia));
                                                 if (finalIndiceMixta != -1) {
@@ -3036,149 +3532,73 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             }
 
                                             //Si el valor es vacio, borrar si existe el dia
-                                            if (((TextView) v).getText().toString().trim().replace("0", "").equals("")) {
-                                                if (((TextView) v).getText().toString().trim().length() > 0) {
+                                            if (((TextView) v).getText().toString().trim().replace("0", "").equals("")
+                                                    && !VariablesGlobales.AceptarVisitaCero()) {
+                                                if (((TextView) v).getText().toString().trim().length() > 0
+                                                        && !VariablesGlobales.AceptarVisitaCero()) {
                                                     ((TextView) v).setText("");
-                                                    Toasty.warning(getContext(), "La Secuencia debe ser mayor a 0").show();
+                                                    Toasty.warning(getContext(), "La secuencia debe ser mayor a 0").show();
                                                 }
-                                                switch (finalX) {
-                                                    case 0:
-                                                        visitaPreventa.setLun_a("");
-                                                        visitaPreventa.setLun_de("");
-                                                        break;
-                                                    case 1:
-                                                        visitaPreventa.setMar_a("");
-                                                        visitaPreventa.setMar_de("");
-                                                        break;
-                                                    case 2:
-                                                        visitaPreventa.setMier_a("");
-                                                        visitaPreventa.setMier_de("");
-                                                        break;
-                                                    case 3:
-                                                        visitaPreventa.setJue_a("");
-                                                        visitaPreventa.setJue_de("");
-                                                        break;
-                                                    case 4:
-                                                        visitaPreventa.setVie_a("");
-                                                        visitaPreventa.setVie_de("");
-                                                        break;
-                                                    case 5:
-                                                        visitaPreventa.setSab_a("");
-                                                        visitaPreventa.setSab_de("");
-                                                        break;
-                                                    case 6:
-                                                        visitaPreventa.setDom_a("");
-                                                        visitaPreventa.setDom_de("");
-                                                        break;
+
+                                                visitaPreventa.setValorDiaSegunIndice(finalX, "");
+                                                if(finalIndiceMixta != -1) {
+                                                    visitaMixta.setValorDiaSegunIndice(finalX, "");
                                                 }
+
                                                 if (!modalidad.equals("GV")) {
-                                                    switch (diaReparto) {
-                                                        case 0:
-                                                            visitaReparto.setLun_a("");
-                                                            visitaReparto.setLun_de("");
-                                                            break;
-                                                        case 1:
-                                                            visitaReparto.setMar_a("");
-                                                            visitaReparto.setMar_de("");
-                                                            break;
-                                                        case 2:
-                                                            visitaReparto.setMier_a("");
-                                                            visitaReparto.setMier_de("");
-                                                            break;
-                                                        case 3:
-                                                            visitaReparto.setJue_a("");
-                                                            visitaReparto.setJue_de("");
-                                                            break;
-                                                        case 4:
-                                                            visitaReparto.setVie_a("");
-                                                            visitaReparto.setVie_de("");
-                                                            break;
-                                                        case 5:
-                                                            visitaReparto.setSab_a("");
-                                                            visitaReparto.setSab_de("");
-                                                            break;
-                                                        case 6:
-                                                            visitaReparto.setDom_a("");
-                                                            visitaReparto.setDom_de("");
-                                                            break;
-                                                    }
+                                                    visitaReparto.setValorDiaSegunIndice(diaReparto, "");
                                                 }
                                                 if (finalIndiceMixta != -1) {
                                                     copiarDia(et, finalIndiceMixta,finalIndicePreventa);
                                                 }
                                             } else {
                                                 String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView) v).getText().toString());
-                                                switch (finalX) {
-                                                    case 0:
-                                                        visitaPreventa.setLun_a(secuenciaSAP);
-                                                        visitaPreventa.setLun_de(secuenciaSAP);
-                                                        break;
-                                                    case 1:
-                                                        visitaPreventa.setMar_a(secuenciaSAP);
-                                                        visitaPreventa.setMar_de(secuenciaSAP);
-                                                        break;
-                                                    case 2:
-                                                        visitaPreventa.setMier_a(secuenciaSAP);
-                                                        visitaPreventa.setMier_de(secuenciaSAP);
-                                                        break;
-                                                    case 3:
-                                                        visitaPreventa.setJue_a(secuenciaSAP);
-                                                        visitaPreventa.setJue_de(secuenciaSAP);
-                                                        break;
-                                                    case 4:
-                                                        visitaPreventa.setVie_a(secuenciaSAP);
-                                                        visitaPreventa.setVie_de(secuenciaSAP);
-                                                        break;
-                                                    case 5:
-                                                        visitaPreventa.setSab_a(secuenciaSAP);
-                                                        visitaPreventa.setSab_de(secuenciaSAP);
-                                                        break;
-                                                    case 6:
-                                                        visitaPreventa.setDom_a(secuenciaSAP);
-                                                        visitaPreventa.setDom_de(secuenciaSAP);
-                                                        break;
+
+                                                visitaPreventa.setValorDiaSegunIndice(finalX, secuenciaSAP);
+                                                if(finalIndiceMixta != -1) {
+                                                    visitaMixta.setValorDiaSegunIndice(finalX, secuenciaSAP);
                                                 }
+
                                                 if (!modalidad.equals("GV")) {
-                                                    switch (diaReparto) {
-                                                        case 0:
-                                                            visitaReparto.setLun_a(secuenciaSAP);
-                                                            visitaReparto.setLun_de(secuenciaSAP);
-                                                            break;
-                                                        case 1:
-                                                            visitaReparto.setMar_a(secuenciaSAP);
-                                                            visitaReparto.setMar_de(secuenciaSAP);
-                                                            break;
-                                                        case 2:
-                                                            visitaReparto.setMier_a(secuenciaSAP);
-                                                            visitaReparto.setMier_de(secuenciaSAP);
-                                                            break;
-                                                        case 3:
-                                                            visitaReparto.setJue_a(secuenciaSAP);
-                                                            visitaReparto.setJue_de(secuenciaSAP);
-                                                            break;
-                                                        case 4:
-                                                            visitaReparto.setVie_a(secuenciaSAP);
-                                                            visitaReparto.setVie_de(secuenciaSAP);
-                                                            break;
-                                                        case 5:
-                                                            visitaReparto.setSab_a(secuenciaSAP);
-                                                            visitaReparto.setSab_de(secuenciaSAP);
-                                                            break;
-                                                        case 6:
-                                                            visitaReparto.setDom_a(secuenciaSAP);
-                                                            visitaReparto.setDom_de(secuenciaSAP);
-                                                            break;
-                                                    }
+                                                    visitaReparto.setValorDiaSegunIndice(diaReparto, secuenciaSAP);
                                                 }
                                                 if (finalIndiceMixta != -1) {
                                                     copiarDia(et, finalIndiceMixta,finalIndicePreventa);
                                                 }
                                             }
 
+                                            if (!modalidad.equals("GV")) {
+                                                RecalcularDiasDeReparto(getContext());
+                                            }
+
+                                            if(VariablesGlobales.ComentariosAutomaticos()){
+                                                MaskedEditText comentariosAuto = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS"));
+                                                if((finalIndicePreventa != -1 && visitasSolicitud.get(finalIndicePreventa).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(finalIndicePreventa)))
+                                                || (finalIndiceTeleventa != -1 && visitasSolicitud.get(finalIndiceTeleventa).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(finalIndiceTeleventa)))
+                                                || (finalIndiceEspecializada != -1 && visitasSolicitud.get(finalIndiceEspecializada).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(finalIndiceEspecializada)))
+                                                || (finalIndiceMixta != -1 && visitasSolicitud.get(finalIndiceMixta).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(finalIndiceMixta)))
+                                                || (finalIndiceAutoventa != -1 && visitasSolicitud.get(finalIndiceAutoventa).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(finalIndiceAutoventa)))
+                                                || (finalIndiceReparto != -1 && visitasSolicitud.get(finalIndiceReparto).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(finalIndiceReparto)))){
+
+                                                    if(!comentariosAuto.getText().toString().contains("CAMBIO DIAS DE VISITA")) {
+                                                        if(comentariosAuto.getText().toString().trim().length() > 0)
+                                                            comentariosAuto.append("\nCAMBIO DIAS DE VISITA");
+                                                        else
+                                                            comentariosAuto.append("CAMBIO DIAS DE VISITA");
+                                                    }
+                                                }else{
+                                                    if(comentariosAuto.getText().toString().trim().contains("\nCAMBIO DIAS DE VISITA")){
+                                                        comentariosAuto.setText(comentariosAuto.getText().toString().replace("\nCAMBIO DIAS DE VISITA",""));
+                                                    }else{
+                                                        comentariosAuto.setText(comentariosAuto.getText().toString().replace("CAMBIO DIAS DE VISITA",""));
+                                                    }
+                                                }
+                                            }
                                         }
-                                        if (!modalidad.equals("GV")) {
-                                            RecalcularDiasDeReparto(getContext());
-                                        }
+
+
+
+
                                     }
                                     private void copiarDia(TextInputEditText et, int finalIndPreventa, int finalIndMixta) {
                                         if (et.getTag().toString().contains("ZRM")) {
@@ -3209,6 +3629,14 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     et_anterior.setNextFocusLeftId(et.getId());
                                     et_anterior.setNextFocusUpId(et.getId());
                                     et_anterior.setNextFocusDownId(et.getId());
+                                }
+                                if(x == 6){
+                                    et_anterior.setImeOptions(EditorInfo.IME_ACTION_DONE);
+                                    et_anterior.setNextFocusForwardId(0);
+                                    et_anterior.setNextFocusRightId(0);
+                                    et_anterior.setNextFocusLeftId(0);
+                                    et_anterior.setNextFocusUpId(0);
+                                    et_anterior.setNextFocusDownId(0);
                                 }
                                 et_anterior = et;
 
@@ -3291,6 +3719,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     final String[] dias_sufijo = {"ab1", "bi1", "ab2", "bi2"};
                     if(solicitudSeleccionada.size() > 0){
                         horariosSolicitud = mDBHelper.getHorariosDB(GUID);
+                        if(horariosSolicitud.size() == 0){
+                            horariosSolicitud.add(new Horarios(GUID,"00:00:00"));
+                        }
                     }
                     CardView seccion_horarios = new CardView(Objects.requireNonNull(getContext()));
 
@@ -3394,6 +3825,20 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         mTimePicker = new TimePickerDialog(getContext(), new TimePickerDialog.OnTimeSetListener() {
                                             @Override
                                             public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+                                                if(et.getTag().toString().contains("ab1") || et.getTag().toString().contains("bi1")){
+                                                    if(selectedHour > 18){
+                                                        Toasty.warning(getContext(),"Rangos de horas en la mañana invalido! Solo horas entre 0 y 18 son permitidas.").show();
+                                                        return;
+                                                    }
+                                                }
+                                                if(et.getTag().toString().contains("ab2") || et.getTag().toString().contains("bi2")){
+                                                    if(selectedHour < 6){
+                                                        if(selectedHour > 0 && selectedMinute > 0) {
+                                                            Toasty.warning(getContext(), "Rangos de horas de la tarde invalido! Solo horas entre 06 y 23 son permitidas").show();
+                                                            return;
+                                                        }
+                                                    }
+                                                }
                                                 String mivalor = "00".substring(String.valueOf(selectedHour).length()) + String.valueOf(selectedHour) + ":" + "00".substring(String.valueOf(selectedMinute).length()) + String.valueOf(selectedMinute) + ":00";
                                                 et.setText(mivalor);
                                                 if(horariosSolicitud.size() == 0){
@@ -4419,14 +4864,16 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
         //SAVE
         saveBtn.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void onClick(View v) {
                 //Setear ruta segun el tipo de visita ZPV, ZDD, etc
+                MaskedEditText comentariosAuto = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS"));
                 if( reparto ){
                     seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
                     ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
                 }else{
-                    if(mDBHelper.ExisteTipoVisita("ZRM") || mDBHelper.ExisteTipoVisita("ZDY")){
+                    if((mDBHelper.ExisteTipoVisita("ZRM") || mDBHelper.ExisteTipoVisita("ZDY")) && ruta_reparto.getSelectedItem() != null){
                         seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
                     }else {
                         seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_RUTAHH", ""));
@@ -4437,6 +4884,48 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
                     }
                 }
+                if(VariablesGlobales.ComentariosAutomaticos()) {
+                    String tipoRuta = "";
+
+                    switch(seleccionado.getVptyp()){
+                        case "ZPV":
+                            tipoRuta = " DE PREVENTA";
+                            break;
+                        case "ZTV":
+                            tipoRuta = " DE TELEVENTA";
+                            break;
+                        case "ZJV":
+                            tipoRuta = " ESPECIALIZADA";
+                            break;
+                        case "ZDD":
+                            tipoRuta = " DE REPARTO";
+                            break;
+                        case "ZAT":
+                            tipoRuta = " DE AUTOVENTA";
+                            break;
+                        case "ZRM":
+                            tipoRuta = " MIXTA";
+                            break;
+                        case "ZDY":
+                            tipoRuta = " DUMMY";
+                            break;
+                    }
+                    if (seleccionado.getRuta().equals(visitasSolicitud_old.stream().filter(tipo -> seleccionado.getVptyp().equals(tipo.getVptyp())).findAny().get().getRuta())) {
+                        if(comentariosAuto.getText().toString().contains("\nCAMBIO RUTA"+tipoRuta))
+                            comentariosAuto.setText(comentariosAuto.getText().toString().replace("\nCAMBIO RUTA"+tipoRuta, ""));
+                        else if(comentariosAuto.getText().toString().contains("CAMBIO RUTA"+tipoRuta))
+                            comentariosAuto.setText(comentariosAuto.getText().toString().replace("CAMBIO RUTA"+tipoRuta+"\n", "").replace("CAMBIO RUTA"+tipoRuta+"", ""));
+                    } else {
+                        if (!comentariosAuto.getText().toString().contains("\nCAMBIO RUTA"+tipoRuta) && !comentariosAuto.getText().toString().contains("CAMBIO RUTA"+tipoRuta)) {
+                            if(comentariosAuto.getText().toString().trim().length() > 0)
+                                comentariosAuto.append("\nCAMBIO RUTA" + tipoRuta);
+                            else{
+                                comentariosAuto.append("CAMBIO RUTA" + tipoRuta);
+                            }
+                        }
+                    }
+                }
+
                 //seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
                 seleccionado.setKvgr4(kvgr4Spinner.getSelectedItem().toString().trim());
                 seleccionado.setF_ini(f_iniEditText.getText().toString());
@@ -4459,6 +4948,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 RecalcularDiasDeReparto(context);
 
                 tb_visitas.setDataAdapter(new VisitasTableAdapter(v.getContext(), visitasSolicitud));
+                //tb_visitas.getDataAdapter().notifyDataSetChanged();
                 try {
                     d.dismiss();
                 }catch(Exception e){
@@ -5011,12 +5501,14 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         visitaValuesOld.put("jue_de", visitasSolicitud_old.get(c).getJue_de());
                                         visitaValuesOld.put("vie_de", visitasSolicitud_old.get(c).getVie_de());
                                         visitaValuesOld.put("sab_de", visitasSolicitud_old.get(c).getSab_de());
+                                        visitaValuesOld.put("dom_de", visitasSolicitud_old.get(c).getDom_de());
                                         visitaValuesOld.put("lun_a", visitasSolicitud_old.get(c).getLun_a());
                                         visitaValuesOld.put("mar_a", visitasSolicitud_old.get(c).getMar_a());
                                         visitaValuesOld.put("mier_a", visitasSolicitud_old.get(c).getMier_a());
                                         visitaValuesOld.put("jue_a", visitasSolicitud_old.get(c).getJue_a());
                                         visitaValuesOld.put("vie_a", visitasSolicitud_old.get(c).getVie_a());
                                         visitaValuesOld.put("sab_a", visitasSolicitud_old.get(c).getSab_a());
+                                        visitaValuesOld.put("dom_a", visitasSolicitud_old.get(c).getDom_a());
                                         visitaValuesOld.put("f_ico", visitasSolicitud_old.get(c).getF_ico());
                                         visitaValuesOld.put("f_fco", visitasSolicitud_old.get(c).getF_fco());
                                         visitaValuesOld.put("f_ini", visitasSolicitud_old.get(c).getF_ini());
@@ -5312,6 +5804,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     if(listaFinal.get(i).equals("W_CTE-STCD1")){
                         cedulaValidada = ValidarCedula(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-KATR3").getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-BUKRS").getAsString());
                     }
+                    if(listaFinal.get(i).equals("W_CTE-STCDT")){
+                        cedulaValidada = ValidarCedula(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-STCDT").getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-BUKRS").getAsString());
+                    }
                 } catch (Exception e) {
                     try {
                         Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaFinal.get(i)));
@@ -5459,6 +5954,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 e.printStackTrace();
                             }*/
                         }
+                        if(horariosSolicitud.size() == 0){
+                            horariosSolicitud.add(new Horarios(GUID,"00:00:00"));
+                        }
                         if (horariosSolicitud != null) {
                             final String[] dias_prefijo = {"mo", "di", "mi", "do", "fr", "sa", "so"};
                             final String[] dias_sufijo = {"ab1", "bi1", "ab2", "bi2"};
@@ -5525,6 +6023,19 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     }
                     if (tv != null)
                         tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+                    if(VariablesGlobales.getSociedad().equals("1661") || VariablesGlobales.getSociedad().equals("Z001")){
+                        tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-TELF2"));
+                        if (tv != null)
+                            tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+
+                        tv = ((MaskedEditText) mapeoCamposDinamicosOld.get("W_CTE-TELF2"));
+                        if (tv != null)
+                            tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+
+                        tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-TELF2"));
+                        if (tv != null)
+                            tv.setText(telefonos.get(0).getAsJsonObject().get("W_CTE-TEL_NUMBER").getAsString());
+                    }
                 }
                 //Telefono adicional
                 if (telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals(" ") || telefonos.get(i).getAsJsonObject().get("W_CTE-HOME_FLAG").getAsString().equals("")) {
@@ -5561,7 +6072,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     }
 
     private static void llenarDiasDeVisita(Context context) {
-        visitasSolicitud.clear();
+        if(idSolicitud == null){
+            visitasSolicitud.clear();
+            visitasSolicitud_old.clear();
+        }
         Gson gson = new Gson();
         Visitas visita = null;
         int indiceReparto = -1;
@@ -5570,12 +6084,15 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         int indiceTeleventa = -1;
         int indiceAutoventa = -1;
         int indiceMixta = -1;
+        int indiceDummy = -1;
         Spinner comboModalidad = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR5"));
         String modalidad = "";
         String tipoVisita = PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_TIPORUTA", "ZPV").toString();//"ZPV";
+        if(comboModalidad != null)
         modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
 
-        if(visitas != null) {
+        if(visitas != null && idSolicitud == null) {
+
             for (int x = 0; x < visitas.size(); x++) {
                 if (visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZDD")) {
                     indiceReparto = x;
@@ -5594,6 +6111,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 }
                 if (visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZAT")) {
                     indiceAutoventa = x;
+                }
+                if (visitas.get(x).getAsJsonObject().get("W_CTE-VPTYP").getAsString().equals("ZDY")) {
+                    indiceDummy = x;
                 }
                 visita = gson.fromJson(visitas.get(x), Visitas.class);
 
@@ -5633,23 +6153,32 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             TextInputEditText diaJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_J"));
             TextInputEditText diaV = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_V"));
             TextInputEditText diaS = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_S"));
+            TextInputEditText diaD = ((TextInputEditText) mapeoCamposDinamicos.get("ZPV_D"));
             if (diaL != null) {
-                diaL.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getLun_de()));
+                diaL.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getLun_a()));
             }
             if (diaK != null) {
-                diaK.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getMar_de()));
+                diaK.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getMar_a()));
             }
             if (diaM != null) {
-                diaM.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getMier_de()));
+                diaM.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getMier_a()));
             }
             if (diaJ != null) {
-                diaJ.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getJue_de()));
+                diaJ.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getJue_a()));
             }
             if (diaV != null) {
-                diaV.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getVie_de()));
+                diaV.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getVie_a()));
             }
             if (diaS != null) {
-                diaS.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getSab_de()));
+                diaS.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getSab_a()));
+            }
+            if (diaD != null) {
+                String domingo = VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indicePreventa).getDom_a());
+                diaD.setText(domingo);
+                if(domingo.length() > 0){
+                    diaD.setVisibility(View.VISIBLE);
+                    ((TextInputLayout)diaD.getParent().getParent()).setVisibility(View.VISIBLE);
+                }
             }
         }
 
@@ -5661,23 +6190,32 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             TextInputEditText diaEJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_J"));
             TextInputEditText diaEV = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_V"));
             TextInputEditText diaES = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_S"));
+            TextInputEditText diaED = ((TextInputEditText) mapeoCamposDinamicos.get("ZJV_D"));
             if (diaEL != null) {
-                diaEL.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getLun_de()));
+                diaEL.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getLun_a()));
             }
             if (diaEK != null) {
-                diaEK.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getMar_de()));
+                diaEK.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getMar_a()));
             }
             if (diaEM != null) {
-                diaEM.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getMier_de()));
+                diaEM.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getMier_a()));
             }
             if (diaEJ != null) {
-                diaEJ.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getJue_de()));
+                diaEJ.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getJue_a()));
             }
             if (diaEV != null) {
-                diaEV.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getVie_de()));
+                diaEV.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getVie_a()));
             }
             if (diaES != null) {
-                diaES.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getSab_de()));
+                diaES.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getSab_a()));
+            }
+            if (diaED != null) {
+                String domingo = VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceEspecializada).getDom_a());
+                diaED.setText(domingo);
+                if(domingo.length() > 0){
+                    diaED.setVisibility(View.VISIBLE);
+                    ((TextInputLayout)diaED.getParent().getParent()).setVisibility(View.VISIBLE);
+                }
             }
         }
         if (visitasSolicitud.size() > 0 && indiceTeleventa >= 0) {
@@ -5688,23 +6226,32 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             TextInputEditText diaTJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_J"));
             TextInputEditText diaTV = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_V"));
             TextInputEditText diaTS = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_S"));
+            TextInputEditText diaTD = ((TextInputEditText) mapeoCamposDinamicos.get("ZTV_D"));
             if (diaTL != null) {
-                diaTL.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getLun_de()));
+                diaTL.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getLun_a()));
             }
             if (diaTK != null) {
-                diaTK.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getMar_de()));
+                diaTK.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getMar_a()));
             }
             if (diaTM != null) {
-                diaTM.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getMier_de()));
+                diaTM.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getMier_a()));
             }
             if (diaTJ != null) {
-                diaTJ.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getJue_de()));
+                diaTJ.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getJue_a()));
             }
             if (diaTV != null) {
-                diaTV.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getVie_de()));
+                diaTV.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getVie_a()));
             }
             if (diaTS != null) {
-                diaTS.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getSab_de()));
+                diaTS.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getSab_a()));
+            }
+            if (diaTD != null) {
+                String domingo = VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceTeleventa).getDom_a());
+                diaTD.setText(domingo);
+                if(domingo.length() > 0){
+                    diaTD.setVisibility(View.VISIBLE);
+                    ((TextInputLayout)diaTD.getParent().getParent()).setVisibility(View.VISIBLE);
+                }
             }
         }
         if (visitasSolicitud.size() > 0 && indiceAutoventa >= 0) {
@@ -5715,23 +6262,32 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             TextInputEditText diaAJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZAT_J"));
             TextInputEditText diaAV = ((TextInputEditText) mapeoCamposDinamicos.get("ZAT_V"));
             TextInputEditText diaAS = ((TextInputEditText) mapeoCamposDinamicos.get("ZAT_S"));
+            TextInputEditText diaAD = ((TextInputEditText) mapeoCamposDinamicos.get("ZAT_D"));
             if (diaAL != null) {
-                diaAL.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getLun_de()));
+                diaAL.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getLun_a()));
             }
             if (diaAK != null) {
-                diaAK.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getMar_de()));
+                diaAK.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getMar_a()));
             }
             if (diaAM != null) {
-                diaAM.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getMier_de()));
+                diaAM.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getMier_a()));
             }
             if (diaAJ != null) {
-                diaAJ.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getJue_de()));
+                diaAJ.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getJue_a()));
             }
             if (diaAV != null) {
-                diaAV.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getVie_de()));
+                diaAV.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getVie_a()));
             }
             if (diaAS != null) {
-                diaAS.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getSab_de()));
+                diaAS.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getSab_a()));
+            }
+            if (diaAD != null) {
+                String domingo = VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceAutoventa).getDom_a());
+                diaAD.setText(domingo);
+                if(domingo.length() > 0){
+                    diaAD.setVisibility(View.VISIBLE);
+                    ((TextInputLayout)diaAD.getParent().getParent()).setVisibility(View.VISIBLE);
+                }
             }
         }
         if (visitasSolicitud.size() > 0 && indiceMixta >= 0) {
@@ -5742,23 +6298,63 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             TextInputEditText diaTJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZRM_J"));
             TextInputEditText diaTV = ((TextInputEditText) mapeoCamposDinamicos.get("ZRM_V"));
             TextInputEditText diaTS = ((TextInputEditText) mapeoCamposDinamicos.get("ZRM_S"));
+            TextInputEditText diaTD = ((TextInputEditText) mapeoCamposDinamicos.get("ZRM_D"));
             if (diaTL != null) {
-                diaTL.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getLun_de()));
+                diaTL.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getLun_a()));
             }
             if (diaTK != null) {
-                diaTK.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getMar_de()));
+                diaTK.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getMar_a()));
             }
             if (diaTM != null) {
-                diaTM.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getMier_de()));
+                diaTM.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getMier_a()));
             }
             if (diaTJ != null) {
-                diaTJ.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getJue_de()));
+                diaTJ.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getJue_a()));
             }
             if (diaTV != null) {
-                diaTV.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getVie_de()));
+                diaTV.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getVie_a()));
             }
             if (diaTS != null) {
-                diaTS.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getSab_de()));
+                diaTS.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getSab_a()));
+            }
+            if (diaTD != null) {
+                String domingo = VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceMixta).getDom_a());
+                diaTD.setText(domingo);
+                if(domingo.length() > 0){
+                    diaTD.setVisibility(View.VISIBLE);
+                    ((TextInputLayout)diaTD.getParent().getParent()).setVisibility(View.VISIBLE);
+                }
+            }
+        }
+        if (visitasSolicitud.size() > 0 && indiceDummy >= 0) {
+            //En caso de que tenga especializada
+            TextInputEditText diaDL = ((TextInputEditText) mapeoCamposDinamicos.get("ZDY_L"));
+            TextInputEditText diaDK = ((TextInputEditText) mapeoCamposDinamicos.get("ZDY_K"));
+            TextInputEditText diaDM = ((TextInputEditText) mapeoCamposDinamicos.get("ZDY_M"));
+            TextInputEditText diaDJ = ((TextInputEditText) mapeoCamposDinamicos.get("ZDY_J"));
+            TextInputEditText diaDV = ((TextInputEditText) mapeoCamposDinamicos.get("ZDY_V"));
+            TextInputEditText diaDS = ((TextInputEditText) mapeoCamposDinamicos.get("ZDY_S"));
+            TextInputEditText diaDD = ((TextInputEditText) mapeoCamposDinamicos.get("ZDY_D"));
+            if (diaDL != null) {
+                diaDL.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceDummy).getLun_a()));
+            }
+            if (diaDK != null) {
+                diaDK.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceDummy).getMar_a()));
+            }
+            if (diaDM != null) {
+                diaDM.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceDummy).getMier_a()));
+            }
+            if (diaDJ != null) {
+                diaDJ.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceDummy).getJue_a()));
+            }
+            if (diaDV != null) {
+                diaDV.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceDummy).getVie_a()));
+            }
+            if (diaDS != null) {
+                diaDS.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceDummy).getSab_a()));
+            }
+            if (diaDD != null) {
+                diaDD.setText(VariablesGlobales.HoraToSecuencia(visitasSolicitud_old.get(indiceDummy).getDom_a()));
             }
         }
     }
@@ -6127,6 +6723,12 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         Spinner hasta = (Spinner)mapeoCamposDinamicos.get(campo);
         hasta.setSelection(selection);
     }
+    private static void ReplicarValorSpinner(View v, String campo,String valorSeleccioando){
+        Spinner desde = (Spinner)v;
+        Spinner hasta = (Spinner)mapeoCamposDinamicos.get(campo);
+        if(hasta != null)
+            hasta.setSelection(VariablesGlobales.getIndex(hasta,valorSeleccioando));
+    }
     private static boolean ValidarCedula(View v, String tipoCedula){
         TextView texto = (TextView)v;
         String cedula = "";
@@ -6157,18 +6759,20 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 }
                 cedulaValidada = true;
                 MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
-                String cedulaDigitada = texto.getText().toString().trim();
-                if (texto.getText().toString().trim().endsWith("-00") && tipoCedula.equals("C1"))
-                    idfiscal.setText(cedulaDigitada.substring(0, cedulaDigitada.length() - 3).replaceFirst("^0+(?!$)", "").replace("-", ""));
-                else
-                    idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-", ""));
-                idfiscal.setError(null);
-                idfiscal.clearFocus();
+                if(idfiscal != null) {
+                    String cedulaDigitada = texto.getText().toString().trim();
+                    if (texto.getText().toString().trim().endsWith("-00") && tipoCedula.equals("C1"))
+                        idfiscal.setText(cedulaDigitada.substring(0, cedulaDigitada.length() - 3).replaceFirst("^0+(?!$)", "").replace("-", ""));
+                    else
+                        idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-", ""));
+                    idfiscal.setError(null);
+                    idfiscal.clearFocus();
+                }
                 break;
             case "F445"://Nicaragua
                 if (texto.getText().toString().trim().length() < 3) {
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     cedulaValidada = false;
+                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     return true;
                 }
                 if (texto.getText().toString().trim().length() < 14) {
@@ -6179,8 +6783,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 pattern = Pattern.compile(cedula);
                 matcher = pattern.matcher(texto.getText());
                 if (!matcher.matches()) {
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     cedulaValidada = false;
+                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     return true;
                 }
                 cedulaValidada = true;
@@ -6200,7 +6804,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         }
                         break;
                     case "P2":
-                        cedula = "[0-9a-zA-Z]{16,16}";
+                        cedula = "[1-9a-zA-Z][0-9a-zA-Z\\-]{3,15}";
                         break;
                     case "P3":
                         cedula = "E-[0-9]{4,4}-[0-9]{6,6}";
@@ -6209,8 +6813,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 pattern = Pattern.compile(cedula);
                 matcher = pattern.matcher(texto.getText());
                 if (!matcher.matches()) {
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     cedulaValidada = false;
+                    Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     return true;
                 }
                 cedulaValidada = true;
@@ -6227,14 +6832,14 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 Matcher matcherCF = patternCF.matcher(texto.getText());
 
                 if (!matcherFi.matches() && !matcherCF.matches()) {
-                    texto.setError("NIT valor/formato inválido!");
                     cedulaValidada = false;
+                    texto.setError("NIT valor/formato inválido!");
                     return true;
                 }
                 /*Despues del formato se realiza validacion MOD 11*/
                 if(texto.getText().toString().replace("-","").replace("0","").length() == 0){
-                    texto.setError("NIT no puede tener solo ceros!");
                     cedulaValidada = false;
+                    texto.setError("NIT no puede tener solo ceros!");
                     return true;
                 }
                 String[] nit = texto.getText().toString().split("-");
@@ -6256,12 +6861,161 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     digitoVerificador = "K";
                 }
                 if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
-                    texto.setError("NIT inválido por digito verificador!");
                     cedulaValidada = false;
+                    texto.setError("NIT inválido por digito verificador!");
                     return true;
                 }
                 cedulaValidada = true;
                 break;
+            case "1661":
+            case "Z001":
+                String[] nit_uy = new String[2];
+                Integer cantDigitos_uy;
+                String ci;
+                int digVerificador = -1;
+                int[] factores = null;
+                int suma=0;
+                int factor = 10;
+                int resto = 0;
+                int checkdigit = 0;
+                switch (tipoCedula) {
+                    case "25":
+                        nit_uy = texto.getText().toString().split("-");
+                        if (texto.getText().toString().replace("-", "").replace("0", "").length() == 0) {
+                            cedulaValidada = false;
+                            texto.setError("CI no puede tener solo ceros!");
+                            return true;
+                        }
+                        cantDigitos_uy = nit_uy[0].length();
+                        ci = nit_uy[0].trim();
+
+                        digVerificador = -1;
+                        if (nit_uy.length == 1) {
+                            cantDigitos_uy--;
+                            digVerificador = Integer.parseInt(nit_uy[0].trim().substring(cantDigitos_uy) + "");
+                            ci = nit_uy[0].substring(0, cantDigitos_uy);
+                        } else {
+                            digVerificador = Integer.parseInt(nit_uy[1].trim() + "");
+                        }
+
+                        if (ci.length() != 6 && ci.length() != 7 && ci.length() != 11) {
+                            cedulaValidada = false;
+                        } else {
+                            try {
+                                Integer.parseInt(ci);
+                            } catch (NumberFormatException e) {
+                                cedulaValidada = false;
+                            }
+                        }
+                        factores = null;
+                        if (ci.length() == 6) { // CI viejas
+                            factores = new int[]{9, 8, 7, 6, 3, 4};
+                        } else if (ci.length() == 7) {
+                            factores = new int[]{2, 9, 8, 7, 6, 3, 4};
+                        } else if (ci.length() == 11) {
+                            factores = new int[]{2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4};
+                        }
+
+                        if (factores == null) {
+                            cedulaValidada = false;
+                            Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            return true;
+                        }
+
+                        suma = 0;
+                        for (int i = 0; i < (cantDigitos_uy); i++) {
+                            int digito = Integer.parseInt(ci.charAt(i) + "");
+                            suma += digito * factores[i];
+                        }
+
+                        factor = 10;
+                        if (ci.length() == 11) {
+                            factor = 11;
+                        }
+                        resto = suma % factor;
+                        checkdigit = factor - resto;
+
+                        if (checkdigit == factor) {
+                            cedulaValidada = (digVerificador == 0);
+                        }else if (checkdigit == 10) {
+                            cedulaValidada = true;//String.valueOf(digVerificador) == "K";
+                        }else {
+                            cedulaValidada = (checkdigit == digVerificador);
+                        }
+                        if (!cedulaValidada) {
+                            Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            return true;
+                        }
+                        break;
+                    case "88":
+                        if(texto.getText().toString().length() == 0){
+                            cedulaValidada = false;
+                            texto.setError("RUT no puede estar vacio!");
+                            return true;
+                        }
+                        nit_uy[0] = texto.getText().toString().substring(0,texto.getText().toString().length()-1);
+                        if (texto.getText().toString().replace("-", "").replace("0", "").length() == 0) {
+                            cedulaValidada = false;
+                            texto.setError("RUT no puede tener solo ceros!");
+                            return true;
+                        }
+                        cantDigitos_uy = nit_uy[0].length();//Debe ser 11
+                        ci = nit_uy[0].trim();
+
+                        try {
+                            digVerificador = Integer.parseInt(texto.getText().toString().substring(texto.getText().toString().length() - 1, texto.getText().toString().length()) + "");
+                        }catch(Exception e){
+
+                        }
+                        if (ci.length() != 11) {
+                            cedulaValidada = false;
+                        } else {
+                            try {
+                                Integer.parseInt(ci);
+                            } catch (NumberFormatException e) {
+                                cedulaValidada = false;
+                            }
+                        }
+
+                        if (ci.length() == 11) { // RUT
+                            factores = new int[]{4,3,2,9,8,7,6,5,4,3,2};
+                        }
+
+                        if (factores == null) {
+                            cedulaValidada = false;
+                            Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            return true;
+                        }
+
+                        suma = 0;
+                        for (int i = 0; i < (cantDigitos_uy); i++) {
+                            int digito = Integer.parseInt(ci.charAt(i) + "");
+                            suma += digito * factores[i];
+                        }
+
+                        factor = 10;
+                        if (ci.length() == 11) {
+                            factor = 11;
+                        }
+                        resto = suma % factor;
+                        checkdigit = factor - resto;
+
+                        if (checkdigit == factor) {
+                            cedulaValidada = (digVerificador == 0);
+                        }else if (checkdigit == 10) {
+                            cedulaValidada = true;//String.valueOf(digVerificador) == "K";
+                        } else {
+                            cedulaValidada = (checkdigit == digVerificador);
+                        }
+                        if (!cedulaValidada) {
+                            Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            return true;
+                        }
+                        break;
+                    case "42":
+                        cedulaValidada = true;
+                        break;
+                }
         }
 
         Toasty.success(texto.getContext(),"Formato Regimen "+tipoCedula+" valido!",Toasty.LENGTH_SHORT).show();
@@ -6270,55 +7024,57 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     private static boolean ValidarIDFiscal(Context context){
         //SearchableSpinner regimen = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
         MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
-        if(idfiscal.getText().toString().trim().length() == 0){
-            idFiscalValidado = false;
-            return true;
-        }
-        if(PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F446") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("1658")){
-            String regexp_dpi = "[0-9]{12,14}";
-            String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
-            String regexp_cf = "CF";
-            Pattern pattern = Pattern.compile(regexp_idfiscal);
-            Pattern patternCF = Pattern.compile(regexp_cf);
-            Matcher matcher = pattern.matcher(idfiscal.getText());
-            Matcher matcherCF = patternCF.matcher(idfiscal.getText());
+        if(idfiscal != null) {
+            if (idfiscal.getText().toString().trim().length() == 0) {
+                idFiscalValidado = false;
+                return true;
+            }
+            if (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad()).equals("F446") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD", "").equals("1657") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD", "").equals("1658")) {
+                String regexp_dpi = "[0-9]{12,14}";
+                String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
+                String regexp_cf = "CF";
+                Pattern pattern = Pattern.compile(regexp_idfiscal);
+                Pattern patternCF = Pattern.compile(regexp_cf);
+                Matcher matcher = pattern.matcher(idfiscal.getText());
+                Matcher matcherCF = patternCF.matcher(idfiscal.getText());
 
-            pattern = Pattern.compile(regexp_dpi);
-            matcher = pattern.matcher(idfiscal.getText().toString().trim());
-            if (!matcher.matches()) {
-                if (!matcher.matches() && !matcherCF.matches()) {
-                    idfiscal.setError("DPI/CUI/NIT formato inválido!");
-                    idFiscalValidado = false;
-                    return true;
-                }
-                /*Despues del formato se realiza validacion MOD 11*/
-                if(idfiscal.getText().toString().replace("-","").replace("0","").length() == 0){
-                    idfiscal.setError("ID Fiscal no puede tener solo ceros!");
-                    cedulaValidada = false;
-                    return true;
-                }
-                String[] nit = idfiscal.getText().toString().split("-");
-                Integer cantDigitos = nit[0].length();
+                pattern = Pattern.compile(regexp_dpi);
+                matcher = pattern.matcher(idfiscal.getText().toString().trim());
+                if (!matcher.matches()) {
+                    if (!matcher.matches() && !matcherCF.matches()) {
+                        idfiscal.setError("DPI/CUI/NIT formato inválido!");
+                        idFiscalValidado = false;
+                        return true;
+                    }
+                    /*Despues del formato se realiza validacion MOD 11*/
+                    if (idfiscal.getText().toString().replace("-", "").replace("0", "").length() == 0) {
+                        idfiscal.setError("ID Fiscal no puede tener solo ceros!");
+                        cedulaValidada = false;
+                        return true;
+                    }
+                    String[] nit = idfiscal.getText().toString().split("-");
+                    Integer cantDigitos = nit[0].length();
 
-                StringBuilder digitos = new StringBuilder();
-                digitos.append(nit[0]);
-                digitos = digitos.reverse();
-                int temp = 0;
-                for (int x = 2; x <= (cantDigitos + 1); x++) {
-                    temp += x * Character.getNumericValue(digitos.charAt((x - 2)));
-                }
-                int resultado = temp % 11;
-                int tempVerificador = 11 - resultado;
-                if (tempVerificador == 11)
-                    tempVerificador = resultado;
-                String digitoVerificador = String.valueOf(tempVerificador);
-                if (digitoVerificador.equals("10")) {
-                    digitoVerificador = "K";
-                }
-                if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
-                    idfiscal.setError("ID fiscal inválido por digito verificador!");
-                    idFiscalValidado = false;
-                    return true;
+                    StringBuilder digitos = new StringBuilder();
+                    digitos.append(nit[0]);
+                    digitos = digitos.reverse();
+                    int temp = 0;
+                    for (int x = 2; x <= (cantDigitos + 1); x++) {
+                        temp += x * Character.getNumericValue(digitos.charAt((x - 2)));
+                    }
+                    int resultado = temp % 11;
+                    int tempVerificador = 11 - resultado;
+                    if (tempVerificador == 11)
+                        tempVerificador = resultado;
+                    String digitoVerificador = String.valueOf(tempVerificador);
+                    if (digitoVerificador.equals("10")) {
+                        digitoVerificador = "K";
+                    }
+                    if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
+                        idfiscal.setError("ID fiscal inválido por digito verificador!");
+                        idFiscalValidado = false;
+                        return true;
+                    }
                 }
             }
         }
@@ -6388,7 +7144,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         }
                         break;
                     case "P2":
-                        cedula = "[0-9a-zA-Z]{16,16}";
+                        cedula = "[1-9a-zA-Z][0-9a-zA-Z\\-]{3,15}";
                         break;
                     case "P3":
                         cedula = "E-[0-9]{4,4}-[0-9]{6,6}";
@@ -6441,8 +7197,264 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 }
                 cedulaValidada = true;
                 break;
+            case "1661":
+            case "Z001":
+                String[] nit_uy = new String[2];
+                Integer cantDigitos_uy;
+                String ci;
+                int digVerificador = -1;
+                int[] factores = null;
+                int suma=0;
+                int factor = 10;
+                int resto = 0;
+                int checkdigit = 0;
+                switch (tipoCedula) {
+                    case "25":
+                        nit_uy = texto.split("-");
+                        if (texto.replace("-", "").replace("0", "").length() == 0) {
+                            et.setError("CI no puede tener solo ceros!");
+                            cedulaValidada = false;
+                            return true;
+                        }
+                        cantDigitos_uy = nit_uy[0].length();
+                        ci = nit_uy[0].trim();
+
+                        digVerificador = -1;
+                        if (nit_uy.length == 1) {
+                            cantDigitos_uy--;
+                            digVerificador = Integer.parseInt(nit_uy[0].trim().substring(cantDigitos_uy) + "");
+                            ci = nit_uy[0].substring(0, cantDigitos_uy);
+                        } else {
+                            digVerificador = Integer.parseInt(nit_uy[1].trim() + "");
+                        }
+
+                        if (ci.length() != 6 && ci.length() != 7 && ci.length() != 11) {
+                            cedulaValidada = false;
+                        } else {
+                            try {
+                                Integer.parseInt(ci);
+                            } catch (NumberFormatException e) {
+                                cedulaValidada = false;
+                            }
+                        }
+
+                        if (ci.length() == 6) { // CI viejas
+                            factores = new int[]{9, 8, 7, 6, 3, 4};
+                        } else if (ci.length() == 7) {
+                            factores = new int[]{2, 9, 8, 7, 6, 3, 4};
+                        } else if (ci.length() == 11) {
+                            factores = new int[]{2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4};
+                        }
+
+                        if (factores == null) {
+                            cedulaValidada = false;
+                            Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            return true;
+                        }
+
+                        suma = 0;
+                        for (int i = 0; i < (cantDigitos_uy); i++) {
+                            int digito = Integer.parseInt(ci.charAt(i) + "");
+                            suma += digito * factores[i];
+                        }
+
+                        factor = 10;
+                        if (ci.length() == 11) {
+                            factor = 11;
+                        }
+                        resto = suma % factor;
+                        checkdigit = factor - resto;
+
+                        if (checkdigit == factor) {
+                            cedulaValidada = (digVerificador == 0);
+                        } else {
+                            cedulaValidada = (checkdigit == digVerificador);
+                        }
+                        if (!cedulaValidada) {
+                            Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            return true;
+                        }
+                        break;
+                    case "88":
+                        if(texto.toString().length() == 0){
+                            et.setError("RUT no puede estar vacio!");
+                            cedulaValidada = false;
+                            return true;
+                        }
+                        nit_uy[0] = texto.toString().substring(0,texto.toString().length()-1);
+                        if (texto.toString().replace("-", "").replace("0", "").length() == 0) {
+                            et.setError("RUT no puede tener solo ceros!");
+                            cedulaValidada = false;
+                            return true;
+                        }
+                        cantDigitos_uy = nit_uy[0].length();//Debe ser 11
+                        ci = nit_uy[0].trim();
+
+                        try {
+                            digVerificador = Integer.parseInt(texto.toString().substring(texto.toString().length() - 1, texto.toString().length()) + "");
+                        }catch(Exception e){
+
+                        }
+                        if (ci.length() != 11) {
+                            cedulaValidada = false;
+                        } else {
+                            try {
+                                Integer.parseInt(ci);
+                            } catch (NumberFormatException e) {
+                                cedulaValidada = false;
+                            }
+                        }
+
+                        if (ci.length() == 11) { // RUT
+                            factores = new int[]{4,3,2,9,8,7,6,5,4,3,2};
+                        }
+
+                        if (factores == null) {
+                            cedulaValidada = false;
+                            Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            return true;
+                        }
+
+                        suma = 0;
+                        for (int i = 0; i < (cantDigitos_uy); i++) {
+                            int digito = Integer.parseInt(ci.charAt(i) + "");
+                            suma += digito * factores[i];
+                        }
+
+                        factor = 10;
+                        if (ci.length() == 11) {
+                            factor = 11;
+                        }
+                        resto = suma % factor;
+                        checkdigit = factor - resto;
+
+                        if (checkdigit == factor) {
+                            cedulaValidada = (digVerificador == 0);
+                        }else if (checkdigit == 10) {
+                            cedulaValidada = true;//String.valueOf(digVerificador) == "K";
+                        } else {
+                            cedulaValidada = (checkdigit == digVerificador);
+                        }
+                        if (!cedulaValidada) {
+                            Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            return true;
+                        }
+                        break;
+                    case "42":
+                        cedulaValidada = true;
+                        break;
+                }
         }
         return true;
+    }
+
+    //Devuelve string vacio si estan los horarios correcctos, de lo contrario devuelve string de error.
+    private String ValidarHorarios(ArrayList<Horarios> horariosSolicitud) {
+        String mensajeHorarios = "";
+        try {
+            int moab1 = Integer.parseInt(horariosSolicitud.get(0).getMoab1().replaceAll(":", ""));
+            int mobi1 = Integer.parseInt(horariosSolicitud.get(0).getMobi1().replaceAll(":", ""));
+            int diab1 = Integer.parseInt(horariosSolicitud.get(0).getDiab1().replaceAll(":", ""));
+            int dibi1 = Integer.parseInt(horariosSolicitud.get(0).getDibi1().replaceAll(":", ""));
+            int miab1 = Integer.parseInt(horariosSolicitud.get(0).getMiab1().replaceAll(":", ""));
+            int mibi1 = Integer.parseInt(horariosSolicitud.get(0).getMibi1().replaceAll(":", ""));
+            int doab1 = Integer.parseInt(horariosSolicitud.get(0).getDoab1().replaceAll(":", ""));
+            int dobi1 = Integer.parseInt(horariosSolicitud.get(0).getDobi1().replaceAll(":", ""));
+            int frab1 = Integer.parseInt(horariosSolicitud.get(0).getFrab1().replaceAll(":", ""));
+            int frbi1 = Integer.parseInt(horariosSolicitud.get(0).getFrbi1().replaceAll(":", ""));
+            int saab1 = Integer.parseInt(horariosSolicitud.get(0).getSaab1().replaceAll(":", ""));
+            int sabi1 = Integer.parseInt(horariosSolicitud.get(0).getSabi1().replaceAll(":", ""));
+            int soab1 = Integer.parseInt(horariosSolicitud.get(0).getSoab1().replaceAll(":", ""));
+            int sobi1 = Integer.parseInt(horariosSolicitud.get(0).getSobi1().replaceAll(":", ""));
+
+            int moab2 = Integer.parseInt(horariosSolicitud.get(0).getMoab2().replaceAll(":", ""));
+            int mobi2 = Integer.parseInt(horariosSolicitud.get(0).getMobi2().replaceAll(":", ""));
+            int diab2 = Integer.parseInt(horariosSolicitud.get(0).getDiab2().replaceAll(":", ""));
+            int dibi2 = Integer.parseInt(horariosSolicitud.get(0).getDibi2().replaceAll(":", ""));
+            int miab2 = Integer.parseInt(horariosSolicitud.get(0).getMiab2().replaceAll(":", ""));
+            int mibi2 = Integer.parseInt(horariosSolicitud.get(0).getMibi2().replaceAll(":", ""));
+            int doab2 = Integer.parseInt(horariosSolicitud.get(0).getDoab2().replaceAll(":", ""));
+            int dobi2 = Integer.parseInt(horariosSolicitud.get(0).getDobi2().replaceAll(":", ""));
+            int frab2 = Integer.parseInt(horariosSolicitud.get(0).getFrab2().replaceAll(":", ""));
+            int frbi2 = Integer.parseInt(horariosSolicitud.get(0).getFrbi2().replaceAll(":", ""));
+            int saab2 = Integer.parseInt(horariosSolicitud.get(0).getSaab2().replaceAll(":", ""));
+            int sabi2 = Integer.parseInt(horariosSolicitud.get(0).getSabi2().replaceAll(":", ""));
+            int soab2 = Integer.parseInt(horariosSolicitud.get(0).getSoab2().replaceAll(":", ""));
+            int sobi2 = Integer.parseInt(horariosSolicitud.get(0).getSobi2().replaceAll(":", ""));
+
+            if (moab1 > mobi1 && mobi1 != 0) {
+                mensajeHorarios += "En el dia Lunes en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (diab1 > dibi1 && dibi1 != 0) {
+                mensajeHorarios += "En el dia Martes en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (miab1 > mibi1 && mibi1 != 0) {
+                mensajeHorarios += "En el dia Miercoles en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (doab1 > dobi1 && dobi1 != 0) {
+                mensajeHorarios += "En el dia Jueves en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (frab1 > frbi1 && frbi1 != 0) {
+                mensajeHorarios += "En el dia Viernes en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (saab1 > sabi1 && sabi1 != 0) {
+                mensajeHorarios += "En el dia Sabado en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (soab1 > sobi1 && sobi1 != 0) {
+                mensajeHorarios += "En el dia Domingo en la mañana, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+
+            if (moab2 > mobi2 && moab2 != 0) {
+                mensajeHorarios += "En el dia Lunes en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (diab2 > dibi2 && diab2 != 0) {
+                mensajeHorarios += "En el dia Martes en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (miab2 > mibi2 && miab2 != 0) {
+                mensajeHorarios += "En el dia Miercoles en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (doab2 > dobi2 && doab2 != 0) {
+                mensajeHorarios += "En el dia Jueves en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (frab2 > frbi2 && frab2 != 0) {
+                mensajeHorarios += "En el dia Viernes en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (saab2 > sabi2 && saab2 != 0) {
+                mensajeHorarios += "En el dia Sabado en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+            if (soab2 > sobi2 && soab2 != 0) {
+                mensajeHorarios += "En el dia Domingo en la tarde, la hora inicial no puede ser mayor a la hora final!\n";
+            }
+
+            if (moab1 != 0 && mobi2 != 0 && mobi1 == 0 && moab2 == 0 && moab1 > mobi2) {
+                mensajeHorarios += "En el dia Lunes, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+            if (diab1 != 0 && dibi2 != 0 && dibi1 == 0 && diab2 == 0 && diab1 > dibi2) {
+                mensajeHorarios += "En el dia Martes, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+            if (miab1 != 0 && mibi2 != 0 && mibi1 == 0 && miab2 == 0 && miab1 > mibi2) {
+                mensajeHorarios += "En el dia Miercoles, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+            if (doab1 != 0 && dobi2 != 0 && dobi1 == 0 && doab2 == 0 && doab1 > dobi2) {
+                mensajeHorarios += "En el dia Jueves, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+            if (frab1 != 0 && frbi2 != 0 && frbi1 == 0 && frab2 == 0 && frab1 > frbi2) {
+                mensajeHorarios += "En el dia Viernes, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+            if (saab1 != 0 && sabi2 != 0 && sabi1 == 0 && saab2 == 0 && saab1 > sabi2) {
+                mensajeHorarios += "En el dia Sabado, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+            if (soab1 != 0 && sobi2 != 0 && sobi1 == 0 && soab2 == 0 && soab1 > sobi2) {
+                mensajeHorarios += "En el dia Domingo, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+
+        } catch (Exception exc) {
+            mensajeHorarios += "Revise los horarios digitados, valor inválido.";
+        }
+        if (mensajeHorarios != "") {
+            return mensajeHorarios;
+        }
+        return "";
     }
 
     private static boolean ValidarCliente(View v){
@@ -6592,8 +7604,28 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     }
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudModificacionActivity.this);
-        ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
+        String campoEscaneo ="";
+        Bundle b = null;
+        if(data != null)
+            b = data.getExtras();
+        if(b != null) {
+            campoEscaneo = b.getString("campoEscaneo");
+            if(b.getInt("requestCode") != 0)
+                requestCode = b.getInt("requestCode");
+        }
+        if(requestCode == VariablesGlobales.ESCANEO_TARJETA){
+            if(b != null) {
+                campoEscaneo = b.getString("campoEscaneo");
+                ((MaskedEditText)mapeoCamposDinamicos.get(campoEscaneo)).setText(b.getString("codigo"));
+            }
+        }else {
+            WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudModificacionActivity.this);
+            try {
+                ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(), weakRefA.get(), mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }
