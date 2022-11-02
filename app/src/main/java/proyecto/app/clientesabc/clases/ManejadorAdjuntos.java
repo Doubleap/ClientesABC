@@ -129,7 +129,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                 //_bitmap.compress(Bitmap.CompressFormat.PNG, 50, image);
                 BitmapFactory.Options o = new BitmapFactory.Options();
                 o.inSampleSize = 1;
-                if (image.length > 200000)
+                if (image.length > 250000)
                     o.inSampleSize = 2;
                 if (image.length > 400000)
                     o.inSampleSize = 4;

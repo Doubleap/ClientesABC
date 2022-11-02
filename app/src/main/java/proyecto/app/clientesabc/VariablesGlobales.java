@@ -22,7 +22,7 @@ import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
-    private static boolean usarAPI = false;
+    private static boolean usarAPI = true;
     public static boolean UsarAPI() {
         return usarAPI;
     }
@@ -30,7 +30,7 @@ public class VariablesGlobales extends Application {
     public static boolean AceptarVisitaCero() {
         return aceptarVisitaCero;
     }
-    private static boolean comentariosAutomaticos = false;
+    private static boolean comentariosAutomaticos = true;
     public static boolean ComentariosAutomaticos() {
         return comentariosAutomaticos;
     }
@@ -39,12 +39,12 @@ public class VariablesGlobales extends Application {
     //private static String urlApi = "http://10.0.2.2:51123/";//Local host
     //private static String urlApi = "http://10.153.58.132/";//Servidor produccion, pero ambiente calidad en VM uruguay
     private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API
-    private static String nombrePais = "Panamá";
-    private static String sociedad = "F451";
-    private static String orgvta = "0451";
-    private static String land1 = "PA";
-    private static String cadenaRM = "0000200000";
-    private static String ktokd = "PCMA";
+    private static String nombrePais = "Uruguay Distribuidores";
+    private static String sociedad = "Z001";
+    private static String orgvta = "Z001";
+    private static String land1 = "UY";
+    private static String cadenaRM = "0000245000";
+    private static String ktokd = "UYDD";
 
     /*
     private static String nombrePais = "Costa Rica";

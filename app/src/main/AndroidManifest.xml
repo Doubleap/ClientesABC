@@ -83,22 +83,32 @@
             android:screenOrientation="reverseLandscape" />
         <activity
             android:name=".actividades.SolicitudActivity"
+            android:launchMode="singleTop"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_solicitud"
             android:screenOrientation="portrait" />
         <activity
             android:name=".actividades.SolicitudModificacionActivity"
+            android:launchMode="singleTop"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_solicitud"
             android:screenOrientation="portrait" />
         <activity
             android:name=".actividades.ConsultaClienteTotalActivity"
+            android:launchMode="singleTop"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_cliente"
             android:screenOrientation="portrait" />
         <activity
             android:name=".actividades.SolicitudCreditoActivity"
+            android:launchMode="singleTop"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="Solicitud de Crédito"
             android:screenOrientation="portrait" />
         <activity
             android:name=".actividades.SolicitudAvisosEquipoFrioActivity"
+            android:launchMode="singleTop"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_aviso"
             android:screenOrientation="portrait" />
         <activity

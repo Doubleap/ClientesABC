@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ClientesABC Panama</string>
+    <string name="app_name">ClientesABC Distribuidores</string>
     <string name="title_activity_login">Maestro Clientes Femsa</string>
 
     <!-- Strings related to login -->
@@ -21,6 +21,12 @@
     <string name="title_activity_firma_credito">Aceptación condiciones de crédito</string>
     <string name="title_activity_solicitud">Crear Solicitud</string>
     <string name="title_activity_aviso">Avisos de Equipo frio</string>
+    <string name="company_title_activity_firma_tarjeta_cr">COCA COLA FEMSA DE COSTA RICA</string>
+    <string name="company_title_activity_firma_tarjeta_ni">COCA COLA FEMSA DE NICARAGUA</string>
+    <string name="company_title_activity_firma_tarjeta_pa">VENTAS y MERCADEO S.A.</string>
+    <string name="company_title_activity_firma_tarjeta_em">COCA COLA FEMSA DE GUATEMALA</string>
+    <string name="company_title_activity_firma_tarjeta_ab">COCA COLA ABASA</string>
+    <string name="company_title_activity_firma_tarjeta_vo">COCA COLA LOS VOLCANES</string>
     <string name="title_activity_firma_tarjeta_cr">ACTA DE ENTREGA DE TARJETA DE REGALO</string>
     <string name="title_activity_firma_tarjeta_ni">ACTA DE ENTREGA DE TARJETA DE REGALO</string>
     <string name="title_activity_firma_tarjeta_pa">ACTA DE ENTREGA DE TARJETA DE REGALO</string>
@@ -170,7 +176,7 @@
     <b>Ruta Preventa :</b> %7$s<br/>
     <b>Número de Tarjeta :</b> %8$s<br/>]]></string>
     <string name="firma_tarjetas_condiciones_ni"><![CDATA[ Términos y condiciones<br/><br/>TODAS LAS TARJETAS DE REGALO SON EXCLUSIVAS PARA UTILIZAR EN LOS COMERCIOS DEL PROVEEDOR QUE SE INDICA EN LA TARJETA ENTREGADA ]]> </string>
-    <string name="firma_tarjetas_pa"><![CDATA[ Por este medio, y con el objetivo de acordar la negociación del plan y condiciones requeridas se negocia la iniciativa dentro del punto de venta por un periodo de: <b>%1$s</b> y se hace entrega de una tarjeta de regalo por un monto de: <b>₡ %2$s</b> al siguiente beneficiario:
+    <string name="firma_tarjetas_pa"><![CDATA[ Por este medio, y con el objetivo de acordar la negociación del plan y condiciones requeridas se negocia la iniciativa dentro del punto de venta por un periodo de: <b>%1$s</b> y se hace entrega de una tarjeta de regalo por un monto de: <b>B/. %2$s</b> al siguiente beneficiario:
     <br/><br/>
     <b>Codigo cliente :</b> %3$s<br/>
     <b>Nombre :</b> %4$s<br/>

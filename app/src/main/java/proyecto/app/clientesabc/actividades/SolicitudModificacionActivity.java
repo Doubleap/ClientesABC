@@ -463,7 +463,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                             if (!modalidad.equals("GV") && indiceReparto != -1 && visitasSolicitud.size() > 0 && visitasSolicitud.get(indiceReparto).getRuta().trim().length() < 6) {
                                 numErrores++;
-                                mensajeError += "- Falta ruta de reparto en planes de visita!\n";
+                                mensajeError += "- Falta ruta de reparto(ZDD) en planes de visita!\n";
                             }
 
                             int indiceMixta = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZRM");
@@ -474,9 +474,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
 
                             int indiceDummy = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDY");
-                            if (!modalidad.equals("TA") && indiceDummy != -1 && visitasSolicitud.size() > 0 && visitasSolicitud.get(indiceDummy).getRuta().trim().length() < 6) {
+                            if (indiceDummy != -1 && visitasSolicitud.size() > 0 && visitasSolicitud.get(indiceDummy).getRuta().trim().length() < 6) {
                                 numErrores++;
-                                mensajeError += "- Falta asignar ruta Dummy en PLANES DE VISITA!\n";
+                                mensajeError += "- Falta asignar ruta Dummy(ZDY) en PLANES DE VISITA!\n";
                             }
                         }/*else{
                             numErrores++;
@@ -1052,7 +1052,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 break;
                         }
                     }
-
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-IN_PLAN_INICIATIVA") && solicitudSeleccionada.size() == 0){
+                        filtroxPais += "activo='True'";
+                    }
+                    if(campos.get(i).get("campo").trim().equals("W_CTE-IN_PLAN_INICIATIVA") && solicitudSeleccionada.size() > 0){
+                        if(solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia") || solicitudSeleccionada.get(0).get("ESTADO").equals("Modificado") || solicitudSeleccionada.get(0).get("ESTADO").equals("Nuevo"))
+                        filtroxPais += "activo='True'";
+                    }
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(), filtroxPais);
 
                     //Si son catalogos de equipo frio debo las columnas de ID y Descripcion estan en otros indice de columnas
@@ -1451,7 +1457,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     if(campos.get(i).get("campo").trim().equals("W_CTE-KVGR5")){
                         //TODO aqui se debe cambiar si se quiere trabajar con diferentes tipos de 'PR'
                         if(solicitudSeleccionada.size() == 0){
-                            combo.setSelection(VariablesGlobales.getIndex(combo, "PR"));
+                            /*combo.setSelection(VariablesGlobales.getIndex(combo, "PR"));
                             if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZAT")){
                                 combo.setSelection(VariablesGlobales.getIndex(combo, "GV"));
                             }
@@ -1460,7 +1466,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                             if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZJV")){
                                 combo.setSelection(VariablesGlobales.getIndex(combo, "PE"));
-                            }
+                            }*/
                             combo.setEnabled(false);
                             combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
                         }else{
@@ -2314,6 +2320,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             newFilters = new InputFilter[editFilters.length + 1];
                             System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
                             newFilters[editFilters.length] = new InputFilter.LengthFilter( 5 );
+                            et.setFilters(newFilters);
+                        }else if(campos.get(i).get("campo").trim().equals("W_CTE-IN_MONTO_TARJETA")){
+                            et.setInputType(InputType.TYPE_CLASS_NUMBER);
+                            editFilters = et.getFilters();
+                            newFilters = new InputFilter[editFilters.length + 1];
+                            System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
+                            newFilters[editFilters.length] = new InputFilter.LengthFilter( 11 );
                             et.setFilters(newFilters);
                         }else{
                             et.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -4872,6 +4885,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 if( reparto ){
                     seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
                     ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
+
+                    String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_VKORG",""), seleccionado.getRuta());
+                    ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
+
                 }else{
                     if((mDBHelper.ExisteTipoVisita("ZRM") || mDBHelper.ExisteTipoVisita("ZDY")) && ruta_reparto.getSelectedItem() != null){
                         seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
@@ -4882,6 +4899,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
                         String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_VKORG",""), seleccionado.getRuta());
                         ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
+
                     }
                 }
                 if(VariablesGlobales.ComentariosAutomaticos()) {
@@ -5837,10 +5855,20 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             sp.setSelection(VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
                         }
 
-                        sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaFinal.get(i)));
-                        if(sp != null)
-                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
+                        //Actualizar comentario Automatico apara corregir los erroneos de MODALIDAD DE VTA
 
+
+                        sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaFinal.get(i)));
+                        if(sp != null) {
+                            //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP.
+                            if(VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()) == -1 ){
+                                ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) sp.getAdapter());
+                                OpcionSpinner opcionSAP = new OpcionSpinner(cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim(),cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()+" - "+cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim());
+                                dataAdapter.add(opcionSAP);
+                                dataAdapter.notifyDataSetChanged();
+                            }
+                            sp.setSelection(VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
+                        }
                     } catch (Exception e2) {
                         try {
                             CheckBox check = ((CheckBox) mapeoCamposDinamicos.get(listaFinal.get(i)));

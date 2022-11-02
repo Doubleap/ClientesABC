@@ -52,7 +52,7 @@ public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
             textView.setText(textToShow);
             textView.setGravity(gravity);
         } catch (final IndexOutOfBoundsException e) {
-            Log.w(LOG_TAG, "No Sting given for row " + rowIndex + ", column " + columnIndex + ". "
+            Log.w(LOG_TAG, "No String given for row " + rowIndex + ", column " + columnIndex + ". "
                     + "Caught exception: " + e.toString());
             // Show no text
         }

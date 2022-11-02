@@ -1263,6 +1263,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(tabla.equals("cat_ztmdcmc_00038t") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001")){
             filtros.append(" AND trim(zkeyacc) = 'CA002'");
         }
+        if(tabla.equals("cat_ztsdvto_00185")) {
+            filtros.append(" AND (id_kvgr5 IN(SELECT id FROM cat_ztsdvto_00185_x WHERE(vpore = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA","")+"')))");
+        }
         //TODO si entran formales D y ABC al app se debe cambiar esta manera de filtrar
         if(tabla.equals("cat_knvv")){
             if(!PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001"))
@@ -1291,9 +1294,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(existeColumna(tabla,"werks")){
             filtros.append(" AND werks = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VWERK","")).append("'");
         }
-        if(existeColumna(tabla,"activo")){
-            filtros.append(" AND activo = 'True'");
-        }
+
 
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
@@ -1384,9 +1385,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(existeColumna(tabla,"werks")){
             filtros.append(" AND werks = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VWERK","")).append("'");
         }
-        if(existeColumna(tabla,"activo")){
-            filtros.append(" AND activo = 'True'");
-        }
+
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
 
@@ -2325,7 +2324,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 if(count > 0 && visita.getVptyp().equals("ZRM")){
                     cursorI.moveToFirst();
                     visita.setRuta(cursorI.getString(cursorI.getColumnIndex("zroute_pr")) );
-                }else if(count == 0 && !cursor.getString(cursor.getColumnIndex("vptyp")).equals("ZDY")){
+                }else if( (count == 0 && !cursor.getString(cursor.getColumnIndex("vptyp")).equals("ZDY")) && (cursor.getString(cursor.getColumnIndex("vptyp")).equals(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA", "")))){
                     visita.setRuta(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH", ""));
                 }else{
                     visita.setRuta(cursor.getString(cursor.getColumnIndex("ruta")) );
@@ -3013,12 +3012,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String res = "";
         //Trae la Clase de riesgo segun la condicion de pago seleccionada por sociedad
         String query = "select vsbed FROM loc_ruta_expedicion WHERE vkorg = ? AND zroute_rep = ?";
-        Cursor cursor = mDataBase.rawQuery(query, new String[]{vkorg, zroute_rep});
-        if (cursor.moveToNext()){
-            cond_expedicion = cursor.getString(0);
-        }
-        cursor.close();
+        Cursor cursor = null;
+        try {
+            cursor = mDataBase.rawQuery(query, new String[]{vkorg, zroute_rep});
 
+            if (cursor.moveToNext()) {
+                cond_expedicion = cursor.getString(0);
+            }
+            cursor.close();
+        }catch(Exception e){
+            Log.d("SELECT FAIL", e.getMessage());
+        }
         if (cond_expedicion != null && !cond_expedicion.equals("") )
         {
             res = cond_expedicion;

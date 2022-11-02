@@ -205,6 +205,7 @@ public class SolicitudActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_solicitud);
         firma = false;
         modificable = true;
@@ -432,13 +433,13 @@ public class SolicitudActivity extends AppCompatActivity {
 
                             if (!modalidad.equals("GV") && indiceReparto != -1 && visitasSolicitud.size() > 0 && visitasSolicitud.get(indiceReparto).getRuta().trim().length() < 6) {
                                 numErrores++;
-                                mensajeError += "- Falta ruta de reparto en PLANES DE VISITA!\n";
+                                mensajeError += "- Falta ruta de reparto(ZDD) en PLANES DE VISITA!\n";
                             }
 
                             int indiceDummy = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDY");
-                            if (modalidad.equals("TA") && indiceDummy != -1 && visitasSolicitud.size() > 0 && visitasSolicitud.get(indiceDummy).getRuta().trim().length() < 6) {
+                            if (indiceDummy != -1 && visitasSolicitud.size() > 0 && visitasSolicitud.get(indiceDummy).getRuta().trim().length() < 6) {
                                 numErrores++;
-                                mensajeError += "- Falta asignar ruta Dummy en PLANES DE VISITA!\n";
+                                mensajeError += "- Falta asignar ruta Dummy(ZDY) en PLANES DE VISITA!\n";
                             }
 
                             int indiceMixta = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZRM");
@@ -1303,7 +1304,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             }
                                         });
                                     }
-                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                    if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
@@ -1327,7 +1328,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                     ArrayList<HashMap<String, String>> valores = mDBHelper.getValoresKOFSegunZonaVentas(((OpcionSpinner) combo.getSelectedItem()).getId());
                                     ((Spinner) mapeoCamposDinamicos.get("W_CTE-VWERK")).setSelection(VariablesGlobales.getIndex(((Spinner) mapeoCamposDinamicos.get("W_CTE-VWERK")), valores.get(0).get("VWERK")));
-                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                    if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
 
                                     String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
@@ -1364,7 +1365,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                     ActualizarAprobadores();
 
-                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                    if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
@@ -1415,7 +1416,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte,PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_RUTAHH","").trim()));
                                         }
                                     }
-                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                    if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
@@ -1452,7 +1453,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             visitasSolicitud.get(dummy).setDom_a("0001");
                                             visitasSolicitud.get(dummy).setDom_de("0001");
                                         }
-                                        tb_visitas.setDataAdapter(new VisitasTableAdapter(view.getContext(), visitasSolicitud));
+                                        tb_visitas.setDataAdapter(new VisitasTableAdapter(getContext(), visitasSolicitud));
                                         if (tb_visitas.getLayoutParams() != null) {
                                             tb_visitas.getLayoutParams().height = 50;
                                             tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView) * visitasSolicitud.size());
@@ -1460,8 +1461,21 @@ public class SolicitudActivity extends AppCompatActivity {
 
                                         //new ResetearVisitas(getContext(), getActivity());
                                         DesplegarBloque(db,ll,campos.get(getIndexOFkey("W_CTE-VISITAS",  campos)));
+                                    }else if(!solicitudSeleccionada.get(0).get("W_CTE-KVGR5").toString().equals(opcion.getId())){
+                                        Spinner modalidad_preventa = (Spinner)mapeoCamposDinamicos.get("W_CTE-KVGR5");
+                                        visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG", ""), opcion.getId());
+
+                                        tb_visitas.setDataAdapter(new VisitasTableAdapter(getContext(), visitasSolicitud));
+                                        if (tb_visitas.getLayoutParams() != null) {
+                                            tb_visitas.getLayoutParams().height = 50;
+                                            tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView ) * visitasSolicitud.size());
+                                        }
+
+                                        DesplegarBloque(db,ll,campos.get(getIndexOFkey("W_CTE-VISITAS",  campos)));
+                                    }else{
+                                        DesplegarBloque(db,ll,campos.get(getIndexOFkey("W_CTE-VISITAS",  campos)));
                                     }
-                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                    if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
@@ -1480,7 +1494,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         Provincias(parent);
-                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                        if (parent.getSelectedView() != null && position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1495,7 +1509,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         Cantones(parent);
-                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                        if (parent.getSelectedView() != null && position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1511,7 +1525,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         Distritos(parent);
-                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                        if (parent.getSelectedView() != null && position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1526,7 +1540,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         DireccionCorta(getContext());
-                                        if (position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                        if (parent.getSelectedView() != null && position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1541,7 +1555,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         Canales(parent);
-                                        if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                        if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1556,7 +1570,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         CanalesKof(parent);
-                                        if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                        if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1586,7 +1600,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             gec.setSelection(VariablesGlobales.getIndex(gec,canales.get(0).get("gec")));
                                         }
                                     }
-                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                    if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
@@ -1601,7 +1615,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         ImpuestoSegunUnidadNegocio(parent);
-                                        if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                        if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                             ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                     }
 
@@ -1656,7 +1670,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     }
 
                                     AsignarTipoImpuesto(parent);
-                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                    if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
@@ -1678,7 +1692,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                     ReplicarValorSpinner(parent, campoAReplicar, ((OpcionSpinner) parent.getSelectedItem()).getId().trim());
-                                    if (position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                    if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
 
                                     if(campos.get(finalI1).get("campo").trim().equals("W_CTE-BZIRK")){
@@ -2648,7 +2662,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         });
                     }
 
-                    if (solicitudSeleccionada.size() > 0) {
+                    if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-KVGR5").toString().equals( ((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-KVGR5")).getSelectedItem()).getId() )) {
                         visitasSolicitud = mDBHelper.getVisitasDB(idSolicitud);
                     }
                     //Adaptadores
@@ -2866,8 +2880,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                             int diaReparto = 0;
                                             int diasParaReparto = 1;
                                             Visitas visitaPreventa = null;
-                                            if(finalIndicePreventa != -1 && PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_TIPORUTA", "").equals("ZPV") ) {
-                                                visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
+                                            if(finalIndicePreventa != -1 && ((TextView) v).getTag().toString().contains("ZPV") ) {
+                                                    visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
                                                 if (visitaPreventa.getKvgr4() != null)
                                                     diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
                                                 if ((finalX + diasParaReparto) > 5) {
@@ -2875,7 +2889,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 } else {
                                                     diaReparto = (finalX + diasParaReparto);
                                                 }
-                                            }else if(finalIndiceTeleventa != -1 && PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_TIPORUTA", "").equals("ZTV")) {
+                                            }else if(finalIndiceTeleventa != -1 && ((TextView) v).getTag().toString().contains("ZTV")) {
                                                 visitaPreventa = visitasSolicitud.get(finalIndiceTeleventa);
                                                 if (visitaPreventa.getKvgr4() != null)
                                                     diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
@@ -2884,7 +2898,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 } else {
                                                     diaReparto = (finalX + diasParaReparto);
                                                 }
-                                            }else if(finalIndiceEspecializada != -1 && PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_TIPORUTA", "").equals("ZJV")) {
+                                            }else if(finalIndiceEspecializada != -1 && ((TextView) v).getTag().toString().contains("ZJV")) {
                                                 visitaPreventa = visitasSolicitud.get(finalIndiceEspecializada);
                                                 if (visitaPreventa.getKvgr4() != null)
                                                     diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
@@ -4413,7 +4427,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
         //Validar si existe ruta mixta para determinar si puede modificar o no la ruta de su VP
         if(!reparto){
-            if((seleccionado.getVptyp().equals("ZPV") && !mDBHelper.ExisteRutaMixta()) || seleccionado.getVptyp().equals("ZAT") || (PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_TIPORUTA","").equals("ZTV") && seleccionado.getVptyp().equals("ZTV"))  ) {
+            if((seleccionado.getVptyp().equals("ZPV") && !mDBHelper.ExisteRutaMixta() && PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_TIPORUTA","").equals(seleccionado.getVptyp())) || seleccionado.getVptyp().equals("ZAT") || (PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_TIPORUTA","").equals(seleccionado.getVptyp()))  ) {
                 ruta_reparto.setVisibility(View.GONE);
                 ruta_reparto_label.setVisibility(View.GONE);
             }else{
@@ -4470,10 +4484,12 @@ public class SolicitudActivity extends AppCompatActivity {
                 if( reparto ){
                     seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
                     ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
+                    String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_VKORG",""), seleccionado.getRuta());
+                    ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
                 }else{
-                    if(mDBHelper.ExisteTipoVisita("ZRM") || mDBHelper.ExisteTipoVisita("ZDY")){
+                    if( mDBHelper.ExisteTipoVisita("ZRM") || mDBHelper.ExisteTipoVisita("ZDY") || !PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_TIPORUTA", "").equals(seleccionado.getVptyp())){
                         seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
-                    }else {
+                    }else{
                         seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH", ""));
                     }
                     if(seleccionado.getVptyp().equals("ZAT")){

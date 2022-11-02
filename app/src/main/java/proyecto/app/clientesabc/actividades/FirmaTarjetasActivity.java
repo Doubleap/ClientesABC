@@ -75,15 +75,15 @@ public class FirmaTarjetasActivity extends AppCompatActivity {
     private String indicadorFirma;
     private String tipoCambio;
 
-    // Creating Separate Directory for saving Generated Images
-    String DIRECTORY = getApplicationContext().getExternalFilesDir(null).getPath() + "/Signature/";
-    String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-    String StoredPath = DIRECTORY + "Aceptacion#indicadorFirma#_"+pic_name + ".jpg";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_firma_tarjeta);
+
+        // Creating Separate Directory for saving Generated Images
+        String DIRECTORY = getExternalFilesDir(null).getPath() + "/Signature/";
+        String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String StoredPath = DIRECTORY + "Aceptacion#indicadorFirma#_"+pic_name + ".jpg";
 
         Bundle b = getIntent().getExtras();
         if(b != null) {
@@ -143,6 +143,7 @@ public class FirmaTarjetasActivity extends AppCompatActivity {
                 fechaLetras = new SimpleDateFormat("dd/MM/yyyy", new Locale("ES")).format(new Date());
                 texto_fecha.setText("Fecha de Entrega: "+fechaLetras);
                 texto_cuadro.setText("");
+                texto_titulo.setText(R.string.company_title_activity_firma_tarjeta_cr);
                 texto_titulo2.setText(R.string.title_activity_firma_tarjeta_cr);
                 texto_motivo.setText(conceptoEntrega);
                 texto_nombre_cliente.setText(name12+" ("+name34+")");
@@ -155,6 +156,7 @@ public class FirmaTarjetasActivity extends AppCompatActivity {
                 texto_cuadro.setText("");
                 fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
                 fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
+                texto_titulo.setText(R.string.company_title_activity_firma_tarjeta_ni);
                 texto_titulo2.setText(R.string.title_activity_firma_tarjeta_ni);
                 texto_motivo.setText(conceptoEntrega);
                 texto_nombre_cliente.setText(name12+" ("+name34+")");
@@ -167,6 +169,7 @@ public class FirmaTarjetasActivity extends AppCompatActivity {
                 texto_cuadro.setText("");
                 fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
                 fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
+                texto_titulo.setText(R.string.company_title_activity_firma_tarjeta_pa);
                 texto_titulo2.setText(R.string.title_activity_firma_tarjeta_pa);
                 texto_motivo.setText(conceptoEntrega);
                 texto_nombre_cliente.setText(name12+" ("+name34+")");
@@ -179,6 +182,7 @@ public class FirmaTarjetasActivity extends AppCompatActivity {
                 texto_cuadro.setText("");
                 fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
                 fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
+                texto_titulo.setText(R.string.company_title_activity_firma_tarjeta_em);
                 texto_titulo2.setText(R.string.title_activity_firma_tarjeta_em);
                 texto_motivo.setText(conceptoEntrega);
                 texto_nombre_cliente.setText(name12+" ("+name34+")");
@@ -191,6 +195,7 @@ public class FirmaTarjetasActivity extends AppCompatActivity {
                 texto_cuadro.setText("");
                 fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
                 fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
+                texto_titulo.setText(R.string.company_title_activity_firma_tarjeta_ab);
                 texto_titulo2.setText(R.string.title_activity_firma_tarjeta_ab);
                 texto_motivo.setText(conceptoEntrega);
                 texto_nombre_cliente.setText(name12+" ("+name34+")");
@@ -203,6 +208,7 @@ public class FirmaTarjetasActivity extends AppCompatActivity {
                 texto_cuadro.setText("");
                 fechaLetras = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", new Locale("ES")).format(new Date());
                 fechaLetras2 = new SimpleDateFormat(" 'a los' d 'dias del mes de' MMMM 'del año' yyyy", new Locale("ES")).format(new Date());
+                texto_titulo.setText(R.string.company_title_activity_firma_tarjeta_vo);
                 texto_titulo2.setText(R.string.title_activity_firma_tarjeta_vo);
                 texto_motivo.setText(conceptoEntrega);
                 texto_nombre_cliente.setText(name12+" ("+name34+")");
@@ -236,11 +242,12 @@ public class FirmaTarjetasActivity extends AppCompatActivity {
             }
         });
 
+        String finalStoredPath = StoredPath;
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 view.setDrawingCacheEnabled(true);
-                mSignature.save(view,StoredPath);
+                mSignature.save(view, finalStoredPath);
             }
         });
 

@@ -71,15 +71,15 @@ public class FirmaCreditoActivity extends AppCompatActivity {
     private String indicadorFirma;
     private String tipoCambio;
 
-    // Creating Separate Directory for saving Generated Images
-    String DIRECTORY = getApplicationContext().getExternalFilesDir(null).getPath() + "/Signature/";
-    String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-    String StoredPath = DIRECTORY + "Aceptacion#indicadorFirma#_"+pic_name + ".jpg";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_firma);
+
+        // Creating Separate Directory for saving Generated Images
+        String DIRECTORY = getExternalFilesDir(null).getPath() + "/Signature/";
+        String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String StoredPath = DIRECTORY + "Aceptacion#indicadorFirma#_"+pic_name + ".jpg";
 
         Bundle b = getIntent().getExtras();
         if(b != null) {
@@ -176,11 +176,12 @@ public class FirmaCreditoActivity extends AppCompatActivity {
             }
         });
 
+        String finalStoredPath = StoredPath;
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 view.setDrawingCacheEnabled(true);
-                mSignature.save(view,StoredPath);
+                mSignature.save(view, finalStoredPath);
             }
         });
 
