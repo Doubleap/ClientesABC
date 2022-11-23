@@ -147,10 +147,10 @@ public class ConsultaClienteTotalAPI extends AsyncTask<Void,String,ArrayList<Jso
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                activity.get().finish();
                 messageFlag = "Proceso cancelado por el usuario.";
                 cancel(true);
                 Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
+                activity.get().finish();
             }
         });
         dialog = builder.create();
@@ -172,8 +172,8 @@ public class ConsultaClienteTotalAPI extends AsyncTask<Void,String,ArrayList<Jso
             dialog.hide();
         }
         if(xceptionFlag){
-            activity.get().finish();
             Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
+            activity.get().finish();
         }
         ConsultaClienteTotalActivity.LlenarCampos(context.get(), activity.get(), estructuras);
     }

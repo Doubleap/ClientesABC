@@ -2089,7 +2089,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte,PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH","").trim()));
 
                                             String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG",""), PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH","").trim());
-                                            ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
+                                            if(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")) != null)
+                                                ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
 
                                         }
                                     }
@@ -2165,7 +2166,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte,PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH","").trim()));
 
                                             String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG",""), PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH","").trim());
-                                            ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
+                                            if(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")) != null)
+                                                ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
 
                                         }
                                     }
@@ -4887,7 +4889,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
 
                     String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_VKORG",""), seleccionado.getRuta());
-                    ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
+                    if(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")) != null)
+                        ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
 
                 }else{
                     if((mDBHelper.ExisteTipoVisita("ZRM") || mDBHelper.ExisteTipoVisita("ZDY")) && ruta_reparto.getSelectedItem() != null){
@@ -4898,7 +4901,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     if(seleccionado.getVptyp().equals("ZAT")){
                         ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
                         String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_VKORG",""), seleccionado.getRuta());
-                        ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
+                        if(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")) != null)
+                            ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
 
                     }
                 }
@@ -5650,6 +5654,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     insertValuesOld.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("userMC",""));
                     insertValuesOld.put("[FECCRE]", dateFormat.format(date));
                     long insertoOld = mDb.insertOrThrow("FormHvKof_old_solicitud", null, insertValuesOld);
+
+                    Toasty.success(getApplicationContext(), "Solicitud de Modificación Creada", Toast.LENGTH_LONG).show();
                     //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
                     Intent sol = getIntent();
                     sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -5657,7 +5663,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     //Bundle par = new Bundle();
                     //par.putString("tipo_solicitud",tipoSolicitud);
                     //SolicitudActivity.this.startActivity(sol);
-                    Toasty.success(getApplicationContext(), "Solicitud de Modificación Creada", Toast.LENGTH_LONG).show();
+
                 }
             } catch (Exception e) {
                 Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -6914,6 +6920,11 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             texto.setError("CI no puede tener solo ceros!");
                             return true;
                         }
+                        if (!TextUtils.isDigitsOnly(texto.getText())) {
+                            cedulaValidada = false;
+                            texto.setError("CI no puede tener ningún caracter, solo puede contener números");
+                            return true;
+                        }
                         cantDigitos_uy = nit_uy[0].length();
                         ci = nit_uy[0].trim();
 
@@ -6985,6 +6996,11 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         if (texto.getText().toString().replace("-", "").replace("0", "").length() == 0) {
                             cedulaValidada = false;
                             texto.setError("RUT no puede tener solo ceros!");
+                            return true;
+                        }
+                        if (!TextUtils.isDigitsOnly(texto.getText())) {
+                            cedulaValidada = false;
+                            texto.setError("RUT no puede tener ningún caracter, solo puede contener números");
                             return true;
                         }
                         cantDigitos_uy = nit_uy[0].length();//Debe ser 11

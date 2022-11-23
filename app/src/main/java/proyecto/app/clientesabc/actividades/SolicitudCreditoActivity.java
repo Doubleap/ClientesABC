@@ -985,6 +985,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     if((campos.get(i).get("campo").trim().equals("W_CTE-GUZTE") && tipoFormulario.equals("44")) && (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
                         filtroAdicional = "zterm IN ('UF05','UF07','UF10','UF15','UF30')";
                     }
+                    if(((campos.get(i).get("campo").trim().equals("W_CTE-ZTERM") || campos.get(i).get("campo").trim().equals("W_CTE-GUZTE")) && tipoFormulario.equals("18")) && (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
+                        filtroAdicional = "zterm IN ('UF05','UF12','UF30')";
+                    }
 
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(), filtroAdicional);
                     if(opciones.size() == 0){
@@ -4549,6 +4552,8 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     insertValuesOld.put("[FECCRE]", dateFormat.format(date));
                     insertValuesOld.put("[W_CTE-KKBER]", PreferenceManager.getDefaultSharedPreferences(SolicitudCreditoActivity.this).getString("W_CTE_AREACREDITO",""));
                     long insertoOld = mDb.insertOrThrow("FormHvKof_old_solicitud", null, insertValuesOld);
+
+                    Toasty.success(getApplicationContext(), "Solicitud de crédito creada con éxito", Toast.LENGTH_LONG).show();
                     //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
                     Intent sol = getIntent();
                     sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -4556,7 +4561,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     //Bundle par = new Bundle();
                     //par.putString("tipo_solicitud",tipoSolicitud);
                     //SolicitudActivity.this.startActivity(sol);
-                    Toasty.success(getApplicationContext(), "Registro insertado con éxito", Toast.LENGTH_LONG).show();
+
                 }
             } catch (Exception e) {
                 Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_LONG).show();

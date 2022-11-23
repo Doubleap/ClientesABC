@@ -143,10 +143,10 @@ public class ObtenerAutenticacionTokenAPI extends AsyncTask<Void,String,ArrayLis
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                activity.get().finish();
                 messageFlag = "Proceso cancelado por el usuario.";
                 cancel(true);
                 Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
+                activity.get().finish();
             }
         });
         dialog = builder.create();

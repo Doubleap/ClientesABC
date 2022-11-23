@@ -162,10 +162,10 @@ public class ValidarFlujoClienteServidor extends AsyncTask<Void,String,ArrayList
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                activity.get().finish();
                 messageFlag = "Proceso cancelado por el usuario.";
                 cancel(true);
                 Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
+                activity.get().finish();
             }
         });
         dialog = builder.create();
@@ -187,8 +187,8 @@ public class ValidarFlujoClienteServidor extends AsyncTask<Void,String,ArrayList
             dialog.hide();
         }
         if(xceptionFlag){
-            activity.get().finish();
             Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
+            activity.get().finish();
         }
         SolicitudModificacionActivity.SolicitudPermitida(context.get(), activity.get(), mensajes);
     }

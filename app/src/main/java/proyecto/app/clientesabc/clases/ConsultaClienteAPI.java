@@ -163,8 +163,9 @@ public class ConsultaClienteAPI extends AsyncTask<Void,String,ArrayList<JsonArra
             public void onCancel(DialogInterface dialog) {
                 messageFlag = "Proceso cancelado por el usuario.";
                 cancel(true);
-                activity.get().finish();
                 Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
+                activity.get().finish();
+
             }
         });
         dialog = builder.create();
@@ -186,8 +187,9 @@ public class ConsultaClienteAPI extends AsyncTask<Void,String,ArrayList<JsonArra
             dialog.hide();
         }
         if(xceptionFlag){
-            activity.get().finish();
             Toasty.error(context.get(),"No se pudo consultar el cliente: "+messageFlag,Toast.LENGTH_LONG).show();
+            activity.get().finish();
+
         }
         if(context.get().getClass().getSimpleName().equals("SolicitudModificacionActivity"))
             SolicitudModificacionActivity.LlenarCampos(context.get(), activity.get(), estructuras);

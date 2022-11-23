@@ -15,8 +15,8 @@ android {
         applicationId "clientesabc.app.distribuidores"
         minSdkVersion 23
         targetSdkVersion 31
-        versionCode 14
-        versionName "3.1.1"
+        versionCode 15
+        versionName "3.1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "java.util.Date", "BuildDate", "new java.util.Date(" + System.currentTimeMillis() + "L)"
         signingConfig signingConfigs.debug

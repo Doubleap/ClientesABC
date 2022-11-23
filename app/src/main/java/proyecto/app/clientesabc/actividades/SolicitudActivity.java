@@ -1306,6 +1306,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     }
                                     if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+
                                 }
 
                                 @Override
@@ -1672,6 +1673,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                     AsignarTipoImpuesto(parent);
                                     if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+
+                                    ValidarCedula(((View) mapeoCamposDinamicos.get("W_CTE-STCD1")),opcion.getId());
                                 }
 
                                 @Override
@@ -4485,7 +4488,8 @@ public class SolicitudActivity extends AppCompatActivity {
                     seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
                     ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
                     String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_VKORG",""), seleccionado.getRuta());
-                    ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
+                    if(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")) != null)
+                        ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
                 }else{
                     if( mDBHelper.ExisteTipoVisita("ZRM") || mDBHelper.ExisteTipoVisita("ZDY") || !PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_TIPORUTA", "").equals(seleccionado.getVptyp())){
                         seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
@@ -4495,7 +4499,8 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(seleccionado.getVptyp().equals("ZAT")){
                         ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
                         String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_VKORG",""), seleccionado.getRuta());
-                        ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
+                        if(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")) != null)
+                            ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
                     }
                 }
                 //seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
@@ -5393,6 +5398,11 @@ public class SolicitudActivity extends AppCompatActivity {
                             texto.setError("CI no puede tener solo ceros!");
                             return true;
                         }
+                        if (!TextUtils.isDigitsOnly(texto.getText())) {
+                            cedulaValidada = false;
+                            texto.setError("CI no puede tener ningún caracter, solo puede contener números");
+                            return true;
+                        }
                         cantDigitos_uy = nit_uy[0].length();
                         ci = nit_uy[0].trim();
 
@@ -5456,6 +5466,11 @@ public class SolicitudActivity extends AppCompatActivity {
                         if(texto.getText().toString().length() == 0){
                             cedulaValidada = false;
                             texto.setError("RUT no puede estar vacio!");
+                            return true;
+                        }
+                        if (!TextUtils.isDigitsOnly(texto.getText())) {
+                            cedulaValidada = false;
+                            texto.setError("RUT no puede tener ningún caracter, solo puede contener números");
                             return true;
                         }
                         nit_uy[0] = texto.getText().toString().substring(0,texto.getText().toString().length()-1);
