@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -15,7 +16,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
+import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -25,7 +26,12 @@ import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.text.HtmlCompat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -43,29 +49,35 @@ public class FirmaActivity extends AppCompatActivity {
     private File file;
     private LinearLayout completo;
     private ScrollView scroll;
-    private FrameLayout documento;
+    private LinearLayout documento;
     private LinearLayout canvasLL;
+    private TextView texto_titulo;
+    private TextView texto_cuadro;
     private View view;
     private signature mSignature;
     private Bitmap bitmap;
 
     // Creating Separate Directory for saving Generated Images
-    String DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/Signature/";
-    String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-    String StoredPath = DIRECTORY + "PoliticaPrivacidad_"+pic_name + ".jpg";
+    //String DIRECTORY = getExternalFilesDir(null).getPath() + "/Signature/";
+    //String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+    //String StoredPath = DIRECTORY + "PoliticaPrivacidad_"+pic_name + ".jpg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_firma);
 
+        String DIRECTORY = getExternalFilesDir(null).getPath() + "/Signature/";
+        String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String StoredPath = DIRECTORY + "PoliticaPrivacidad_"+pic_name + ".jpg";
+
         completo = findViewById(R.id.completo);
         documento = findViewById(R.id.documento);
         canvasLL = findViewById(R.id.canvasLL);
         scroll = findViewById(R.id.scroll);
         mSignature = new signature(getApplicationContext(), null);
-
-        //mSignature.setBackgroundColor(Color.WHITE);
+        texto_titulo = findViewById(R.id.texto_titulo);
+        texto_cuadro = findViewById(R.id.texto_cuadro);
 
         Drawable d = getResources().getDrawable(R.drawable.squared_textbackground,null);
         documento.setBackground(d);
@@ -75,6 +87,42 @@ public class FirmaActivity extends AppCompatActivity {
         mSignature.getParent().requestDisallowInterceptTouchEvent(true);
         canvasLL.getParent().requestDisallowInterceptTouchEvent(true);
         canvasLL.requestDisallowInterceptTouchEvent(true);
+
+        switch (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","")){
+            case "F443":
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                break;
+            case "F445":
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_ni),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                break;
+            case "F451":
+                texto_titulo.setText(R.string.title_activity_firma_pa);
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_pa),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                break;
+            case "F446":
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_gt),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                break;
+            case "1657":
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_vo),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                break;
+            case "1658":
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_ab),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                break;
+            case "1661":
+            case "Z001":
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_uy),HtmlCompat.FROM_HTML_MODE_LEGACY));
+                break;
+            default:
+                texto_titulo.setText(R.string.title_activity_firma);
+                texto_cuadro.setText(getResources().getString(R.string.politica_privacidad));
+                break;
+        }
 
         btnClear = findViewById(R.id.btnclear);
         btnSave = findViewById(R.id.btnsave);
@@ -128,6 +176,14 @@ public class FirmaActivity extends AppCompatActivity {
         file = new File(DIRECTORY);
         if (!file.exists()) {
             boolean creado = file.mkdir();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (android.os.Build.VERSION.SDK_INT >= 27) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
     }
 

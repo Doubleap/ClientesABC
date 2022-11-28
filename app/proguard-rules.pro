@@ -22,3 +22,4 @@
 -dontwarn com.mikelau.croperino.**
 -keep class com.mikelau.croperino.** { *; }
 -keep interface com.mikelau.croperino.** { *; }
+-keep class androidx.appcompat.widget.** { *; }

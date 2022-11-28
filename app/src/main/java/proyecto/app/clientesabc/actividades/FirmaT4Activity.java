@@ -15,7 +15,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -26,6 +25,8 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -49,23 +50,21 @@ public class FirmaT4Activity extends AppCompatActivity {
     private signature mSignature;
     private Bitmap bitmap;
 
-    // Creating Separate Directory for saving Generated Images
-    String DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/Signature/";
-    String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-    String StoredPath = DIRECTORY + "ConstanciaSolicitudT4_"+pic_name + ".jpg";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_firmat4);
+
+        // Creating Separate Directory for saving Generated Images
+        String DIRECTORY = getExternalFilesDir(null).getPath() + "/Signature/";
+        String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String StoredPath = DIRECTORY + "ConstanciaSolicitudT4_"+pic_name + ".jpg";
 
         completo = findViewById(R.id.completo);
         documento = findViewById(R.id.documento);
         canvasLL = findViewById(R.id.canvasLL);
         scroll = findViewById(R.id.scroll);
         mSignature = new signature(getApplicationContext(), null);
-
-        //mSignature.setBackgroundColor(Color.WHITE);
 
         Drawable d = getResources().getDrawable(R.drawable.squared_textbackground,null);
         documento.setBackground(d);

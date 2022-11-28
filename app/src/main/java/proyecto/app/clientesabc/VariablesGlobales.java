@@ -4,22 +4,106 @@ import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.preference.PreferenceManager;
+import android.text.InputFilter;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextUtils;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import proyecto.app.clientesabc.actividades.LoginActivity;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
+import proyecto.app.clientesabc.modelos.RegexInputFilter;
 import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
+    private static boolean usarAPI = true;
+    public static boolean UsarAPI() {
+        return usarAPI;
+    }
+    private static boolean aceptarVisitaCero = false;
+    public static boolean AceptarVisitaCero() {
+        return aceptarVisitaCero;
+    }
+    private static boolean comentariosAutomaticos = true;
+    public static boolean ComentariosAutomaticos() {
+        return comentariosAutomaticos;
+    }
 
+    //private static String urlApi = "http://kofcrofcdesa02:90/MaestroClientes/";//Ambiente calidad CAM
+    //private static String urlApi = "http://10.0.2.2:51123/";//Local host
+    //private static String urlApi = "http://10.153.58.132/";//Servidor produccion, pero ambiente calidad en VM uruguay
+    private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API
+    private static String nombrePais = "Uruguay Distribuidores";
+    private static String sociedad = "Z001";
+    private static String orgvta = "Z001";
+    private static String land1 = "UY";
+    private static String cadenaRM = "0000245000";
+    private static String ktokd = "UYDD";
+
+    /*
+    private static String nombrePais = "Costa Rica";
     private static String sociedad = "F443";
     private static String orgvta = "0443";
     private static String land1 = "CR";
     private static String cadenaRM = "0000160000";
+    private static String ktokd = "RCMA";
+
+    private static String nombrePais = "Guatemala Embocen";
+    private static String sociedad = "F446";
+    private static String orgvta = "0446";
+    private static String land1 = "GT";
+    private static String cadenaRM = "0000170027";
+    private static String ktokd = "GCMA";
+
+    private static String nombrePais = "Guatemala Volcanes";
+    private static String sociedad = "1657";
+    private static String orgvta = "0657";
+    private static String land1 = "GT";
+    private static String cadenaRM = "0000210027";
+    private static String ktokd = "GCMC";
+
+    private static String nombrePais = "Guatemala Abasa";
+    private static String sociedad = "1658";
+    private static String orgvta = "0658";
+    private static String land1 = "GT";
+    private static String cadenaRM = "0000190027";
+    private static String ktokd = "GCMB";
+
+    private static String nombrePais = "Nicaragua";
+    private static String sociedad = "F445";
+    private static String orgvta = "0445";
+    private static String land1 = "NI";
+    private static String cadenaRM = "0000180000";
+    private static String ktokd = "NCMA";
+
+    private static String nombrePais = "Panamá";
+    private static String sociedad = "F451";
+    private static String orgvta = "0451";
+    private static String land1 = "PA";
+    private static String cadenaRM = "0000200000";
+    private static String ktokd = "PCMA";
+
+    private static String nombrePais = "Uruguay Monresa";
+    private static String sociedad = "1661";
+    private static String orgvta = "0661";
+    private static String land1 = "UY";
+    private static String cadenaRM = "0000240000";
+    private static String ktokd = "UYDE";
+
+    private static String nombrePais = "Uruguay Distribuidores";
+    private static String sociedad = "Z001";
+    private static String orgvta = "Z001";
+    private static String land1 = "UY";
+    private static String cadenaRM = "0000245000";
+    private static String ktokd = "UYDD";
+    */
+
     private static String TABLA_BLOQUE_CONTACTO_HH = "grid_contacto_solicitud";
     private static String TABLA_BLOQUE_BANCO_HH = "grid_bancos_solicitud";
     private static String TABLA_BLOQUE_IMPUESTO_HH = "grid_impuestos_solicitud";
@@ -29,6 +113,27 @@ public class VariablesGlobales extends Application {
     private static String TABLA_ENCUESTA_SOLICITUD = "encuesta_solicitud";
     private static String TABLA_ENCUESTA_GEC_SOLICITUD = "encuesta_gec_solicitud";
 
+    public static int ESCANEO_OCR = 2;
+    public static int ESCANEO_TARJETA = 10;
+
+    public static String getTablaHorariosSolicitud() {
+        return TABLA_HORARIOS_SOLICITUD;
+    }
+
+    public static void setTablaHorariosSolicitud(String tablaHorariosSolicitud) {
+        TABLA_HORARIOS_SOLICITUD = tablaHorariosSolicitud;
+    }
+
+    public static String getTablaHorariosOldSolicitud() {
+        return TABLA_HORARIOS_OLD_SOLICITUD;
+    }
+
+    public static void setTablaHorariosOldSolicitud(String tablaHorariosOldSolicitud) {
+        TABLA_HORARIOS_OLD_SOLICITUD = tablaHorariosOldSolicitud;
+    }
+
+    private static String TABLA_HORARIOS_SOLICITUD = "grid_horarios_solicitud";
+
     private static String TABLA_BLOQUE_CONTACTO_OLD_HH = "grid_contacto_old_solicitud";
     private static String TABLA_BLOQUE_BANCO_OLD_HH = "grid_bancos_old_solicitud";
     private static String TABLA_BLOQUE_IMPUESTO_OLD_HH = "grid_impuestos_old_solicitud";
@@ -36,6 +141,7 @@ public class VariablesGlobales extends Application {
     private static String TABLA_BLOQUE_VISITA_OLD_HH = "grid_visitas_old_solicitud";
     private static String TABLA_ENCUESTA_OLD_SOLICITUD = "encuesta_old_solicitud";
     private static String TABLA_ENCUESTA_OLD_GEC_SOLICITUD = "encuesta_gec_old_solicitud";
+    private static String TABLA_HORARIOS_OLD_SOLICITUD = "grid_horarios_old_solicitud";
 
     public static String getTablaEncuestaSolicitud() {
         return TABLA_ENCUESTA_SOLICITUD;
@@ -95,25 +201,36 @@ public class VariablesGlobales extends Application {
     }
 
     public static String SecuenciaToHora(String secuencia) {
-        int hours = Integer.valueOf(secuencia) / 60;
-        int minutes = Integer.valueOf(secuencia) % 60;
-        String h = String.format(Locale.getDefault(),"%02d", hours);
-        String m = String.format(Locale.getDefault(),"%02d", minutes);
-        String secuenciaSAP = h+m;
+        String secuenciaSAP="";
+        try {
+            int hours = Integer.valueOf(secuencia) / 60;
+            int minutes = Integer.valueOf(secuencia) % 60;
+            String h = String.format(Locale.getDefault(), "%02d", hours);
+            String m = String.format(Locale.getDefault(), "%02d", minutes);
+            secuenciaSAP = h + m;
+        }catch(Exception e){
+            secuenciaSAP="";
+        }
         return secuenciaSAP;
     }
 
     public static String HoraToSecuencia(String hora) {
         String secuencia = "";
-        hora = String.format("%1$" + 4 + "s", hora).replace(' ', '0');
+        try{
+                hora = String.format("%1$" + 4 + "s", hora).replace(' ', '0');
+                if ((hora != null && !hora.equals("null")) && !hora.equals("0999") && hora.length() == 4) {
+                    String h = hora.substring(0, 2);
+                    String m = hora.substring(2, 4);
+                    secuencia = String.valueOf(Integer.valueOf(h) * 60 + Integer.valueOf(m));
+                }
 
-        if((hora != null && !hora.equals("null")) && !hora.equals("0999") && hora.length() == 4) {
-            String h = hora.substring(0, 2);
-            String m = hora.substring(2, 4);
-            secuencia = String.valueOf(Integer.valueOf(h) * 60 + Integer.valueOf(m));
+        }catch(Exception e){
+            secuencia = "";
         }
-
-        return secuencia;
+        if(VariablesGlobales.AceptarVisitaCero())
+            return secuencia;
+        else
+            return secuencia.equals("0")?"":secuencia;
     }
 
     public static String validarConexionDePreferencia(Context context){
@@ -121,16 +238,22 @@ public class VariablesGlobales extends Application {
         String IP_REGEXP = zeroTo255 + "\\." + zeroTo255 + "\\." + zeroTo255 + "\\." + zeroTo255;
         Pattern IP_PATTERN = Pattern.compile(IP_REGEXP);
         String retorno = "";
-        try {
-            if(!IP_PATTERN.matcher(PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()).matches())
-                return "La IP '"+PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()+"' es inválida. Revise los datos de comunicación.";
-        }catch (Exception e){
-            return "La IP '"+PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()+"' es inválida. Revise los datos de comunicación.";
-        }
-        try {
-            Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto","").trim());
-        }catch (Exception e){
-            return "El puerto '"+PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto","").trim()+"' es inválido. Revise los datos de comunicación.";
+        if(!VariablesGlobales.UsarAPI()) {
+            try {
+                if (!IP_PATTERN.matcher(PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()).matches())
+                    return "La IP '" + PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim() + "' es inválida. Revise los datos de comunicación.";
+            } catch (Exception e) {
+                return "La IP '" + PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim() + "' es inválida. Revise los datos de comunicación.";
+            }
+            try {
+                Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto", "").trim());
+            } catch (Exception e) {
+                return "El puerto '" + PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto", "").trim() + "' es inválido. Revise los datos de comunicación.";
+            }
+        }else{
+            if(PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("")){
+                return "Por favor cargue los datos de la sociedad en la opcion 'Configuracion General' del menu principal.";
+            }
         }
 
         return retorno;
@@ -152,13 +275,21 @@ public class VariablesGlobales extends Application {
         VariablesGlobales.orgvta = orgvta;
     }
 
+    public static String getUrlApi() {
+        return urlApi;
+    }
+
+    public static void setUrlApi(String urlApi) {
+        VariablesGlobales.urlApi = urlApi;
+    }
+
     public static String UsuarioHH2UsuarioMC(Context context, String usuarioHH) {
         String usuarioMC = "";
         String padded = "";
         try {
             Integer.parseInt(usuarioHH);
             padded = "00000000".substring(usuarioHH.length()) + usuarioHH;
-            usuarioMC = PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_LAND1",getLand1())+padded;
+            usuarioMC = getLand1()+padded;
         }catch (NumberFormatException ne){
             usuarioMC = usuarioHH;
         }
@@ -172,8 +303,12 @@ public class VariablesGlobales extends Application {
             numero = Integer.parseInt(usuarioMC);
         }catch (NumberFormatException ne){
             try {
-                numero = Integer.parseInt(usuarioMC.substring(2, usuarioMC.length()));
-                usuarioHH = String.valueOf(numero);
+                if(usuarioMC.length() == 10) {
+                    numero = Integer.parseInt(usuarioMC.substring(2, usuarioMC.length()));
+                    usuarioHH = String.valueOf(numero);
+                }else{
+                    usuarioHH = usuarioMC;
+                }
             }catch (NumberFormatException nex){
                 usuarioHH = usuarioMC;
             }
@@ -251,5 +386,29 @@ public class VariablesGlobales extends Application {
 
     public static void setCadenaRM(String cadenaRM) {
         VariablesGlobales.cadenaRM = cadenaRM;
+    }
+
+    public static String getKtokd() {
+        return ktokd;
+    }
+
+    public static void setKtokd(String ktokd) {
+        VariablesGlobales.ktokd = ktokd;
+    }
+
+    public static String getNombrePais() {
+        return nombrePais;
+    }
+
+    public static void setNombrePais(String nombrePais) {
+        VariablesGlobales.nombrePais = nombrePais;
+    }
+
+    public boolean getUsarAPI() {
+        return usarAPI;
+    }
+
+    public void setUsarAPI(boolean usarAPI) {
+        this.usarAPI = usarAPI;
     }
 }

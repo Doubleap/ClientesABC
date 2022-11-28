@@ -6,11 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.view.menu.MenuBuilder;
-import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -25,17 +28,23 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.SolicitudActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
+import proyecto.app.clientesabc.clases.TransmisionAPI;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
+import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
-import static android.support.v4.content.ContextCompat.startActivity;
+import static androidx.core.content.ContextCompat.startActivity;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> implements Filterable {
     private ArrayList<HashMap<String, String>> mDataset;
@@ -87,6 +96,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         ImageView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
         TextView tipo_solicitud = (TextView) holder.listView.findViewById(R.id.tipo_solicitud);
         TextView idform = (TextView) holder.listView.findViewById(R.id.idform);
+        TextView fechas = (TextView) holder.listView.findViewById(R.id.fechas_text);
 
         Drawable background = estado.getBackground();
         Drawable background_circulo = estado_circulo.getBackground();
@@ -124,6 +134,57 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         tipo_solicitud.setTextColor(color);
         if(formListFiltered.get(position).get("idform") != null)
             idform.setText("("+formListFiltered.get(position).get("idform").trim()+")");
+        else
+            idform.setText("(0)");
+
+        Date date = null;
+        Date dateEnd = null;
+        try {
+            if(formListFiltered.get(position).get("feccre") != null)
+                date = new SimpleDateFormat("M/d/yyyy h:mm:ss aa").parse(formListFiltered.get(position).get("feccre").trim());
+        } catch (ParseException e) {
+            if(formListFiltered.get(position).get("feccre") != null) {
+                try {
+                    date = new SimpleDateFormat("dd/MM/yyyy h:mm:ss aa").parse(formListFiltered.get(position).get("feccre").trim().replace("p.m.","PM").replace("a.m.","AM"));
+                } catch (ParseException ex) {
+                    try {
+                        date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(formListFiltered.get(position).get("feccre").trim().replace("p.m.","PM").replace("a.m.","AM"));
+                    } catch (ParseException exc) {
+                        exc.printStackTrace();
+                    }
+                }
+            }
+        }
+        try {
+            if(formListFiltered.get(position).get("fecfin") != null)
+                dateEnd = new SimpleDateFormat("M/d/yyyy h:mm:ss aa").parse(formListFiltered.get(position).get("fecfin").trim());
+        } catch (ParseException e) {
+            if(formListFiltered.get(position).get("fecfin") != null) {
+                try {
+                    dateEnd = new SimpleDateFormat("dd/MM/yyyy h:mm:ss aa").parse(formListFiltered.get(position).get("fecfin").trim().replace("p.m.","PM").replace("a.m.","AM"));
+                } catch (ParseException ex) {
+                    try {
+                        dateEnd = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(formListFiltered.get(position).get("fecfin").trim().replace("p.m.","PM").replace("a.m.","AM"));
+                    } catch (ParseException exc) {
+                        exc.printStackTrace();
+                    }
+                }
+            }
+        }
+        String formattedDate = " - ";
+        String formattedDateEnd = " - ";
+        if(date != null) {
+            formattedDate = new SimpleDateFormat("dd/MMM/yyyy hh:mm:ss aa").format(date).toUpperCase();
+        }else{
+            formattedDate = formListFiltered.get(position).get("feccre");
+        }
+        if(dateEnd != null){
+            formattedDateEnd = new SimpleDateFormat("dd/MMM/yyyy hh:mm:ss aa").format(dateEnd).toUpperCase();
+        }else{
+            formattedDateEnd = formListFiltered.get(position).get("fecfin");
+        }
+
+        fechas.setText("Inicio: "+formattedDate+"\nFin: "+formattedDateEnd);
 
         codigo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -239,8 +300,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                                 WeakReference<Context> weakRef = new WeakReference<Context>(context);
                                 WeakReference<Activity> weakRefA = new WeakReference<Activity>((Activity)context);
                                 //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                                TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "", formListFiltered.get(position).get("id_solicitud").trim());
-                                f.execute();
+                                if (VariablesGlobales.UsarAPI()) {
+                                    TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",formListFiltered.get(position).get("id_solicitud").trim());
+                                    f.execute();
+                                } else {
+                                    TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "",formListFiltered.get(position).get("id_solicitud").trim());
+                                    f.execute();
+                                }
                                 break;
                         }
                         return false;
@@ -275,7 +341,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
             intent = new Intent(context, SolicitudActivity.class);
             intent.putExtras(b); //Pase el parametro el Intent
             context.startActivity(intent);
-        }else if(formListFiltered.get(position).get("ind_modelo").trim().equals("M") || formListFiltered.get(position).get("ind_modelo").trim().equals("B")){
+        }else if(formListFiltered.get(position).get("ind_modelo").trim().equals("M") || formListFiltered.get(position).get("ind_modelo").trim().equals("B") || formListFiltered.get(position).get("ind_modelo").trim().equals("L")){
             if(formListFiltered.get(position).get("ind_credito").trim().equals("0")) {
                 intent = new Intent(context, SolicitudModificacionActivity.class);
                 intent.putExtras(b); //Pase el parametro el Intent
@@ -323,6 +389,14 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
 
                 FilterResults filterResults = new FilterResults();
                 filterResults.values = formListFiltered;
+
+                activity.runOnUiThread(new Runnable() {
+                    public void run() {
+                        Toolbar toolbar = (Toolbar) activity.findViewById(R.id.toolbar);
+                        if(toolbar != null)
+                            toolbar.setTitle("Mis Solicitudes ("+formListFiltered.size()+" de "+mDataset.size()+")");
+                    }
+                });
                 return filterResults;
             }
             @SuppressWarnings("unchecked")
@@ -349,7 +423,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                         for (HashMap<String, String> row : mDataset) {
                             if (row.get("estado") != null && row.get("estado").trim().contains(charString[x]))
                                 filteredList.add(row);
-                            else if (row.get("tipform") != null && row.get("tipform").trim().contains(charString[x])) {
+                            else if (row.get("tipo_solicitud") != null && row.get("tipo_solicitud").trim().contains(charString[x])) {
                                 filteredList.add(row);
                             }
                         }
@@ -358,6 +432,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
 
                     filterResults.values = formListFiltered;
                 }
+                activity.runOnUiThread(new Runnable() {
+                    public void run() {
+                        Toolbar toolbar = (Toolbar) activity.findViewById(R.id.toolbar);
+                        if(toolbar != null)
+                            toolbar.setTitle("Mis Solicitudes ("+formListFiltered.size()+" de "+mDataset.size()+")");
+                    }
+                });
                 return filterResults;
             }
             @SuppressWarnings("unchecked")

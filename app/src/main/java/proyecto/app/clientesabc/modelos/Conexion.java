@@ -1,6 +1,7 @@
 package proyecto.app.clientesabc.modelos;
 
 public class Conexion {
+    private String nombre;
     private String sociedad;
     private String ip;
     private String puerto;
@@ -55,6 +56,9 @@ public class Conexion {
             case 3:
                 valorCelda = getRuta();
                 break;
+            case 4:
+                valorCelda = getNombre();
+                break;
         }
         return valorCelda;
     }
@@ -73,5 +77,27 @@ public class Conexion {
 
     public void setSociedad(String sociedad) {
         this.sociedad = sociedad;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+    @Override
+    public boolean equals(Object conexion){
+        if (conexion == null) return false;
+        if (conexion == this) return true;
+        if (!(conexion instanceof Conexion))return false;
+        Conexion otherConexion = (Conexion)conexion;
+        if((this.getTipo() != null && this.getTipo().equals(otherConexion.getTipo()) || (this.getTipo() == null && otherConexion.getTipo() == null))
+                && (this.getNombre() != null && this.getNombre().equals(otherConexion.getNombre()) || (this.getNombre() == null && otherConexion.getNombre() == null))
+                && (this.getIp() != null && this.getIp().equals(otherConexion.getIp())  || (this.getIp() == null && otherConexion.getIp() == null))
+                && (this.getPuerto() != null && this.getPuerto().equals(otherConexion.getPuerto()) || (this.getPuerto() == null && otherConexion.getPuerto() == null)) ){
+            return true;
+        }
+        return false;
     }
 }

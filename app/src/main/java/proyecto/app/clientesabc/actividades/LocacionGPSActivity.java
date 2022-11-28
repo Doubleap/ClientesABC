@@ -11,10 +11,13 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
 
 import com.vicmikhailau.maskededittext.MaskedEditText;
+
+import java.text.DecimalFormat;
 
 import es.dmoral.toasty.Toasty;
 
@@ -49,11 +52,12 @@ public class LocacionGPSActivity {
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                String msg = "Coordenadas Actualizadas: " +
-                        Double.toString(location.getLatitude()) + "," +
-                        Double.toString(location.getLongitude());
-                mLatitudeTextView.setText(String.valueOf(location.getLatitude()));
-                mLongitudeTextView.setText(String.valueOf(location.getLongitude() ));
+
+                String latitud = String.valueOf(Double.parseDouble(new DecimalFormat("##.############").format(location.getLatitude())));
+                String longitud = String.valueOf(Double.parseDouble(new DecimalFormat("##.############").format(location.getLongitude())));
+                String msg = "Coordenadas Actualizadas: " + latitud + "," + longitud;
+                mLatitudeTextView.setText(latitud);
+                mLongitudeTextView.setText(longitud);
 
                 Toasty.success(context, msg, Toasty.LENGTH_SHORT).show();
                 // You can now create a LatLng Object for use with maps

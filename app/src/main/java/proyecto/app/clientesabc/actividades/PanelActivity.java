@@ -7,22 +7,25 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.Toolbar;
+
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
+import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
 
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
@@ -34,7 +37,10 @@ import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.clases.SincronizacionAPI;
 import proyecto.app.clientesabc.clases.SincronizacionServidor;
+import proyecto.app.clientesabc.clases.SingleClickListener;
+import proyecto.app.clientesabc.clases.TransmisionAPI;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
 
 public class PanelActivity extends AppCompatActivity {
@@ -104,48 +110,68 @@ public class PanelActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Intent intent;
+                item.setEnabled(false);
                 switch (item.getItemId()) {
                     case R.id.action_solicitudes:
-                        intent = new Intent(getBaseContext(),SolicitudesActivity.class);
+                        intent = new Intent(getBaseContext(), SolicitudesActivity.class);
                         startActivity(intent);
                         break;
                     case R.id.action_nuevo_cliente:
+                        item.setEnabled(false);
                         Bundle b = new Bundle();
                         b.putString("tipoSolicitud", "1"); //id de solicitud
-                        intent = new Intent(getApplicationContext(),SolicitudActivity.class);
+                        intent = new Intent(getApplicationContext(), SolicitudActivity.class);
                         intent.putExtras(b); //Pase el parametro el Intent
                         startActivity(intent);
                         break;
                     case R.id.action_clientes:
-                        intent = new Intent(getBaseContext(),MantClienteActivity.class);
+                        intent = new Intent(getBaseContext(), MantClienteActivity.class);
                         startActivity(intent);
                         break;
                     case R.id.action_sincronizar:
+                        item.setEnabled(false);
                         //Realizar la transmision de lo que se necesita (Db o txt)
                         WeakReference<Context> weakRefs = new WeakReference<Context>(PanelActivity.this);
                         WeakReference<Activity> weakRefAs = new WeakReference<Activity>(PanelActivity.this);
                         //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                        SincronizacionServidor s = new SincronizacionServidor(weakRefs, weakRefAs);
-                        if(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion","").equals("wifi")){
-                            s.EnableWiFi();
-                        }else{
-                            s.DisableWiFi();
+                        if (VariablesGlobales.UsarAPI()) {
+                            SincronizacionAPI s = new SincronizacionAPI(weakRefs, weakRefAs);
+                            if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                s.EnableWiFi();
+                            }
+                            s.execute();
+                        } else {
+                            SincronizacionServidor s = new SincronizacionServidor(weakRefs, weakRefAs);
+                            if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                s.EnableWiFi();
+                            } else {
+                                s.DisableWiFi();
+                            }
+                            s.execute();
                         }
-                        s.execute();
                         break;
                     case R.id.action_transmitir:
+                        item.setEnabled(false);
                         //if(validarConexion()) {
-                            //Realizar la transmision de lo que se necesita (Db o txt)
-                            WeakReference<Context> weakRef = new WeakReference<Context>(PanelActivity.this);
-                            WeakReference<Activity> weakRefA = new WeakReference<Activity>(PanelActivity.this);
-                            //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "","");
-                            if(PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion","").equals("wifi")){
+                        //Realizar la transmision de lo que se necesita (Db o txt)
+                        WeakReference<Context> weakRef = new WeakReference<Context>(PanelActivity.this);
+                        WeakReference<Activity> weakRefA = new WeakReference<Activity>(PanelActivity.this);
+
+                        if (VariablesGlobales.UsarAPI()) {
+                            TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "", "");
+                            if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                 f.EnableWiFi();
-                            }else{
+                            }
+                            f.execute();
+                        } else {
+                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "", "");
+                            if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                f.EnableWiFi();
+                            } else {
                                 f.DisableWiFi();
                             }
                             f.execute();
+                        }
                         //}
                         break;
                 }
@@ -188,7 +214,11 @@ public class PanelActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.comunicacion:
-                        intent = new Intent(getBaseContext(),TCPActivity.class);
+                        if(!VariablesGlobales.UsarAPI()) {
+                            intent = new Intent(getBaseContext(), TCPActivity.class);
+                        }else{
+                            intent = new Intent(getBaseContext(), APIConfigActivity.class);
+                        }
                         startActivity(intent);
                         break;
                     case R.id.clientes:
@@ -207,10 +237,6 @@ public class PanelActivity extends AppCompatActivity {
                         intent = new Intent(getBaseContext(),FirmaActivity.class);
                         startActivity(intent);
                         break;
-                    case R.id.detalles:
-                        intent = new Intent(getBaseContext(),MainActivity.class);
-                        startActivity(intent);
-                        break;
                     case R.id.panel_alternativo:
                         intent = new Intent(getBaseContext(),TipoSolicitudPanelActivity.class);
                         startActivity(intent);
@@ -224,8 +250,8 @@ public class PanelActivity extends AppCompatActivity {
     }
 
     @Override
-    protected  void onStart(){
-        super.onStart();
+    protected  void onResume(){
+        super.onResume();
         num_nuevos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Nuevo")));
         num_pendientes.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Pendiente")));
         num_incidencias.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Incidencia")));
@@ -234,16 +260,22 @@ public class PanelActivity extends AppCompatActivity {
         num_incompletos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Incompleto")));
         num_modificados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Modificado")));
         num_total.setText(String.valueOf(mDBHelper.CantidadSolicitudesTotal()));
+        BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation_panel);
+        for(int x = 0; x < bottomNavigation.getMenu().size(); x++){
+            bottomNavigation.getMenu().getItem(x).setEnabled(true);
+        }
+
     }
     // we are setting onClickListener for each element
     private void setSingleEvent(GridLayout gridLayout) {
+
         for(int i = 0; i<gridLayout.getChildCount();i++) {
             try {
                 CardView cardView = (CardView) gridLayout.getChildAt(i);
                 final int finalI = i;
-                cardView.setOnClickListener(new View.OnClickListener() {
+                cardView.setOnClickListener(new SingleClickListener() {
                     @Override
-                    public void onClick(View view) {
+                    public void performClick(View view) {
                         switch (finalI) {
                             case 0:
                                 VerSolicitudes("Nuevo");
@@ -252,13 +284,13 @@ public class PanelActivity extends AppCompatActivity {
                                 VerSolicitudes("Pendiente");
                                 break;
                             case 2:
-                                VerSolicitudes("Incidencia");
+                                VerSolicitudes("Rechazado");
                                 break;
                             case 3:
                                 VerSolicitudes("Aprobado");
                                 break;
                             case 4:
-                                VerSolicitudes("Rechazado");
+                                VerSolicitudes("Incidencia");
                                 break;
                             case 5:
                                 VerSolicitudes("Modificado");

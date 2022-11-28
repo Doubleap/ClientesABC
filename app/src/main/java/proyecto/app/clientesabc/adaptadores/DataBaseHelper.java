@@ -1,9 +1,11 @@
 package proyecto.app.clientesabc.adaptadores;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -13,7 +15,7 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.androidbuts.multispinnerfilter.KeyPairBoolData;
+//import com.androidbuts.multispinnerfilter.KeyPairBoolData;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,16 +33,20 @@ import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.actividades.LoginActivity;
+import proyecto.app.clientesabc.clases.KeyPairBoolData;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
 import proyecto.app.clientesabc.modelos.Contacto;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
+import proyecto.app.clientesabc.modelos.Horarios;
 import proyecto.app.clientesabc.modelos.Impuesto;
 import proyecto.app.clientesabc.modelos.Interlocutor;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 import proyecto.app.clientesabc.modelos.Visitas;
 
+@SuppressLint("Range")
 public class DataBaseHelper extends SQLiteOpenHelper {
     private static String DB_NAME = "FAWM_ANDROID_2";
     public static String DB_PATH = "";
@@ -58,7 +64,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         BK_PATH = context.getApplicationInfo().dataDir + "/backUp/";
         this.mContext = context;
 
-        mDataBase = this.getWritableDatabase();
+        try {
+            mDataBase = getWritableDatabase();
+        }catch(Exception e){
+            Toasty.error(context,"Hubo un error desconocido leyendo la DB. Por favor vuelva a intentar.").show();
+        }
         /*try {
             backUpDataBase();
         } catch (IOException e) {
@@ -73,11 +83,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         backUpDataBase();
         File dbFile = new File(DB_PATH + DB_NAME);
         boolean bandera = false;
-        if (dbFile.exists())
+        if (dbFile.exists()) {
+            this.close();
             bandera = dbFile.delete();
+        }
         if(bandera)
             Log.d("MI TAG","Se ha borrado el archivo "+dbFile.getName());
+
         copyDataBase();
+        //this.getReadableDatabase();
+        //this.openDataBase();
         mNeedUpdate = false;
     }
     public void deleteDataBase() throws IOException {
@@ -129,7 +144,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     private void copyDBFile() throws IOException {
         File tranFileDir = null;
-        File externalStorage = Environment.getExternalStorageDirectory();
+        File externalStorage = mContext.getExternalFilesDir(null);
         String externalStoragePath;
         if (externalStorage != null) {
             externalStoragePath = externalStorage.getAbsolutePath();
@@ -155,7 +170,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     private void copyDataBaseFromBackUp() throws IOException {
         File tranFileDir = null;
-        File externalStorage = Environment.getExternalStorageDirectory();
+        File externalStorage = mContext.getExternalFilesDir(null);
         String externalStoragePath;
         if (externalStorage != null) {
             externalStoragePath = externalStorage.getAbsolutePath();
@@ -183,7 +198,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         File bkFileDir;
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
         {
-            File externalStorage = Environment.getExternalStorageDirectory();
+            File externalStorage = mContext.getExternalFilesDir(null);
             if (externalStorage != null)
             {
                 String externalStoragePath = externalStorage.getAbsolutePath();
@@ -247,28 +262,28 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return null;
     }
 
-    // Get rutas Details
-    public ArrayList<HashMap<String, String>> getRutasPreventa(){
-        ArrayList<HashMap<String, String>> userList = new ArrayList<>();
-        String query = "SELECT zroute_pr as id, zroute_pr as descripcion" +
-                " FROM EX_T_RUTAS_VP" +
-                " WHERE  (zroute_pr IS NOT NULL) AND (vkorg = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","")+"') AND (trim(zroute_pr) <> '')";
-        Cursor cursor = mDataBase.rawQuery(query,null);
-        while (cursor.moveToNext()){
-            HashMap<String,String> user = new HashMap<>();
-            user.put("id",cursor.getString(0) != null ? cursor.getString(0) :"");
-            user.put("descripcion",cursor.getString(1) != null ?cursor.getString(1) :"");
-            userList.add(user);
-        }
-        cursor.close();
-        return  userList;
-    }
-
+    @SuppressLint("Range")
     public ArrayList<HashMap<String, String>> getClientes(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
-        String query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
-                " FROM SAPDClientes";
+        String query = "";
+        switch(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")){
+            case "F443":
+            case "F445":
+            case "F446":
+            case "F451":
+            case "1657":
+            case "1658":
+                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
+                        " FROM SAPDClientes";
+                break;
+            case "1661":
+            case "Z001":
+                query = "SELECT KUNNR as codigo, NAME1_E as nombre, STRAS as direccion, 'Estado' as estado, KLABC as klabc, '' as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
+                        " FROM SAPDClientes";
+                break;
+        }
+
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -288,10 +303,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return  clientList;
     }
-    public ArrayList<HashMap<String, String>> getValidaCreditos(String tipo){
+
+    public ArrayList<HashMap<String, String>> getValidaCreditos(String tipo, String clasicxc){
+        if(tipo.equals("ABC")){
+            tipo = "F";
+        }
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> datos = new ArrayList<>();
-        String query = "Select * from ValidaCreditos where sociedad = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "' and tipform = 'AC" + tipo + "'";;
+        String query = "Select * from ValidaCreditos where sociedad = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "' and tipform = '"+tipo+"C" + clasicxc + "'";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             //[sociedad], [tipform], [cuentacont], [claseriesgo], [tipocobro], [clasedocven], [clasicxc], [condpago]
@@ -308,163 +327,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return  datos;
-    }
-
-    public ArrayList<HashMap<String, String>> getCliente(String id_cliente){
-        //SQLiteDatabase db = this.getWritableDatabase();
-        ArrayList<HashMap<String, String>> formList = new ArrayList<>();
-        String query = "SELECT * FROM SAPDClientes WHERE kunnr = ?";
-        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_cliente});
-        String valorNoEncontrado = "Campo No encontrado";
-        while (cursor.moveToNext()){
-            HashMap<String,String> cliente = new HashMap<>();
-            cliente.put("W_CTE-AKONT",valorNoEncontrado);
-            cliente.put("W_CTE-ALTKN",cursor.getString(cursor.getColumnIndex("ALTKN")) );
-            cliente.put("W_CTE-ANTLF",valorNoEncontrado);
-            cliente.put("W_CTE-BUKRS",cursor.getString(cursor.getColumnIndex("BUKRS")) );
-            cliente.put("W_CTE-BZIRK",cursor.getString(cursor.getColumnIndex("BZIRK")) );
-            cliente.put("W_CTE-CITY1",cursor.getString(cursor.getColumnIndex("CITY1")) );
-            cliente.put("W_CTE-CITY2",valorNoEncontrado);
-            cliente.put("W_CTE-CTLPC",valorNoEncontrado);
-            cliente.put("W_CTE-DATAB",valorNoEncontrado);
-            cliente.put("W_CTE-DATBI",valorNoEncontrado);
-            cliente.put("W_CTE-DBRTG",valorNoEncontrado);
-            cliente.put("W_CTE-DMBTR1",valorNoEncontrado);
-            cliente.put("W_CTE-DMBTR2",valorNoEncontrado);
-            cliente.put("W_CTE-DMBTR3",valorNoEncontrado);
-            cliente.put("W_CTE-FAX_EXTENS",valorNoEncontrado);
-            cliente.put("W_CTE-FAX_NUMBER",cursor.getString(cursor.getColumnIndex("FAX_NUMBER")) );
-            cliente.put("W_CTE-FDGRV",valorNoEncontrado);
-            cliente.put("W_CTE-FLAG_FACT",valorNoEncontrado);
-            cliente.put("W_CTE-FLAG_NTEN",valorNoEncontrado);
-            cliente.put("W_CTE-HITYP",valorNoEncontrado);
-            cliente.put("W_CTE-HKUNNR",cursor.getString(cursor.getColumnIndex("HKUNNR")) );
-            cliente.put("W_CTE-HOME_CITY",cursor.getString(cursor.getColumnIndex("HOME_CITY")) );
-            cliente.put("W_CTE-HOUSE_NUM1",cursor.getString(cursor.getColumnIndex("HOUSE_NUM1")) );
-            cliente.put("W_CTE-HOUSE_NUM2",cursor.getString(cursor.getColumnIndex("HOUSE_NUM2")) );
-            cliente.put("W_CTE-INCO1",valorNoEncontrado);
-            cliente.put("W_CTE-INCO2",valorNoEncontrado);
-            cliente.put("W_CTE-KALKS",cursor.getString(cursor.getColumnIndex("KALKS")) );
-            cliente.put("W_CTE-KATR3",valorNoEncontrado);
-            cliente.put("W_CTE-KATR4",cursor.getString(cursor.getColumnIndex("KATR4")) );
-            cliente.put("W_CTE-KATR5",valorNoEncontrado);
-            cliente.put("W_CTE-KATR8",cursor.getString(cursor.getColumnIndex("KATR8")) );
-            cliente.put("W_CTE-KDGRP",cursor.getString(cursor.getColumnIndex("KDGRP")) );
-            cliente.put("W_CTE-KKBER",valorNoEncontrado);
-            cliente.put("W_CTE-KLABC",cursor.getString(cursor.getColumnIndex("KLABC")) );
-            cliente.put("W_CTE-KLIMK",valorNoEncontrado);
-            cliente.put("W_CTE-KNKLI",valorNoEncontrado);
-            cliente.put("W_CTE-KTGRD",cursor.getString(cursor.getColumnIndex("KTGRD")) );
-            cliente.put("W_CTE-KTOKD",cursor.getString(cursor.getColumnIndex("KTOKD")) );
-            cliente.put("W_CTE-KUKLA",cursor.getString(cursor.getColumnIndex("KUKLA")) );
-            cliente.put("W_CTE-KUNNR",cursor.getString(cursor.getColumnIndex("KUNNR")) );
-            cliente.put("W_CTE-KVGR1",cursor.getString(cursor.getColumnIndex("KVGR1")) );
-            cliente.put("W_CTE-KVGR2",cursor.getString(cursor.getColumnIndex("KVGR2")) );
-            cliente.put("W_CTE-KVGR3",cursor.getString(cursor.getColumnIndex("KVGR3")) );
-            cliente.put("W_CTE-KVGR5",cursor.getString(cursor.getColumnIndex("KVGR5")) );
-            cliente.put("W_CTE-LAND1",cursor.getString(cursor.getColumnIndex("LAND")) );
-            cliente.put("W_CTE-LIFNR",valorNoEncontrado);
-            cliente.put("W_CTE-LIMSUG",valorNoEncontrado);
-            cliente.put("W_CTE-LOCATION",cursor.getString(cursor.getColumnIndex("LOCATION")) );
-            cliente.put("W_CTE-LPRIO",valorNoEncontrado);
-            cliente.put("W_CTE-LZONE",cursor.getString(cursor.getColumnIndex("LZONE")) );
-            cliente.put("W_CTE-NAME_CO",cursor.getString(cursor.getColumnIndex("NAME_CO")) );
-            cliente.put("W_CTE-NAME1",cursor.getString(cursor.getColumnIndex("NAME1_E")) );
-            cliente.put("W_CTE-NAME2",cursor.getString(cursor.getColumnIndex("NAME2")) );
-            cliente.put("W_CTE-NAME3",cursor.getString(cursor.getColumnIndex("NAME3")) );
-            cliente.put("W_CTE-NAME4",cursor.getString(cursor.getColumnIndex("NAME4")) );
-            cliente.put("W_CTE-PERNR",valorNoEncontrado);
-            cliente.put("W_CTE-PO_BOX",cursor.getString(cursor.getColumnIndex("PO_BOX")) );
-            cliente.put("W_CTE-PO_BOX_LOC",cursor.getString(cursor.getColumnIndex("PO_BOX_LOC")) );
-            cliente.put("W_CTE-PO_BOX_REG",cursor.getString(cursor.getColumnIndex("PO_BOX_REG")) );
-            cliente.put("W_CTE-POST_CODE2",cursor.getString(cursor.getColumnIndex("POST_CODE2")) );
-            cliente.put("W_CTE-PRFRE",cursor.getString(cursor.getColumnIndex("PRFRE")) );
-            cliente.put("W_CTE-PSON1",valorNoEncontrado);
-            cliente.put("W_CTE-PSON2",valorNoEncontrado);
-            cliente.put("W_CTE-PSON3",valorNoEncontrado);
-            cliente.put("W_CTE-PSTLZ",cursor.getString(cursor.getColumnIndex("PSTLZ")) );
-            cliente.put("W_CTE-PVKSM",valorNoEncontrado);
-            cliente.put("W_CTE-REGION",cursor.getString(cursor.getColumnIndex("REGION")) );
-            cliente.put("W_CTE-ROOMNUMBER",cursor.getString(cursor.getColumnIndex("ROOMNUMBER")) );
-            cliente.put("W_CTE-SMTP_ADDR",cursor.getString(cursor.getColumnIndex("SMTP_ADDR")) );
-            cliente.put("W_CTE-STCD1",cursor.getString(cursor.getColumnIndex("STCD1")) );
-            cliente.put("W_CTE-STCD3",cursor.getString(cursor.getColumnIndex("STCD3")) );
-            cliente.put("W_CTE-STR_SUPPL1",cursor.getString(cursor.getColumnIndex("STR_SUPPL1")) );
-            cliente.put("W_CTE-STR_SUPPL2",cursor.getString(cursor.getColumnIndex("STR_SUPPL2")) );
-            cliente.put("W_CTE-STR_SUPPL3",cursor.getString(cursor.getColumnIndex("STR_SUPPL3")) );
-            cliente.put("W_CTE-STREET",cursor.getString(cursor.getColumnIndex("STREET")) );
-            cliente.put("W_CTE-TEL_EXTENS",cursor.getString(cursor.getColumnIndex("TEL_EXTENS")) );
-            cliente.put("W_CTE-TEL_NUMBER",cursor.getString(cursor.getColumnIndex("TEL_NUMBER")) );
-            cliente.put("W_CTE-TEL_NUMBER2",valorNoEncontrado);
-            cliente.put("W_CTE-TELNUMBER2",valorNoEncontrado);
-            cliente.put("W_CTE-TELNUMBER3",valorNoEncontrado);
-            cliente.put("W_CTE-TOGRU",valorNoEncontrado);
-            cliente.put("W_CTE-UPDAT",valorNoEncontrado);
-            cliente.put("W_CTE-VKBUR",cursor.getString(cursor.getColumnIndex("VKBUR")) );
-            cliente.put("W_CTE-VKGRP",cursor.getString(cursor.getColumnIndex("VKGRP")) );
-            cliente.put("W_CTE-VKORG",cursor.getString(cursor.getColumnIndex("VKORG")) );
-            cliente.put("W_CTE-VSBED",cursor.getString(cursor.getColumnIndex("VSBED")) );
-            cliente.put("W_CTE-VWERK",cursor.getString(cursor.getColumnIndex("VWERK")) );
-            cliente.put("W_CTE-WAERS",valorNoEncontrado);
-            cliente.put("W_CTE-XZVER",valorNoEncontrado);
-            cliente.put("W_CTE-ZGPOCANAL",cursor.getString(cursor.getColumnIndex("ZZGPOCANAL")) );
-            cliente.put("W_CTE-ZTERM",cursor.getString(cursor.getColumnIndex("ZTERM")) );
-            cliente.put("W_CTE-ZTPOCANAL",cursor.getString(cursor.getColumnIndex("ZZTPOCANAL")) );
-            cliente.put("W_CTE-ZSEGPRE",cursor.getString(cursor.getColumnIndex("ZSEGPRE")) );
-            cliente.put("W_CTE-ZWELS",cursor.getString(cursor.getColumnIndex("ZWELS")) );
-            cliente.put("W_CTE-ZZAUART",cursor.getString(cursor.getColumnIndex("ZZAUART")) );
-            cliente.put("W_CTE-ZZBLOQU",valorNoEncontrado);
-            cliente.put("W_CTE-ZZCANAL",cursor.getString(cursor.getColumnIndex("ZCANAL")) );
-            cliente.put("W_CTE-ZZCATFOCO",cursor.getString(cursor.getColumnIndex("ZZCATFOCO")) );
-            cliente.put("W_CTE-ZZCRMA_LAT",cursor.getString(cursor.getColumnIndex("ZZCRMA_LAT")) );
-            cliente.put("W_CTE-ZZCRMA_LONG",cursor.getString(cursor.getColumnIndex("ZZCRMA_LONG")) );
-            cliente.put("W_CTE-ZZENT1",valorNoEncontrado);
-            cliente.put("W_CTE-ZZENT2",cursor.getString(cursor.getColumnIndex("ZZENT2")) );
-            cliente.put("W_CTE-ZZENT3",valorNoEncontrado);
-            cliente.put("W_CTE-ZZENT4",valorNoEncontrado);
-            cliente.put("W_CTE-ZZENT5",valorNoEncontrado);
-            cliente.put("W_CTE-ZZERDAT",valorNoEncontrado);
-            cliente.put("W_CTE-ZZGERENTE",valorNoEncontrado);
-            cliente.put("W_CTE-ZZINTCO",valorNoEncontrado);
-            cliente.put("W_CTE-ZZINTTACT",valorNoEncontrado);
-            cliente.put("W_CTE-ZZJEFATURA",valorNoEncontrado);
-            cliente.put("W_CTE-ZZOCCONS",cursor.getString(cursor.getColumnIndex("ZOCCONS")) );
-            cliente.put("W_CTE-ZZREJA",cursor.getString(cursor.getColumnIndex("ZZREJA")) );
-            cliente.put("W_CTE-ZZSEGCOM",cursor.getString(cursor.getColumnIndex("ZSEGCOM")) );
-            cliente.put("W_CTE-ZZSEGDESC",cursor.getString(cursor.getColumnIndex("ZSEGDESC")) );
-            cliente.put("W_CTE-ZZSEGEXH",cursor.getString(cursor.getColumnIndex("ZSEGEXH")) );
-            cliente.put("W_CTE-ZZSEGPDE",cursor.getString(cursor.getColumnIndex("ZSEGPDE")) );
-            cliente.put("W_CTE-ZZSEGPDV",cursor.getString(cursor.getColumnIndex("ZSEGPDV")) );
-            cliente.put("W_CTE-ZZSEGPORT",cursor.getString(cursor.getColumnIndex("ZSEGPORT")) );
-            cliente.put("W_CTE-ZZSEGPRE",valorNoEncontrado);
-            cliente.put("W_CTE-ZZSHARE",valorNoEncontrado);
-            cliente.put("W_CTE-ZZSTAT",valorNoEncontrado);
-            cliente.put("W_CTE-ZZSUBUNNEG",valorNoEncontrado);
-            cliente.put("W_CTE-ZZTIPSERV",valorNoEncontrado);
-            cliente.put("W_CTE-ZZTFISI",valorNoEncontrado);
-            cliente.put("W_CTE-ZZUNNEG",valorNoEncontrado);
-            cliente.put("W_CTE-ZZZONACOST",cursor.getString(cursor.getColumnIndex("ZZZONACOST")) );
-            cliente.put("W_CTE-ZZKEYACC",cursor.getString(cursor.getColumnIndex("ZKEYACC")) );
-            cliente.put("W_CTE-ZIBASE",removeLeadingZeroes(cursor.getString(cursor.getColumnIndex("ZIBASE"))) );
-            cliente.put("W_CTE-ZADICI",valorNoEncontrado);
-            cliente.put("W_CTE-ZZUDATE",valorNoEncontrado);
-            cliente.put("W_CTE-AUFSD",cursor.getString(cursor.getColumnIndex("AUFSD")) );
-            cliente.put("W_CTE-LIFSD",valorNoEncontrado);
-            cliente.put("W_CTE-FAKSD",valorNoEncontrado);
-            cliente.put("W_CTE-CASSD",valorNoEncontrado);
-            cliente.put("W_CTE-LOEVM",cursor.getString(cursor.getColumnIndex("LOEVM")) );
-            cliente.put("W_CTE-TELF2",cursor.getString(cursor.getColumnIndex("TELF2")) );
-            cliente.put("W_CTE-VTWEG",cursor.getString(cursor.getColumnIndex("VTWEG")) );
-            cliente.put("W_CTE-SPART",cursor.getString(cursor.getColumnIndex("SPART")) );
-            cliente.put("W_CTE-PERFK",valorNoEncontrado);
-            cliente.put("W_CTE-KVGR4",valorNoEncontrado);
-            cliente.put("W_CTE-KONDA",cursor.getString(cursor.getColumnIndex("KONDA")) );
-            cliente.put("W_CTE-RUTAHH",PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH",""));
-
-            formList.add(cliente);
-        }
-        cursor.close();
-        return  formList;
     }
 
     public ArrayList<Visitas> getVisitasCliente(String id_cliente){
@@ -666,10 +528,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-KVGR4",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")) : "" );
             solicitud.put("W_CTE-KONDA",cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")) : "" );
             solicitud.put("W_CTE-RUTAHH",cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")) : "" );
+            solicitud.put("W_CTE-ZZESQUINA",cursor.getString(cursor.getColumnIndex("W_CTE-ZZESQUINA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZESQUINA")) : "" );
+            solicitud.put("W_CTE-ZZESTAC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZESTAC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZESTAC")) : "" );
+            solicitud.put("W_CTE-KATR2",cursor.getString(cursor.getColumnIndex("W_CTE-KATR2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR2")) : "" );
+            solicitud.put("W_CTE-ZZTIPONEC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPONEC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPONEC")) : "" );
+            solicitud.put("W_CTE-VBUND",cursor.getString(cursor.getColumnIndex("W_CTE-VBUND")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VBUND")) : "" );
             solicitud.put("SIGUIENTE_APROBADOR",cursor.getString(cursor.getColumnIndex("SIGUIENTE_APROBADOR")) != null ? cursor.getString(cursor.getColumnIndex("SIGUIENTE_APROBADOR")) : "" );
-
+            try {
+                solicitud.put("W_CTE-ORT01", cursor.getString(cursor.getColumnIndex("W_CTE-ORT01")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ORT01")) : "");
+                solicitud.put("W_CTE-STCDT", cursor.getString(cursor.getColumnIndex("W_CTE-STCDT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STCDT")) : "");
+                solicitud.put("W_CTE-ZONA_FRANCA", cursor.getString(cursor.getColumnIndex("W_CTE-ZONA_FRANCA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZONA_FRANCA")) : "");
+                solicitud.put("W_CTE-FITYP", cursor.getString(cursor.getColumnIndex("W_CTE-FITYP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FITYP")) : "");
+                solicitud.put("W_CTE-GUZTE", cursor.getString(cursor.getColumnIndex("W_CTE-GUZTE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-GUZTE")) : "");
+            }catch(Exception e){}
             //CAMPOS PARA AVISOS DE EQUIPO FRIO
-
             solicitud.put("W_CTE-IM_EQUIPMENT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) : "" );
             solicitud.put("W_CTE-IM_PARTNER",cursor.getString(cursor.getColumnIndex("W_CTE-IM_PARTNER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_PARTNER")) : "" );
             solicitud.put("W_CTE-IM_NOTIF_TYPE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_NOTIF_TYPE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NOTIF_TYPE")) : "" );
@@ -684,6 +556,25 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-IM_SHORT_TEXT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) : "" );
             solicitud.put("W_CTE-IM_TEXT_LINE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) : "" );
             solicitud.put("W_CTE-IM_NUM_AVISO",cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) : "" );
+
+            //CAMPOS NEUVOS DE NI Y PA PARA REALIZAR CONTRATOS O POLITICAS CON ESTA INFORMACION DENTRO DEL TEXTO FIRMABLE
+            solicitud.put("W_CTE-ESTADO_CIVIL",cursor.getString(cursor.getColumnIndex("W_CTE-ESTADO_CIVIL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ESTADO_CIVIL")) : "" );
+            solicitud.put("W_CTE-ACTIVIDAD_ECONOMICA",cursor.getString(cursor.getColumnIndex("W_CTE-ACTIVIDAD_ECONOMICA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ACTIVIDAD_ECONOMICA")) : "" );
+            solicitud.put("W_CTE-DURACION_CONTRATO",cursor.getString(cursor.getColumnIndex("W_CTE-DURACION_CONTRATO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DURACION_CONTRATO")) : "" );
+            solicitud.put("W_CTE-TIPO_CREDITO",cursor.getString(cursor.getColumnIndex("W_CTE-TIPO_CREDITO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TIPO_CREDITO")) : "" );
+
+            try {
+                //CAMPOS NUEVOS PARA FORMULARIO ENTREGA DE TARJETAS
+                solicitud.put("W_CTE-IN_NUM_TARJETA", cursor.getString(cursor.getColumnIndex("W_CTE-IN_NUM_TARJETA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_NUM_TARJETA")) : "");
+                solicitud.put("W_CTE-IN_NOMBRE_RECIBE", cursor.getString(cursor.getColumnIndex("W_CTE-IN_NOMBRE_RECIBE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_NOMBRE_RECIBE")) : "");
+                solicitud.put("W_CTE-IN_MONTO_TARJETA", cursor.getString(cursor.getColumnIndex("W_CTE-IN_MONTO_TARJETA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_MONTO_TARJETA")) : "");
+                solicitud.put("W_CTE-IN_CEDULA_RECIBE", cursor.getString(cursor.getColumnIndex("W_CTE-IN_CEDULA_RECIBE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_CEDULA_RECIBE")) : "");
+                solicitud.put("W_CTE-IN_CONCEPTO_ENTREGA", cursor.getString(cursor.getColumnIndex("W_CTE-IN_CONCEPTO_ENTREGA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_CONCEPTO_ENTREGA")) : "");
+                solicitud.put("W_CTE-IN_CONCEPTO_ENTREGA2", cursor.getString(cursor.getColumnIndex("W_CTE-IN_CONCEPTO_ENTREGA2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_CONCEPTO_ENTREGA2")) : "");
+                solicitud.put("W_CTE-IN_PERIODO_VALIDEZ", cursor.getString(cursor.getColumnIndex("W_CTE-IN_PERIODO_VALIDEZ")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_PERIODO_VALIDEZ")) : "");
+                solicitud.put("W_CTE-IN_PLAN_INICIATIVA", cursor.getString(cursor.getColumnIndex("W_CTE-IN_PLAN_INICIATIVA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_PLAN_INICIATIVA")) : "");
+            }catch(Exception e){}
+
             formList.add(solicitud);
         }
 
@@ -832,7 +723,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-ZZZONACOST",cursor.getString(cursor.getColumnIndex("W_CTE-ZZZONACOST")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZZONACOST")) : "" );
             solicitud.put("W_CTE-COMENTARIOS",cursor.getString(cursor.getColumnIndex("W_CTE-COMENTARIOS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-COMENTARIOS")) : "" );
             solicitud.put("fuera_politica_plazo",cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")) != null ? cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")) : "" );
-            solicitud.put("fuera_politica_monto",cursor.getString(cursor.getColumnIndex("fuera_politica_monto")) != null ? cursor.getString(cursor.getColumnIndex("fuera_politica_monto")) : "" );
+            solicitud.put("fuera_politica_monto",cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")) != null ? cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")) : "" );
             solicitud.put("W_CTE-NOTIFICANTES",cursor.getString(cursor.getColumnIndex("W_CTE-NOTIFICANTES")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NOTIFICANTES")) : "" );
             solicitud.put("W_CTE-ZZKEYACC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZKEYACC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZKEYACC")) : "" );
             solicitud.put("W_CTE-ZIBASE",cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE")) != null ? removeLeadingZeroes(cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE"))) : "" );
@@ -850,7 +741,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-KVGR4",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")) : "" );
             solicitud.put("W_CTE-KONDA",cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")) : "" );
             solicitud.put("W_CTE-RUTAHH",cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")) : "" );
-
+            solicitud.put("W_CTE-ZZESQUINA",cursor.getString(cursor.getColumnIndex("W_CTE-ZZESQUINA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZESQUINA")) : "" );
+            solicitud.put("W_CTE-ZZESTAC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZESTAC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZESTAC")) : "" );
+            solicitud.put("W_CTE-KATR2",cursor.getString(cursor.getColumnIndex("W_CTE-KATR2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR2")) : "" );
+            solicitud.put("W_CTE-ZZTIPONEC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPONEC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPONEC")) : "" );
+            solicitud.put("W_CTE-VBUND",cursor.getString(cursor.getColumnIndex("W_CTE-VBUND")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VBUND")) : "" );
+            try {
+                solicitud.put("W_CTE-ORT01", cursor.getString(cursor.getColumnIndex("W_CTE-ORT01")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ORT01")) : "");
+                solicitud.put("W_CTE-STCDT", cursor.getString(cursor.getColumnIndex("W_CTE-STCDT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STCDT")) : "");
+                solicitud.put("W_CTE-ZONA_FRANCA", cursor.getString(cursor.getColumnIndex("W_CTE-ZONA_FRANCA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZONA_FRANCA")) : "");
+                solicitud.put("W_CTE-FITYP", cursor.getString(cursor.getColumnIndex("W_CTE-FITYP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FITYP")) : "");
+                solicitud.put("W_CTE-GUZTE", cursor.getString(cursor.getColumnIndex("W_CTE-GUZTE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-GUZTE")) : "");
+            }catch (Exception e){}
             //CAMPOS PARA AVISOS DE EQUIPO FRIO
 
             solicitud.put("W_CTE-IM_EQUIPMENT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) : "" );
@@ -867,6 +769,25 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             solicitud.put("W_CTE-IM_SHORT_TEXT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) : "" );
             solicitud.put("W_CTE-IM_TEXT_LINE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) : "" );
             solicitud.put("W_CTE-IM_NUM_AVISO",cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) : "" );
+
+            //CAMPOS NEUVOS DE NI Y PA PARA REALIZAR CONTRATOS O POLITICAS CON ESTA INFORMACION DENTRO DEL TEXTO FIRMABLE
+            solicitud.put("W_CTE-ESTADO_CIVIL",cursor.getString(cursor.getColumnIndex("W_CTE-ESTADO_CIVIL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ESTADO_CIVIL")) : "" );
+            solicitud.put("W_CTE-ACTIVIDAD_ECONOMICA",cursor.getString(cursor.getColumnIndex("W_CTE-ACTIVIDAD_ECONOMICA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ACTIVIDAD_ECONOMICA")) : "" );
+            solicitud.put("W_CTE-DURACION_CONTRATO",cursor.getString(cursor.getColumnIndex("W_CTE-DURACION_CONTRATO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DURACION_CONTRATO")) : "" );
+            solicitud.put("W_CTE-TIPO_CREDITO",cursor.getString(cursor.getColumnIndex("W_CTE-TIPO_CREDITO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TIPO_CREDITO")) : "" );
+
+            try {
+                //CAMPOS NUEVOS PARA FORMULARIO ENTREGA DE TARJETAS
+                solicitud.put("W_CTE-IN_NUM_TARJETA", cursor.getString(cursor.getColumnIndex("W_CTE-IN_NUM_TARJETA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_NUM_TARJETA")) : "");
+                solicitud.put("W_CTE-IN_NOMBRE_RECIBE", cursor.getString(cursor.getColumnIndex("W_CTE-IN_NOMBRE_RECIBE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_NOMBRE_RECIBE")) : "");
+                solicitud.put("W_CTE-IN_MONTO_TARJETA", cursor.getString(cursor.getColumnIndex("W_CTE-IN_MONTO_TARJETA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_MONTO_TARJETA")) : "");
+                solicitud.put("W_CTE-IN_CEDULA_RECIBE", cursor.getString(cursor.getColumnIndex("W_CTE-IN_CEDULA_RECIBE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_CEDULA_RECIBE")) : "");
+                solicitud.put("W_CTE-IN_CONCEPTO_ENTREGA", cursor.getString(cursor.getColumnIndex("W_CTE-IN_CONCEPTO_ENTREGA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_CONCEPTO_ENTREGA")) : "");
+                solicitud.put("W_CTE-IN_CONCEPTO_ENTREGA2", cursor.getString(cursor.getColumnIndex("W_CTE-IN_CONCEPTO_ENTREGA2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_CONCEPTO_ENTREGA2")) : "");
+                solicitud.put("W_CTE-IN_PERIODO_VALIDEZ", cursor.getString(cursor.getColumnIndex("W_CTE-IN_PERIODO_VALIDEZ")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_PERIODO_VALIDEZ")) : "");
+                solicitud.put("W_CTE-IN_PLAN_INICIATIVA", cursor.getString(cursor.getColumnIndex("W_CTE-IN_PLAN_INICIATIVA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_PLAN_INICIATIVA")) : "");
+            }catch (Exception e){}
+
             formList.add(solicitud);
         }
         cursor.close();
@@ -876,11 +797,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getSolicitudes(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> formList = new ArrayList<>();
-        String query = "SELECT s.idform , s.id_solicitud, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME1] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, f.Descripcion, " +
-                "CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo " +
+        String query = "SELECT s.idform , s.id_solicitud, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN CASE WHEN fo.[W_CTE-NAME1] IS NULL THEN s.[W_CTE-NAME3] ELSE fo.[W_CTE-NAME1] END ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, f.Descripcion, " +
+                "CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo, s.feccre, s.fecfin " +
                 " FROM FormHVKOF_solicitud s  " +
-                " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) "+
-                " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) ";
+                " INNER JOIN flujo f ON (f.id_form = s.tipform ) "+
+                " LEFT JOIN FormHVKOF_old_solicitud fo ON ( trim(fo.id_solicitud) = trim(s.id_solicitud) ) ";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -894,6 +815,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("id_fiscal",cursor.getString(7));
             user.put("ind_credito",cursor.getString(8));
             user.put("ind_modelo",cursor.getString(9));
+            user.put("feccre",cursor.getString(10));
+            user.put("fecfin",cursor.getString(11));
             formList.add(user);
         }
         cursor.close();
@@ -910,10 +833,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             coma = ",";
         }
         params += ")";
-        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo " +
+        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN CASE WHEN fo.[W_CTE-NAME1] IS NULL THEN s.[W_CTE-NAME3] ELSE fo.[W_CTE-NAME1] END ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo " +
                 " FROM FormHVKOF_solicitud s" +
-                " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) " +
-                " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) "+
+                " INNER JOIN flujo f ON (f.id_form = s.tipform ) " +
+                " LEFT JOIN FormHVKOF_old_solicitud fo ON ( trim(fo.id_solicitud) = trim(s.id_solicitud) ) "+
                 " WHERE trim(s.estado) IN "+params;
         Cursor cursor = mDataBase.rawQuery(query, estados);
         while (cursor.moveToNext()){
@@ -948,10 +871,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             parametros.add(tipform);
         }
 
-        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo " +
+        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN CASE WHEN fo.[W_CTE-NAME1] IS NULL THEN s.[W_CTE-NAME3] ELSE fo.[W_CTE-NAME1] END ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, f.ind_credito, f.ind_modelo, s.feccre, s.fecfin " +
                 " FROM FormHVKOF_solicitud s" +
-                " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) " +
-                " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) "+
+                " INNER JOIN flujo f ON (f.id_form = s.tipform ) " +
+                " LEFT JOIN FormHVKOF_old_solicitud fo ON ( trim(fo.id_solicitud) = trim(s.id_solicitud) ) "+
                 where;
         String[] p = parametros.size() == 0? null: parametros.toArray(new String[0]);
         Cursor cursor = mDataBase.rawQuery(query,  p);
@@ -967,6 +890,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("id_fiscal",cursor.getString(7));
             user.put("ind_credito",cursor.getString(8));
             user.put("ind_modelo",cursor.getString(9));
+            user.put("feccre",cursor.getString(10));
+            user.put("fecfin",cursor.getString(11));
             formList.add(user);
         }
         cursor.close();
@@ -999,10 +924,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             parametros.add(params2);
         }
 
-        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NULL THEN fo.[W_CTE-NAME3] ELSE s.[W_CTE-NAME1] END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal " +
+        String query = "SELECT s.idform, s.[W_CTE-KUNNR] as codigo, CASE WHEN s.[W_CTE-NAME1] IS NOT NULL THEN s.[W_CTE-NAME1] ELSE CASE WHEN fo.[W_CTE-NAME1] IS NOT NULL THEN fo.[W_CTE-NAME1] ELSE s.[W_CTE-NAME3] END END as nombre, s.estado as estado, s.tipform, s.id_solicitud, f.Descripcion, CASE WHEN s.[W_CTE-STCD1] IS NULL THEN fo.[W_CTE-STCD1] ELSE s.[W_CTE-STCD1] END as id_fiscal, s.feccre, s.fecfin " +
                 " FROM FormHVKOF_solicitud s" +
-                " INNER JOIN flujo f ON (f.id_flujo = s.tipform ) " +
-                " LEFT JOIN FormHVKOF_old_solicitud fo ON (fo.id_solicitud = s.id_solicitud ) "+
+                " INNER JOIN flujo f ON (f.id_form = s.tipform ) " +
+                " LEFT JOIN FormHVKOF_old_solicitud fo ON ( trim(fo.id_solicitud) = trim(s.id_solicitud) ) "+
                 where;
         String[] p = parametros.size() == 0? null: parametros.toArray(new String[0]);
         Cursor cursor = mDataBase.rawQuery(query,  p);
@@ -1016,6 +941,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("id_solicitud",cursor.getString(5));
             user.put("tipo_solicitud",cursor.getString(6));
             user.put("id_fiscal",cursor.getString(7));
+            user.put("feccre",cursor.getString(8));
+            user.put("fecfin",cursor.getString(9));
             formList.add(user);
         }
         cursor.close();
@@ -1107,10 +1034,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return  columnList;
     }
 
-    public ArrayList<HashMap<String, String>> getCamposPestana(String id_formulario, String pestana){
+    public ArrayList<HashMap<String, String>> getCamposPestana(String id_formulario, String pestana ){
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
-        String BUKRS = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","");
-        String KTOKD = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_KTOKD","RCMA");
+        String BUKRS = PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad());
+        String KTOKD = PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_GRUPOCUENTAS","");
         /*String query = "SELECT c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION FROM configuracion c" +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' and cc.ktokd = 'RCMA')" +
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion)" +
@@ -1119,20 +1046,24 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"'" +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO')"+
                 " ORDER BY c.panta, s.orden_hh, c.orden_hh";*/
+        String fechas = "";
+        /*switch(mContext.getClass().getSimpleName()){
+            case "SolicitudActivity":
+        }*/
         String query = "SELECT * FROM (" +
-                "SELECT DISTINCT c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION " +
+                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo, c.comentario_auto " +
                 "FROM configuracion c " +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"') " +
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
-                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' " +
+                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 "UNION " +
-                "SELECT DISTINCT c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION " +
+                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo " +
                 "FROM configuracion c " +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(cc.panta) = ( " +
-                " Select trim(cc2.panta) FROM configCampos cc2 WHERE trim(c.campo) = trim(cc2.CAMPO) AND trim(cc2.bukrs) = 'F443' and trim(cc2.ktokd) = '"+KTOKD+"' AND trim(cc2.panta) != trim(c.panta) LIMIT 1 " +
+                " Select trim(cc2.panta) FROM configCampos cc2 WHERE trim(c.campo) = trim(cc2.CAMPO) AND trim(cc2.bukrs) = '"+BUKRS+"' and trim(cc2.ktokd) = '"+KTOKD+"' AND trim(cc2.panta) != trim(c.panta) LIMIT 1 " +
                 " ) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"' and trim(c.campo) NOT IN ( " +
                 " SELECT DISTINCT trim(c.campo) " +
                 " FROM configuracion c " +
@@ -1140,7 +1071,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
-                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' " +
+                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 " )) " +
                 " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
@@ -1171,6 +1102,97 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("llamado1",cursor.getString(cursor.getColumnIndex("llamado1")) != null ? cursor.getString(cursor.getColumnIndex("llamado1")): "");
             user.put("tooltip",cursor.getString(cursor.getColumnIndex("tooltip")) != null ? cursor.getString(cursor.getColumnIndex("tooltip")): "");
             user.put("modificacion",cursor.getString(cursor.getColumnIndex("modificacion")) != null ? cursor.getString(cursor.getColumnIndex("modificacion")): "");
+            user.put("sufijo",cursor.getString(cursor.getColumnIndex("sufijo")) != null ? cursor.getString(cursor.getColumnIndex("sufijo")): "");
+            user.put("comentario_auto",cursor.getString(cursor.getColumnIndex("comentario_auto")) != null ? cursor.getString(cursor.getColumnIndex("comentario_auto")): "");
+            //metadatas
+            user.put("datatype",cursor.getString(cursor.getColumnIndex("DATA_TYPE")) != null ? cursor.getString(cursor.getColumnIndex("DATA_TYPE")): "");
+            user.put("numeric_precision",cursor.getString(cursor.getColumnIndex("NUMERIC_PRECISION")) != null ? cursor.getString(cursor.getColumnIndex("NUMERIC_PRECISION")): "");
+            user.put("maxlength",cursor.getString(cursor.getColumnIndex("CHARACTER_MAXIMUM_LENGTH")) != null ? cursor.getString(cursor.getColumnIndex("CHARACTER_MAXIMUM_LENGTH")): "");
+            clientList.add(user);
+        }
+        cursor.close();
+        return  clientList;
+    }
+    public ArrayList<HashMap<String, String>> getCamposPestana(String id_formulario, String pestana, String idSolicitud ){
+        ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
+        String BUKRS = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS",VariablesGlobales.getSociedad());
+        String KTOKD = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_KTOKD",VariablesGlobales.getKtokd());
+        /*String query = "SELECT c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION FROM configuracion c" +
+                " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' and cc.ktokd = 'RCMA')" +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion)" +
+                " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip)" +
+                " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo))" +
+                " WHERE id_formulario = "+id_formulario+" AND c.panta = '"+pestana+"'" +
+                " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO')"+
+                " ORDER BY c.panta, s.orden_hh, c.orden_hh";*/
+        String whereVigencia = "";
+        if(idSolicitud != null){
+            ArrayList<HashMap<String, String>> formList = new ArrayList<>();
+            String query = "SELECT FECCRE from FormHvkof_solicitud where id_solicitud = ?";
+            Cursor cursor = mDataBase.rawQuery(query,new String[]{idSolicitud});
+            if (cursor.moveToNext()){
+                //whereVigencia = " AND c.fecini <= '"+cursor.getString(0)+"' AND c.fecfin >= '"+cursor.getString(0)+"'";
+            }
+            cursor.close();
+        }else{
+            //whereVigencia = " AND c.fecini <= datetime('now') AND c.fecfin >= datetime('now')";
+        }
+        String query = "SELECT * FROM (" +
+                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo, c.comentario_auto " +
+                "FROM configuracion c " +
+                " LEFT OUTER JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"') " +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
+                " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
+                " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
+                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " + whereVigencia +
+                " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
+                "UNION " +
+                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo, c.comentario_auto " +
+                "FROM configuracion c " +
+                " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(cc.panta) = ( " +
+                " Select trim(cc2.panta) FROM configCampos cc2 WHERE trim(c.campo) = trim(cc2.CAMPO) AND trim(cc2.bukrs) = '"+BUKRS+"' and trim(cc2.ktokd) = '"+KTOKD+"' AND trim(cc2.panta) != trim(c.panta) LIMIT 1 " +
+                " ) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"' and trim(c.campo) NOT IN ( " +
+                " SELECT DISTINCT trim(c.campo) " +
+                " FROM configuracion c " +
+                " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"')\n" +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
+                " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
+                " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
+                " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " + whereVigencia +
+                " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
+                " )) " +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
+                "                LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
+                "                LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
+                "                WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' " +
+                "                AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
+                ") T " +
+                " ORDER BY T.panta, T.orden_seccion, T.orden_hh";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("campo",cursor.getString(cursor.getColumnIndex("campo")) != null ? cursor.getString(cursor.getColumnIndex("campo")): "");
+            user.put("nombre",cursor.getString(cursor.getColumnIndex("nombre")) != null ? cursor.getString(cursor.getColumnIndex("nombre")): "");
+            user.put("tipo_input",cursor.getString(cursor.getColumnIndex("tipo_input")) != null ? cursor.getString(cursor.getColumnIndex("tipo_input")): "");
+            user.put("id_seccion",cursor.getString(cursor.getColumnIndex("id_seccion")) != null ? cursor.getString(cursor.getColumnIndex("id_seccion")): "");
+            user.put("seccion",cursor.getString(cursor.getColumnIndex("seccion")) != null ? cursor.getString(cursor.getColumnIndex("seccion")): "");
+            user.put("descr",cursor.getString(cursor.getColumnIndex("descr")) != null ? cursor.getString(cursor.getColumnIndex("descr")): "");
+            user.put("tabla",cursor.getString(cursor.getColumnIndex("tabla")) != null ? cursor.getString(cursor.getColumnIndex("tabla")): "");
+            user.put("dfaul",cursor.getString(cursor.getColumnIndex("dfaul")) != null ? cursor.getString(cursor.getColumnIndex("dfaul")): "");
+            user.put("sup",cursor.getString(cursor.getColumnIndex("sup")) != null ? cursor.getString(cursor.getColumnIndex("sup")): "");
+            user.put("obl",cursor.getString(cursor.getColumnIndex("obl")) != null ? cursor.getString(cursor.getColumnIndex("obl")): "");
+            user.put("vis",cursor.getString(cursor.getColumnIndex("vis")) != null ? cursor.getString(cursor.getColumnIndex("vis")): "");
+            user.put("opc",cursor.getString(cursor.getColumnIndex("opc")) != null ? cursor.getString(cursor.getColumnIndex("opc")): "");
+            user.put("tabla_local",cursor.getString(cursor.getColumnIndex("tabla_local")) != null ? cursor.getString(cursor.getColumnIndex("tabla_local")): "");
+            user.put("evento1",cursor.getString(cursor.getColumnIndex("evento1")) != null ? cursor.getString(cursor.getColumnIndex("evento1")): "");
+            user.put("llamado1",cursor.getString(cursor.getColumnIndex("llamado1")) != null ? cursor.getString(cursor.getColumnIndex("llamado1")): "");
+            user.put("tooltip",cursor.getString(cursor.getColumnIndex("tooltip")) != null ? cursor.getString(cursor.getColumnIndex("tooltip")): "");
+            user.put("modificacion",cursor.getString(cursor.getColumnIndex("modificacion")) != null ? cursor.getString(cursor.getColumnIndex("modificacion")): "");
+            user.put("sufijo",cursor.getString(cursor.getColumnIndex("sufijo")) != null ? cursor.getString(cursor.getColumnIndex("sufijo")): "");
+            try {
+                user.put("comentario_auto", cursor.getString(cursor.getColumnIndex("comentario_auto")) != null ? cursor.getString(cursor.getColumnIndex("comentario_auto")) : "");
+            }catch(Exception e){}
             //metadatas
             user.put("datatype",cursor.getString(cursor.getColumnIndex("DATA_TYPE")) != null ? cursor.getString(cursor.getColumnIndex("DATA_TYPE")): "");
             user.put("numeric_precision",cursor.getString(cursor.getColumnIndex("NUMERIC_PRECISION")) != null ? cursor.getString(cursor.getColumnIndex("NUMERIC_PRECISION")): "");
@@ -1194,7 +1216,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             // looping through all rows and adding to list
             if (cursor.moveToFirst()) {
                 do {
-                    list.add(cursor.getString(2));//3era columna del query
+                    list.add(cursor.getString(2).trim());//3era columna del query
                 } while (cursor.moveToNext());
             }
             // closing connection
@@ -1224,21 +1246,32 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         StringBuilder filtros = new StringBuilder();
 
         //Crear Filtros manuales desde los parametros
-        for(String filtro : filtroAdicional){
-            filtros.append(" AND ").append(filtro);
-        }
 
+        for(String filtro : filtroAdicional){
+            if(filtro.length() > 0)
+                filtros.append(" AND ").append(filtro);
+        }
         if(tabla.equals("cat_tzont")){
-            selectQuery = "SELECT * " +
+            selectQuery = "SELECT DISTINCT a.* " +
                     " FROM " + tabla +" a INNER JOIN" +
-                    " EX_T_RUTAS_VP AS b ON a.zone1 = b.zroute_rep AND b.bzirk = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK","")+"'";
+                    " EX_T_RUTAS_VP AS b ON (trim(a.zone1) = trim(b.zroute_rep) OR trim(a.zone1) = trim(b.zroute_pr)) WHERE trim(zone1) != '' ";
         }
         //Cadena = cat_zesdvt_00561, Keyaccount = cat_ztmdcmc_00038t
-        if(tabla.equals("cat_zesdvt_00561") && PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F443")){
-            filtros.append(" AND trim(hkunnr) = '0000160000' AND zzkeyacc = 'CA002'");
+        if(tabla.equals("cat_zesdvt_00561") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001")){
+            filtros.append(" AND trim(hkunnr) = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_CADENARM","")+"' AND zzkeyacc = 'CA002'");
         }
-        if(tabla.equals("cat_ztmdcmc_00038t") && PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F443")){
+        if(tabla.equals("cat_ztmdcmc_00038t") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001")){
             filtros.append(" AND trim(zkeyacc) = 'CA002'");
+        }
+        if(tabla.equals("cat_ztsdvto_00185")) {
+            filtros.append(" AND (id_kvgr5 IN(SELECT id FROM cat_ztsdvto_00185_x WHERE(vpore = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA","")+"')))");
+        }
+        //TODO si entran formales D y ABC al app se debe cambiar esta manera de filtrar
+        if(tabla.equals("cat_knvv")){
+            if(!PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001"))
+                filtros.append(" AND (zterm like '%L%' OR zterm like '%00')");
+            else
+                filtros.append(" AND (zterm like '%UF%' OR zterm like '%00')");
         }
         //Crear Filtros Automaticos segun el pais
 
@@ -1261,6 +1294,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(existeColumna(tabla,"werks")){
             filtros.append(" AND werks = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VWERK","")).append("'");
         }
+
 
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
@@ -1291,6 +1325,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             seleccione.put("id","");
             seleccione.put("descripcion","Seleccione...");
             listaCatalogo.add(seleccione);
+            Toasty.error(mContext,"No se pudo extraer los datos de Catalogo "+tabla+". "+e.getMessage());
         }
         return listaCatalogo;
     }
@@ -1314,19 +1349,21 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             filtros.append(" AND ").append(filtro);
         }
         if(tabla.equals("cat_tzont")){
-            selectQuery = "SELECT * " +
+            selectQuery = "SELECT DISTINCT a.* " +
                     " FROM " + tabla +" a INNER JOIN" +
-                    " EX_T_RUTAS_VP AS b ON a.zone1 = b.zroute_rep ";
-                    //"AND b.bzirk = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK","")+"'";
+                    " EX_T_RUTAS_VP AS b ON (trim(a.zone1) = trim(b.zroute_rep) OR trim(a.zone1) = trim(b.zroute_pr)) WHERE trim(zone1) != '' ";
+        }
+        if(tabla.equals("EX_T_RUTAS_VP")){
+            selectQuery = "SELECT DISTINCT zroute_pr as id, zroute_pr as ruta " +
+                    " FROM " + tabla +" WHERE 1=1 ";
         }
         if(tabla.equals("aprobadores")){
-            selectQuery = "select id_usuario, nombre_usuario from flujoxpais as fxp" +
+            selectQuery = "select DISTINCT id_usuario, nombre_usuario from flujoxpais as fxp" +
                     "        INNER JOIN etapa as e  ON fxp.id_Etapa = e.id_Etapa" +
                     "        INNER JOIN aprobadores as a ON (a.id_flujoxpais = fxp.id_flujoxpais)" +
                     "        LEFT JOIN mant_usuarios m ON (upper(trim(m.id_usuario)) = upper(trim(a.id_aprobador)))" +
                     "        where id_pais = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' and fxp.orden = 1 and id_agencia = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK","")+"' and Estado = 1";
         }
-
         //Crear Filtros Automaticos segun el pais
 
         //Si existe BUKRS en la tabla del catalago vamos a filtros por Sociedad
@@ -1348,6 +1385,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(existeColumna(tabla,"werks")){
             filtros.append(" AND werks = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VWERK","")).append("'");
         }
+
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1382,50 +1420,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         return listaopciones;
     }
-
-    public ArrayList<OpcionSpinner> getEstadosCatalogoParaSpinner(){
-        ArrayList<HashMap<String, String>> listaCatalogo = new ArrayList<>();
-        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        // Select All Query
-        try {
-            //SQLiteDatabase db = this.getReadableDatabase();
-            Cursor cursor = mDataBase.rawQuery("Select estado as id, estado as descripcion from formHvKof_solicitud group by estado", null);//selectQuery,selectedArguments
-            HashMap<String,String> seleccione = new HashMap<>();
-            seleccione.put("id","");
-            seleccione.put("descripcion","Seleccione...");
-            listaCatalogo.add(seleccione);
-            // looping through all rows and adding to list
-            if (cursor.moveToFirst()) {
-                do {
-                    HashMap<String,String> lista = new HashMap<>();
-                    lista.put("id",cursor.getString(0).trim());//1era columna del query
-                    lista.put("descripcion",cursor.getString(1).trim());//1era y 2da columna del query
-                    listaCatalogo.add(lista);
-                } while (cursor.moveToNext());
-            }
-            // closing connection
-            cursor.close();
-
-            int selectedIndex = 0;
-            for (int j = 0; j < listaCatalogo.size(); j++){
-                listaopciones.add(new OpcionSpinner(listaCatalogo.get(j).get("id"), listaCatalogo.get(j).get("descripcion")) );
-            }
-
-            //db.close();
-            // returning lables
-        }catch (Exception e){
-            e.getMessage();
-            e.printStackTrace();
-            HashMap<String,String> seleccione = new HashMap<>();
-            seleccione.put("id","");
-            seleccione.put("descripcion","Seleccione...");
-            listaCatalogo.add(seleccione);
-        }
-        return listaopciones;
-    }
     public List<KeyPairBoolData> getEstadosCatalogoParaMultiSpinner(){
         List<KeyPairBoolData> listaCatalogo = new ArrayList<KeyPairBoolData>();
-        //List<String> listaopciones = new ArrayList<>();
+        //List<String> listaopciones = new ArrayList<>();*
         // Select All Query
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
@@ -1446,10 +1443,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             // closing connection
             cursor.close();
 
-            /*int selectedIndex = 0;
-            for (int j = 0; j < listaCatalogo.size(); j++){
-                listaopciones.add(new OpcionSpinner(listaCatalogo.get(j).get("id"), listaCatalogo.get(j).get("descripcion")) );
-            }*/
+            //int selectedIndex = 0;
+            //for (int j = 0; j < listaCatalogo.size(); j++){
+                //listaopciones.add(new OpcionSpinner(listaCatalogo.get(j).get("id"), listaCatalogo.get(j).get("descripcion")) );
+            //}
 
             //db.close();
             // returning lables
@@ -1520,6 +1517,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(existeColumna(tabla,"werks")){
             filtros.append(" AND werks = '").append(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VWERK","")).append("'");
         }
+        if(existeColumna(tabla,"activo")){
+            filtros.append(" AND activo = 'True'");
+        }
 
         try {
             Cursor cursor = mDataBase.rawQuery(selectQuery + filtros, null);//selectQuery,selectedArguments
@@ -1567,7 +1567,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Cursor columnas = mDataBase.rawQuery(sql, null);
         //columnas.moveToFirst();
         while (columnas.moveToNext()) {
-            if(columnas.getString(1).trim().equals(columna.trim())){
+            if(columnas.getString(1).trim().toLowerCase().equals(columna.trim().toLowerCase())){
                 columnas.close();
                 return true;
             }
@@ -1585,7 +1585,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         catch (NumberFormatException ex){
             user = VariablesGlobales.UsuarioMC2UsuarioHH(mContext, usuario);
         }
-        String selectQuery = "SELECT count(*) as existe FROM t_i_users WHERE upper(trim(UserName)) = '" + user.trim().toUpperCase() +"' ";
+        String selectQuery = "SELECT count(*) as existe FROM t_i_users WHERE upper(trim(UserName)) = '" + user.trim().toUpperCase() +"'";
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
             Cursor cursor = mDataBase.rawQuery(selectQuery, null);//selectQuery,selectedArguments
@@ -1648,6 +1648,25 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return true;
     }
 
+    public boolean validarRutaSincronizada(String vkorg, String rutaSincronizada){
+        String selectQuery = "SELECT count(*) FROM EX_T_RUTAS_VP WHERE vkorg = '" + vkorg +"' AND (zroute_pr = '" + rutaSincronizada +"' or zroute_pr = '*')";
+        try {
+            //SQLiteDatabase db = this.getReadableDatabase();
+            Cursor cursor = mDataBase.rawQuery(selectQuery, null);//selectQuery,selectedArguments
+            cursor.moveToFirst();
+            int cantidad = cursor.getInt(0);
+            cursor.close();
+            if(cantidad <= 0){
+                return false;
+            }
+        }catch (Exception e){
+            e.getMessage();
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
     public boolean setPropiedadesDeUsuario(){
         boolean ret = false;
         String userName = VariablesGlobales.UsuarioMC2UsuarioHH(mContext, PreferenceManager.getDefaultSharedPreferences(mContext).getString("user","").trim().toUpperCase());
@@ -1657,27 +1676,41 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         while (cursor.moveToNext()){
             rutaAsignada = cursor.getString(0);
         }
-        PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_RUTAHH", rutaAsignada ).apply();
-
+        if(!rutaAsignada.equals("*")) {
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_RUTAHH", rutaAsignada).apply();
+        }
 
         query = "SELECT * FROM EX_T_RUTAS_VP WHERE zroute_pr = ?";
-        cursor = mDataBase.rawQuery(query, new String [] {rutaAsignada});
+        cursor = mDataBase.rawQuery(query, new String [] {PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH","").trim()});
 
         while (cursor.moveToNext()){
             ret = true;
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KTOKD", PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_GRUPOCUENTAS", VariablesGlobales.getKtokd()) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKORG", cursor.getString(cursor.getColumnIndex("vkorg")) ).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BUKRS", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg")) )).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg")) )).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BUKRS", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg"))) ).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg"))) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KDGRP", cursor.getString(cursor.getColumnIndex("kdgrp")) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KVGR3", cursor.getString(cursor.getColumnIndex("kvgr3")) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BZIRK", cursor.getString(cursor.getColumnIndex("bzirk")) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKBUR", cursor.getString(cursor.getColumnIndex("vkbur")) ).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKGRP", cursor.getString(cursor.getColumnIndex("vkgrp")) ).apply();
+
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_SOCIEDAD", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg"))) ).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_ORGVENTAS", cursor.getString(cursor.getColumnIndex("vkorg")) ).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg"))) ).apply();
+
+            if(!cursor.getString(cursor.getColumnIndex("vwerks")).isEmpty()){
+                PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VWERK", cursor.getString(cursor.getColumnIndex("vwerks")) ).apply();
+            }
             ArrayList<HashMap<String, String>> valores = getValoresKOFSegunZonaVentas(cursor.getString(cursor.getColumnIndex("bzirk")) );
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VWERK", valores.get(0).get("VWERK")).apply();
+            if(valores.size() == 0){
+                ret = false;
+            }else {
+                PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VWERK", valores.get(0).get("VWERK")).apply();
+            }
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_TIPORUTA", cursor.getString(cursor.getColumnIndex("vptyp")) ).apply();
             String areactrlcred = "";
-            if(cursor.getString(cursor.getColumnIndex("vptyp")).contains("ZPV")){
+            if(cursor.getString(cursor.getColumnIndex("vptyp")).contains("ZPV") || cursor.getString(cursor.getColumnIndex("vptyp")).contains("ZAT") || cursor.getString(cursor.getColumnIndex("vptyp")).contains("ZTV")){
                 areactrlcred = "C#RF";
             }
             if(cursor.getString(cursor.getColumnIndex("vptyp")).contains("ZJV")){
@@ -1693,11 +1726,23 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 case "F445":
                     areactrlcred = areactrlcred.replace("#","N");
                     break;
+                case "1657"://Volcanes
+                    areactrlcred = areactrlcred.replace("#","G").replace("RF","VR");
+                    break;
+                case "1658"://Abasa
+                    areactrlcred = areactrlcred.replace("#","G").replace("RF","AR");
+                    break;
                 case "F446":
                     areactrlcred = areactrlcred.replace("#","G");
                     break;
                 case "F451":
                     areactrlcred = areactrlcred.replace("#","P");
+                    break;
+                case "1661":
+                    areactrlcred = "U661";
+                    break;
+                case "Z001":
+                    areactrlcred = "Z661";
                     break;
             }
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_AREACREDITO", areactrlcred ).apply();
@@ -1709,12 +1754,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //Formularios de modificacion permitidos para la HH
     public ArrayList<HashMap<String, String>> getModificacionesPermitidas(){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
-        String query = "SELECT * FROM flujo WHERE permitirHH = 1 and ind_modelo = 'M' and ind_credito = 0 order by orden";
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'M' and ind_credito = 0 order by orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> flujo = new HashMap<>();
-            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_flujo")).trim());
+            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_form")).trim());
             flujo.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")).trim());
             flujoList.add(flujo);
         }
@@ -1725,12 +1769,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //Formularios de modificacion permitidos para la HH
     public ArrayList<HashMap<String, String>> getModificacionesCreditoPermitidas(){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
-        String query = "SELECT * FROM flujo WHERE permitirHH = 1 and ind_modelo = 'M' and ind_credito = 1 order by orden";
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'M' and ind_credito = 1 order by orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> flujo = new HashMap<>();
-            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_flujo")).trim());
+            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_form")).trim());
             flujo.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")).trim());
             flujoList.add(flujo);
         }
@@ -1740,12 +1783,25 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //Formularios de modificacion permitidos para la HH
     public ArrayList<HashMap<String, String>> getOrdenesServicioPermitidas(){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
-        String query = "SELECT * FROM flujo WHERE permitirHH = 1 and ind_modelo = 'E' order by orden";
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'E' order by orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> flujo = new HashMap<>();
-            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_flujo")).trim());
+            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_form")).trim());
+            flujo.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")).trim());
+            flujoList.add(flujo);
+        }
+        cursor.close();
+        return  flujoList;
+    }
+    //Formularios de modificacion permitidos para la HH
+    public ArrayList<HashMap<String, String>> getIniciativasLocalesPermitidas(){
+        ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'L' order by orden";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> flujo = new HashMap<>();
+            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_form")).trim());
             flujo.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")).trim());
             flujoList.add(flujo);
         }
@@ -1842,16 +1898,45 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<Adjuntos> getAdjuntosDB(String id_solicitud){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<Adjuntos> adjuntosList = new ArrayList<>();
-        String query = "SELECT * FROM "+VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD()+" WHERE id_solicitud = ?";
+        String queryName = "SELECT adjunto FROM adjuntos WHERE idform = (Select idform from formhvkof_solicitud where id_solicitud = ?)";
+        String query = "SELECT id_solicitud,tipo,nombre,length(imagen) as tamano FROM "+VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD()+" WHERE id_solicitud = ?";
+        String queryImage = "SELECT imagen FROM "+VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD()+" WHERE id_solicitud = ? AND nombre = ?";
         Cursor cursor = mDataBase.rawQuery(query,new String[]{id_solicitud});
         while (cursor.moveToNext()){
             Adjuntos adjunto = new Adjuntos();
-            adjunto.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")) );
-            adjunto.setType(cursor.getString(cursor.getColumnIndex("tipo")) );
-            adjunto.setName(cursor.getString(cursor.getColumnIndex("nombre")) );
-            adjunto.setImage(cursor.getBlob(cursor.getColumnIndex("imagen")) );
-
-            adjuntosList.add(adjunto);
+            int tamImagen = cursor.getInt(cursor.getColumnIndex("tamano"));
+            try {
+                if(tamImagen < 1000000) {
+                    adjunto.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")));
+                    adjunto.setType(cursor.getString(cursor.getColumnIndex("tipo")));
+                    adjunto.setName(cursor.getString(cursor.getColumnIndex("nombre")));
+                    Cursor cursorInner = mDataBase.rawQuery(queryImage,new String[]{id_solicitud,cursor.getString(cursor.getColumnIndex("nombre"))});
+                    while (cursorInner.moveToNext()) {
+                        adjunto.setImage(cursorInner.getBlob(cursorInner.getColumnIndex("imagen")));
+                    }
+                    adjuntosList.add(adjunto);
+                }else{
+                    adjunto.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")));
+                    adjunto.setType(cursor.getString(cursor.getColumnIndex("tipo")));
+                    adjunto.setName(cursor.getString(cursor.getColumnIndex("nombre")));
+                    int buffer = 1000000;
+                    byte[] totalImagen = new byte[tamImagen];
+                    int tamAcumulado = 0;
+                    for (int x = 1; x < tamImagen;x = x + buffer) {
+                        String queryImagePart = "SELECT substr(imagen, ?, ?) as parteImagen FROM " + VariablesGlobales.getTABLA_ADJUNTOS_SOLICITUD() + " WHERE id_solicitud = ? AND nombre = ?";
+                        Cursor cursorInner = mDataBase.rawQuery(queryImagePart, new String[]{Integer.toString(x), Integer.toString(buffer) ,id_solicitud, cursor.getString(cursor.getColumnIndex("nombre"))});
+                        while (cursorInner.moveToNext()) {
+                            byte[] parteImagen = cursorInner.getBlob(cursorInner.getColumnIndex("parteImagen"));
+                            System.arraycopy(parteImagen, 0, totalImagen, tamAcumulado, parteImagen.length);
+                            tamAcumulado += parteImagen.length;
+                        }
+                    }
+                    adjunto.setImage(totalImagen);
+                    adjuntosList.add(adjunto);
+                }
+            }catch(Exception e){
+                String error = e.getMessage();
+            }
         }
         cursor.close();
         return  adjuntosList;
@@ -2028,6 +2113,53 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return  visitasList;
     }
+
+    public ArrayList<Horarios> getHorariosDB(String id_solicitud){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<Horarios> horariosList = new ArrayList<>();
+        String query = "SELECT * FROM "+VariablesGlobales.getTablaHorariosSolicitud()+" WHERE id_solicitud = ?";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_solicitud});
+        while (cursor.moveToNext()){
+            Horarios horario = new Horarios();
+            horario.setId_solicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")) );
+            horario.setId_formulario(cursor.getString(cursor.getColumnIndex("id_formulario")) );
+
+            horario.setMoab1(cursor.getString(cursor.getColumnIndex("moab1")) );
+            horario.setMobi1(cursor.getString(cursor.getColumnIndex("mobi1")) );
+            horario.setDiab1(cursor.getString(cursor.getColumnIndex("diab1")) );
+            horario.setDibi1(cursor.getString(cursor.getColumnIndex("dibi1")) );
+            horario.setMiab1(cursor.getString(cursor.getColumnIndex("miab1")) );
+            horario.setMibi1(cursor.getString(cursor.getColumnIndex("mibi1")) );
+            horario.setDoab1(cursor.getString(cursor.getColumnIndex("doab1")) );
+            horario.setDobi1(cursor.getString(cursor.getColumnIndex("dobi1")) );
+            horario.setFrab1(cursor.getString(cursor.getColumnIndex("frab1")) );
+            horario.setFrbi1(cursor.getString(cursor.getColumnIndex("frbi1")) );
+            horario.setSaab1(cursor.getString(cursor.getColumnIndex("saab1")) );
+            horario.setSabi1(cursor.getString(cursor.getColumnIndex("sabi1")) );
+            horario.setSoab1(cursor.getString(cursor.getColumnIndex("soab1")) );
+            horario.setSobi1(cursor.getString(cursor.getColumnIndex("sobi1")) );
+
+            horario.setMoab2(cursor.getString(cursor.getColumnIndex("moab2")) );
+            horario.setMobi2(cursor.getString(cursor.getColumnIndex("mobi2")) );
+            horario.setDiab2(cursor.getString(cursor.getColumnIndex("diab2")) );
+            horario.setDibi2(cursor.getString(cursor.getColumnIndex("dibi2")) );
+            horario.setMiab2(cursor.getString(cursor.getColumnIndex("miab2")) );
+            horario.setMibi2(cursor.getString(cursor.getColumnIndex("mibi2")) );
+            horario.setDoab2(cursor.getString(cursor.getColumnIndex("doab2")) );
+            horario.setDobi2(cursor.getString(cursor.getColumnIndex("dobi2")) );
+            horario.setFrab2(cursor.getString(cursor.getColumnIndex("frab2")) );
+            horario.setFrbi2(cursor.getString(cursor.getColumnIndex("frbi2")) );
+            horario.setSaab2(cursor.getString(cursor.getColumnIndex("saab2")) );
+            horario.setSabi2(cursor.getString(cursor.getColumnIndex("sabi2")) );
+            horario.setSoab2(cursor.getString(cursor.getColumnIndex("soab2")) );
+            horario.setSobi2(cursor.getString(cursor.getColumnIndex("sobi2")) );
+
+            horariosList.add(horario);
+        }
+        cursor.close();
+        return  horariosList;
+    }
+
     public ArrayList<EquipoFrio> getEquiposFriosDB(String id_cliente){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<EquipoFrio> equiposFriosList = new ArrayList<>();
@@ -2112,7 +2244,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<Impuesto> getImpuestosPais(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<Impuesto> impuestoList = new ArrayList<>();
-        String query = "SELECT * FROM cat_impstos WHERE taxkd = 1 AND talnd = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")+"'";
+        String query = query = "SELECT * FROM cat_impstos WHERE taxkd = 1 AND talnd = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")+"'";
+        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_SOCIEDAD","").equals("Z001"))
+            query = "SELECT * FROM cat_impstos WHERE taxkd = 2 AND talnd = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_LAND1","")+"'";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             Impuesto impuesto = new Impuesto();
@@ -2145,6 +2279,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             case "GT":
                 grupoCuentasDefault = "GCMA";
                 break;
+            case "UY":
+                grupoCuentasDefault = "UYDE";
+                break;
         }
         String query = "SELECT * FROM cat_funcint WHERE ktokd = '"+grupoCuentasDefault+"'";
         Cursor cursor = mDataBase.rawQuery(query,null);
@@ -2167,16 +2304,32 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Date c = Calendar.getInstance().getTime();
         SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
         String fechaSistema = df.format(c);
-        String query = "select vpore as vptyp, '' as descripcion, '1DA' as kvgr4, '' as ruta,'' as fec_frec, '" + fechaSistema + "' as f_ico, '99991231' as f_fco, '' as f_ini, '' as f_fin, '1' as fcalid FROM cat_ztsdvto_00185_x WHERE zopcional != 'X' and vkorg = '" + vkorg.trim() + "' and kvgr5 = '" + modalidad + "'";
+        String metodo = "1DA";
+        if(modalidad.equals("GV")){
+            metodo = "0DA";
+        }
+        String query = "select vpore as vptyp, '' as descripcion, '"+metodo+"' as kvgr4, '' as ruta,'' as fec_frec, '" + fechaSistema + "' as f_ico, '99991231' as f_fco, '' as f_ini, '' as f_fin, '01' as fcalid FROM cat_ztsdvto_00185_x WHERE vkorg = '" + vkorg.trim() + "' and kvgr5 = '" + modalidad + "'";
         Cursor cursor = mDataBase.rawQuery(query,null);
-
+        int count = 0;
         while (cursor.moveToNext()){
             Visitas visita = new Visitas();
             visita.setVptyp(cursor.getString(cursor.getColumnIndex("vptyp")) );
             if(EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK",""), visita.getVptyp()))
                 visita.setRuta(cursor.getString(cursor.getColumnIndex("ruta")) );
-            else
-                visita.setRuta(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH",""));
+            else /*if(!visita.getVptyp().equals("ZRM"))*/ {
+                //Validar que el tipo de visita ZPV no viene en ruta mixta
+                String queryI = "select * FROM EX_T_RUTAS_VP WHERE vptyp = 'ZRM' and vkorg = '" + vkorg.trim() + "'";
+                Cursor cursorI = mDataBase.rawQuery(queryI,null);
+                count = cursorI.getCount();
+                if(count > 0 && visita.getVptyp().equals("ZRM")){
+                    cursorI.moveToFirst();
+                    visita.setRuta(cursorI.getString(cursorI.getColumnIndex("zroute_pr")) );
+                }else if( (count == 0 && !cursor.getString(cursor.getColumnIndex("vptyp")).equals("ZDY")) && (cursor.getString(cursor.getColumnIndex("vptyp")).equals(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA", "")))){
+                    visita.setRuta(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH", ""));
+                }else{
+                    visita.setRuta(cursor.getString(cursor.getColumnIndex("ruta")) );
+                }
+            }
             visita.setKvgr4(cursor.getString(cursor.getColumnIndex("kvgr4")) );
             visita.setF_ico(cursor.getString(cursor.getColumnIndex("f_ico")) );
             visita.setF_fco(cursor.getString(cursor.getColumnIndex("f_fco")) );
@@ -2184,7 +2337,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             visita.setF_fin(cursor.getString(cursor.getColumnIndex("f_fin")) );
             visita.setFcalid(cursor.getString(cursor.getColumnIndex("fcalid")) );
 
-            visitasList.add(visita);
+            if( !(count == 0 && visita.getVptyp().equals("ZRM") && PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA", "").equals("ZPV")) ) {
+                visitasList.add(visita);
+            }
         }
         cursor.close();
         return  visitasList;
@@ -2192,11 +2347,51 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public boolean EsTipodeReparto(String agencia, String tiporuta)
     {
-        String query = "select vwerks FROM EX_T_RUTAS_VP WHERE bzirk = @agencia AND vptyp = @tiporuta";
-        Cursor cursor = mDataBase.rawQuery("select vwerks FROM EX_T_RUTAS_VP WHERE bzirk = ? AND vptyp = ?", new String[]{agencia, tiporuta});
+        String query = "select vwerks, zroute_rep FROM EX_T_RUTAS_VP WHERE bzirk = ? AND vptyp = ?";
+        Cursor cursor = mDataBase.rawQuery(query, new String[]{agencia, tiporuta});
         boolean retorno = false;
         if (cursor.moveToNext()){
-            retorno = !cursor.getString(cursor.getColumnIndex("vwerks")).isEmpty() && !cursor.getString(cursor.getColumnIndex("vwerks")).trim().equals("");
+            retorno = !cursor.getString(cursor.getColumnIndex("vwerks")).isEmpty() && !cursor.getString(cursor.getColumnIndex("vwerks")).trim().equals("") && !cursor.getString(cursor.getColumnIndex("zroute_rep")).trim().equals("");
+        }
+        cursor.close();
+        //Caso exclusivo para tipos de visita autoventa, donde la preventa y el reparto son lo mismo.
+        if(tiporuta.contains("ZAT")){
+            retorno = false;
+        }
+        return retorno;
+    }
+    public boolean ExisteRutaMixta()
+    {
+        String query = "select * FROM EX_T_RUTAS_VP WHERE vptyp = 'ZRM' and vkorg = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG", "").trim() + "'";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        int count = cursor.getCount();
+        boolean retorno = false;
+        if (count > 0){
+            retorno = true;
+        }
+        cursor.close();
+        return retorno;
+    }
+    public boolean ExisteTipoVisita(String tipoVisita)
+    {
+        String query = "select * FROM EX_T_RUTAS_VP WHERE vptyp = '"+tipoVisita+"' and vkorg = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG", "").trim() + "'";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        int count = cursor.getCount();
+        boolean retorno = false;
+        if (count > 0){
+            retorno = true;
+        }
+        cursor.close();
+        return retorno;
+    }
+    public boolean ExisteEnVisitPlanActual(String modalidad,String tipoVisita)
+    {
+        String query = "SELECT id FROM cat_ztsdvto_00185_x where vkorg = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG", "").trim()+"' and kvgr5 = '"+modalidad+"' and vpore = '"+tipoVisita+"'";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        int count = cursor.getCount();
+        boolean retorno = false;
+        if (count > 0){
+            retorno = true;
         }
         cursor.close();
         return retorno;
@@ -2228,7 +2423,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 porpais = " AND SUBSTR(CITY1,1,1) = 'N'";
                 break;
             case "GT":
-                porpais = " AND SUBSTR(CITY1,1,1) = 'G'";
+                porpais = " AND SUBSTR(CITY1,1,1)  NOT IN ('C','P','N','G')";
                 break;
             case "PA":
                 porpais = " AND SUBSTR(CITY1,1,1) = 'P'";
@@ -2240,7 +2435,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<HashMap<String, String>> Distritos(String provincia, String canton)
     {
-        ArrayList<HashMap<String, String>> distritos = getDatosCatalogo("cat_ztsdvtc_00297", "region = '"+provincia+"' AND city1 = '"+canton+"'");
+        String sinRelacion = "";
+        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("F446")
+        ||PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("1657")
+        ||PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("1658")){
+            sinRelacion = " OR (region = '' AND city1 = '')";
+        }
+        ArrayList<HashMap<String, String>> distritos = getDatosCatalogo("cat_ztsdvtc_00297", "(region = '"+provincia+"' AND city1 = '"+canton+"')"+sinRelacion);
         return distritos;
     }
 
@@ -2277,8 +2478,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //ENCUESTA CANALES
     public ArrayList<HashMap<String, String>> getPreguntasSegunGrupo(String grupo_isscom){
         ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
-        String sql_encuesta = "select zid_quest,text  from cat_preguntas_isscom p where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
+
+        String sql_encuesta = "select DISTINCT zid_quest,text  from cat_preguntas_isscom p where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -2291,7 +2492,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
     public ArrayList<HashMap<String, String>> getOpcionesPreguntaGrupo(String grupo_isscom, String pregunta){
         ArrayList<HashMap<String, String>> respuestasList = new ArrayList<>();
-        String sql_encuesta = "select zid_resp,text from cat_respuestas_isscom p where trim(zid_grupo) = '"+grupo_isscom.trim()+"' and trim(zid_quest) = '"+pregunta.trim()+"'";
+        String filtroPais = " AND spras = 'C'";
+        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("F446") || PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("1658"))
+            filtroPais = " AND spras = 'G'";
+        String sql_encuesta = "select DISTINCT zid_resp,text from cat_respuestas_isscom p where trim(zid_grupo) = '"+grupo_isscom.trim()+"' and trim(zid_quest) = '"+pregunta.trim()+"'"+filtroPais;
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -2305,7 +2509,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public HashMap<String,String> getValoresSegunEncuestaRealizada(String... valores) {
         HashMap<String,String> registro_canales = new HashMap<>();
-        StringBuilder sql_encuesta = new StringBuilder("select zid_result from cat_ztsdvto_00186 p where trim(zid_grupo) = '" + valores[0].trim() + "'");
+        String tablaOrigen = "cat_ztsdvto_00186";
+        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","").equals("0446")
+        ||PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","").equals("0657")
+        ||PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","").equals("0658")){
+            tablaOrigen = "cat_ztcmvto_00005";
+        }
+        StringBuilder sql_encuesta = new StringBuilder("select zid_result from "+tablaOrigen+" p where trim(zid_grupo) = '" + valores[0].trim() + "'");
         for(int x = 1; x < valores.length;x++){
             if(valores[x] != null)
                 sql_encuesta.append(" AND zid_quest").append(x).append(" = '").append(valores[x].trim()).append("'");
@@ -2339,13 +2549,40 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             preguntasList.add(user);
             break;
         }
+        if(preguntasList.size() == 0){
+            Cursor micursorZat = mDataBase.rawQuery(query,new String[]{bzirk,"ZAT"});
+            while (micursorZat.moveToNext()){
+                HashMap<String, String> user = new HashMap<>();
+                user.put("VWERK", micursorZat.getString(0).trim());
+                preguntasList.add(user);
+                break;
+            }
+        }
         micursor.close();
         return  preguntasList;
     }
 
+    public ArrayList<HashMap<String, String>> getValoresSegunCanal(String zcanal){
+        String query = "select ztpocanal, zgpocanal, CASE WHEN b.gec IS NULL THEN '52' ELSE b.gec END as gec FROM cat_ztmdcmc_00017 a" +
+                " LEFT OUTER JOIN loc_gec_x_canal b ON(a.zcanal = b.zcanal and a.vkorg = b.vkorg)" +
+                " WHERE a.zcanal = ? AND a.vkorg = ?";
+        ArrayList<HashMap<String, String>> valoresList = new ArrayList<>();
+        Cursor micursor = mDataBase.rawQuery(query,new String[]{zcanal,PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_ORGVENTAS",VariablesGlobales.getOrgvta())});
+        while (micursor.moveToNext()){
+            HashMap<String, String> user = new HashMap<>();
+            user.put("ztpocanal", micursor.getString(0).trim());
+            user.put("zgpocanal", micursor.getString(1).trim());
+            user.put("gec", micursor.getString(2).trim());
+            valoresList.add(user);
+            break;
+        }
+        micursor.close();
+        return  valoresList;
+    }
+
     public ArrayList<HashMap<String, String>> getRespuestasEncuesta(String id_solicitud){
         ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
+        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()) + "'";
         String sql_encuesta = "select id_Grupo as id_grupo,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10 from encuesta_solicitud where id_solicitud = ?";
         Cursor micursor = mDataBase.rawQuery(sql_encuesta,new String[]{id_solicitud});
         while (micursor.moveToNext()){
@@ -2370,7 +2607,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //ENCUESTA GEC
     public ArrayList<HashMap<String, String>> getPreguntasGec(){
         ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
         String sql_encuesta = "select zid_quest,text,text2  from cat_preguntas_gec p where bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
@@ -2398,7 +2634,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<HashMap<String, String>> getEncuestaGec(String nextSolicitudId) {
         ArrayList<HashMap<String, String>> respuestasEncuestaGec = new ArrayList<>();
-        //String sql_encuesta = "select p.zid_quest, p.text as quest_text,r.zid_resp, r.text as resp_text from cat_preguntas_isscom p inner join cat_respuestas_isscom r ON (p.zid_grupo = r.zid_grupo AND p.zid_quest = r.zid_quest) where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + VariablesGlobales.getSociedad() + "'";
         String sql_encuesta = "select zid_quest, monto from encuesta_gec_solicitud p where id_solicitud = '" + nextSolicitudId + "'";
         //String sql_encuesta2 = "select zid_quest, monto from encuesta_gec_solicitud p";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
@@ -2423,14 +2658,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         //bukrs, ktokd, tipform, campo, VIS, OBL, OPC, SUP
         while (cursor.moveToNext()){
             HashMap<String,String> resp = new HashMap<>();
-            resp.put("bukrs",cursor.getString(1) != null ? cursor.getString(1).trim():"");
-            resp.put("kotkd",cursor.getString(2) != null ? cursor.getString(2).trim():"");
-            resp.put("tipform",cursor.getString(3) != null ? cursor.getString(3).trim():"");
-            resp.put("campo",cursor.getString(4) != null ? cursor.getString(4).trim():"");
-            resp.put("vis",cursor.getString(5) != null ? cursor.getString(5).trim():"");
-            resp.put("obl",cursor.getString(6) != null ? cursor.getString(6).trim():"");
-            resp.put("opc",cursor.getString(7) != null ? cursor.getString(7).trim():"");
-            resp.put("sup",cursor.getString(8) != null ? cursor.getString(8).trim():"");
+
+            resp.put("bukrs",cursor.getString(cursor.getColumnIndex("bukrs")) != null ? cursor.getString(cursor.getColumnIndex("bukrs")).trim() : "NULL");
+            resp.put("ktokd",cursor.getString(cursor.getColumnIndex("ktokd")) != null ? cursor.getString(cursor.getColumnIndex("ktokd")).trim() : "NULL");
+            resp.put("tipform",cursor.getString(cursor.getColumnIndex("tipform")) != null ? cursor.getString(cursor.getColumnIndex("tipform")) .trim(): "NULL");
+            resp.put("campo",cursor.getString(cursor.getColumnIndex("campo")) != null ? cursor.getString(cursor.getColumnIndex("campo")).trim() : "NULL");
+            resp.put("bzirk",cursor.getString(cursor.getColumnIndex("bzirk")) != null ? cursor.getString(cursor.getColumnIndex("bzirk")).trim() : "NULL");
+            resp.put("vis",cursor.getString(cursor.getColumnIndex("VIS")) != null ? cursor.getString(cursor.getColumnIndex("VIS")).trim() : "NULL");
+            resp.put("obl",cursor.getString(cursor.getColumnIndex("OBL")) != null ? cursor.getString(cursor.getColumnIndex("OBL")).trim() : "NULL");
+            resp.put("opc",cursor.getString(cursor.getColumnIndex("OPC")) != null ? cursor.getString(cursor.getColumnIndex("OPC")).trim() : "NULL");
+            resp.put("sup",cursor.getString(cursor.getColumnIndex("SUP")) != null ? cursor.getString(cursor.getColumnIndex("SUP")).trim() : "NULL");
+            resp.put("dfaul",cursor.getString(cursor.getColumnIndex("DFAUL")) != null ? cursor.getString(cursor.getColumnIndex("DFAUL")).trim() : "NULL");
             excepciones.add(resp);
         }
         cursor.close();
@@ -2442,14 +2680,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             idform = "0";
         }
         ArrayList<Comentario> comentarios = new ArrayList<>();
-        String sql_encuesta = "select '' as orden, 'Creacion' as etapa," +
-                "ususol|| ' - ' || nom_sol as aprobador,feccre as fecha,comentario_sol as comentarios, estado " +
+        String sql_encuesta = "select 0 as orden, 'Creacion' as etapa," +
+                "ususol|| ' - ' || nom_sol as aprobador,feccre as fecha,comentario_sol as comentarios, estado as estado " +
                 "FROM VistaFlujos WHERE idform = ?" +
                 " UNION " +
                 "select Orden as orden, cast(id_etapa as varchar) || ' - ' ||nom_etapa as etapa," +
-                "siguienteAprobador|| ' - ' || nom_aprob  as aprobador,fechaIngreso as fecha,comentario_aprob as comentarios , estado " +
+                "siguienteAprobador|| ' - ' || nom_aprob  as aprobador,fechaIngreso as fecha,comentario_aprob as comentarios , estado as estado " +
                 "FROM VistaFlujos " +
-                "WHERE idform = ? ORDER by orden desc";
+                "WHERE idform = ? ORDER by orden asc";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,new String[]{idform,idform});
         while (cursor.moveToNext()){
             Comentario comentario = new Comentario();
@@ -2471,26 +2709,44 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         //SQLiteDatabase db = this.getWritableDatabase();
         String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Transmitido' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_solicitud WHERE trim(estado) IN ('Nuevo','Modificado'));";
         mDataBase.execSQL(sqlUpdate);
+        String sqlUpdateOld = "UPDATE FormHvKof_old_solicitud SET estado = 'Transmitido' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_old_solicitud WHERE trim(estado) IN ('Nuevo','Modificado'));";
+        mDataBase.execSQL(sqlUpdateOld);
     }
     public void ActualizarEstadosSolicitudesTransmitidas(String lista_id_solicitudes){
         //SQLiteDatabase db = this.getWritableDatabase();
         String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Pendiente' WHERE id_solicitud IN ("+lista_id_solicitudes+");";
         mDataBase.execSQL(sqlUpdate);
+        String sqlUpdateOld = "UPDATE FormHvKof_old_solicitud SET estado = 'Pendiente' WHERE id_solicitud IN ("+lista_id_solicitudes+");";
+        mDataBase.execSQL(sqlUpdateOld);
     }
     //Solo para debugging
     public void RestaurarEstadosSolicitudesTransmitidas(){
         //SQLiteDatabase db = this.getWritableDatabase();
         String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = 'Nuevo' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_solicitud WHERE trim(estado) IN ('Modificado'));";
         mDataBase.execSQL(sqlUpdate);
+        String sqlUpdateOld = "UPDATE FormHvKof_old_solicitud SET estado = 'Nuevo' WHERE id_solicitud IN (SELECT id_solicitud FROM FormHvKof_old_solicitud WHERE trim(estado) IN ('Modificado'));";
+        mDataBase.execSQL(sqlUpdateOld);
     }
     public int CantidadAdjuntosMinima(String idform) {
         int cantidad = 0;
-        String sql_encuesta = "select min_adjuntos as cantidad from flujo WHERE id_form = ?";
-        Cursor cursor = mDataBase.rawQuery(sql_encuesta,new String[]{idform});
-        while (cursor.moveToNext()){
-            cantidad = cursor.getInt(0);
+        Cursor cursor = null;
+        String sql_encuesta = "";
+        try {
+            sql_encuesta = "select min_adjuntos_hh as cantidad from flujo WHERE id_form = ?";
+            cursor = mDataBase.rawQuery(sql_encuesta,new String[]{idform});
+            while (cursor.moveToNext()){
+                cantidad = cursor.getInt(0);
+            }
+        }catch(Exception e){
+            sql_encuesta = "select min_adjuntos as cantidad from flujo WHERE id_form = ?";
+            cursor = mDataBase.rawQuery(sql_encuesta,new String[]{idform});
+            while (cursor.moveToNext()){
+                cantidad = cursor.getInt(0);
+            }
+        }finally{
+            if(cursor != null)
+                cursor.close();
         }
-        cursor.close();
         return cantidad;
     }
     public int CantidadSolicitudesTransmision() {
@@ -2506,27 +2762,38 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
     public int CantidadSolicitudesTotal() {
         int cantidad = 0;
-        String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud";
-        Cursor cursor = mDataBase.rawQuery(sql_encuesta,new String[]{});
-        while (cursor.moveToNext()){
-            cantidad = cursor.getInt(0);
+        try {
+            String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud";
+            Cursor cursor = mDataBase.rawQuery(sql_encuesta, new String[]{});
+            while (cursor.moveToNext()) {
+                cantidad = cursor.getInt(0);
+            }
+            cursor.close();
+        }catch (SQLiteException e){
+
         }
-        cursor.close();
         return cantidad;
     }
     public int CantidadSolicitudes(String estado) {
         int cantidad = 0;
-        String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud where trim(estado) = ?";
-        Cursor cursor = mDataBase.rawQuery(sql_encuesta,new String[]{estado});
-        while (cursor.moveToNext()){
-            cantidad = cursor.getInt(0);
+        try {
+
+            String sql_encuesta = "select count(*) as cantidad  from FormHvKof_solicitud where trim(estado) = ?";
+            Cursor cursor = mDataBase.rawQuery(sql_encuesta, new String[]{estado});
+            while (cursor.moveToNext()) {
+                cantidad = cursor.getInt(0);
+            }
+            cursor.close();
+        }catch (SQLiteException e){
+
         }
-        cursor.close();
         return cantidad;
     }
 
     public void CambiarEstadoSolicitud(String lista_id_solicitudes,String estado){
         String sqlUpdate = "UPDATE FormHvKof_solicitud SET estado = '"+estado.trim()+"' WHERE id_solicitud IN ('"+lista_id_solicitudes+"');";
+        mDataBase.execSQL(sqlUpdate);
+        sqlUpdate = "UPDATE FormHvKof_old_solicitud SET estado = '"+estado.trim()+"' WHERE id_solicitud IN ('"+lista_id_solicitudes+"');";
         mDataBase.execSQL(sqlUpdate);
     }
     public void EliminarSolicitud(String id_solicitud){
@@ -2689,5 +2956,178 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String strPattern = "^0+(?!$)";
         str = str.replaceAll(strPattern, "");
         return str;
+    }
+
+    public ArrayList<HashMap<String, String>> getNotificaciones(){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
+        String query = "SELECT * FROM notificaciones";
+        try {
+            Cursor cursor = mDataBase.rawQuery(query, null);
+            while (cursor.moveToNext()) {
+                HashMap<String, String> user = new HashMap<>();
+                user.put("id", cursor.getString(cursor.getColumnIndex("id")) != null ? cursor.getString(cursor.getColumnIndex("id")) : "");
+                user.put("titulo", cursor.getString(cursor.getColumnIndex("titulo")) != null ? cursor.getString(cursor.getColumnIndex("titulo")) : "");
+                user.put("mensaje", cursor.getString(cursor.getColumnIndex("mensaje")) != null ? cursor.getString(cursor.getColumnIndex("mensaje")) : "");
+                user.put("bukrs", cursor.getString(cursor.getColumnIndex("bukrs")) != null ? cursor.getString(cursor.getColumnIndex("bukrs")) : "");
+                user.put("bzirk", cursor.getString(cursor.getColumnIndex("bzirk")) != null ? cursor.getString(cursor.getColumnIndex("bzirk")) : "");
+                user.put("estado", cursor.getString(cursor.getColumnIndex("estado")) != null ? cursor.getString(cursor.getColumnIndex("estado")) : "");
+                user.put("version", cursor.getString(cursor.getColumnIndex("version")) != null ? cursor.getString(cursor.getColumnIndex("version")) : "");
+                clientList.add(user);
+            }
+            cursor.close();
+        }catch(Exception e){
+
+        }
+        return  clientList;
+    }
+
+    public String getIdFlujoDeTipoSolicitud(String tipoSolicitud) {
+        String id_flujo = "";
+        //Revisar que tipo de canal es ON o OFF
+        String query = "select id_flujo FROM flujo WHERE id_form = ?";
+        Cursor cursor = mDataBase.rawQuery(query, new String[]{tipoSolicitud});
+        if (cursor.moveToNext()){
+            id_flujo = cursor.getString(0);
+        }
+        cursor.close();
+        return id_flujo;
+    }
+    public String ClaseRiesgoSegunCondicionPago(String bukrs, String condpago)
+    {
+        String clase_riesgo = "";
+        //Trae la Clase de riesgo segun la condicion de pago seleccionada por sociedad
+        String query = "SELECT claseriesgo from cat_rel_condpago_claseriesgo where bukrs = ? AND condpago = ?";
+        Cursor cursor = mDataBase.rawQuery(query, new String[]{bukrs, condpago});
+        if (cursor.moveToNext()){
+            clase_riesgo = cursor.getString(0);
+        }
+        cursor.close();
+        return clase_riesgo;
+    }
+    public String CondicionExpedicionSegunRutaReparto(String vkorg ,String zroute_rep)
+    {
+        //Revisar si existe relacion en la tabla loc_ruta_expedicion para esta ruta
+        String cond_expedicion = "";
+        String res = "";
+        //Trae la Clase de riesgo segun la condicion de pago seleccionada por sociedad
+        String query = "select vsbed FROM loc_ruta_expedicion WHERE vkorg = ? AND zroute_rep = ?";
+        Cursor cursor = null;
+        try {
+            cursor = mDataBase.rawQuery(query, new String[]{vkorg, zroute_rep});
+
+            if (cursor.moveToNext()) {
+                cond_expedicion = cursor.getString(0);
+            }
+            cursor.close();
+        }catch(Exception e){
+            Log.d("SELECT FAIL", e.getMessage());
+        }
+        if (cond_expedicion != null && !cond_expedicion.equals("") )
+        {
+            res = cond_expedicion;
+        }
+        else {
+            query = "SELECT [DFAUL] FROM ConfigCampos WHERE CAMPO = 'W_CTE-VSBED' AND KTOKD = ? AND BUKRS = ?";
+            cursor = mDataBase.rawQuery(query, new String[]{PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_KTOKD", ""), PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "")});
+            if (cursor.moveToNext()){
+                cond_expedicion = cursor.getString(0);
+            }
+            cursor.close();
+
+            if (cond_expedicion != null && !cond_expedicion.equals("") )
+            {
+                res = cond_expedicion;
+            }
+        }
+        return res;
+    }
+    public String getTipoCambio() {//vkorg,ktokd,name1,street,house_num1,suppl1,suppl3,city1,land1
+        String valor = "";
+        try {
+            Cursor cursor = mDataBase.rawQuery("select tipo_cambio FROM tipoCambio WHERE pkPais = ?", new String[]{PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "")});
+            if (cursor.moveToNext()) {
+                valor = cursor.getString(cursor.getColumnIndex("tipo_cambio"));
+            }
+            cursor.close();
+        }catch (Exception e){
+            Toasty.error(mContext,"Error al obtener el tipo de cambio a dolares.").show();
+            return "0.00";
+        }
+        return valor;
+    }
+
+    public ArrayList<HashMap<String, String>> ExcepcionValorDefaultxAgencia(String agencia, String formulario, String campo)
+    {
+        ArrayList<HashMap<String, String>> excepcionCampoList = new ArrayList<>();
+        String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
+        String ktokd = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_KTOKD", "");
+        String query = "SELECT id, bukrs, ktokd, tipform, bzirk, rtrim(campo) as campo, VIS, OBL, OPC, SUP, rtrim(DFAUL) as DFAUL FROM ConfigExcepciones WHERE (bukrs = '" + sociedad + "') AND (ktokd = '" + ktokd + "') AND (campo = '" + campo + "') AND (bzirk = '" + agencia + "') AND tipform = '" + formulario + "'";
+
+        try {
+            Cursor cursor = mDataBase.rawQuery(query, null);
+            while (cursor.moveToNext()) {
+                HashMap<String, String> excepcionCampo = new HashMap<>();
+                excepcionCampo.put("id", cursor.getString(cursor.getColumnIndex("id")) != null ? cursor.getString(cursor.getColumnIndex("id")) : "");
+                excepcionCampo.put("bukrs", cursor.getString(cursor.getColumnIndex("bukrs")) != null ? cursor.getString(cursor.getColumnIndex("bukrs")) : "");
+                excepcionCampo.put("ktokd", cursor.getString(cursor.getColumnIndex("ktokd")) != null ? cursor.getString(cursor.getColumnIndex("ktokd")) : "");
+                excepcionCampo.put("tipform", cursor.getString(cursor.getColumnIndex("tipform")) != null ? cursor.getString(cursor.getColumnIndex("tipform")) : "");
+                excepcionCampo.put("bzirk", cursor.getString(cursor.getColumnIndex("bzirk")) != null ? cursor.getString(cursor.getColumnIndex("bzirk")) : "");
+                excepcionCampo.put("campo", cursor.getString(cursor.getColumnIndex("campo")) != null ? cursor.getString(cursor.getColumnIndex("campo")) : "");
+                excepcionCampo.put("VIS", cursor.getString(cursor.getColumnIndex("VIS")) != null ? cursor.getString(cursor.getColumnIndex("VIS")) : "");
+                excepcionCampo.put("OBL", cursor.getString(cursor.getColumnIndex("OBL")) != null ? cursor.getString(cursor.getColumnIndex("OBL")) : "");
+                excepcionCampo.put("OPC", cursor.getString(cursor.getColumnIndex("OPC")) != null ? cursor.getString(cursor.getColumnIndex("OPC")) : "");
+                excepcionCampo.put("SUP", cursor.getString(cursor.getColumnIndex("SUP")) != null ? cursor.getString(cursor.getColumnIndex("SUP")) : "");
+                excepcionCampo.put("DFAUL", cursor.getString(cursor.getColumnIndex("DFAUL")) != null ? cursor.getString(cursor.getColumnIndex("DFAUL")) : "");
+                excepcionCampoList.add(excepcionCampo);
+            }
+            cursor.close();
+        }catch(Exception e){
+
+        }
+        if(excepcionCampoList.size() == 0){
+                query = "SELECT bukrs, ktokd, rtrim(campo) as campo, MAX(VIS) as VIS, MAX(OBL) as OBL, MAX(OPC) as OPC, MAX(SUP) as SUP, MAX(rtrim(DFAUL)) as DFAUL FROM ConfigCampos WHERE (bukrs = '" + sociedad + "') AND (ktokd = '" + ktokd + "') AND (campo = '" + campo + "') group BY bukrs, ktokd, rtrim(campo)";
+            try {
+                Cursor cursor = mDataBase.rawQuery(query, null);
+                while (cursor.moveToNext()) {
+                    HashMap<String, String> excepcionCampo = new HashMap<>();
+                    excepcionCampo.put("id", cursor.getString(cursor.getColumnIndex("id")) != null ? cursor.getString(cursor.getColumnIndex("id")) : "");
+                    excepcionCampo.put("bukrs", cursor.getString(cursor.getColumnIndex("bukrs")) != null ? cursor.getString(cursor.getColumnIndex("bukrs")) : "");
+                    excepcionCampo.put("ktokd", cursor.getString(cursor.getColumnIndex("ktokd")) != null ? cursor.getString(cursor.getColumnIndex("ktokd")) : "");
+                    excepcionCampo.put("tipform", cursor.getString(cursor.getColumnIndex("tipform")) != null ? cursor.getString(cursor.getColumnIndex("tipform")) : "");
+                    excepcionCampo.put("bzirk", cursor.getString(cursor.getColumnIndex("bzirk")) != null ? cursor.getString(cursor.getColumnIndex("bzirk")) : "");
+                    excepcionCampo.put("campo", cursor.getString(cursor.getColumnIndex("campo")) != null ? cursor.getString(cursor.getColumnIndex("campo")) : "");
+                    excepcionCampo.put("VIS", cursor.getString(cursor.getColumnIndex("VIS")) != null ? cursor.getString(cursor.getColumnIndex("VIS")) : "");
+                    excepcionCampo.put("OBL", cursor.getString(cursor.getColumnIndex("OBL")) != null ? cursor.getString(cursor.getColumnIndex("OBL")) : "");
+                    excepcionCampo.put("OPC", cursor.getString(cursor.getColumnIndex("OPC")) != null ? cursor.getString(cursor.getColumnIndex("OPC")) : "");
+                    excepcionCampo.put("SUP", cursor.getString(cursor.getColumnIndex("SUP")) != null ? cursor.getString(cursor.getColumnIndex("SUP")) : "");
+                    excepcionCampo.put("DFAUL", cursor.getString(cursor.getColumnIndex("DFAUL")) != null ? cursor.getString(cursor.getColumnIndex("DFAUL")) : "");
+                    excepcionCampoList.add(excepcionCampo);
+                }
+                cursor.close();
+            }catch(Exception e){
+
+            }
+
+        }
+        return  excepcionCampoList;
+    }
+
+    public boolean ExistenIniciativas() {
+        int valor = 0;
+        try {
+            Cursor cursor = mDataBase.rawQuery("select count(*) as cantidad FROM flujo WHERE ind_modelo = ?", new String[]{"L"});
+            if (cursor.moveToNext()) {
+                valor = cursor.getInt(cursor.getColumnIndex("cantidad"));
+            }
+            cursor.close();
+        }catch (Exception e){
+            Toasty.error(mContext,"Error al obtener formularios de Iniciativa").show();
+            return false;
+        }
+        if(valor > 0)
+            return true;
+        else
+            return false;
     }
 }

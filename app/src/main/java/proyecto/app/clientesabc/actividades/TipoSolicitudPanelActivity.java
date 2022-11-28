@@ -7,20 +7,7 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.ContextThemeWrapper;
-import android.support.v7.view.menu.MenuBuilder;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.NonNull;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -32,11 +19,27 @@ import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 
@@ -104,7 +107,11 @@ public class TipoSolicitudPanelActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.comunicacion:
-                        intent = new Intent(getBaseContext(),TCPActivity.class);
+                        if(!VariablesGlobales.UsarAPI()) {
+                            intent = new Intent(getBaseContext(), TCPActivity.class);
+                        }else{
+                            intent = new Intent(getBaseContext(), APIConfigActivity.class);
+                        }
                         startActivity(intent);
                         break;
                     case R.id.clientes:
@@ -176,10 +183,10 @@ public class TipoSolicitudPanelActivity extends AppCompatActivity {
                     return false;
                 }
             });
-            searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
-            TextView textView = searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
-            ImageView searchBtn = searchView.findViewById(android.support.v7.appcompat.R.id.search_button);
-            ImageView searchCloseBtn = searchView.findViewById(android.support.v7.appcompat.R.id.search_close_btn);
+            searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+            TextView textView = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+            ImageView searchBtn = searchView.findViewById(androidx.appcompat.R.id.search_button);
+            ImageView searchCloseBtn = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
             textView.setTextColor(getResources().getColor(R.color.white,null));
             searchBtn.setColorFilter(getResources().getColor(R.color.white,null));
             searchCloseBtn.setColorFilter(getResources().getColor(R.color.white,null));

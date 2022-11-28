@@ -26,7 +26,7 @@ public class ImpuestoTableAdapter extends TableDataAdapter<Impuesto> {
     private int textSize = 10;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
-    private int gravity = Gravity.START;
+    private int gravity = Gravity.CENTER;
 
     public ImpuestoTableAdapter(Context context, ArrayList<Impuesto> data) {
         super(context, data);

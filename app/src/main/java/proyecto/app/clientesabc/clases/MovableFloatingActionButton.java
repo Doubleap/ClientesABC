@@ -1,11 +1,12 @@
 package proyecto.app.clientesabc.clases;
 
 import android.content.Context;
-import android.support.design.widget.FloatingActionButton;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class MovableFloatingActionButton extends FloatingActionButton implements View.OnTouchListener {
 

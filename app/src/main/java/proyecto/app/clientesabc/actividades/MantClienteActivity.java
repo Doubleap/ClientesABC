@@ -3,6 +3,8 @@ package proyecto.app.clientesabc.actividades;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.SearchManager;
+import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,22 +12,23 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.ContextThemeWrapper;
-import android.support.v7.view.menu.MenuBuilder;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.preference.PreferenceManager;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -44,6 +47,8 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
 import com.honeywell.aidc.AidcManager;
 import com.honeywell.aidc.BarcodeFailureEvent;
 import com.honeywell.aidc.BarcodeReadEvent;
@@ -52,14 +57,16 @@ import com.honeywell.aidc.InvalidScannerNameException;
 import com.honeywell.aidc.ScannerNotClaimedException;
 import com.honeywell.aidc.ScannerUnavailableException;
 import com.honeywell.aidc.UnsupportedPropertyException;
-import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
+import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
@@ -72,6 +79,9 @@ public class MantClienteActivity extends AppCompatActivity {
     private DataBaseHelper db;
     private AidcManager manager;
     private BarcodeReader reader;
+    private MovableFloatingActionButton fab;
+    private FloatingActionButton fab1;
+    private FloatingActionButton fab2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,10 +95,14 @@ public class MantClienteActivity extends AppCompatActivity {
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
 
-        FloatingActionButton fab = findViewById(R.id.addBtn);
+        fab1 = findViewById(R.id.filterBtn);
+        fab2 = findViewById(R.id.addBtn);
+        fab1.hide();fab2.hide();
+        fab = findViewById(R.id.fabBtn);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                view.setEnabled(false);
                 Bundle b = new Bundle();
                 //TODO seleccionar el tipo de solicitud por el UI
                 b.putString("tipoSolicitud", "1"); //id de solicitud
@@ -101,7 +115,7 @@ public class MantClienteActivity extends AppCompatActivity {
         /**/
         Drawable d = getResources().getDrawable(R.drawable.header_curved_cc5,null);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("Mis Clientes");
+        toolbar.setTitle("Mis Clientes ("+clientList.size()+")");
         //toolbar.setSubtitle("");
         toolbar.setBackground(d);
         toolbar.setSubtitleTextColor(getResources().getColor(R.color.white,null));
@@ -111,8 +125,7 @@ public class MantClienteActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         toggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.white,null));
         drawer.addDrawerListener(toggle);
 
@@ -134,7 +147,11 @@ public class MantClienteActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.comunicacion:
-                        intent = new Intent(getBaseContext(),TCPActivity.class);
+                        if(!VariablesGlobales.UsarAPI()) {
+                            intent = new Intent(getBaseContext(), TCPActivity.class);
+                        }else{
+                            intent = new Intent(getBaseContext(), APIConfigActivity.class);
+                        }
                         startActivity(intent);
                         break;
                     case R.id.clientes:
@@ -176,6 +193,15 @@ public class MantClienteActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        FloatingActionButton fab = findViewById(R.id.fabBtn);
+        if (fab != null) {
+            fab.setEnabled(true);
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_search, menu);
 
@@ -206,10 +232,10 @@ public class MantClienteActivity extends AppCompatActivity {
                     return false;
                 }
             });
-            searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
-            TextView textView = searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
-            ImageView searchBtn = searchView.findViewById(android.support.v7.appcompat.R.id.search_button);
-            ImageView searchCloseBtn = searchView.findViewById(android.support.v7.appcompat.R.id.search_close_btn);
+            searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+            TextView textView = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+            ImageView searchBtn = searchView.findViewById(androidx.appcompat.R.id.search_button);
+            ImageView searchCloseBtn = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
             textView.setTextColor(getResources().getColor(R.color.white,null));
             searchBtn.setColorFilter(getResources().getColor(R.color.white,null));
             searchCloseBtn.setColorFilter(getResources().getColor(R.color.white,null));
@@ -304,18 +330,18 @@ public class MantClienteActivity extends AppCompatActivity {
             }
             color_gec.setBackground(ContextCompat.getDrawable(getBaseContext(), color));
 
-
+            final String codigoCliente = codigo.getText().toString().trim();
             codigo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Bundle b = new Bundle();
-                    b.putString("idCliente", ((TextView)v).getText().toString()); //id de solicitud
-                    Intent intent = new Intent(v.getContext(),ClienteActivity.class);
-                    intent.putExtras(b); //Pase el parametro el Intent
+                    Bundle cc = new Bundle();
+                    cc.putString("tipoSolicitud", getResources().getString(R.string.ID_FORM_CONSULTA_CLIENTE)); //id de solicitud
+                    cc.putString("codigoCliente", codigoCliente);
+                    intent = new Intent(getApplicationContext(), ConsultaClienteTotalActivity.class);
+                    intent.putExtras(cc); //Pase el parametro el Intent
                     startActivity(intent);
                 }
             });
-            final String codigoCliente = codigo.getText().toString().trim();
             textViewOptions.setOnClickListener(new View.OnClickListener() {
                 @SuppressLint("RestrictedApi")
                 @Override
@@ -330,20 +356,32 @@ public class MantClienteActivity extends AppCompatActivity {
                     //inflating menu from xml resource
                     popup.inflate(R.menu.mant_clientes_item_menu);
                     //adding click listener
+                    if(PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("CONFIG_SOCIEDAD","").equals("Z001")){
+                        MenuItem menuItem = (MenuItem)popup.getMenu().getItem(4).setVisible(false);
+                    }
+                    if(!db.ExistenIniciativas()){
+                        MenuItem menuItem = (MenuItem)popup.getMenu().getItem(5).setVisible(false);
+                    }
 
                     popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         @Override
                         public boolean onMenuItemClick(MenuItem item) {
                             switch (item.getItemId()) {
                                 case R.id.detalle:
-                                    Bundle b = new Bundle();
+                                    /*Bundle b = new Bundle();
                                     b.putString("idCliente", codigoCliente); //id de solicitud
-                                    Intent intent = new Intent(getBaseContext(),ClienteActivity.class);
+                                    Intent intent = new Intent(getBaseContext(),ConsultaClienteTotalActivity.class);
                                     intent.putExtras(b); //Pase el parametro el Intent
+                                    startActivity(intent);*/
+                                    Bundle cc = new Bundle();
+                                    cc.putString("tipoSolicitud", getResources().getString(R.string.ID_FORM_CONSULTA_CLIENTE)); //id de solicitud
+                                    cc.putString("codigoCliente", codigoCliente);
+                                    intent = new Intent(getApplicationContext(), ConsultaClienteTotalActivity.class);
+                                    intent.putExtras(cc); //Pase el parametro el Intent
                                     startActivity(intent);
                                     break;
                                 case R.id.modificar:
-                                    showDialogFormulariosModificacion(codigoCliente,false, false);
+                                    showDialogFormulariosModificacion(codigoCliente,false, false, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Modificaciones NO disponible de momento.").show();
                                     break;
                                 case R.id.cierre:
@@ -356,13 +394,17 @@ public class MantClienteActivity extends AppCompatActivity {
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Cierre NO disponible de momento.").show();
                                     break;
                                 case R.id.credito:
-                                    showDialogFormulariosModificacion(codigoCliente,true, false);
+                                    showDialogFormulariosModificacion(codigoCliente,true, false, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Credito NO disponible de momento.").show();
                                     break;
                                 case R.id.equipofrio:
                                     //EQUIPO FRIO
-                                    showDialogFormulariosModificacion(codigoCliente,false, true);
+                                    showDialogFormulariosModificacion(codigoCliente,false, true, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
+                                    break;
+                                case R.id.iniciativas:
+                                    //INICIATIVAS, estos formularios son locales y nunca van a SAP
+                                    showDialogFormulariosModificacion(codigoCliente,false, false, true);
                                     break;
                                 case R.id.comollegar:
                                     String uri = "";
@@ -375,7 +417,11 @@ public class MantClienteActivity extends AppCompatActivity {
                                                 + longitud + "?q=" + latitud
                                                 + "," + longitud;
                                     }
-                                    startActivity(new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(uri)));
+                                    try {
+                                        startActivity(new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(uri)));
+                                    }catch(ActivityNotFoundException e){
+                                        Toasty.warning(getBaseContext(),"No se encontró una aplicacion GPS para abrir las coordenadas.").show();
+                                    }
                                     break;
 
                             }
@@ -445,7 +491,7 @@ public class MantClienteActivity extends AppCompatActivity {
         }
     }
 
-    private void showDialogFormulariosModificacion(final String codigoCliente, boolean credito, boolean equipofrio) {
+    private void showDialogFormulariosModificacion(final String codigoCliente, boolean credito, boolean equipofrio, boolean iniciativas) {
         ArrayList<HashMap<String,String>> formulariosPermitidos = null;
         if(credito) {
             formulariosPermitidos = db.getModificacionesCreditoPermitidas();
@@ -457,6 +503,12 @@ public class MantClienteActivity extends AppCompatActivity {
             formulariosPermitidos = db.getOrdenesServicioPermitidas();
             if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
                 Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de Equipo frio para HH.").show();
+                return;
+            }
+        }else if(iniciativas) {
+            formulariosPermitidos = db.getIniciativasLocalesPermitidas();
+            if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
+                Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de Iniciativas para HH.").show();
                 return;
             }
         }else {
@@ -518,7 +570,7 @@ public class MantClienteActivity extends AppCompatActivity {
                 if(selectedPosition < 0){
                     Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de modificación!").show();
                 }else {
-                    if (forms[selectedPosition].toLowerCase().contains("credito") || forms[selectedPosition].toLowerCase().contains("crédito")) {
+                    if (forms[selectedPosition].toLowerCase().contains("credito") || forms[selectedPosition].toLowerCase().contains("crédito") || credito) {
                         dialog.dismiss();
                         Bundle b = new Bundle();
                         b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
@@ -526,7 +578,6 @@ public class MantClienteActivity extends AppCompatActivity {
                         intent = new Intent(getApplicationContext(), SolicitudCreditoActivity.class);
                         intent.putExtras(b); //Pase el parametro el Intent
                         startActivity(intent);
-
                     } else if(forms[selectedPosition].toLowerCase().contains("eq.") || forms[selectedPosition].toLowerCase().contains("frio") || forms[selectedPosition].toLowerCase().contains("equipo")) {
                         if(forms[selectedPosition].toLowerCase().contains("instal")) {//Si es de instalacion no ocupa numero de maquina de equipo frio
                             dialog.dismiss();

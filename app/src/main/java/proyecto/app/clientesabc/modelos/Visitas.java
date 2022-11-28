@@ -289,6 +289,68 @@ public class Visitas implements Cloneable{
         this.fcalid = fcalid;
     }
 
+    public String getValorDiaSegunIndice(int columnIndex){
+        String valorCelda = "";
+        switch(columnIndex){
+            case 0:
+                valorCelda = getLun_de();
+                break;
+            case 1:
+                valorCelda = getMar_de();
+                break;
+            case 2:
+                valorCelda = getMier_de();
+                break;
+            case 3:
+                valorCelda = getJue_de();
+                break;
+            case 4:
+                valorCelda = getVie_de();
+                break;
+            case 5:
+                valorCelda = getSab_de();
+                break;
+            case 6:
+                valorCelda = getDom_de();
+                break;
+        }
+        return valorCelda;
+    }
+
+    public void setValorDiaSegunIndice(int columnIndex, String valor){
+        String valorCelda = "";
+        switch(columnIndex){
+            case 0:
+                setLun_de(valor);
+                setLun_a(valor);
+                break;
+            case 1:
+                setMar_de(valor);
+                setMar_a(valor);
+                break;
+            case 2:
+                setMier_de(valor);
+                setMier_a(valor);
+                break;
+            case 3:
+                setJue_de(valor);
+                setJue_a(valor);
+                break;
+            case 4:
+                setVie_de(valor);
+                setVie_a(valor);
+                break;
+            case 5:
+                setSab_de(valor);
+                setSab_a(valor);
+                break;
+            case 6:
+                setDom_de(valor);
+                setDom_a(valor);
+                break;
+        }
+    }
+
     public String getValueFromColumn(int columnIndex){
         String valorCelda = "";
         switch(columnIndex){
@@ -312,5 +374,29 @@ public class Visitas implements Cloneable{
                 break;
         }
         return valorCelda;
+    }
+
+    public boolean DiferenciaDeDiasDeVisita(Visitas visitasOld) {
+        boolean cambio = false;
+        if((this.getLun_a().length() == 0 && visitasOld.getLun_a().length() > 0) || (this.getLun_a().length() > 0 && visitasOld.getLun_a().length() == 0))
+            cambio = true;
+        if((this.getMar_a().length() == 0 && visitasOld.getMar_a().length() > 0) || (this.getMar_a().length() > 0 && visitasOld.getMar_a().length() == 0))
+            cambio = true;
+        if((this.getMier_a().length() == 0 && visitasOld.getMier_a().length() > 0) || (this.getMier_a().length() > 0 && visitasOld.getMier_a().length() == 0))
+            cambio = true;
+        if((this.getJue_a().length() == 0 && visitasOld.getJue_a().length() > 0) || (this.getJue_a().length() > 0 && visitasOld.getJue_a().length() == 0))
+            cambio = true;
+        if((this.getVie_a().length() == 0 && visitasOld.getVie_a().length() > 0) || (this.getVie_a().length() > 0 && visitasOld.getVie_a().length() == 0))
+            cambio = true;
+        if((this.getSab_a().length() == 0 && visitasOld.getSab_a().length() > 0) || (this.getSab_a().length() > 0 && visitasOld.getSab_a().length() == 0))
+            cambio = true;
+        if(visitasOld.getDom_a() != null && this.getDom_a() != null) {
+            if ((this.getDom_a().length() == 0 && visitasOld.getDom_a().length() > 0) || (this.getDom_a().length() > 0 && visitasOld.getDom_a().length() == 0))
+                cambio = true;
+        }else{
+            if ((visitasOld.getDom_a() == null && this.getDom_a() != null && this.getDom_a().length() > 0) || (this.getDom_a() == null && visitasOld.getDom_a() != null && visitasOld.getDom_a().length() > 0))
+                cambio = true;
+        }
+        return cambio;
     }
 }

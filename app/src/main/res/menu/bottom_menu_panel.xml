@@ -7,7 +7,7 @@
     <item
         android:id="@+id/action_nuevo_cliente"
         android:icon="@drawable/icon_add_client"
-        android:title="Inclusión" />
+        android:title="Alta Cliente" />
     <item
         android:id="@+id/action_clientes"
         android:icon="@drawable/icon_client_list"

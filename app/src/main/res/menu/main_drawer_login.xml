@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <group android:checkableBehavior="single">
@@ -14,9 +13,15 @@
         <item
             android:id="@+id/comunicacion"
             android:title="@string/comunicacion"
-            android:icon="@android:drawable/ic_menu_preferences"
+            android:icon="@drawable/icon_communication"
             app:showAsAction="never|withText">
         </item>
+        <item
+            android:id="@+id/configuracion"
+            android:icon="@drawable/icon_app_settings"
+            android:title="@string/configuracion"
+            android:visible="false"
+            app:showAsAction="never|withText"></item>
         <item
             android:id="@+id/borrar_datos"
             android:title="@string/borrar_datos"

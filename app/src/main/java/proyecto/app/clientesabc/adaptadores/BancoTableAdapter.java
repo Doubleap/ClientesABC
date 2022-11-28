@@ -26,7 +26,7 @@ public class BancoTableAdapter extends TableDataAdapter<Banco> {
     private int textSize = 10;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
-    private int gravity = Gravity.START;
+    private int gravity = Gravity.CENTER;
 
     public BancoTableAdapter(Context context, ArrayList<Banco> data) {
         super(context, data);
