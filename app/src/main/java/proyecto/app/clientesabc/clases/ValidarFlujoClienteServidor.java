@@ -32,6 +32,8 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.actividades.ConsultaClienteTotalActivity;
+import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 
@@ -113,7 +115,7 @@ public class ValidarFlujoClienteServidor extends AsyncTask<Void,String,ArrayList
                     publishProgress("Procesando datos recibidos...");
                     byte[] r = new byte[(int) s];
                     dis.readFully(r);
-                    String respuestajson = new String(r);
+                    String respuestajson = new String(r,"UTF-8");
                     Gson gson = new Gson();
                     respuesta.add(gson.fromJson(respuestajson, JsonArray.class));
                     publishProgress("Procesando datos cliente..");
@@ -190,7 +192,13 @@ public class ValidarFlujoClienteServidor extends AsyncTask<Void,String,ArrayList
             Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
             activity.get().finish();
         }
-        SolicitudModificacionActivity.SolicitudPermitida(context.get(), activity.get(), mensajes);
+        if(context.get().getClass().getSimpleName().equals("SolicitudModificacionActivity"))
+            SolicitudModificacionActivity.SolicitudPermitida(context.get(), activity.get(), mensajes);
+        else if(context.get().getClass().getSimpleName().equals("SolicitudAvisosEquipoFrioActivity"))
+            SolicitudAvisosEquipoFrioActivity.SolicitudPermitida(context.get(), activity.get(), mensajes);
+        else if(context.get().getClass().getSimpleName().equals("SolicitudCreditoActivity"))
+            SolicitudCreditoActivity.SolicitudPermitida(context.get(), activity.get(), mensajes);
+
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

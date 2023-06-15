@@ -32,12 +32,13 @@
                 android:layout_marginLeft="10dp"
                 android:text="Codigo"
                 android:textAppearance="?android:textAppearanceMedium" />
+
             <TextView
                 android:id="@+id/idfiscal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
                 android:layout_below="@id/textViewHead"
+                android:layout_marginLeft="10dp"
                 android:text="ID Fiscal"
                 android:textAppearance="?android:textAppearanceSmall" />
             <TextView
@@ -50,6 +51,16 @@
                 android:text="Nombre Cliente"
                 android:textAppearance="?android:textAppearanceSmallPopupMenu" />
 
+            <TextView
+                android:id="@+id/textRazonSocial"
+                android:layout_width="362dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/textViewDesc"
+                android:layout_marginLeft="10dp"
+                android:text="Razon Social"
+                android:textAppearance="?android:textAppearanceSmallPopupMenu"
+                android:textSize="12dp"/>
+
             <ImageView
                 android:id="@+id/textViewOptions"
                 android:layout_width="wrap_content"
@@ -60,13 +71,14 @@
                 android:layout_below="@+id/estado_text"
                 android:layout_alignParentEnd="true"
                 android:background="@drawable/icon_menu"/>
+
             <TextView
                 android:id="@+id/correo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_below="@id/textRazonSocial"
                 android:layout_marginLeft="10dp"
-                android:layout_below="@id/textViewDesc"
-                android:text="ubicacion"
+                android:text="Correo Electronico"
                 android:textAppearance="?android:textAppearanceSmall" />
             <!--<TextView
                 android:id="@+id/ubicacion"

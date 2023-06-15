@@ -23,6 +23,7 @@ import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ContextThemeWrapper;
@@ -41,6 +42,7 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -112,6 +114,8 @@ import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.Validaciones;
+import proyecto.app.clientesabc.clases.ValidarFlujoClienteAPI;
+import proyecto.app.clientesabc.clases.ValidarFlujoClienteServidor;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
@@ -509,13 +513,16 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             WeakReference<Context> weakRefs1 = new WeakReference<Context>(this);
             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(this);
             if (VariablesGlobales.UsarAPI()) {
+                ValidarFlujoClienteAPI v = new ValidarFlujoClienteAPI(weakRefs1, weakRefAs1, codigoCliente, tipoSolicitud, "0");
+                v.execute();
                 ConsultaCreditoClienteAPI c = new ConsultaCreditoClienteAPI(weakRefs1, weakRefAs1, codigoCliente, tipoCreditoSAP);
                 c.execute();
             } else {
+                ValidarFlujoClienteServidor v = new ValidarFlujoClienteServidor(weakRefs1, weakRefAs1, codigoCliente, tipoSolicitud, "0");
+                v.execute();
                 ConsultaCreditoClienteServidor c = new ConsultaCreditoClienteServidor(weakRefs1, weakRefAs1, codigoCliente, tipoCreditoSAP);
                 c.execute();
             }
-
         }
         //cliente = c.execute().get();
 
@@ -4567,6 +4574,46 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                 Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_LONG).show();
             }
 
+        }
+    }
+
+    public static void SolicitudPermitida(Context context, Activity activity, ArrayList<JsonArray> mensajes) {
+        String mensaje="";
+        if(mensajes.size() > 0 && mensajes.get(0)  != null){
+            mensaje = mensajes.get(0).getAsJsonArray().get(0).getAsJsonObject().get("mensaje").getAsString();
+            if(!mensaje.isEmpty()) {
+                Toasty.error(context.getApplicationContext(), mensaje,Toasty.LENGTH_LONG).show();
+                //Deshabilitar el menu para que no pueda guardar el formulario pero si pueda ver la informacion del cliente.
+                LinearLayout ll = activity.findViewById(R.id.LinearLayoutMain);
+                DrawerLayout.LayoutParams h = new DrawerLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT);
+
+                h.setMargins(0, 0, 0, 0);
+                ll.setLayoutParams(h);
+                bottomNavigation.setVisibility(View.GONE);
+                bottomNavigation.animate().translationY(150);
+
+                LinearLayout v = new LinearLayout(context.getApplicationContext());
+                v.setOrientation(LinearLayout.VERTICAL);
+                TextView title = new TextView(context.getApplicationContext());
+                TextView subTitle = new TextView(context.getApplicationContext());
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, // Width of TextView
+                        LinearLayout.LayoutParams.WRAP_CONTENT); // Height of TextView
+                title.setLayoutParams(lp);
+                title.setText(mensaje);
+                title.setTextColor(Color.WHITE);
+                title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+                subTitle.setLayoutParams(lp);
+                subTitle.setText("No se puede generar la solicitud de "+((AppCompatActivity)activity).getSupportActionBar().getSubtitle()+" en estos momentos.");
+                subTitle.setTextColor(Color.WHITE);
+                subTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
+
+                v.addView(title);
+                v.addView(subTitle);
+
+                ((AppCompatActivity)activity).getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+                ((AppCompatActivity)activity).getSupportActionBar().setCustomView(v);
+            }
         }
     }
 

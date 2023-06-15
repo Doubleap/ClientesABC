@@ -5,6 +5,8 @@
       <map>
         <entry key="..\:/ClientesABC/app/src/main/res/drawable/PedidosContingencia_background.xml" value="0.213" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_firma_tarjeta.xml" value="0.33" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/detalle.xml" value="0.17604166666666668" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/mant_clientes_item.xml" value="0.25" />
         <entry key="..\:/ClientesABC/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.1845" />
       </map>
     </option>

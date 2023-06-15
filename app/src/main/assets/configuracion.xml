@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuracion>
     <sistema>
-        <nombrePais>Uruguay Distribuidores</nombrePais>
-        <sociedad>Z001</sociedad>
-        <orgvta>Z001</orgvta>
-        <land1>UY</land1>
-        <cadenaRM>0000245000</cadenaRM>
-        <ktokd>UYDD</ktokd>
+        <nombrePais>Costa Rica</nombrePais>
+        <sociedad>F443</sociedad>
+        <orgvta>0443</orgvta>
+        <land1>CR</land1>
+        <cadenaRM>0000160000</cadenaRM>
+        <ktokd>RCMA</ktokd>
         <!--
         <nombrePais>Panamá</nombrePais>
         <sociedad>F451</sociedad>
@@ -121,7 +121,7 @@
           <Puerto>3345</Puerto>
       </conexion>-->
         <conexion defecto="true">
-            <nombre>Produccion Gprs NI</nombre>
+            <nombre>Produccion Gprs CR</nombre>
             <tipo_conexion>gprs</tipo_conexion>
             <Ip>192.168.105.77</Ip>
             <Puerto>3345</Puerto>

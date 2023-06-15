@@ -1061,7 +1061,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     }
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(), filtroxPais);
 
-                    //Si son catalogos de equipo frio debo las columnas de ID y Descripcion estan en otros indice de columnas
+                    //Si son catalogos de equipo frio debo indicar el indice de las columnas de ID y Descripcion estan en otros indice de columnas
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_causas") || campos.get(i).get("tabla").trim().toLowerCase().equals("ef_prioridades")){
                         opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),3,4,null);
                     }
@@ -1427,8 +1427,32 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                 if(indiceReparto != -1)
                                                     visitasSolicitud.get(indiceReparto).setRuta(rutaRepartoNuevaOriginal);
                                                 tb_visitas.setDataAdapter(new VisitasTableAdapter(getContext(), visitasSolicitud));
-                                                if(rutaRepartoNuevaOriginal != null)
+
+                                                if(rutaRepartoNuevaOriginal != null) {
+                                                    int indiceSel = VariablesGlobales.getIndex(zona_transporte_old, rutaRepartoNuevaOriginal);
+                                                    if(indiceSel == -1){
+                                                        //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP o del formulario con incidencia
+                                                        if(VariablesGlobales.getIndex(zona_transporte_old, rutaRepartoNuevaOriginal) == -1 ){
+                                                            ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) zona_transporte_old.getAdapter());
+                                                            OpcionSpinner opcionSAP = new OpcionSpinner(rutaRepartoNuevaOriginal,rutaRepartoNuevaOriginal +" - "+ rutaRepartoNuevaOriginal);
+                                                            dataAdapter.add(opcionSAP);
+                                                            dataAdapter.notifyDataSetChanged();
+                                                        }
+                                                    }
+                                                    zona_transporte_old.setSelection(VariablesGlobales.getIndex(zona_transporte_old, rutaRepartoNuevaOriginal));
+
+                                                    indiceSel = VariablesGlobales.getIndex(zona_transporte, rutaRepartoNuevaOriginal);
+                                                    if(indiceSel == -1){
+                                                        //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP o del formulario con incidencia
+                                                        if(VariablesGlobales.getIndex(zona_transporte, rutaRepartoNuevaOriginal) == -1 ){
+                                                            ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) zona_transporte.getAdapter());
+                                                            OpcionSpinner opcionSAP = new OpcionSpinner(rutaRepartoNuevaOriginal,rutaRepartoNuevaOriginal +" - "+ rutaRepartoNuevaOriginal);
+                                                            dataAdapter.add(opcionSAP);
+                                                            dataAdapter.notifyDataSetChanged();
+                                                        }
+                                                    }
                                                     zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte, rutaRepartoNuevaOriginal));
+                                                }
                                             }
                                         }
 
@@ -4826,6 +4850,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         // Drop down layout style - list view with radio button
         dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
         ruta_reparto.setAdapter(dataAdapterRuta);
+
         ruta_reparto.setSelection(VariablesGlobales.getIndex(ruta_reparto, seleccionado.getRuta()));
 
         if(!reparto){
@@ -4844,6 +4869,20 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 ruta_reparto.setSelection(VariablesGlobales.getIndex(ruta_reparto, seleccionado.getRuta()));
             }
         }
+        if(reparto) {
+            int indiceSel = VariablesGlobales.getIndex(ruta_reparto, seleccionado.getRuta());
+            if(indiceSel == -1){
+                //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP o del formulario con incidencia
+                if(VariablesGlobales.getIndex(ruta_reparto, seleccionado.getRuta()) == -1 ){
+                    ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) ruta_reparto.getAdapter());
+                    OpcionSpinner opcionSAP = new OpcionSpinner(seleccionado.getRuta(),seleccionado.getRuta() +" - "+ seleccionado.getRuta());
+                    dataAdapter.add(opcionSAP);
+                    dataAdapter.notifyDataSetChanged();
+                }
+            }
+            ruta_reparto.setSelection(VariablesGlobales.getIndex(ruta_reparto, seleccionado.getRuta()));
+        }
+
         /*if(reparto){
             kvgr4Spinner.setVisibility(GONE);
             f_icoEditText.setVisibility(GONE);
@@ -5498,8 +5537,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
                                         visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
                                         visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
-
-                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
+                                    if(visitasSolicitud.get(c).getRuta().trim().length() > 0) {
+                                        mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
+                                    }
                                     visitaValues.clear();
                                 }
                             } catch (Exception e) {
@@ -5860,9 +5900,6 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                             sp.setSelection(VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
                         }
-
-                        //Actualizar comentario Automatico apara corregir los erroneos de MODALIDAD DE VTA
-
 
                         sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaFinal.get(i)));
                         if(sp != null) {
@@ -7471,25 +7508,69 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             }
 
             if (moab1 != 0 && mobi2 != 0 && mobi1 == 0 && moab2 == 0 && moab1 > mobi2) {
-                mensajeHorarios += "En el dia Lunes, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+                mensajeHorarios += "En el dia Lunes, la hora inicial de la mañana no puede ser mayor a la hora final de la tarde!\n";
             }
             if (diab1 != 0 && dibi2 != 0 && dibi1 == 0 && diab2 == 0 && diab1 > dibi2) {
-                mensajeHorarios += "En el dia Martes, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+                mensajeHorarios += "En el dia Martes, la hora inicial de la mañana no puede ser mayor a la hora final de la tarde!\n";
             }
             if (miab1 != 0 && mibi2 != 0 && mibi1 == 0 && miab2 == 0 && miab1 > mibi2) {
-                mensajeHorarios += "En el dia Miercoles, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+                mensajeHorarios += "En el dia Miercoles, la hora inicial de la mañana no puede ser mayor a la hora final de la tarde!\n";
             }
             if (doab1 != 0 && dobi2 != 0 && dobi1 == 0 && doab2 == 0 && doab1 > dobi2) {
-                mensajeHorarios += "En el dia Jueves, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+                mensajeHorarios += "En el dia Jueves, la hora inicial de la mañana no puede ser mayor a la hora final de la tarde!\n";
             }
             if (frab1 != 0 && frbi2 != 0 && frbi1 == 0 && frab2 == 0 && frab1 > frbi2) {
-                mensajeHorarios += "En el dia Viernes, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+                mensajeHorarios += "En el dia Viernes, la hora inicial de la mañana no puede ser mayor a la hora final de la tarde!\n";
             }
             if (saab1 != 0 && sabi2 != 0 && sabi1 == 0 && saab2 == 0 && saab1 > sabi2) {
-                mensajeHorarios += "En el dia Sabado, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+                mensajeHorarios += "En el dia Sabado, la hora inicial de la mañana no puede ser mayor a la hora final de la tarde!\n";
             }
             if (soab1 != 0 && sobi2 != 0 && sobi1 == 0 && soab2 == 0 && soab1 > sobi2) {
-                mensajeHorarios += "En el dia Domingo, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+                mensajeHorarios += "En el dia Domingo, la hora inicial de la mañana no puede ser mayor a la hora final de la tarde!\n";
+            }
+
+            if(moab1 != 0 && mobi2 != 0 && mobi1 == 0 && moab2 == 0 && moab1 > 1200){
+                mensajeHorarios += "En el dia Lunes, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+            if (diab1 != 0 && dibi2 != 0 && dibi1 == 0 && diab2 == 0 && diab1 > 1200) {
+                mensajeHorarios += "En el dia Martes, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+            if (miab1 != 0 && mibi2 != 0 && mibi1 == 0 && miab2 == 0 && miab1 > 1200) {
+                mensajeHorarios += "En el dia Miercoles, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+            if (doab1 != 0 && dobi2 != 0 && dobi1 == 0 && doab2 == 0 && doab1 > 1200) {
+                mensajeHorarios += "En el dia Jueves, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+            if (frab1 != 0 && frbi2 != 0 && frbi1 == 0 && frab2 == 0 && frab1 > 1200) {
+                mensajeHorarios += "En el dia Viernes, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+            if (saab1 != 0 && sabi2 != 0 && sabi1 == 0 && saab2 == 0 && saab1 > 1200) {
+                mensajeHorarios += "En el dia Sabado, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+            if (soab1 != 0 && sobi2 != 0 && sobi1 == 0 && soab2 == 0 && soab1 > 1200) {
+                mensajeHorarios += "En el dia Domingo, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+
+            if(moab1 != 0 && mobi2 != 0 && mobi1 == 0 && moab2 == 0 && mobi2 < 1200){
+                mensajeHorarios += "En el dia Lunes, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
+            }
+            if (diab1 != 0 && dibi2 != 0 && dibi1 == 0 && diab2 == 0 && dibi2 < 1200) {
+                mensajeHorarios += "En el dia Martes, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
+            }
+            if (miab1 != 0 && mibi2 != 0 && mibi1 == 0 && miab2 == 0 && mibi2 < 1200) {
+                mensajeHorarios += "En el dia Miercoles, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
+            }
+            if (doab1 != 0 && dobi2 != 0 && dobi1 == 0 && doab2 == 0 && dobi2 < 1200) {
+                mensajeHorarios += "En el dia Jueves, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
+            }
+            if (frab1 != 0 && frbi2 != 0 && frbi1 == 0 && frab2 == 0 && frbi2 < 1200) {
+                mensajeHorarios += "En el dia Viernes, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
+            }
+            if (saab1 != 0 && sabi2 != 0 && sabi1 == 0 && saab2 == 0 && sabi2 < 1200) {
+                mensajeHorarios += "En el dia Sabado, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
+            }
+            if (soab1 != 0 && sobi2 != 0 && sobi1 == 0 && soab2 == 0 && sobi2 < 1200) {
+                mensajeHorarios += "En el dia Domingo, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
             }
 
         } catch (Exception exc) {

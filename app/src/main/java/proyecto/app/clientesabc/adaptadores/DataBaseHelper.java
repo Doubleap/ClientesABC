@@ -269,17 +269,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String query = "";
         switch(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")){
             case "F443":
+                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
+                        " FROM SAPDClientes";
+                break;
             case "F445":
             case "F446":
-            case "F451":
             case "1657":
             case "1658":
-                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
+            case "F451":
+                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
                         " FROM SAPDClientes";
                 break;
             case "1661":
             case "Z001":
-                query = "SELECT KUNNR as codigo, NAME1_E as nombre, STRAS as direccion, 'Estado' as estado, KLABC as klabc, '' as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
+                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, STRAS as direccion, 'Estado' as estado, KLABC as klabc, stcd1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
                         " FROM SAPDClientes";
                 break;
         }
@@ -289,8 +292,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             HashMap<String,String> user = new HashMap<>();
             user.put("codigo",cursor.getString(0) != null ? cursor.getString(0) : "");
             user.put("nombre",cursor.getString(1) != null ? cursor.getString(1) : "");
-            user.put("direccion",cursor.getString(2) != null ? cursor.getString(2) : "");
-            user.put("estado",cursor.getString(3) != null ? cursor.getString(3) : "");
+            user.put("razonSocial",cursor.getString(2) != null ? cursor.getString(2) : "");
+            user.put("direccion",cursor.getString(3) != null ? cursor.getString(3) : "");
+            user.put("estado",cursor.getString(4) != null ? cursor.getString(4) : "");
             user.put("klabc",cursor.getString(cursor.getColumnIndex("klabc")) != null ? cursor.getString(cursor.getColumnIndex("klabc")) : "");
             user.put("idfiscal",cursor.getString(cursor.getColumnIndex("stcd3")) != null ? cursor.getString(cursor.getColumnIndex("stcd3")) : "");
             user.put("ubicacion",cursor.getString(cursor.getColumnIndex("street")) != null ? cursor.getString(cursor.getColumnIndex("street")) : "");
@@ -306,7 +310,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<HashMap<String, String>> getValidaCreditos(String tipo, String clasicxc){
         if(tipo.equals("ABC")){
-            tipo = "F";
+            tipo = "F"; //Para la RFC de SAP solo existe formal o informal.
         }
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> datos = new ArrayList<>();

@@ -22,7 +22,7 @@ import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
-    private static boolean usarAPI = true;
+    private static boolean usarAPI = false;
     public static boolean UsarAPI() {
         return usarAPI;
     }
@@ -30,21 +30,22 @@ public class VariablesGlobales extends Application {
     public static boolean AceptarVisitaCero() {
         return aceptarVisitaCero;
     }
-    private static boolean comentariosAutomaticos = true;
+    private static boolean comentariosAutomaticos = false;
     public static boolean ComentariosAutomaticos() {
         return comentariosAutomaticos;
     }
 
+    //private static String urlApi = "http://kofcrofcapl01/MaestroClientes/";//Ambiente produccion CAM
     //private static String urlApi = "http://kofcrofcdesa02:90/MaestroClientes/";//Ambiente calidad CAM
     //private static String urlApi = "http://10.0.2.2:51123/";//Local host
-    //private static String urlApi = "http://10.153.58.132/";//Servidor produccion, pero ambiente calidad en VM uruguay
-    private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API
-    private static String nombrePais = "Uruguay Distribuidores";
-    private static String sociedad = "Z001";
-    private static String orgvta = "Z001";
-    private static String land1 = "UY";
-    private static String cadenaRM = "0000245000";
-    private static String ktokd = "UYDD";
+    //private static String urlApi = "http://10.153.58.132/";//Servidor produccion, pero ambiente calidad en VM uruguay, ocupa VPN
+    private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API en el app service azure
+    private static String nombrePais = "Costa Rica";
+    private static String sociedad = "F443";
+    private static String orgvta = "0443";
+    private static String land1 = "CR";
+    private static String cadenaRM = "0000160000";
+    private static String ktokd = "RCMA";
 
     /*
     private static String nombrePais = "Costa Rica";

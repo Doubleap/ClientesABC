@@ -287,6 +287,15 @@ public class MantClienteActivity extends AppCompatActivity {
             idfiscal.setText(formListFiltered.get(position).get("idfiscal") == null?"":formListFiltered.get(position).get("idfiscal").trim());
             TextView correo = holder.listView.findViewById(R.id.correo);
             correo.setText(formListFiltered.get(position).get("correo") == null?"":formListFiltered.get(position).get("correo").trim());
+            if(formListFiltered.get(position).get("correo") == null || formListFiltered.get(position).get("correo").equals("")){
+                correo.setVisibility(View.GONE);
+            }
+            TextView razonSocial = holder.listView.findViewById(R.id.textRazonSocial);
+            razonSocial.setText(formListFiltered.get(position).get("razonSocial") == null?"":formListFiltered.get(position).get("razonSocial").trim());
+            if(formListFiltered.get(position).get("razonSocial") == null){
+                razonSocial.setVisibility(View.GONE);
+            }
+
             /*TextView ubicacion = holder.listView.findViewById(R.id.ubicacion);
             ubicacion.setText(formListFiltered.get(position).get("ubicacion"));
             TextView direccion = holder.listView.findViewById(R.id.direccion);

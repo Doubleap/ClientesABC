@@ -1246,7 +1246,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     if(s.toString().length() <= 2){
                                                         cedula.setMask("**");
                                                     }
-                                                    if(s.toString().length() > 2 && s.toString().length() < 9 && !s.toString().contains("-")){
+                                                    if(s.toString().length() > 2 && s.toString().length() < 10 && !s.toString().contains("-")){
                                                         String cantidad="";
                                                         for(int x = 0; x < s.toString().length(); x++){
                                                             cantidad += "#";
@@ -4835,7 +4835,6 @@ public class SolicitudActivity extends AppCompatActivity {
                                 }
                                 for (int c = 0; c < visitasSolicitud.size(); c++) {
                                     visitaValues.put("id_solicitud", NextId);
-
                                     visitaValues.put("ruta", visitasSolicitud.get(c).getRuta());
                                     visitaValues.put("kvgr4", visitasSolicitud.get(c).getKvgr4());
                                     visitaValues.put("vptyp", visitasSolicitud.get(c).getVptyp());
@@ -4859,8 +4858,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                     visitaValues.put("f_ini", visitasSolicitud.get(c).getF_ini());
                                     visitaValues.put("f_fin", visitasSolicitud.get(c).getF_fin());
                                     visitaValues.put("fcalid", visitasSolicitud.get(c).getFcalid());
-
-                                    mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
+                                    if(visitasSolicitud.get(c).getRuta().trim().length() > 0){
+                                        mDb.insert(VariablesGlobales.getTABLA_BLOQUE_VISITA_HH(), null, visitaValues);
+                                    }
                                     visitaValues.clear();
                                 }
                             } catch (Exception e) {
@@ -5336,7 +5336,7 @@ public class SolicitudActivity extends AppCompatActivity {
             case "1657"://Volcanes
             case "1658"://Abasa
                 /*Validaciones Adicionales para GT*/
-                String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
+                String regexp_idfiscal = "[1-9][0-9]{1,9}-[0-9A-Z]";
                 String regexp_cf = "CF";
                 Pattern patternFi = Pattern.compile(regexp_idfiscal);
                 Pattern patternCF = Pattern.compile(regexp_cf);
@@ -5572,7 +5572,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 case "1658":
                 case "1657":
                     String regexp_dpi = "[0-9]{12,14}";
-                    String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
+                    String regexp_idfiscal = "[1-9][0-9]{1,9}-[0-9A-Z]";
                     String regexp_cf = "CF";
                     Pattern pattern = Pattern.compile(regexp_idfiscal);
                     Pattern patternCF = Pattern.compile(regexp_cf);
@@ -5722,6 +5722,50 @@ public class SolicitudActivity extends AppCompatActivity {
             }
             if (soab1 != 0 && sobi2 != 0 && sobi1 == 0 && soab2 == 0 && soab1 > sobi2) {
                 mensajeHorarios += "En el dia Domingo, la hora inicial de la mañana no puede ser mayor a la hora inicial de la tarde!\n";
+            }
+
+            if(moab1 != 0 && mobi2 != 0 && mobi1 == 0 && moab2 == 0 && moab1 > 1200){
+                mensajeHorarios += "En el dia Lunes, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+            if (diab1 != 0 && dibi2 != 0 && dibi1 == 0 && diab2 == 0 && diab1 > 1200) {
+                mensajeHorarios += "En el dia Martes, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+            if (miab1 != 0 && mibi2 != 0 && mibi1 == 0 && miab2 == 0 && miab1 > 1200) {
+                mensajeHorarios += "En el dia Miercoles, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+            if (doab1 != 0 && dobi2 != 0 && dobi1 == 0 && doab2 == 0 && doab1 > 1200) {
+                mensajeHorarios += "En el dia Jueves, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+            if (frab1 != 0 && frbi2 != 0 && frbi1 == 0 && frab2 == 0 && frab1 > 1200) {
+                mensajeHorarios += "En el dia Viernes, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+            if (saab1 != 0 && sabi2 != 0 && sabi1 == 0 && saab2 == 0 && saab1 > 1200) {
+                mensajeHorarios += "En el dia Sabado, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+            if (soab1 != 0 && sobi2 != 0 && sobi1 == 0 && soab2 == 0 && soab1 > 1200) {
+                mensajeHorarios += "En el dia Domingo, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
+            }
+
+            if(moab1 != 0 && mobi2 != 0 && mobi1 == 0 && moab2 == 0 && mobi2 < 1200){
+                mensajeHorarios += "En el dia Lunes, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
+            }
+            if (diab1 != 0 && dibi2 != 0 && dibi1 == 0 && diab2 == 0 && dibi2 < 1200) {
+                mensajeHorarios += "En el dia Martes, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
+            }
+            if (miab1 != 0 && mibi2 != 0 && mibi1 == 0 && miab2 == 0 && mibi2 < 1200) {
+                mensajeHorarios += "En el dia Miercoles, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
+            }
+            if (doab1 != 0 && dobi2 != 0 && dobi1 == 0 && doab2 == 0 && dobi2 < 1200) {
+                mensajeHorarios += "En el dia Jueves, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
+            }
+            if (frab1 != 0 && frbi2 != 0 && frbi1 == 0 && frab2 == 0 && frbi2 < 1200) {
+                mensajeHorarios += "En el dia Viernes, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
+            }
+            if (saab1 != 0 && sabi2 != 0 && sabi1 == 0 && saab2 == 0 && sabi2 < 1200) {
+                mensajeHorarios += "En el dia Sabado, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
+            }
+            if (soab1 != 0 && sobi2 != 0 && sobi1 == 0 && soab2 == 0 && sobi2 < 1200) {
+                mensajeHorarios += "En el dia Domingo, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
             }
 
         } catch (Exception exc) {

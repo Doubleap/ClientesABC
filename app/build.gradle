@@ -12,11 +12,11 @@ android {
     compileOptions.encoding "UTF-8"
     compileSdkVersion 31
     defaultConfig {
-        applicationId "clientesabc.app.distribuidores"
+        applicationId "proyecto.app.clientesabc"
         minSdkVersion 23
         targetSdkVersion 31
-        versionCode 15
-        versionName "3.1.2"
+        versionCode 16
+        versionName "3.1.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "java.util.Date", "BuildDate", "new java.util.Date(" + System.currentTimeMillis() + "L)"
         signingConfig signingConfigs.debug

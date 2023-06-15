@@ -90,11 +90,11 @@ public class FirmaActivity extends AppCompatActivity {
 
         switch (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","")){
             case "F443":
-                texto_titulo.setText(R.string.title_activity_firma);
+                texto_titulo.setText(R.string.title_activity_firma_cr);
                 texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "F445":
-                texto_titulo.setText(R.string.title_activity_firma);
+                texto_titulo.setText(R.string.title_activity_firma_ni);
                 texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_ni),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "F451":
@@ -102,24 +102,24 @@ public class FirmaActivity extends AppCompatActivity {
                 texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_pa),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "F446":
-                texto_titulo.setText(R.string.title_activity_firma);
+                texto_titulo.setText(R.string.title_activity_firma_gt);
                 texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_gt),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "1657":
-                texto_titulo.setText(R.string.title_activity_firma);
+                texto_titulo.setText(R.string.title_activity_firma_abvo);
                 texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_vo),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "1658":
-                texto_titulo.setText(R.string.title_activity_firma);
+                texto_titulo.setText(R.string.title_activity_firma_abvo);
                 texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_ab),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             case "1661":
             case "Z001":
-                texto_titulo.setText(R.string.title_activity_firma);
+                texto_titulo.setText(R.string.title_activity_firma_uy);
                 texto_cuadro.setText(HtmlCompat.fromHtml(getResources().getString(R.string.politica_privacidad_uy),HtmlCompat.FROM_HTML_MODE_LEGACY));
                 break;
             default:
-                texto_titulo.setText(R.string.title_activity_firma);
+                texto_titulo.setText(R.string.title_activity_firma_uy);
                 texto_cuadro.setText(getResources().getString(R.string.politica_privacidad));
                 break;
         }
