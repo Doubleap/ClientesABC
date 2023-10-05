@@ -656,7 +656,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         DataBaseHelper db = new DataBaseHelper(getBaseContext());
-        /*if(ultimaSincronizacion.equals("No hay") || hours > 24){
+        if(ultimaSincronizacion.equals("No hay") || hours > 24){
             if(VariablesGlobales.UsarAPI()){
                 String id_usuarioMC = VariablesGlobales.UsuarioHH2UsuarioMC(LoginActivity.this, mUserView.getText().toString());
                 PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", mUserView.getText().toString()).apply();
@@ -675,7 +675,7 @@ public class LoginActivity extends AppCompatActivity {
             intent.putExtras(b);
             startActivity(intent);
             return;
-        }*/
+        }
 
         // Checkear por el password correcto, si existe
         if (TextUtils.isEmpty(password) && !isPasswordValid(password)) {

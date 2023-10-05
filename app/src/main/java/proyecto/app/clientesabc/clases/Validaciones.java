@@ -276,9 +276,27 @@ public class Validaciones {
             }
 
             private boolean isCharAllowed(char c) {
-                //[¡”#$%&/(),:]
-                Pattern ps = Pattern.compile("^[a-zA-Z 0-9.\\-@_]+$");
-                Matcher ms = ps.matcher(String.valueOf(c));
+                Pattern ps = null;
+                Matcher ms = null;
+                switch (VariablesGlobales.getSociedad()){
+                    case "F443":
+                    case "F445":
+                    case "F446":
+                    case "1657":
+                    case "1658":
+                        return true;
+                    case "F451":
+                        //[¡”#$%&/(),:]
+                        ps = Pattern.compile("^[a-zA-Z 0-9.\\-@_]+$");
+                        ms = ps.matcher(String.valueOf(c));
+                        break;
+                    case "1661":
+                    case "Z001":
+                        //[¡”#$%&/(),:]
+                        ps = Pattern.compile("^[a-zA-Z 0-9.\\-@_]+$");
+                        ms = ps.matcher(String.valueOf(c));
+                        break;
+                }
                 return ms.matches();
             }
         };

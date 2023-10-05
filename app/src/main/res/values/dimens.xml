@@ -7,4 +7,5 @@
     <dimen name="margin_large">16dp</dimen>
     <dimen name="margin_basic_25">0.25dp</dimen>
     <dimen name="font_size">15sp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
 </resources>

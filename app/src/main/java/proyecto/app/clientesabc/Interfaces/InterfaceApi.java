@@ -74,4 +74,12 @@ public interface InterfaceApi {
     @Streaming
     @GET("api"+ftp+"/ConfiguracionPais/{bukrs}")
     Call<ResponseBody> ConfiguracionPais(@Path("bukrs") String bukrs);
+
+    @Streaming
+    @GET("api"+ftp+"/GenerarCodigoVerificacion/{bukrs}/{kunnr}/{celular}")
+    Call<ResponseBody> GenerarCodigoVerificacion(@Path("bukrs") String bukrs);
+
+    @Streaming
+    @GET("api"+ftp+"/VerificarCodigo/{bukrs}/{kunnr}/{celular}/{codigo_recibido}")
+    Call<ResponseBody> VerificarCodigo(@Path("bukrs") String bukrs);
 }

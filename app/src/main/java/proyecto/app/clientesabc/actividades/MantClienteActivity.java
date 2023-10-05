@@ -340,6 +340,7 @@ public class MantClienteActivity extends AppCompatActivity {
             color_gec.setBackground(ContextCompat.getDrawable(getBaseContext(), color));
 
             final String codigoCliente = codigo.getText().toString().trim();
+            final String nombreCliente = nombre.getText().toString().trim();
             codigo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -432,7 +433,14 @@ public class MantClienteActivity extends AppCompatActivity {
                                         Toasty.warning(getBaseContext(),"No se encontró una aplicacion GPS para abrir las coordenadas.").show();
                                     }
                                     break;
-
+                                case R.id.baseinstalada:
+                                    bc = new Bundle();
+                                    bc.putString("codigo_cliente", codigoCliente);
+                                    bc.putString("nombre_cliente", nombreCliente);
+                                    intent = new Intent(getApplicationContext(),BaseInstaladaActivity.class);
+                                    intent.putExtras(bc); //Pase el parametro el Intent
+                                    startActivity(intent);
+                                    break;
                             }
                             return false;
                         }

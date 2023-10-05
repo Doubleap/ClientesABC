@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -24,7 +23,6 @@ import androidx.recyclerview.widget.RecyclerView;
 //import com.androidbuts.multispinnerfilter.KeyPairBoolData;
 //import com.androidbuts.multispinnerfilter.MultiSpinnerListener;
 //import com.androidbuts.multispinnerfilter.MultiSpinnerSearch;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;

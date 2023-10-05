@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:elevation="8dp"
+        app:cardCornerRadius="1dp">
+        <LinearLayout
+            android:id="@+id/color_estado"
+            android:layout_width="20dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorPrimary"
+            android:orientation="horizontal">
+        </LinearLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/margin_small"
+            android:paddingBottom="@dimen/margin_medium">
+            <TextView
+                android:id="@+id/num_serie"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="Numero de Serie"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/base_instalada"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/num_serie"
+                android:layout_marginLeft="10dp"
+                android:text="Base Instalada"
+                android:textAppearance="?android:textAppearanceSmall" />
+            <TextView
+                android:id="@+id/num_equipo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/base_instalada"
+                android:layout_alignBaseline="@+id/base_instalada"
+                android:layout_marginLeft="15dp"
+                android:text="Numero Equipo"
+                android:textAppearance="?android:textAppearanceSmallPopupMenu" />
+
+            <TextView
+                android:id="@+id/text_ultima_fecha"
+                android:layout_width="362dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/num_equipo"
+                android:layout_marginLeft="10dp"
+                android:text="Fecha de Escaneo"
+                android:textAppearance="?android:textAppearanceSmallPopupMenu"
+                android:textSize="12dp" />
+
+            <CheckBox
+                android:id="@+id/check_box"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginTop="@dimen/margin_small"
+                android:width="50sp"
+                android:height="50sp"
+                android:textAlignment="center" />
+
+            <TextView
+                android:id="@+id/estado_escaneo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/text_ultima_fecha"
+                android:layout_marginLeft="10dp"
+                android:text="Estado Escaneo"
+                android:textAppearance="?android:textAppearanceSmall" />
+        </RelativeLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

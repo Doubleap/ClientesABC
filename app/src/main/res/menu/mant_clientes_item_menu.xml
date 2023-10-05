@@ -39,4 +39,10 @@
         android:icon="@drawable/icon_location"
         android:title="Como llegar"
         app:showAsAction="never|withText"/>
+    <item
+        android:id="@+id/baseinstalada"
+        android:icon="@drawable/icon_grid"
+        android:title="Base Instalada"
+        app:showAsAction="never|withText"
+        android:visible="true"/>
 </menu>

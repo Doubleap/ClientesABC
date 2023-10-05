@@ -37,6 +37,8 @@ public class EquipoFrio implements Cloneable{
     private String serge;
     @SerializedName("SERNR")
     private String sernr;
+    @SerializedName("ESTADO")
+    private String estado;
 
     public EquipoFrio() { }
     public EquipoFrio(String vkorg, String kdgrp, String bzirk, String kunnr, String ibase, String instance, String objecttyp, String objnr, String equnr, String matnr, String eqart, String herst, String eqktx, String spras, String matkl, String serge, String sernr) {
@@ -57,6 +59,7 @@ public class EquipoFrio implements Cloneable{
         this.matkl = matkl;
         this.serge = serge;
         this.sernr = sernr;
+        this.estado = "Pendiente";
     }
 
 
@@ -226,5 +229,13 @@ public class EquipoFrio implements Cloneable{
 
     public void setSernr(String sernr) {
         this.sernr = sernr;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }

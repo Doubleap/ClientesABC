@@ -18,6 +18,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.icu.lang.UCharacter;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -32,6 +33,7 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -139,9 +141,11 @@ import proyecto.app.clientesabc.modelos.Visitas;
 
 import static android.view.View.INVISIBLE;
 import static android.view.View.TEXT_ALIGNMENT_CENTER;
+import static android.view.ViewGroup.LayoutParams.FILL_PARENT;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
+import static com.google.android.material.tabs.TabLayout.GRAVITY_FILL;
 import static com.google.android.material.tabs.TabLayout.INDICATOR_GRAVITY_TOP;
 
 //import com.mikelau.croperino.Croperino;
@@ -501,7 +505,16 @@ public class SolicitudActivity extends AppCompatActivity {
                         ValidarIDFiscal(getBaseContext());
                         if(!idFiscalValidado){
                             numErrores++;
-                            mensajeError += "- ID Fiscal Inválido!\n";
+                            String label = "ID fiscal";
+                            if(PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","").equals("F446")
+                                    || PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","").equals("1657")
+                                    || PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","").equals("1658")){
+                                MaskedEditText comboIdFiscal = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3"));
+                                if(comboIdFiscal != null){
+                                    label = comboIdFiscal.getTag().toString();
+                                }
+                            }
+                            mensajeError += "- "+label+" Inválido!\n";
                         }
                         if(minAdjuntos > adjuntosSolicitud.size()){
                             numErrores++;
@@ -578,8 +591,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        if((barcodeReadEvent.getAimId().substring(1,2).equals("L") && (sociedad.equals("F443") || sociedad.equals("F445") || sociedad.equals("F451"))) //Cedula Fisica Costa Rica
-                                        || (barcodeReadEvent.getAimId().substring(1,2).equals("o") && (sociedad.equals("F443") || sociedad.equals("F446") || sociedad.equals("1657") || sociedad.equals("1658") ) )) {//DPI guatemala
+                                        if ((barcodeReadEvent.getAimId().substring(1, 2).equals("L") && (sociedad.equals("F443") || sociedad.equals("F445") || sociedad.equals("F451"))) //Cedula Fisica Costa Rica
+                                                || (barcodeReadEvent.getAimId().substring(1, 2).equals("o") && (sociedad.equals("F443") || sociedad.equals("F446") || sociedad.equals("1657") || sociedad.equals("1658")))) {//DPI guatemala
                                             String lecturaCedula = barcodeReadEvent.getBarcodeData();
                                             try {
                                                 reader.softwareTrigger(false);
@@ -618,8 +631,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     codigo = lecturaCedula;
                                                     cedula = codigo.substring(5, 18).trim();
                                                     String[] nombreCompleto1 = codigo.substring(60, 90).split("<<");
-                                                    nombre = nombreCompleto1[0].replace("<"," ");
-                                                    apellido1 = nombreCompleto1[1].replace("<"," ");
+                                                    nombre = nombreCompleto1[0].replace("<", " ");
+                                                    apellido1 = nombreCompleto1[1].replace("<", " ");
                                                     if (editText_cedula != null) {
                                                         editText_cedula.setMask("0#-####-####-00");
                                                         editText_cedula.setText(cedula);
@@ -633,8 +646,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     codigo = lecturaCedula;
                                                     cedula = codigo.substring(5, 18).trim();
                                                     String[] nombreCompleto = codigo.substring(60, 90).split("<<");
-                                                    nombre = nombreCompleto[0].replace("<"," ");
-                                                    apellido1 = nombreCompleto[1].replace("<"," ");
+                                                    nombre = nombreCompleto[0].replace("<", " ");
+                                                    apellido1 = nombreCompleto[1].replace("<", " ");
                                                     if (editText_cedula != null) {
                                                         editText_cedula.setText(cedula);
                                                         ValidarCedula(editText_cedula, ((OpcionSpinner) spinner_tipo.getSelectedItem()).getId());
@@ -653,15 +666,14 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     }
                                                 }
                                             }
-                                        }else if(barcodeReadEvent.getAimId().substring(1,2).equals("A") && sociedad.equals("F443")) {//Cedula Extranjera Costa rica
+                                        } else if (barcodeReadEvent.getAimId().substring(1, 2).equals("A") && sociedad.equals("F443")) {//Cedula Extranjera Costa rica
                                             Spinner spinner_tipo = (Spinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
                                             if (spinner_tipo != null) {
                                                 spinner_tipo.setSelection(VariablesGlobales.getIndex(spinner_tipo, "C3"));
                                             }
-                                            Toasty.warning(getBaseContext(),"ID y nombre no presentes en la lectura!",Toasty.LENGTH_SHORT).show();
-                                        }
-                                        else{
-                                            Toasty.warning(getBaseContext(),"Codigo leido no reconocido!",Toasty.LENGTH_SHORT).show();
+                                            Toasty.warning(getBaseContext(), "ID y nombre no presentes en la lectura!", Toasty.LENGTH_SHORT).show();
+                                        } else {
+                                            Toasty.warning(getBaseContext(), "Codigo leido no reconocido!", Toasty.LENGTH_SHORT).show();
                                         }
                                     }
 
@@ -673,19 +685,19 @@ public class SolicitudActivity extends AppCompatActivity {
                                             e.printStackTrace();
                                         }
                                         //Intento de decodificar el valor de la cedula en PDF417 con encriptacion XOR cypher
-                                        String d= "";
+                                        String d = "";
                                         int j = 0;
                                         for (int i = 0; i < raw.length; i++) {
                                             if (j == 17) {
                                                 j = 0;
                                             }
                                             char c = (char) (keysArray[j] ^ ((char) (raw[i])));
-                                            if((c+"").matches("^[a-zA-Z0-9]*$")){
+                                            if ((c + "").matches("^[a-zA-Z0-9]*$")) {
                                                 d += c;
-                                            }else{
+                                            } else {
                                                 d += c;
                                             }
-                                            j ++;
+                                            j++;
                                         }
                                         return d;
                                     }
@@ -1212,29 +1224,32 @@ public class SolicitudActivity extends AppCompatActivity {
                                         if (opcion.getId().equals("P3")) {
                                             cedula.setMask("E-####-######");
                                         }
-                                        if (opcion.getId().contains("C")
+                                        if (opcion.getId().equals("G2")) {//CUI
+                                            idfiscal.setMask("#############");
+                                            listaCamposObligatorios.remove("W_CTE-STCD1");
+                                            cedula.setError(null);
+                                            listaCamposObligatorios.add("W_CTE-STCD3");
+                                            idfiscal.setError("El campo CUI es obligatorio!");
+                                        }
+                                        if (opcion.getId().equals("G3")) {//Pasaporte
+                                            idfiscal.setMask("************");
+                                            listaCamposObligatorios.remove("W_CTE-STCD1");
+                                            cedula.setError(null);
+                                            listaCamposObligatorios.add("W_CTE-STCD3");
+                                            idfiscal.setError("El campo PASAPORTE es obligatorio!");
+                                        }
+                                        if (opcion.getId().equals("G4")) {//NIT
+                                            listaCamposObligatorios.remove("W_CTE-STCD3");
+                                            idfiscal.setError(null);
+                                            listaCamposObligatorios.add("W_CTE-STCD1");
+                                            cedula.setError("El campo NIT es obligatorio!");
+                                        }
+                                        //mascaras para pais de Guatemala
+                                        if (opcion.getId().contains("G") || opcion.getId().contains("C")
                                                 && (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F446")
                                                 || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("1657")
                                                 || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("1658"))) {
-                                            idfiscal.addTextChangedListener(new TextWatcher() {
-                                                @Override
-                                                public void afterTextChanged(Editable s) { }
-                                                @Override
-                                                public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-                                                @Override
-                                                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                                                    String cantidad="";
-                                                    if (s.toString().length() < 13) {
-                                                        for(int x = 0; x <= s.toString().length(); x++){
-                                                            cantidad += "#";
-                                                        }
-                                                        idfiscal.setMask(cantidad);
-                                                        if(s.toString().length() <= 2){
-                                                            idfiscal.setMask("AA");
-                                                        }
-                                                    }
-                                                }
-                                            });
+
                                             cedula.setMask("AA");
                                             cedula.addTextChangedListener(new TextWatcher() {
                                                 @Override
@@ -1901,6 +1916,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         fila.setOrientation(TableRow.HORIZONTAL);
                         fila.setWeightSum(10);
                         fila.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 10f));
+                        //fila.setGravity(GRAVITY_CENTER);
 
                         final TextInputLayout label = new TextInputLayout(Objects.requireNonNull(getContext()));
                         label.setHint(campos.get(i).get("descr"));
@@ -1913,12 +1929,12 @@ public class SolicitudActivity extends AppCompatActivity {
                         final MaskedEditText et = new MaskedEditText(getContext(), null);
                         InputFilter[] editFilters = et.getFilters();
                         InputFilter[] newFilters = null;
-                        if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").trim().equals("F451")){
+                        //if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").trim().equals("F451")){
                             newFilters = new InputFilter[editFilters.length + 1];
                             System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
                             newFilters[editFilters.length] = Validaciones.getEditTextFilter();
                             et.setFilters(newFilters);
-                        }
+                        //}
 
                         et.setTag(campos.get(i).get("descr"));
                         //et.setTextColor(getResources().getColor(R.color.colorTextView,null));
@@ -1953,15 +1969,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                 newFilters[editFilters.length] = new InputFilter.LengthFilter(18);
                                 et.setFilters(newFilters);
                                 if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F446") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1658")){
-                                    et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                                        @Override
-                                        public void onFocusChange(View v, boolean hasFocus) {
-                                            if (!hasFocus) {
-                                                ValidarIDFiscal(getContext());
-                                            }
-                                        }
-                                    });
+                                    et.setInputType(InputType.TYPE_CLASS_TEXT);
                                 }
+                                et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                                    @Override
+                                    public void onFocusChange(View v, boolean hasFocus) {
+                                        if (!hasFocus) {
+                                            ValidarIDFiscal(getContext());
+                                        }
+                                    }
+                                });
                             }else if(campos.get(i).get("campo").trim().equals("W_CTE-PSTLZ") && (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))){
                                 et.setInputType(InputType.TYPE_CLASS_NUMBER);
                                 editFilters = et.getFilters();
@@ -2007,16 +2024,33 @@ public class SolicitudActivity extends AppCompatActivity {
                         et.setAllCaps(true);
 
                         TableRow.LayoutParams textolp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 5f);
-                        TableRow.LayoutParams btnlp = new TableRow.LayoutParams(75, 75);
+                        TableRow.LayoutParams btnlp = new TableRow.LayoutParams(95, 95);
                         if (campos.get(i).get("tooltip") != null && campos.get(i).get("tooltip") != "") {
-                            textolp.setMargins(0, 0, 25, 0);
-                            label.setLayoutParams(textolp);
                             btnAyuda = new ImageView(getContext());
+                            if(android.os.Build.VERSION.SDK_INT <= 27){
+                                btnlp = new TableRow.LayoutParams(75, 75);
+                                textolp.setMargins(0, 0, 20, 0);
+                                btnlp.setMargins(0, 10, 75, 0);
+                            }
+                            if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
+                                textolp.setMargins(0, 0, 25, 0);
+                                btnlp.setMargins(0, 20, 95, 0);
+                            }
+                            if(android.os.Build.VERSION.SDK_INT >= 30){
+                                btnlp = new TableRow.LayoutParams(105, 105);
+                                textolp.setMargins(0, 0, 25, 0);
+                                btnlp.setMargins(0, 25, 95, 0);
+                            }
+                            label.setLayoutParams(textolp);
+
                             btnAyuda.setBackground(getResources().getDrawable(R.drawable.icon_ayuda, null));
-                            btnlp.setMargins(0, 35, 75, 0);
+
                             btnAyuda.setLayoutParams(btnlp);
-                            btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                            btnAyuda.setMaxHeight(75);
+
                             btnAyuda.setForegroundGravity(GRAVITY_CENTER);
+                            btnlp.gravity = Gravity.CENTER;
+
                             //TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
                             ToolTipsManager mToolTipsManager = new ToolTipsManager();
                             final ToolTip.Builder builder = new ToolTip.Builder(getContext(), et, (RelativeLayout)_ll.getParent() ,  campos.get(i).get("tooltip").toString(), ToolTip.POSITION_ABOVE);
@@ -5241,12 +5275,12 @@ public class SolicitudActivity extends AppCompatActivity {
         if(hasta != null)
             hasta.setSelection(VariablesGlobales.getIndex(hasta,valorSeleccioando));
     }
-    private static boolean ValidarCedula(View v, String tipoCedula){
-        TextView texto = (TextView)v;
+    private static boolean ValidarCedula(View v, String tipoCedula) {
+        TextView texto = (TextView) v;
         String cedula = "";
         Pattern pattern;
         Matcher matcher;
-        switch(PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS","")) {
+        switch (PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS", "")) {
             case "F443"://Costa Rica
                 switch (tipoCedula) {
                     case "C1":
@@ -5267,23 +5301,26 @@ public class SolicitudActivity extends AppCompatActivity {
                 if (!matcher.matches()) {
                     cedulaValidada = false;
                     Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+                    texto.setError("Formato Regimen " + tipoCedula + " invalido!");
                     return true;
                 }
                 cedulaValidada = true;
                 MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
-                String cedulaDigitada = texto.getText().toString().trim();
-                if (texto.getText().toString().trim().endsWith("-00") && tipoCedula.equals("C1"))
-                    idfiscal.setText(cedulaDigitada.substring(0, cedulaDigitada.length() - 3).replaceFirst("^0+(?!$)", "").replace("-", ""));
-                else
-                    idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-", ""));
-                idfiscal.setError(null);
-                idfiscal.clearFocus();
+                if (idfiscal != null) {
+                    String cedulaDigitada = texto.getText().toString().trim();
+                    if (texto.getText().toString().trim().endsWith("-00") && tipoCedula.equals("C1"))
+                        idfiscal.setText(cedulaDigitada.substring(0, cedulaDigitada.length() - 3).replaceFirst("^0+(?!$)", "").replace("-", ""));
+                    else
+                        idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-", ""));
+                    idfiscal.setError(null);
+                    idfiscal.clearFocus();
+                    Toasty.success(texto.getContext(), "Formato Regimen " + tipoCedula + " valido!", Toasty.LENGTH_SHORT).show();
+                }
                 break;
             case "F445"://Nicaragua
                 if (texto.getText().toString().trim().length() < 3) {
                     cedulaValidada = false;
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+                    texto.setError("Formato Regimen " + tipoCedula + " invalido!");
                     return true;
                 }
                 if (texto.getText().toString().trim().length() < 14) {
@@ -5296,22 +5333,23 @@ public class SolicitudActivity extends AppCompatActivity {
                 if (!matcher.matches()) {
                     Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
                     cedulaValidada = false;
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+                    texto.setError("Formato Regimen " + tipoCedula + " invalido!");
                     return true;
                 }
                 cedulaValidada = true;
+                Toasty.success(texto.getContext(), "Formato Regimen " + tipoCedula + " valido!", Toasty.LENGTH_SHORT).show();
                 break;
 
             case "F451"://Panama
                 switch (tipoCedula) {
                     case "P1":
-                        if(texto.getText().toString().trim().startsWith("NA-")){
+                        if (texto.getText().toString().trim().startsWith("NA-")) {
                             cedula = "NA-([0][1-9]|[1][0-2])-[0-9]{4,4}-[0-9]{5,5}";
                         }
-                        if(texto.getText().toString().trim().startsWith("PE-")){
+                        if (texto.getText().toString().trim().startsWith("PE-")) {
                             cedula = "PE-[0-9]{4,4}-[0-9]{5,5}";
                         }
-                        if(texto.getText().toString().trim().startsWith("N-")){
+                        if (texto.getText().toString().trim().startsWith("N-")) {
                             cedula = "N-[0-9]{4,4}-[0-9]{6,6}";
                         }
                         break;
@@ -5327,57 +5365,70 @@ public class SolicitudActivity extends AppCompatActivity {
                 if (!matcher.matches()) {
                     cedulaValidada = false;
                     Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+                    texto.setError("Formato Regimen " + tipoCedula + " invalido!");
                     return true;
                 }
                 cedulaValidada = true;
+                Toasty.success(texto.getContext(), "Formato Regimen " + tipoCedula + " valido!", Toasty.LENGTH_SHORT).show();
                 break;
             case "F446"://GT Embocem
             case "1657"://Volcanes
             case "1658"://Abasa
+                if (texto.getText().toString().trim().length() == 0) {
+                    if (!listaCamposObligatorios.contains("W_CTE-STCD1")) {
+                        cedulaValidada = true;
+                        texto.setError(null);
+                    } else {
+                        cedulaValidada = false;
+                        texto.setError("El campo NIT es obligatorio!");
+                    }
+                    return true;
+                }
                 /*Validaciones Adicionales para GT*/
                 String regexp_idfiscal = "[1-9][0-9]{1,9}-[0-9A-Z]";
-                String regexp_cf = "CF";
+
                 Pattern patternFi = Pattern.compile(regexp_idfiscal);
-                Pattern patternCF = Pattern.compile(regexp_cf);
+                //Pattern patternCF = Pattern.compile(regexp_cf);
                 Matcher matcherFi = patternFi.matcher(texto.getText());
-                Matcher matcherCF = patternCF.matcher(texto.getText());
+                //Matcher matcherCF = patternCF.matcher(texto.getText());
 
-                    if (!matcherFi.matches() && !matcherCF.matches()) {
-                        cedulaValidada = false;
-                        texto.setError("NIT valor/formato inválido!");
-                        return true;
-                    }
-                    /*Despues del formato se realiza validacion MOD 11*/
-                    String[] nit = texto.getText().toString().split("-");
-                    if(texto.getText().toString().replace("-","").replace("0","").length() == 0){
-                        cedulaValidada = false;
-                        texto.setError("NIT no puede tener solo ceros!");
-                        return true;
-                    }
-                    Integer cantDigitos = nit[0].length();
+                if (!matcherFi.matches()) {
+                    cedulaValidada = false;
+                    texto.setError("NIT valor/formato inválido!");
+                    return true;
+                }
+                /*Despues del formato se realiza validacion MOD 11*/
+                String[] nit = texto.getText().toString().split("-");
+                if (texto.getText().toString().replace("-", "").replace("0", "").length() == 0) {
+                    cedulaValidada = false;
+                    texto.setError("NIT no puede tener solo ceros!");
+                    return true;
+                }
+                Integer cantDigitos = nit[0].length();
 
-                    StringBuilder digitos = new StringBuilder();
-                    digitos.append(nit[0]);
-                    digitos = digitos.reverse();
-                    int temp = 0;
-                    for (int x = 2; x <= (cantDigitos + 1); x++) {
-                        temp += x * Character.getNumericValue(digitos.charAt((x - 2)));
-                    }
-                    int resultado = temp % 11;
-                    int tempVerificador = 11 - resultado;
-                    if(tempVerificador == 11)
-                        tempVerificador = resultado;
-                    String digitoVerificador = String.valueOf(tempVerificador);
-                    if (digitoVerificador.equals("10")) {
-                        digitoVerificador = "K";
-                    }
-                    if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
-                        cedulaValidada = false;
-                        texto.setError("NIT inválido por digito verificador!");
-                        return true;
-                    }
+                StringBuilder digitos = new StringBuilder();
+                digitos.append(nit[0]);
+                digitos = digitos.reverse();
+                int temp = 0;
+                for (int x = 2; x <= (cantDigitos + 1); x++) {
+                    temp += x * Character.getNumericValue(digitos.charAt((x - 2)));
+                }
+                int resultado = temp % 11;
+                int tempVerificador = 11 - resultado;
+                if (tempVerificador == 11)
+                    tempVerificador = resultado;
+                String digitoVerificador = String.valueOf(tempVerificador);
+                if (digitoVerificador.equals("10")) {
+                    digitoVerificador = "K";
+                }
+                if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
+                    cedulaValidada = false;
+                    texto.setError("NIT inválido por digito verificador!");
+                    return true;
+                }
                 cedulaValidada = true;
+                texto.setError(null);
+                Toasty.success(texto.getContext(), "Formato de NIT valido!", Toasty.LENGTH_SHORT).show();
                 break;
             case "1661":
             case "Z001":
@@ -5386,7 +5437,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 String ci;
                 int digVerificador = -1;
                 int[] factores = null;
-                int suma=0;
+                int suma = 0;
                 int factor = 10;
                 int resto = 0;
                 int checkdigit = 0;
@@ -5461,9 +5512,10 @@ public class SolicitudActivity extends AppCompatActivity {
                             Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
                             return true;
                         }
+                        Toasty.success(texto.getContext(), "Formato Regimen " + tipoCedula + " valido!", Toasty.LENGTH_SHORT).show();
                         break;
                     case "88":
-                        if(texto.getText().toString().length() == 0){
+                        if (texto.getText().toString().length() == 0) {
                             cedulaValidada = false;
                             texto.setError("RUT no puede estar vacio!");
                             return true;
@@ -5473,7 +5525,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             texto.setError("RUT no puede tener ningún caracter, solo puede contener números");
                             return true;
                         }
-                        nit_uy[0] = texto.getText().toString().substring(0,texto.getText().toString().length()-1);
+                        nit_uy[0] = texto.getText().toString().substring(0, texto.getText().toString().length() - 1);
                         if (texto.getText().toString().replace("-", "").replace("0", "").length() == 0) {
                             cedulaValidada = false;
                             texto.setError("RUT no puede tener solo ceros!");
@@ -5484,7 +5536,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
                         try {
                             digVerificador = Integer.parseInt(texto.getText().toString().substring(texto.getText().toString().length() - 1, texto.getText().toString().length()) + "");
-                        }catch(Exception e){
+                        } catch (Exception e) {
 
                         }
                         if (ci.length() != 11) {
@@ -5498,7 +5550,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
 
                         if (ci.length() == 11) { // RUT
-                            factores = new int[]{4,3,2,9,8,7,6,5,4,3,2};
+                            factores = new int[]{4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
                         }
 
                         if (factores == null) {
@@ -5522,7 +5574,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
                         if (checkdigit == factor) {
                             cedulaValidada = (digVerificador == 0);
-                        }else if (checkdigit == 10) {
+                        } else if (checkdigit == 10) {
                             cedulaValidada = true;//String.valueOf(digVerificador) == "K";
                         } else {
                             cedulaValidada = (checkdigit == digVerificador);
@@ -5532,21 +5584,21 @@ public class SolicitudActivity extends AppCompatActivity {
                             return true;
                         }
                         cedulaValidada = true;
+                        Toasty.success(texto.getContext(), "Formato Regimen " + tipoCedula + " valido!", Toasty.LENGTH_SHORT).show();
                         break;
                     case "42":
                         cedulaValidada = true;
+                        Toasty.success(texto.getContext(), "Formato Regimen " + tipoCedula + " valido!", Toasty.LENGTH_SHORT).show();
                         break;
                 }
         }
-
-        Toasty.success(texto.getContext(),"Formato Regimen "+tipoCedula+" valido!",Toasty.LENGTH_SHORT).show();
         return true;
     }
-    private static boolean ValidarIDFiscal(Context context){
-        //SearchableSpinner regimen = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
+    private static boolean ValidarIDFiscal(Context context,boolean... mensajes) {
+        SearchableSpinner regimen = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
         MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
-        if(idfiscal != null) {
-            switch (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad())) {
+        if (idfiscal != null) {
+            switch (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad())) {
                 case "F443":
                     if (idfiscal.getText().toString().trim().length() == 0) {
                         if (!listaCamposObligatorios.contains("W_CTE-STCD3")) {
@@ -5556,6 +5608,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         return true;
                     }
+                    Toasty.success(context,"Formato Regimen "+((OpcionSpinner)regimen.getSelectedItem()).getId()+" valido!",Toasty.LENGTH_SHORT).show();
                     break;
                 case "F445":
                 case "F451":
@@ -5567,56 +5620,118 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         return true;
                     }
+                    Toasty.success(context,"Formato Regimen "+((OpcionSpinner)regimen.getSelectedItem()).getId()+" valido!",Toasty.LENGTH_SHORT).show();
                     break;
                 case "F446":
                 case "1658":
                 case "1657":
-                    String regexp_dpi = "[0-9]{12,14}";
-                    String regexp_idfiscal = "[1-9][0-9]{1,9}-[0-9A-Z]";
-                    String regexp_cf = "CF";
-                    Pattern pattern = Pattern.compile(regexp_idfiscal);
-                    Pattern patternCF = Pattern.compile(regexp_cf);
-                    Matcher matcher = pattern.matcher(idfiscal.getText());
-                    Matcher matcherCF = patternCF.matcher(idfiscal.getText());
-
-                    pattern = Pattern.compile(regexp_dpi);
-                    matcher = pattern.matcher(idfiscal.getText().toString().trim());
-                    if (!matcher.matches()) {
-                        if (!matcher.matches() && !matcherCF.matches()) {
-                            idfiscal.setError("DPI/CUI/NIT formato inválido!");
+                    if(idfiscal.getText().toString().trim().length() == 0){
+                        if (!listaCamposObligatorios.contains("W_CTE-STCD3")) {
+                            idFiscalValidado = true;
+                        } else {
                             idFiscalValidado = false;
-                            return true;
                         }
-                        /*Despues del formato se realiza validacion MOD 11*/
-                        if(idfiscal.getText().toString().replace("-","").replace("0","").length() == 0){
-                            idfiscal.setError("ID Fiscal no puede tener solo ceros!");
-                            cedulaValidada = false;
-                            return true;
-                        }
-                        String[] nit = idfiscal.getText().toString().split("-");
-                        Integer cantDigitos = nit[0].length();
+                        return true;
+                    }
 
-                        StringBuilder digitos = new StringBuilder();
-                        digitos.append(nit[0]);
-                        digitos = digitos.reverse();
-                        int temp = 0;
-                        for (int x = 2; x <= (cantDigitos + 1); x++) {
-                            temp += x * Character.getNumericValue(digitos.charAt((x - 2)));
-                        }
-                        int resultado = temp % 11;
-                        int tempVerificador = 11 - resultado;
-                        if (tempVerificador == 11)
-                            tempVerificador = resultado;
-                        String digitoVerificador = String.valueOf(tempVerificador);
-                        if (digitoVerificador.equals("10")) {
-                            digitoVerificador = "K";
-                        }
-                        if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
-                            idfiscal.setError("NIT inválido por digito verificador!");
+                    String regexp_cui = "^[0-9]{4}\\s?[0-9]{5}\\s?[0-9]{4}$";
+                    String regexp_pasaporte = "[0-9A-Z]{9,12}";
+                    //String regexp_cf = "CF";
+                    Pattern patternPasaporte = Pattern.compile(regexp_pasaporte);
+                    Pattern patternCUI = Pattern.compile(regexp_cui);
+                    Matcher matcherPasaporte = patternPasaporte.matcher(idfiscal.getText());
+                    Matcher matcherCUI = patternCUI.matcher(idfiscal.getText());
+
+                    if (!matcherPasaporte.matches() && !matcherCUI.matches()) {
+                        idfiscal.setError("CUI/Pasaporte formato inválido!");
+                        idFiscalValidado = false;
+                        return true;
+                    }
+                    /*Despues del formato se realiza validacion MOD 11*/
+                    if(((OpcionSpinner)regimen.getSelectedItem()).getId().equals("G2")){
+                        //cedulaValidada = true; //No ocuparia validacion por que no es obligatorio??
+                        // Se reemplazan los espacios en blanco en la cadena (si tiene)
+                        String Cui = idfiscal.getText().toString().replace(" ", "");
+                        // Extraemos el numero del DPI
+                        String no = Cui.substring(0, 8);
+                        // Extraemos el numero de Departamento
+                        int depto = Integer.parseInt(Cui.substring(9, 11));
+                        // Extraemos el numero de Municipio
+                        int muni = Integer.parseInt(Cui.substring(11, 13));
+                        // Se extra el numero validador
+                        int ver = Integer.parseInt(Cui.substring(8, 9));
+                        // Array con la cantidad de municipios que contiene cada departamento.
+                        int munisPorDepto[] = {
+                                /* 01 - Guatemala tiene:      */ 17 /* municipios. */,
+                                /* 02 - El Progreso tiene:    */  8 /* municipios. */,
+                                /* 03 - Sacatepéquez tiene:   */ 16 /* municipios. */,
+                                /* 04 - Chimaltenango tiene:  */ 16 /* municipios. */,
+                                /* 05 - Escuintla tiene:      */ 14 /* municipios. */,
+                                /* 06 - Santa Rosa tiene:     */ 14 /* municipios. */,
+                                /* 07 - Sololá tiene:         */ 19 /* municipios. */,
+                                /* 08 - Totonicapán tiene:    */  8 /* municipios. */,
+                                /* 09 - Quetzaltenango tiene: */ 24 /* municipios. */,
+                                /* 10 - Suchitepéquez tiene:  */ 21 /* municipios. */,
+                                /* 11 - Retalhuleu tiene:     */  9 /* municipios. */,
+                                /* 12 - San Marcos tiene:     */ 30 /* municipios. */,
+                                /* 13 - Huehuetenango tiene:  */ 33 /* municipios. */,
+                                /* 14 - Quiché tiene:         */ 21 /* municipios. */,
+                                /* 15 - Baja Verapaz tiene:   */  9 /* municipios. */,
+                                /* 16 - Alta Verapaz tiene:   */ 17 /* municipios. */,
+                                /* 17 - Petén tiene:          */ 14 /* municipios. */,
+                                /* 18 - Izabal tiene:         */  5 /* municipios. */,
+                                /* 19 - Zacapa tiene:         */ 11 /* municipios. */,
+                                /* 20 - Chiquimula tiene:     */ 11 /* municipios. */,
+                                /* 21 - Jalapa tiene:         */  7 /* municipios. */,
+                                /* 22 - Jutiapa tiene:        */ 17 /* municipios. */
+                        };
+                        //Verificamos que no se haya ingresado 0 en la posicion de depto o municipio
+                        if ((muni == 0 || depto == 0) || (muni == 0 && depto == 0)) {
                             idFiscalValidado = false;
+                            if(depto == 0)
+                                idfiscal.setError("CUI no válido departamento invalido "+depto+"!");
+                            if(muni == 0)
+                                idfiscal.setError("CUI no válido municipio invalido "+muni+"!");
                             return true;
+                        } else {
+                            //Si el numero de depto ingresado en la cadena es mayor 22 es cui invalido
+                            System.out.println("munixdepto: " + munisPorDepto.length);
+                            if (depto > munisPorDepto.length) {
+                                idFiscalValidado = false;
+                                idfiscal.setError("CUI no válido Departamento "+depto+" fuera de rango!");
+                                return true;
+                            } else {
+                                //si depto es menor o igual a 22
+                                System.out.println("Municipios maximos: " + munisPorDepto[depto - 1]);
+                                //se valida que el municipio ingresado en la cadena este dentro del rango del depto
+                                if (muni > munisPorDepto[depto - 1]) {
+                                    idFiscalValidado = false;
+                                    idfiscal.setError("CUI no válido municipio "+muni+" fuera de rango!");
+                                    return true;
+                                } else {
+                                    // si es valido
+                                    int total = 0;
+                                    //Se realiza la siguiente Ooperación
+                                    for (int i = 0; i < no.length(); i++) {
+                                        System.out.println("-" + no.substring(i, i + 1));
+                                        total += (Integer.parseInt(no.substring(i, i + 1))) * (i + 2);
+                                    }
+                                    // al total de la anterior operación se le saca el mod 11
+                                    int modulo = total % 11;
+                                    System.out.println("cui con modulo" + modulo);
+                                    // Si el mod es igual al numero verificador el cui es valido , sino es invalido
+                                    if (modulo != ver) {
+                                        idFiscalValidado = false;
+                                        idfiscal.setError("CUI no válido por digito verificador!");
+                                        return true;
+                                    }
+                                }
+                            }
                         }
                     }
+                    if(((OpcionSpinner)regimen.getSelectedItem()).getId().equals("G3")) {
+                    }
+                    Toasty.success(context,"Formato Regimen CUI/Pasaporte válido!",Toasty.LENGTH_SHORT).show();
                     break;
 
             }

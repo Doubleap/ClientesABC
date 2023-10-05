@@ -223,4 +223,49 @@ public class FileHelper {
         }
     }
 
+    public static File saveBitmapToFileNoReduction(File file){
+        try {
+            // BitmapFactory options to downsize the image
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inJustDecodeBounds = true;
+            o.inSampleSize = 1;
+            // factor of downsizing the image
+            int calidadImagen = 75;
+
+            FileInputStream inputStream = new FileInputStream(file);
+            //Bitmap selectedBitmap = null;
+            BitmapFactory.decodeStream(inputStream, null, o);
+            inputStream.close();
+
+            BitmapFactory.Options o2 = new BitmapFactory.Options();
+            o2.inSampleSize = 4;
+            if(file.length() < 200000)
+                o2.inSampleSize = 2;
+            if(file.length() > 200000)
+                o2.inSampleSize = 4;
+            if(file.length() > 450000)
+                o2.inSampleSize = 4;
+
+            if(file.getName().contains("PoliticaPrivacidad") || file.getName().contains("Aceptacion")){
+                o2.inSampleSize = 2;
+                calidadImagen = 45;
+            }
+
+            inputStream = new FileInputStream(file);
+
+            Bitmap selectedBitmap = BitmapFactory.decodeStream(inputStream, null, o2);
+            inputStream.close();
+            if(selectedBitmap != null) {
+                // here i override the original image file
+                file.createNewFile();
+                FileOutputStream outputStream = new FileOutputStream(file);
+
+                selectedBitmap.compress(Bitmap.CompressFormat.JPEG, calidadImagen, outputStream);
+            }
+            return file;
+        } catch (Exception e) {
+            return file;
+        }
+    }
+
 }

@@ -3134,4 +3134,76 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         else
             return false;
     }
+    public ArrayList<EquipoFrio> getCensoEquiposFriosDB(String id_cliente){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<EquipoFrio> equiposFriosList = new ArrayList<>();
+        String query = "SELECT * FROM sapDBaseInstalada b LEFT OUTER JOIN CensoEquipoFrio c ON (b.kunnr = c.kunnr AND activo = 1) WHERE b.KUNNR = ? " +
+                " UNION "+
+                "SELECT b.*, c.* FROM CensoEquipoFrio c LEFT OUTER JOIN sapDBaseInstalada AS b ON (b.KUNNR <> c.kunnr AND b.SERGE = c.num_placa OR b.KUNNR = NULL) AND c.kunnr = ? AND c.activo = 1 WHERE c.KUNNR = ? AND c.activo = 1";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_cliente,id_cliente,id_cliente});
+
+        while (cursor.moveToNext()){
+            EquipoFrio ef = new EquipoFrio();
+            if(cursor.getString(cursor.getColumnIndex("KDGRP")) !=  null)
+                ef.setKdgrp(cursor.getString(cursor.getColumnIndex("KDGRP")).trim());
+            if(cursor.getString(cursor.getColumnIndex("BZIRK")) !=  null)
+                ef.setBzirk(cursor.getString(cursor.getColumnIndex("BZIRK")).trim());
+            if(cursor.getString(cursor.getColumnIndex("KUNNR")) !=  null)
+                ef.setKunnr(cursor.getString(cursor.getColumnIndex("KUNNR")).trim());
+            if(cursor.getString(cursor.getColumnIndex("IBASE")) !=  null)
+                ef.setIbase(removeLeadingZeroes(cursor.getString(cursor.getColumnIndex("IBASE")).trim()));
+            if(cursor.getString(cursor.getColumnIndex("INSTANCE")) !=  null)
+                ef.setInstance(cursor.getString(cursor.getColumnIndex("INSTANCE")).trim());
+            if(cursor.getString(cursor.getColumnIndex("OBJECTTYP")) !=  null)
+                ef.setObjecttyp(cursor.getString(cursor.getColumnIndex("OBJECTTYP")).trim());
+            if(cursor.getString(cursor.getColumnIndex("OBJNR")) !=  null)
+                ef.setObjnr(cursor.getString(cursor.getColumnIndex("OBJNR")).trim());
+            if(cursor.getString(cursor.getColumnIndex("EQUNR")) !=  null)
+                ef.setEqunr(cursor.getString(cursor.getColumnIndex("EQUNR")).trim());
+            if(cursor.getString(cursor.getColumnIndex("MATNR")) !=  null)
+                ef.setMatnr(cursor.getString(cursor.getColumnIndex("MATNR")).trim());
+            if(cursor.getString(cursor.getColumnIndex("EQART")) !=  null)
+                ef.setEqart(cursor.getString(cursor.getColumnIndex("EQART")).trim());
+            if(cursor.getString(cursor.getColumnIndex("HERST")) !=  null)
+                ef.setHerst(cursor.getString(cursor.getColumnIndex("HERST")).trim());
+            if(cursor.getString(cursor.getColumnIndex("EQKTX")) !=  null)
+                ef.setEqktx(cursor.getString(cursor.getColumnIndex("EQKTX")).trim());
+            if(cursor.getString(cursor.getColumnIndex("SPRAS")) !=  null)
+                ef.setSpras(cursor.getString(cursor.getColumnIndex("SPRAS")).trim());
+            if(cursor.getString(cursor.getColumnIndex("MATKL")) !=  null)
+                ef.setMatkl(cursor.getString(cursor.getColumnIndex("MATKL")).trim());
+            if(cursor.getString(cursor.getColumnIndex("SERGE")) !=  null)
+                ef.setSerge(cursor.getString(cursor.getColumnIndex("SERGE")).trim());
+            if(cursor.getString(cursor.getColumnIndex("SERNR")) !=  null)
+                ef.setSernr(cursor.getString(cursor.getColumnIndex("SERNR")).trim());
+            if(cursor.getString(cursor.getColumnIndex("estado")) !=  null)
+                ef.setSernr(cursor.getString(cursor.getColumnIndex("estado")).trim());
+            if(cursor.getString(cursor.getColumnIndex("fecha_lectura")) !=  null)
+                ef.setSernr(cursor.getString(cursor.getColumnIndex("fecha_lectura")).trim());
+            if(cursor.getString(cursor.getColumnIndex("num_placa")) !=  null)
+                ef.setSernr(cursor.getString(cursor.getColumnIndex("num_placa")).trim());
+            if(cursor.getString(cursor.getColumnIndex("kunnr2")) !=  null)
+                ef.setSernr(cursor.getString(cursor.getColumnIndex("kunnr")).trim());
+            equiposFriosList.add(ef);
+        }
+        cursor.close();
+        return  equiposFriosList;
+    }
+    public boolean ExisteEquipoFrioEnCliente(String cliente, String num_equipo) {
+        int valor = 0;
+        try {
+            Cursor cursor = mDataBase.rawQuery("select count(*) as cantidad FROM SapDBaseInstalada WHERE KUNNR = ? AND SERGE = ?", new String[]{cliente,num_equipo});
+            if (cursor.moveToNext()) {
+                valor = cursor.getInt(cursor.getColumnIndex("cantidad"));
+            }
+            cursor.close();
+        }catch (Exception e){
+            Toasty.error(mContext,"Error al obtener existencia de equipo frio").show();
+            return false;
+        }
+        if(valor > 0)
+            return true;
+        else
+            return false;
+    }
 }

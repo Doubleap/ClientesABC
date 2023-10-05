@@ -24,7 +24,7 @@ public class TesseractOCR {
 
         String dstPathDir = "/tesseract/tessdata/";
 
-        String srcFile = "spa.traineddata";
+        String srcFile = "eng.traineddata";
         InputStream inFile = null;
 
         dstPathDir = context.getFilesDir() + dstPathDir;
@@ -83,10 +83,19 @@ public class TesseractOCR {
 
     public String getOCRResult(Bitmap bitmap) {
         mTess.setImage(bitmap);
+        mTess.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, "1234567890");
         return mTess.getUTF8Text();
+    }
+    public String getOCRResult(File file) {
+        mTess.setImage(file);
+        mTess.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, "1234567890");
+        return mTess.getUTF8Text();
+    }
+    public void setPageSegMode(int segMode) {
+        mTess.setPageSegMode(segMode);
     }
 
     public void onDestroy() {
-        if (mTess != null) mTess.end();
+        if (mTess != null) mTess.clear();
     }
 }

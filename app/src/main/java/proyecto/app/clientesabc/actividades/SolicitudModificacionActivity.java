@@ -4,12 +4,15 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.database.sqlite.SQLiteDatabase;
@@ -42,6 +45,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -49,7 +54,9 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.util.Patterns;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -121,6 +128,7 @@ import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
 import proyecto.app.clientesabc.clases.ConsultaClienteAPI;
 import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
+import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionServidor;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.clases.MultiOnItemSelectedListener;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
@@ -225,6 +233,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     private static String rutaRepartoNuevaOriginal;
     private static String centroSuministroNuevoOriginal;
     private static LinearLayout ll_visitas;
+
     @SuppressLint("ResourceType")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -512,9 +521,29 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                         }
                         //Validacion de cedula
+                        MaskedEditText textoCedula = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-STCD1"));
+                        Spinner tipoRegimen = ((Spinner)mapeoCamposDinamicos.get("W_CTE-KATR3"));
+                        if(textoCedula != null && tipoRegimen != null) {
+                            ValidarCedula(textoCedula.getText().toString(), ((OpcionSpinner) tipoRegimen.getSelectedItem()).getId(), PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS", ""),false);
+                        }
                         if(!cedulaValidada){
                             numErrores++;
                             mensajeError += "- Formato de cédula Inválido!\n";
+                        }
+                        //Validacion de cedula de ID Fiscal para GT mas que todo
+                        ValidarIDFiscal(getBaseContext(),false);
+                        if(!idFiscalValidado){
+                            numErrores++;
+                            String label = "ID fiscal";
+                            if(PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","").equals("F446")
+                                    || PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","").equals("1657")
+                                    || PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","").equals("1658")){
+                                MaskedEditText comboIdFiscal = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3"));
+                                if(comboIdFiscal != null){
+                                    label = comboIdFiscal.getTag().toString();
+                                }
+                                mensajeError += "- "+label+" Inválido!\n";
+                            }
                         }
                         //Validacion de politica de privacidad firmada por el cliente.
                         if(!firma && tipoSolicitud.equals("26")){
@@ -531,6 +560,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             numErrores++;
                             mensajeError += "- Formato de correo Inválido!\n";
                         }
+
+
+
                         if(minAdjuntos > adjuntosSolicitud.size()){
                             numErrores++;
                             mensajeError += "- Debe adjuntar al menos "+minAdjuntos+" documentos a la solicitud!\n";
@@ -655,7 +687,6 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         adjuntosSolicitud_old = new ArrayList<>();
         manejadorAdjuntos = new ManejadorAdjuntos();
     }
-
     @Override
     public void onBackPressed() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -788,7 +819,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 ImageView btnAyuda = null;
                 //Creacion de seccion
                 if(!seccionAnterior.equals(campos.get(i).get("id_seccion").trim()) && !campos.get(i).get("id_seccion").trim().equals("99")) {
-                    CardView seccion_layout = new CardView(Objects.requireNonNull(getContext()));
+                    CardView seccion_layout = new CardView(requireContext());
 
                     TextView seccion_header = new TextView(getContext());
                     seccion_header.setAllCaps(true);
@@ -998,9 +1029,25 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     label.setTextAppearance(R.style.AppTheme_TextFloatLabelAppearance);
                     TableRow.LayoutParams lpl = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
                     if(campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10")){
-                        lpl.setMargins(105, 0, 0, -5);
+                        if(android.os.Build.VERSION.SDK_INT <= 27){
+                            lpl.setMargins(105, 0, 0, -5);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
+                            lpl.setMargins(105, 0, 0, -5);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT >= 30){
+                            lpl.setMargins(175, 0, 0, -5);
+                        }
                     }else{
-                        lpl.setMargins(35, 0, 0, -5);
+                        if(android.os.Build.VERSION.SDK_INT <= 27){
+                            lpl.setMargins(35, 0, 0, -5);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
+                            lpl.setMargins(35, 0, 0, -5);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT >= 30){
+                            lpl.setMargins(55, 0, 0, -5);
+                        }
                     }
 
                     label.setPadding(0,0,0,0);
@@ -1010,7 +1057,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     combo.setTitle("Buscar");
                     combo.setPositiveButton("Cerrar");
                     combo.setTag(campos.get(i).get("descr"));
-                    TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
+                    TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
 
                     lp.setMargins(0, 0, 0, 25);
                     combo.setPadding(0,0,0,0);
@@ -1103,7 +1150,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                     }
                     // Creando el adaptador(opciones) para el comboBox deseado
-                    ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, listaopciones);
+                    ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, listaopciones);
                     // Drop down layout style - list view with radio button
                     dataAdapter.setDropDownViewResource(R.layout.spinner_item);
                     // attaching data adapter to spinner
@@ -1169,35 +1216,37 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     if (opcion.getId().equals("P3")) {
                                         cedula.setMask("E-####-######");
                                     }
-                                    if (opcion.getId().contains("C")
+                                    if (opcion.getId().equals("G2")) {//CUI
+                                        idfiscal.setMask("#############");
+                                        listaCamposObligatorios.remove("W_CTE-STCD1");
+                                        cedula.setError(null);
+                                        if(!listaCamposObligatorios.contains("W_CTE-STCD3")) {
+                                            listaCamposObligatorios.add("W_CTE-STCD3");
+                                        }
+                                        idfiscal.setError("El campo CUI/PASAPORTE es obligatorio!");
+                                    }
+                                    if (opcion.getId().equals("G3")) {//Pasaporte
+                                        idfiscal.setMask("AAAAAAAAA***");
+                                        listaCamposObligatorios.remove("W_CTE-STCD1");
+                                        cedula.setError(null);
+                                        if(!listaCamposObligatorios.contains("W_CTE-STCD3")) {
+                                            listaCamposObligatorios.add("W_CTE-STCD3");
+                                        }
+                                        idfiscal.setError("El campo CUI/PASAPORTE es obligatorio!");
+                                    }
+                                    if (opcion.getId().equals("G4")) {//NIT
+                                        listaCamposObligatorios.remove("W_CTE-STCD3");
+                                        idfiscal.setError(null);
+                                        if(!listaCamposObligatorios.contains("W_CTE-STCD1")){
+                                            listaCamposObligatorios.add("W_CTE-STCD1");
+                                        }
+                                        cedula.setError("El campo NIT es obligatorio!");
+                                    }
+                                    if (opcion.getId().contains("G")  || opcion.getId().contains("C")
                                             && (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F446")
                                             || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("1657")
                                             || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("1658"))) {
-                                        if(idfiscal != null) {
-                                            idfiscal.addTextChangedListener(new TextWatcher() {
-                                                @Override
-                                                public void afterTextChanged(Editable s) {
-                                                }
 
-                                                @Override
-                                                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                                                }
-
-                                                @Override
-                                                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                                                    String cantidad = "";
-                                                    if (s.toString().length() < 13) {
-                                                        for (int x = 0; x <= s.toString().length(); x++) {
-                                                            cantidad += "#";
-                                                        }
-                                                        idfiscal.setMask(cantidad);
-                                                        if (s.toString().length() <= 2) {
-                                                            idfiscal.setMask("AA");
-                                                        }
-                                                    }
-                                                }
-                                            });
-                                        }
                                         cedula.setMask("AA");
                                         cedula.addTextChangedListener(new TextWatcher() {
                                             @Override
@@ -1209,7 +1258,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                 if(s.toString().length() <= 2){
                                                     finalCedula.setMask("**");
                                                 }
-                                                if(s.toString().length() > 2 && s.toString().length() < 9 && !s.toString().contains("-")){
+                                                if(s.toString().length() > 2 && s.toString().length() < 10 && !s.toString().contains("-")){
                                                     String cantidad="";
                                                     for(int x = 0; x < s.toString().length(); x++){
                                                         cantidad += "#";
@@ -1267,7 +1316,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             @Override
                                             public void onFocusChange(View v, boolean hasFocus) {
                                                 if (!hasFocus) {
-                                                    ValidarIDFiscal(getContext());
+                                                    ValidarIDFiscal(getContext(),true);
                                                     if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
                                                         Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get("W_CTE-STCD3"),mapeoCamposDinamicosOld.get("W_CTE-STCD3"),"ID FISCAL");
                                                     }
@@ -1303,7 +1352,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
-                                PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
+                                PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
                                 ActualizarAprobadores();
 
                                 //Si tiene diferenciacion por agencia para algun campo llamarlo aqui
@@ -1840,7 +1889,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                     @Override
                                                     public void onFocusChange(View v, boolean hasFocus) {
                                                         if (!hasFocus) {
-                                                            ValidarIDFiscal(getContext());
+                                                            ValidarIDFiscal(getContext(),true);
                                                             if(VariablesGlobales.ComentariosAutomaticos() && campos.get(getIndexOFkey("W_CTE-STCD3",  campos)).get("comentario_auto").trim().equals("1")){
                                                                 Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get("W_CTE-STCD3"),mapeoCamposDinamicosOld.get("W_CTE-STCD3"),"ID FISCAL");
                                                             }
@@ -1884,7 +1933,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                                 if(campos.get(finalI).get("campo").trim().equals("W_CTE-BZIRK")){
                                     String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
-                                    PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
+                                    PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
                                     ActualizarAprobadores();
                                 }
 
@@ -1913,16 +1962,33 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     combo_old.setEnabled(false);
                     if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
                         Button btnAyudai=null;
-                        TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
-                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75,1f);
-                        textolp2.setMargins(0,0,65,0);
-                        combo.setLayoutParams(textolp2);
-                        combo_old.setLayoutParams(textolp2);
-                        //label.setLayoutParams(textolp2);
+                        TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
+                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75);
+                        if(android.os.Build.VERSION.SDK_INT <= 27){
+                            textolp2.setMargins(105,0,0,0);//!!!!!
+                        }
+                        if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
+                            textolp2.setMargins(105,0,0,0);//!!!!!
+                        }
+                        if(android.os.Build.VERSION.SDK_INT >= 30){
+                            textolp2.setMargins(125,0,0,0);//!!!!!
+                        }
+
+                        //combo.setLayoutParams(textolp2);
+                        //combo_old.setLayoutParams(textolp2);
+                        label.setLayoutParams(textolp2);
                         //label_old.setLayoutParams(textolp2);
                         btnAyudai = new Button(getContext());
                         btnAyudai.setBackground(getResources().getDrawable(R.drawable.icon_ver_viejo,null));
-                        btnlp2.setMargins(0,0,5,0);
+                        if(android.os.Build.VERSION.SDK_INT <= 27){
+                            btnlp2.setMargins(0, 0, 0, 0);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
+                            btnlp2.setMargins(5, 20, 5, 0);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT >= 30){
+                            btnlp2.setMargins(5, 25, 5, 0);
+                        }
                         btnAyudai.setLayoutParams(btnlp2);
                         btnAyudai.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                         btnAyudai.setForegroundGravity(GRAVITY_CENTER);
@@ -1955,7 +2021,16 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                         combo_old.setTag(campos.get(i).get("descr"));
                         TableRow.LayoutParams lp_old = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
-                        lp_old.setMargins(0, 0, 65, 0);
+                        if(android.os.Build.VERSION.SDK_INT <= 27){
+                            lp_old.setMargins(0, 0, 68, 25);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
+                            lp_old.setMargins(0, 0, 77, 25);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT >= 30){
+                            lp_old.setMargins(0, 0, 77, 25);
+                        }
+
                         combo_old.setPadding(0,0,0,0);
                         combo_old.setLayoutParams(lp_old);
                         combo_old.setBackground(getResources().getDrawable(R.drawable.spinner_background_old, null));
@@ -2122,7 +2197,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                                 if(nombreCampo.equals("W_CTE-BZIRK")){
                                     String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
-                                    PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
+                                    PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
                                     ActualizarAprobadores();
                                 }
                                 ReplicarValorSpinner(parent,nombreCampo+"1",((OpcionSpinner) parent.getSelectedItem()).getId().trim());
@@ -2198,7 +2273,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 }
                                 if(nombreCampo.equals("W_CTE-BZIRK")){
                                     String zona_ventas = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
-                                    PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
+                                    PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().putString("W_CTE_BZIRK",zona_ventas).apply();
                                     ActualizarAprobadores();
                                 }
                                 ReplicarValorSpinner(parent,nombreCampo,((OpcionSpinner) parent.getSelectedItem()).getId().trim());
@@ -2275,10 +2350,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     //Tipo EditText normal textbox
                     TableRow fila = new TableRow(getContext());
                     fila.setOrientation(TableRow.HORIZONTAL);
-                    fila.setWeightSum(10);
-                    fila.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,10f));
+                    ///fila.setWeightSum(10);
+                    fila.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
 
-                    final TextInputLayout label = new TextInputLayout(Objects.requireNonNull(getContext()));
+                    final TextInputLayout label = new TextInputLayout(requireContext());
                     label.setHint(campos.get(i).get("descr"));
                     label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.colorTextView,null)));
                     label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
@@ -2287,12 +2362,12 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     final MaskedEditText et = new MaskedEditText(getContext(),null);
                     InputFilter[] editFilters = et.getFilters();
                     InputFilter[] newFilters = null;
-                    if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").trim().equals("F451")){
+                    //if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").trim().equals("F451")){
                         newFilters = new InputFilter[editFilters.length + 1];
                         System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
                         newFilters[editFilters.length] = Validaciones.getEditTextFilter();
                         et.setFilters(newFilters);
-                    }
+                    //}
                     et.setTag(campos.get(i).get("descr"));
                     //et.setTextColor(getResources().getColor(R.color.colorTextView,null));
                     //et.setBackgroundColor(getResources().getColor(R.color.black,null));
@@ -2303,13 +2378,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     }
                     // Atributos del Texto a crear
                     //TableLayout.LayoutParams lp =  new TableLayout.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT,0.5f);
-                    TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f);
+                    TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
                     if(campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10"))
-                        lp.setMargins(0, 15, 75, 15);
+                        lp.setMargins(0, 15, 0, 15);
                     else
                         lp.setMargins(0, 15, 0, 15);
                     et.setLayoutParams(lp);
-                    et.setPadding(15, 5, 0, 5);
+                    et.setPadding(0, 5, 0, 5);
                     Drawable d = getResources().getDrawable(R.drawable.textbackground, null);
                     et.setBackground(d);
                     if(campos.get(i).get("vis").trim().length() > 0){
@@ -2328,18 +2403,19 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             newFilters[editFilters.length] = new InputFilter.LengthFilter( 18 );
                             et.setFilters(newFilters);
                             if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F446") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("1658")){
-                                et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                                    @Override
-                                    public void onFocusChange(View v, boolean hasFocus) {
-                                        if (!hasFocus) {
-                                            ValidarIDFiscal(getContext());
-                                            if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
-                                                Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
-                                            }
+                                et.setInputType(InputType.TYPE_CLASS_TEXT);
+                            }
+                            et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                                @Override
+                                public void onFocusChange(View v, boolean hasFocus) {
+                                    if (!hasFocus) {
+                                        ValidarIDFiscal(getContext(),true);
+                                        if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
+                                            Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
                                         }
                                     }
-                                });
-                            }
+                                }
+                            });
                         }else if(campos.get(i).get("campo").trim().equals("W_CTE-PSTLZ") && (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))){
                             et.setInputType(InputType.TYPE_CLASS_NUMBER);
                             editFilters = et.getFilters();
@@ -2388,17 +2464,37 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     et.setFilters(newFilters);
                     et.setAllCaps(true);
 
-                    TableRow.LayoutParams textolp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 5f);
+                    TableRow.LayoutParams textolp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
                     TableRow.LayoutParams btnlp = new TableRow.LayoutParams(75, 75);
                     if(campos.get(i).get("tooltip") != null && campos.get(i).get("tooltip") != ""){
-                        textolp.setMargins(0,0,25,0);
-                        label.setLayoutParams(textolp);
+                        lp.setMargins(0, 15, 0, 15);
+                        et.setLayoutParams(lp);
                         btnAyuda = new ImageView(getContext());
+                        if(android.os.Build.VERSION.SDK_INT <= 27){
+                            btnlp = new TableRow.LayoutParams(75, 75);
+                            textolp.setMargins(0, 0, 75, 0);
+                            btnlp.setMargins(-75, 10, 75, 0);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
+                            textolp.setMargins(0, 0, 25, 0);
+                            btnlp.setMargins(-75, 20, 95, 0);
+                            lp.setMargins(0, 15, 75, 15);
+                            et.setLayoutParams(lp);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT >= 30){
+                            btnlp = new TableRow.LayoutParams(75, 75);
+                            btnlp.setMargins(-75, 25, 0, 0);
+                            textolp.setMargins(0, 0, 0, 0);
+                            lp.setMargins(0, 15, 80, 15);
+                            et.setLayoutParams(lp);
+                        }
+                        label.setLayoutParams(textolp);
                         btnAyuda.setBackground(getResources().getDrawable(R.drawable.icon_ayuda,null));
-                        btnlp.setMargins(0,35,75,0);
+
                         btnAyuda.setLayoutParams(btnlp);
-                        btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                        btnAyuda.setMaxHeight(75);
                         btnAyuda.setForegroundGravity(GRAVITY_CENTER);
+                        btnlp.gravity = Gravity.CENTER;
                         //TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
                         ToolTipsManager mToolTipsManager = new ToolTipsManager();
                         ToolTip.Builder builder = new ToolTip.Builder(getContext(), et, (RelativeLayout)_ll.getParent() ,  campos.get(i).get("tooltip").toString(), ToolTip.POSITION_ABOVE);
@@ -2411,6 +2507,63 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             return true;
                         });
                     }
+
+                    if(campos.get(i).get("campo") != null && campos.get(i).get("campo").toLowerCase().equals("w_cte-tel_number2") && modificable){
+                        lp.setMargins(0, 15, 0, 15);
+                        et.setLayoutParams(lp);
+                        btnAyuda = new ImageView(getContext());
+                        if(android.os.Build.VERSION.SDK_INT <= 27){
+                            btnlp = new TableRow.LayoutParams(75, 75);
+                            textolp.setMargins(0, 0, 75, 0);
+                            btnlp.setMargins(-75, 10, 75, 0);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
+                            textolp.setMargins(0, 0, 25, 0);
+                            btnlp.setMargins(-75, 20, 95, 0);
+                            lp.setMargins(0, 15, 75, 15);
+                            et.setLayoutParams(lp);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT >= 30){
+                            btnlp = new TableRow.LayoutParams(75, 75);
+                            btnlp.setMargins(-75, 25, 0, 0);
+                            textolp.setMargins(0, 0, 0, 0);
+                            lp.setMargins(0, 15, 80, 15);
+                            et.setLayoutParams(lp);
+                        }
+                        label.setLayoutParams(textolp);
+                        btnAyuda.setBackground(getResources().getDrawable(R.drawable.icon_privacy,null));
+                       // btnlp.setMargins(0,35,5,0);
+                        btnAyuda.setLayoutParams(btnlp);
+                        btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                        btnAyuda.setForegroundGravity(GRAVITY_CENTER);
+                        //TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                        ToolTipsManager mToolTipsManager = new ToolTipsManager();
+                        ToolTip.Builder builder = new ToolTip.Builder(getContext(), et, (RelativeLayout)_ll.getParent() ,  "Presione para verificar el número de celular", ToolTip.POSITION_ABOVE);
+                        builder.setAlign(ToolTip.ALIGN_LEFT);
+                        //builder.setBackgroundColor(getResources().getColor(R.color.gray,null));
+                        builder.setGravity(ToolTip.GRAVITY_LEFT);
+                        builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+                        int finalI2 = i;
+                        btnAyuda.setOnClickListener((View.OnClickListener) view -> {
+                            String bukrs = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
+                            if(isValidPhoneNumber(et.getText().toString(),bukrs)){
+                                WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
+                                WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+                                if (VariablesGlobales.UsarAPI()) {
+                                    GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, codigoCliente, et.getText().toString());
+                                    v.execute();
+                                } else {
+                                    GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, codigoCliente, et.getText().toString());
+                                    v.execute();
+                                }
+                            }
+                        });
+                        btnAyuda.setOnLongClickListener((View.OnLongClickListener) view -> {
+                            mToolTipsManager.show(builder.build());
+                            return true;
+                        });
+                    }
+
                     if(campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").toLowerCase().contains("scan") && modificable){
                         textolp.setMargins(0,0,25,0);
                         label.setLayoutParams(textolp);
@@ -2485,7 +2638,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         mapeoCamposDinamicosEnca.put(campos.get(i).get("campo").trim(),et);
                     }
 
-                    final TextInputLayout label_old = new TextInputLayout(Objects.requireNonNull(getContext()));
+                    final TextInputLayout label_old = new TextInputLayout(requireContext());
                     label_old.setVisibility(View.GONE);
                     label_old.setHint(campos.get(i).get("descr")+" Actual");
                     label_old.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
@@ -2506,18 +2659,26 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             //et_old.setText(cliente.get(campos.get(i).get("campo").trim()).getAsString());
 
                         Button btnAyudai=null;
-                        TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
-                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75,1f);
-                            textolp2.setMargins(0,0,5,0);
-                            //label.setLayoutParams(textolp2);
-                            //label_old.setLayoutParams(textolp2);
-                            btnAyudai = new Button(getContext());
-                            btnAyudai.setBackground(getResources().getDrawable(R.drawable.icon_ver_viejo,null));
-                            btnlp2.setMargins(0,0,5,0);
-                            btnAyudai.setLayoutParams(btnlp2);
-                            btnAyudai.setTextAlignment(TEXT_ALIGNMENT_CENTER);
-                            btnAyudai.setForegroundGravity(GRAVITY_CENTER);
+                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75);
+                        btnAyudai = new Button(getContext());
+                        btnAyudai.setBackground(getResources().getDrawable(R.drawable.icon_ver_viejo,null));
 
+                        if(android.os.Build.VERSION.SDK_INT <= 27){
+                            btnlp2.setMargins(0, 10, 3, 0);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
+                            btnlp2.setMargins(0, 15, 5, 0);
+                        }
+                        if(android.os.Build.VERSION.SDK_INT >= 30){
+                            btnlp2.setMargins(0, 25, 5, 0);
+                        }
+
+
+
+                            btnAyudai.setLayoutParams(btnlp2);
+                            btnAyudai.setForegroundGravity(GRAVITY_CENTER);
+                            btnlp2.gravity = Gravity.CENTER;
+                        final ImageView botonTooltip = btnAyuda;
                         btnAyudai.setOnTouchListener(new View.OnTouchListener()
                             {
                                 @Override
@@ -2528,18 +2689,24 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         et.setVisibility(View.GONE);
                                         label_old.setVisibility(View.VISIBLE);
                                         et_old.setVisibility(View.VISIBLE);
+                                        if(botonTooltip != null)
+                                            botonTooltip.setVisibility(View.GONE);
                                         return true;
                                     }else if (event.getAction() == MotionEvent.ACTION_UP){
                                         label.setVisibility(View.VISIBLE);
                                         et.setVisibility(View.VISIBLE);
                                         label_old.setVisibility(View.GONE);
                                         et_old.setVisibility(View.GONE);
+                                        if(botonTooltip != null)
+                                            botonTooltip.setVisibility(View.VISIBLE);
                                         return true;
                                     }else if (event.getAction() == MotionEvent.ACTION_CANCEL){
                                         label.setVisibility(View.VISIBLE);
                                         et.setVisibility(View.VISIBLE);
                                         label_old.setVisibility(View.GONE);
                                         et_old.setVisibility(View.GONE);
+                                        if(botonTooltip != null)
+                                            botonTooltip.setVisibility(View.VISIBLE);
                                         return true;
                                     }
 
@@ -2681,6 +2848,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                         });
                     }
+
+
                     if (!campos.get(i).get("modificacion").trim().equals("1")) {
                         listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), et);
@@ -2761,7 +2930,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 ArrayList<OpcionSpinner> opciones = db.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_Flujo = "+id_flujo);
 
                 // Creando el adaptador(opciones) para el comboBox deseado
-                ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, opciones);
+                ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, opciones);
                 // Drop down layout style - list view with radio button
                 dataAdapter.setDropDownViewResource(R.layout.spinner_item);
                 // attaching data adapter to spinner
@@ -2876,7 +3045,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
             ArrayList<OpcionSpinner> opciones = mDBHelper.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_flujo = "+id_flujo+"");
             // Creando el adaptador(opciones) para el comboBox deseado
-            ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, opciones);
+            ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, opciones);
             // Drop down layout style - list view with radio button
             dataAdapter.setDropDownViewResource(R.layout.spinner_item);
             // attaching data adapter to spinner
@@ -2986,7 +3155,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             String[] headers;
             SimpleTableHeaderAdapter sta;
 
-            CardView seccion_layout = new CardView(Objects.requireNonNull(getContext()));
+            CardView seccion_layout = new CardView(requireContext());
 
             TextView seccion_header = new TextView(getContext());
             seccion_header.setAllCaps(true);
@@ -3355,7 +3524,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                         }
                         if(mDBHelper.ExisteTipoVisita(tipoVisitaActual) && mDBHelper.ExisteEnVisitPlanActual(modalidad, tipoVisitaActual)) {
-                            CardView seccion_visitas = new CardView(Objects.requireNonNull(getContext()));
+                            CardView seccion_visitas = new CardView(requireContext());
                             mapeoVisitas.put(tipoVisitaActual, seccion_visitas);
 
                             TextView header_visitas = new TextView(getContext());
@@ -3762,7 +3931,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             horariosSolicitud.add(new Horarios(GUID,"00:00:00"));
                         }
                     }
-                    CardView seccion_horarios = new CardView(Objects.requireNonNull(getContext()));
+                    CardView seccion_horarios = new CardView(requireContext());
 
                     TextView header_horarios = new TextView(getContext());
                     header_horarios.setTextAlignment(TEXT_ALIGNMENT_CENTER);
@@ -5866,10 +6035,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         correoValidado = isValidEmail(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString());
                     }
                     if(listaFinal.get(i).equals("W_CTE-STCD1")){
-                        cedulaValidada = ValidarCedula(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-KATR3").getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-BUKRS").getAsString());
+                        ValidarCedula(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-KATR3").getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-BUKRS").getAsString(),true);
                     }
                     if(listaFinal.get(i).equals("W_CTE-STCDT")){
-                        cedulaValidada = ValidarCedula(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-STCDT").getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-BUKRS").getAsString());
+                        ValidarCedula(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-STCDT").getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-BUKRS").getAsString(),true);
                     }
                 } catch (Exception e) {
                     try {
@@ -6800,12 +6969,12 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         if(hasta != null)
             hasta.setSelection(VariablesGlobales.getIndex(hasta,valorSeleccioando));
     }
-    private static boolean ValidarCedula(View v, String tipoCedula){
-        TextView texto = (TextView)v;
+    private static boolean ValidarCedula(View v, String tipoCedula) {
+        TextView texto = (TextView) v;
         String cedula = "";
         Pattern pattern;
         Matcher matcher;
-        switch(PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS","")) {
+        switch (PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS", "")) {
             case "F443"://Costa Rica
                 switch (tipoCedula) {
                     case "C1":
@@ -6824,13 +6993,14 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 pattern = Pattern.compile(cedula);
                 matcher = pattern.matcher(texto.getText());
                 if (!matcher.matches()) {
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
                     cedulaValidada = false;
+                    Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                    texto.setError("Formato Regimen " + tipoCedula + " invalido!");
                     return true;
                 }
                 cedulaValidada = true;
                 MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
-                if(idfiscal != null) {
+                if (idfiscal != null) {
                     String cedulaDigitada = texto.getText().toString().trim();
                     if (texto.getText().toString().trim().endsWith("-00") && tipoCedula.equals("C1"))
                         idfiscal.setText(cedulaDigitada.substring(0, cedulaDigitada.length() - 3).replaceFirst("^0+(?!$)", "").replace("-", ""));
@@ -6838,12 +7008,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-", ""));
                     idfiscal.setError(null);
                     idfiscal.clearFocus();
+                    Toasty.success(texto.getContext(), "Formato Regimen " + tipoCedula + " valido!", Toasty.LENGTH_SHORT).show();
                 }
                 break;
             case "F445"://Nicaragua
                 if (texto.getText().toString().trim().length() < 3) {
                     cedulaValidada = false;
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+                    texto.setError("Formato Regimen " + tipoCedula + " invalido!");
                     return true;
                 }
                 if (texto.getText().toString().trim().length() < 14) {
@@ -6854,23 +7025,25 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 pattern = Pattern.compile(cedula);
                 matcher = pattern.matcher(texto.getText());
                 if (!matcher.matches()) {
+                    Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
                     cedulaValidada = false;
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+                    texto.setError("Formato Regimen " + tipoCedula + " invalido!");
                     return true;
                 }
                 cedulaValidada = true;
+                Toasty.success(texto.getContext(), "Formato Regimen " + tipoCedula + " valido!", Toasty.LENGTH_SHORT).show();
                 break;
 
             case "F451"://Panama
                 switch (tipoCedula) {
                     case "P1":
-                        if(texto.getText().toString().trim().startsWith("NA-")){
+                        if (texto.getText().toString().trim().startsWith("NA-")) {
                             cedula = "NA-([0][1-9]|[1][0-2])-[0-9]{4,4}-[0-9]{5,5}";
                         }
-                        if(texto.getText().toString().trim().startsWith("PE-")){
+                        if (texto.getText().toString().trim().startsWith("PE-")) {
                             cedula = "PE-[0-9]{4,4}-[0-9]{5,5}";
                         }
-                        if(texto.getText().toString().trim().startsWith("N-")){
+                        if (texto.getText().toString().trim().startsWith("N-")) {
                             cedula = "N-[0-9]{4,4}-[0-9]{6,6}";
                         }
                         break;
@@ -6886,34 +7059,46 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 if (!matcher.matches()) {
                     cedulaValidada = false;
                     Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
-                    texto.setError("Formato Regimen "+tipoCedula+" invalido!");
+                    texto.setError("Formato Regimen " + tipoCedula + " invalido!");
                     return true;
                 }
                 cedulaValidada = true;
+                Toasty.success(texto.getContext(), "Formato Regimen " + tipoCedula + " valido!", Toasty.LENGTH_SHORT).show();
                 break;
             case "F446"://GT Embocem
             case "1657"://Volcanes
             case "1658"://Abasa
+                if (texto.getText().toString().trim().length() == 0) {
+                    if (!listaCamposObligatorios.contains("W_CTE-STCD1")) {
+                        cedulaValidada = true;
+                        texto.setError(null);
+                    } else {
+                        cedulaValidada = false;
+                        texto.setError("El campo NIT es obligatorio!");
+                    }
+                    return true;
+                }
                 /*Validaciones Adicionales para GT*/
-                String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
-                String regexp_cf = "CF";
+                String regexp_idfiscal = "[1-9][0-9]{1,9}-[0-9A-Z]";
+                //String regexp_cf = "CF";
                 Pattern patternFi = Pattern.compile(regexp_idfiscal);
-                Pattern patternCF = Pattern.compile(regexp_cf);
+                //Pattern patternCF = Pattern.compile(regexp_cf);
                 Matcher matcherFi = patternFi.matcher(texto.getText());
-                Matcher matcherCF = patternCF.matcher(texto.getText());
+                //Matcher matcherCF = patternCF.matcher(texto.getText());
 
-                if (!matcherFi.matches() && !matcherCF.matches()) {
+                if (!matcherFi.matches()) {
                     cedulaValidada = false;
                     texto.setError("NIT valor/formato inválido!");
                     return true;
                 }
                 /*Despues del formato se realiza validacion MOD 11*/
-                if(texto.getText().toString().replace("-","").replace("0","").length() == 0){
+                String[] nit = texto.getText().toString().split("-");
+                if (texto.getText().toString().replace("-", "").replace("0", "").length() == 0) {
                     cedulaValidada = false;
                     texto.setError("NIT no puede tener solo ceros!");
                     return true;
                 }
-                String[] nit = texto.getText().toString().split("-");
+
                 Integer cantDigitos = nit[0].length();
 
                 StringBuilder digitos = new StringBuilder();
@@ -6925,7 +7110,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 }
                 int resultado = temp % 11;
                 int tempVerificador = 11 - resultado;
-                if(tempVerificador == 11)
+                if (tempVerificador == 11)
                     tempVerificador = resultado;
                 String digitoVerificador = String.valueOf(tempVerificador);
                 if (digitoVerificador.equals("10")) {
@@ -6937,6 +7122,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     return true;
                 }
                 cedulaValidada = true;
+                texto.setError(null);
+                Toasty.success(texto.getContext(), "Formato de NIT válido!", Toasty.LENGTH_SHORT).show();
                 break;
             case "1661":
             case "Z001":
@@ -6945,7 +7132,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 String ci;
                 int digVerificador = -1;
                 int[] factores = null;
-                int suma=0;
+                int suma = 0;
                 int factor = 10;
                 int resto = 0;
                 int checkdigit = 0;
@@ -7013,9 +7200,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                         if (checkdigit == factor) {
                             cedulaValidada = (digVerificador == 0);
-                        }else if (checkdigit == 10) {
+                        } else if (checkdigit == 10) {
                             cedulaValidada = true;//String.valueOf(digVerificador) == "K";
-                        }else {
+                        } else {
                             cedulaValidada = (checkdigit == digVerificador);
                         }
                         if (!cedulaValidada) {
@@ -7024,12 +7211,12 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         }
                         break;
                     case "88":
-                        if(texto.getText().toString().length() == 0){
+                        if (texto.getText().toString().length() == 0) {
                             cedulaValidada = false;
                             texto.setError("RUT no puede estar vacio!");
                             return true;
                         }
-                        nit_uy[0] = texto.getText().toString().substring(0,texto.getText().toString().length()-1);
+                        nit_uy[0] = texto.getText().toString().substring(0, texto.getText().toString().length() - 1);
                         if (texto.getText().toString().replace("-", "").replace("0", "").length() == 0) {
                             cedulaValidada = false;
                             texto.setError("RUT no puede tener solo ceros!");
@@ -7045,7 +7232,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                         try {
                             digVerificador = Integer.parseInt(texto.getText().toString().substring(texto.getText().toString().length() - 1, texto.getText().toString().length()) + "");
-                        }catch(Exception e){
+                        } catch (Exception e) {
 
                         }
                         if (ci.length() != 11) {
@@ -7059,7 +7246,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         }
 
                         if (ci.length() == 11) { // RUT
-                            factores = new int[]{4,3,2,9,8,7,6,5,4,3,2};
+                            factores = new int[]{4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
                         }
 
                         if (factores == null) {
@@ -7083,7 +7270,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                         if (checkdigit == factor) {
                             cedulaValidada = (digVerificador == 0);
-                        }else if (checkdigit == 10) {
+                        } else if (checkdigit == 10) {
                             cedulaValidada = true;//String.valueOf(digVerificador) == "K";
                         } else {
                             cedulaValidada = (checkdigit == digVerificador);
@@ -7098,71 +7285,162 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         break;
                 }
         }
-
-        Toasty.success(texto.getContext(),"Formato Regimen "+tipoCedula+" valido!",Toasty.LENGTH_SHORT).show();
         return true;
     }
-    private static boolean ValidarIDFiscal(Context context){
-        //SearchableSpinner regimen = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
+    private static boolean ValidarIDFiscal(Context context, boolean mostrarMensajes){
+        SearchableSpinner regimen = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
         MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
-        if(idfiscal != null) {
-            if (idfiscal.getText().toString().trim().length() == 0) {
-                idFiscalValidado = false;
-                return true;
-            }
-            if (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad()).equals("F446") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD", "").equals("1657") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD", "").equals("1658")) {
-                String regexp_dpi = "[0-9]{12,14}";
-                String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
-                String regexp_cf = "CF";
-                Pattern pattern = Pattern.compile(regexp_idfiscal);
-                Pattern patternCF = Pattern.compile(regexp_cf);
-                Matcher matcher = pattern.matcher(idfiscal.getText());
-                Matcher matcherCF = patternCF.matcher(idfiscal.getText());
+        try {
+            if (idfiscal != null) {
+                switch (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad())) {
+                    case "F443":
+                        if (idfiscal.getText().toString().trim().length() == 0) {
+                            if (!listaCamposObligatorios.contains("W_CTE-STCD3")) {
+                                idFiscalValidado = true;
+                            } else {
+                                idFiscalValidado = false;
+                            }
+                            return true;
+                        }
+                        if (mostrarMensajes)
+                            Toasty.success(context, "Formato Regimen " + ((OpcionSpinner) regimen.getSelectedItem()).getId() + " valido!", Toasty.LENGTH_SHORT).show();
+                        break;
+                    case "F445":
+                    case "F451":
+                        if (idfiscal.getText().toString().trim().length() == 0) {
+                            if (!listaCamposObligatorios.contains("W_CTE-STCD3")) {
+                                idFiscalValidado = true;
+                            } else {
+                                idFiscalValidado = false;
+                            }
+                            return true;
+                        }
+                        if (mostrarMensajes)
+                            Toasty.success(context, "Formato Regimen " + ((OpcionSpinner) regimen.getSelectedItem()).getId() + " valido!", Toasty.LENGTH_SHORT).show();
+                        break;
+                    case "F446":
+                    case "1658":
+                    case "1657":
+                        if (idfiscal.getText().toString().trim().length() == 0) {
+                            if (!listaCamposObligatorios.contains("W_CTE-STCD3")) {
+                                idFiscalValidado = true;
+                            } else {
+                                idFiscalValidado = false;
+                            }
+                            return true;
+                        }
 
-                pattern = Pattern.compile(regexp_dpi);
-                matcher = pattern.matcher(idfiscal.getText().toString().trim());
-                if (!matcher.matches()) {
-                    if (!matcher.matches() && !matcherCF.matches()) {
-                        idfiscal.setError("DPI/CUI/NIT formato inválido!");
-                        idFiscalValidado = false;
-                        return true;
-                    }
-                    /*Despues del formato se realiza validacion MOD 11*/
-                    if (idfiscal.getText().toString().replace("-", "").replace("0", "").length() == 0) {
-                        idfiscal.setError("ID Fiscal no puede tener solo ceros!");
-                        cedulaValidada = false;
-                        return true;
-                    }
-                    String[] nit = idfiscal.getText().toString().split("-");
-                    Integer cantDigitos = nit[0].length();
+                        String regexp_cui = "^[0-9]{4}\\s?[0-9]{5}\\s?[0-9]{4}$";
+                        String regexp_pasaporte = "[0-9A-Z]{9,12}";
+                        //String regexp_cf = "CF";
+                        Pattern patternPasaporte = Pattern.compile(regexp_pasaporte);
+                        Pattern patternCUI = Pattern.compile(regexp_cui);
+                        Matcher matcherPasaporte = patternPasaporte.matcher(idfiscal.getText());
+                        Matcher matcherCUI = patternCUI.matcher(idfiscal.getText());
 
-                    StringBuilder digitos = new StringBuilder();
-                    digitos.append(nit[0]);
-                    digitos = digitos.reverse();
-                    int temp = 0;
-                    for (int x = 2; x <= (cantDigitos + 1); x++) {
-                        temp += x * Character.getNumericValue(digitos.charAt((x - 2)));
-                    }
-                    int resultado = temp % 11;
-                    int tempVerificador = 11 - resultado;
-                    if (tempVerificador == 11)
-                        tempVerificador = resultado;
-                    String digitoVerificador = String.valueOf(tempVerificador);
-                    if (digitoVerificador.equals("10")) {
-                        digitoVerificador = "K";
-                    }
-                    if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
-                        idfiscal.setError("ID fiscal inválido por digito verificador!");
-                        idFiscalValidado = false;
-                        return true;
-                    }
+                        if (!matcherPasaporte.matches() && !matcherCUI.matches()) {
+                            idfiscal.setError("CUI/Pasaporte formato inválido!");
+                            idFiscalValidado = false;
+                            return true;
+                        }
+                        /*Despues del formato se realiza validacion MOD 11*/
+                        if (((OpcionSpinner) regimen.getSelectedItem()).getId().equals("G2")) {
+                            //cedulaValidada = true; //No ocuparia validacion por que no es obligatorio??
+                            // Se reemplazan los espacios en blanco en la cadena (si tiene)
+                            String Cui = idfiscal.getText().toString().replace(" ", "");
+                            // Extraemos el numero del DPI
+                            String no = Cui.substring(0, 8);
+                            // Extraemos el numero de Departamento
+                            int depto = Integer.parseInt(Cui.substring(9, 11));
+                            // Extraemos el numero de Municipio
+                            int muni = Integer.parseInt(Cui.substring(11, 13));
+                            // Se extra el numero validador
+                            int ver = Integer.parseInt(Cui.substring(8, 9));
+                            // Array con la cantidad de municipios que contiene cada departamento.
+                            int munisPorDepto[] = {
+                                    /* 01 - Guatemala tiene:      */ 17 /* municipios. */,
+                                    /* 02 - El Progreso tiene:    */  8 /* municipios. */,
+                                    /* 03 - Sacatepéquez tiene:   */ 16 /* municipios. */,
+                                    /* 04 - Chimaltenango tiene:  */ 16 /* municipios. */,
+                                    /* 05 - Escuintla tiene:      */ 14 /* municipios. */,
+                                    /* 06 - Santa Rosa tiene:     */ 14 /* municipios. */,
+                                    /* 07 - Sololá tiene:         */ 19 /* municipios. */,
+                                    /* 08 - Totonicapán tiene:    */  8 /* municipios. */,
+                                    /* 09 - Quetzaltenango tiene: */ 24 /* municipios. */,
+                                    /* 10 - Suchitepéquez tiene:  */ 21 /* municipios. */,
+                                    /* 11 - Retalhuleu tiene:     */  9 /* municipios. */,
+                                    /* 12 - San Marcos tiene:     */ 30 /* municipios. */,
+                                    /* 13 - Huehuetenango tiene:  */ 33 /* municipios. */,
+                                    /* 14 - Quiché tiene:         */ 21 /* municipios. */,
+                                    /* 15 - Baja Verapaz tiene:   */  9 /* municipios. */,
+                                    /* 16 - Alta Verapaz tiene:   */ 17 /* municipios. */,
+                                    /* 17 - Petén tiene:          */ 14 /* municipios. */,
+                                    /* 18 - Izabal tiene:         */  5 /* municipios. */,
+                                    /* 19 - Zacapa tiene:         */ 11 /* municipios. */,
+                                    /* 20 - Chiquimula tiene:     */ 11 /* municipios. */,
+                                    /* 21 - Jalapa tiene:         */  7 /* municipios. */,
+                                    /* 22 - Jutiapa tiene:        */ 17 /* municipios. */
+                            };
+                            //Verificamos que no se haya ingresado 0 en la posicion de depto o municipio
+                            if ((muni == 0 || depto == 0) || (muni == 0 && depto == 0)) {
+                                idFiscalValidado = false;
+                                if (depto == 0)
+                                    idfiscal.setError("CUI no válido departamento invalido " + depto + "!");
+                                if (muni == 0)
+                                    idfiscal.setError("CUI no válido municipio invalido " + muni + "!");
+                                return true;
+                            } else {
+                                //Si el numero de depto ingresado en la cadena es mayor 22 es cui invalido
+                                System.out.println("munixdepto: " + munisPorDepto.length);
+                                if (depto > munisPorDepto.length) {
+                                    idFiscalValidado = false;
+                                    idfiscal.setError("CUI no válido Departamento " + depto + " fuera de rango!");
+                                    return true;
+                                } else {
+                                    //si depto es menor o igual a 22
+                                    System.out.println("Municipios maximos: " + munisPorDepto[depto - 1]);
+                                    //se valida que el municipio ingresado en la cadena este dentro del rango del depto
+                                    if (muni > munisPorDepto[depto - 1]) {
+                                        idFiscalValidado = false;
+                                        idfiscal.setError("CUI no válido municipio " + muni + " fuera de rango!");
+                                        return true;
+                                    } else {
+                                        // si es valido
+                                        int total = 0;
+                                        //Se realiza la siguiente Ooperación
+                                        for (int i = 0; i < no.length(); i++) {
+                                            System.out.println("-" + no.substring(i, i + 1));
+                                            total += (Integer.parseInt(no.substring(i, i + 1))) * (i + 2);
+                                        }
+                                        // al total de la anterior operación se le saca el mod 11
+                                        int modulo = total % 11;
+                                        System.out.println("cui con modulo" + modulo);
+                                        // Si el mod es igual al numero verificador el cui es valido , sino es invalido
+                                        if (modulo != ver) {
+                                            idFiscalValidado = false;
+                                            idfiscal.setError("CUI no válido por digito verificador!");
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (((OpcionSpinner) regimen.getSelectedItem()).getId().equals("G3")) {
+                        }
+                        if (mostrarMensajes)
+                            Toasty.success(context, "Formato Regimen CUI/Pasaporte válido!", Toasty.LENGTH_SHORT).show();
+                        break;
+
                 }
             }
+        }catch(Exception e){
+            if (mostrarMensajes)
+                Toasty.warning(context, "Formato Regimen " + ((OpcionSpinner) regimen.getSelectedItem()).getId() + " inválido!", Toasty.LENGTH_SHORT).show();
         }
         idFiscalValidado = true;
         return true;
     }
-    private static boolean ValidarCedula(String v, String tipoCedula, String bukrs){
+    private static boolean ValidarCedula(String v, String tipoCedula, String bukrs, boolean mostrarMensajes){
         String texto = v;
         String cedula = "";
         Pattern pattern;
@@ -7241,20 +7519,36 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             case "F446"://GT Embocem
             case "1657"://Volcanes
             case "1658"://Abasa
+                if (et.getText().toString().trim().length() == 0) {
+                    if (!listaCamposObligatorios.contains("W_CTE-STCD1")) {
+                        cedulaValidada = true;
+                        et.setError(null);
+                    } else {
+                        cedulaValidada = false;
+                        et.setError("El campo NIT es obligatorio!");
+                    }
+                    return true;
+                }
                 /*Validaciones Adicionales para GT*/
-                String regexp_idfiscal = "[1-9][0-9]{1,8}-[0-9A-Z]";
-                String regexp_cf = "CF";
-                Pattern patternFi = Pattern.compile(regexp_idfiscal);
-                Pattern patternCF = Pattern.compile(regexp_cf);
-                Matcher matcherFi = patternFi.matcher(texto);
-                Matcher matcherCF = patternCF.matcher(texto);
+                String regexp_idfiscal = "[1-9][0-9]{1,9}-[0-9A-Z]";
 
-                if (!matcherFi.matches() && !matcherCF.matches()) {
+                Pattern patternFi = Pattern.compile(regexp_idfiscal);
+                //Pattern patternCF = Pattern.compile(regexp_cf);
+                Matcher matcherFi = patternFi.matcher(et.getText());
+                //Matcher matcherCF = patternCF.matcher(texto.getText());
+
+                if (!matcherFi.matches()) {
                     cedulaValidada = false;
+                    et.setError("NIT valor/formato inválido!");
                     return true;
                 }
                 /*Despues del formato se realiza validacion MOD 11*/
-                String[] nit = texto.split("-");
+                String[] nit = et.getText().toString().split("-");
+                if (et.getText().toString().replace("-", "").replace("0", "").length() == 0) {
+                    cedulaValidada = false;
+                    et.setError("NIT no puede tener solo ceros!");
+                    return true;
+                }
                 Integer cantDigitos = nit[0].length();
 
                 StringBuilder digitos = new StringBuilder();
@@ -7266,7 +7560,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 }
                 int resultado = temp % 11;
                 int tempVerificador = 11 - resultado;
-                if(tempVerificador == 11)
+                if (tempVerificador == 11)
                     tempVerificador = resultado;
                 String digitoVerificador = String.valueOf(tempVerificador);
                 if (digitoVerificador.equals("10")) {
@@ -7274,9 +7568,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 }
                 if (nit.length > 1 && !digitoVerificador.equals(nit[1].trim())) {
                     cedulaValidada = false;
+                    et.setError("NIT inválido por digito verificador!");
                     return true;
                 }
                 cedulaValidada = true;
+                et.setError(null);
+                if(mostrarMensajes)
+                    Toasty.success(et.getContext(), "Formato de NIT valido!", Toasty.LENGTH_SHORT).show();
                 break;
             case "1661":
             case "Z001":
@@ -7329,7 +7627,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                         if (factores == null) {
                             cedulaValidada = false;
-                            Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            if(mostrarMensajes)
+                                Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
                             return true;
                         }
 
@@ -7352,7 +7651,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             cedulaValidada = (checkdigit == digVerificador);
                         }
                         if (!cedulaValidada) {
-                            Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            if(mostrarMensajes)
+                                Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
                             return true;
                         }
                         break;
@@ -7392,7 +7692,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                         if (factores == null) {
                             cedulaValidada = false;
-                            Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            if(mostrarMensajes)
+                                Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
                             return true;
                         }
 
@@ -7417,7 +7718,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             cedulaValidada = (checkdigit == digVerificador);
                         }
                         if (!cedulaValidada) {
-                            Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                            if(mostrarMensajes)
+                                Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
                             return true;
                         }
                         break;
@@ -7696,6 +7998,42 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         boolean valido = !TextUtils.isEmpty(correo) && android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches();
         return valido;
     }
+    public final static boolean isValidPhoneNumber(String v, String bukrs) {
+        boolean retorno = false;
+        String codigoPais = "";
+        switch(bukrs){
+            case "F443":
+                codigoPais = "506";
+            case "F445":
+                codigoPais = "505";
+            case "F446":
+                codigoPais = "52";
+            case "F451":
+                codigoPais = "507";
+            case "1657":
+                codigoPais = "52";
+            case "1658":
+                codigoPais = "52";
+            case "1661":
+                codigoPais = "598";
+            case "Z001":
+                codigoPais = "598";
+                break;
+            case "COLOMBIA":
+                codigoPais = "57";
+                break;
+            case "ARGENTINA":
+                codigoPais = "54";
+                break;
+            default:
+                codigoPais = "506";
+                return true;
+
+        }
+        String numero = (String)v;
+        boolean valido = !TextUtils.isEmpty(numero) && Patterns.PHONE.matcher(numero).matches();
+        return valido;
+    }
     public static int getIndexConfigCampo(String campo) {
         for (int i = 0; i < configExcepciones.size(); i++) {
             HashMap<String, String> map = configExcepciones.get(i);
@@ -7752,5 +8090,4 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             }
         }
     }
-
 }
