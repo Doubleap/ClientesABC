@@ -554,7 +554,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 ImageView btnAyuda = null;
                 //Creacion de seccion
                 if(!seccionAnterior.equals(campos.get(i).get("id_seccion").trim()) && !campos.get(i).get("id_seccion").trim().equals("99")) {
-                    CardView seccion_layout = new CardView(Objects.requireNonNull(getContext()));
+                    CardView seccion_layout = new CardView(requireContext());
 
                     TextView seccion_header = new TextView(getContext());
                     seccion_header.setAllCaps(true);
@@ -591,7 +591,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         listaCamposBloque.add(campos.get(i).get("campo").trim());
                     }
                 }else
-                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("checkbox")) {
+                if (campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("checkbox")) {
                     //Tipo CHECKBOX
                     TableRow fila = new TableRow(getContext());
                     fila.setOrientation(TableRow.HORIZONTAL);
@@ -605,7 +605,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         checkbox_old.setEnabled(false);
                         mapeoCamposDinamicosOld.put(campos.get(i).get("campo").trim(), checkbox_old);
                     }
-
+                    lp.setMargins(0,20,0,0);
                     CheckBox checkbox = new CheckBox(getContext());
                     checkbox.setLayoutParams(lp);
                     checkbox.setText(campos.get(i).get("descr"));
@@ -616,7 +616,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         checkbox.setEnabled(false);
                         //checkbox.setVisibility(View.GONE);
                     }
-                    fila.addView(checkbox_old);
+                    //fila.addView(checkbox_old);
                     fila.addView(checkbox);
                     ll.addView(fila);
                     listaCamposDinamicos.add(campos.get(i).get("campo").trim());
@@ -730,7 +730,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
                     }
                     // Creando el adaptador(opciones) para el comboBox deseado
-                    ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, listaopciones);
+                    ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, listaopciones);
                     // Drop down layout style - list view with radio button
                     dataAdapter.setDropDownViewResource(R.layout.spinner_item);
                     // attaching data adapter to spinner
@@ -1032,7 +1032,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     fila.setWeightSum(10);
                     fila.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,10f));
 
-                    final TextInputLayout label = new TextInputLayout(Objects.requireNonNull(getContext()));
+                    final TextInputLayout label = new TextInputLayout(requireContext());
                     label.setHint(campos.get(i).get("descr"));
                     label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.colorTextView,null)));
                     label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
@@ -1159,7 +1159,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         mapeoCamposDinamicosEnca.put(campos.get(i).get("campo").trim(),et);
                     }
 
-                    final TextInputLayout label_old = new TextInputLayout(Objects.requireNonNull(getContext()));
+                    final TextInputLayout label_old = new TextInputLayout(requireContext());
                     label_old.setVisibility(View.GONE);
                     label_old.setHint(campos.get(i).get("descr")+" Actual");
                     label_old.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
@@ -1432,7 +1432,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 ArrayList<OpcionSpinner> opciones = db.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_Flujo = "+id_flujo);
 
                 // Creando el adaptador(opciones) para el comboBox deseado
-                ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, opciones);
+                ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, opciones);
                 // Drop down layout style - list view with radio button
                 dataAdapter.setDropDownViewResource(R.layout.spinner_item);
                 // attaching data adapter to spinner
@@ -1532,7 +1532,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             String[] headers;
             SimpleTableHeaderAdapter sta;
 
-            CardView seccion_layout = new CardView(Objects.requireNonNull(getContext()));
+            CardView seccion_layout = new CardView(requireContext());
 
             TextView seccion_header = new TextView(getContext());
             seccion_header.setAllCaps(true);
@@ -1902,34 +1902,41 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
         if(codigoEquipoFrio != null) {
             EquipoFrio equipo = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
+            if(equipo == null)
+                equipo = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, false);
             MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_EQUIPMENT"));
             tv.setText(codigoEquipoFrio);
             MaskedEditText tvs = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_SERIALNO"));
-            tvs.setText(equipo.getSernr());
+            if(equipo != null)
+                tvs.setText(equipo.getSernr());
             try {
                 SearchableSpinner tvm = ((SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-IM_MATERIAL"));
-                tvm.setSelection(VariablesGlobales.getIndex(tvm, equipo.getMatnr()));
+                if(equipo != null)
+                    tvm.setSelection(VariablesGlobales.getIndex(tvm, equipo.getMatnr()));
             }catch(Exception e){
                 MaskedEditText tvm = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_MATERIAL"));
-                tvm.setText(equipo.getMatnr());
+                if(equipo != null)
+                    tvm.setText(equipo.getMatnr());
             }
             MaskedEditText tvp = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_PARTNER"));
-            tvp.setText(codigoCliente);
+            if (tvp != null)
+                tvp.setText(codigoCliente);
 
             //Valores Enca si estan presentes
             MaskedEditText tve = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_EQUIPMENT"));
             if (tve != null)
                 tve.setText(codigoEquipoFrio);
             MaskedEditText tvse = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_SERIALNO"));
-            if (tvse != null)
+            if (tvse != null && equipo != null)
                 tvse.setText(equipo.getSernr());
             try{
                 SearchableSpinner tvme = ((SearchableSpinner) mapeoCamposDinamicosEnca.get("W_CTE-IM_MATERIAL"));
-                if (tvme != null)
+                if (tvme != null && equipo != null)
                     tvme.setSelection(VariablesGlobales.getIndex(tvme, equipo.getMatnr()));
             }catch(Exception e){
                 MaskedEditText tvm = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_MATERIAL"));
-                tvm.setText(equipo.getMatnr());
+                if(tvm != null && equipo != null)
+                    tvm.setText(equipo.getMatnr());
             }
             MaskedEditText tvpe = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_PARTNER"));
             if (tvpe != null)

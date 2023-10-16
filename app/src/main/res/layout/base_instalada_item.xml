@@ -6,6 +6,7 @@
     android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/card_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
@@ -25,31 +26,43 @@
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:paddingTop="@dimen/margin_small"
             android:paddingBottom="@dimen/margin_medium">
+
             <TextView
-                android:id="@+id/num_serie"
+                android:id="@+id/num_placa"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
+                android:text="Numero de Placa"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/num_serie"
+                android:layout_width="166dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_toEndOf="@id/num_placa"
                 android:text="Numero de Serie"
                 android:textAppearance="?android:textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/num_equipo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/num_placa"
+                android:layout_marginLeft="10dp"
+                android:text="Numero Equipo"
+                android:textAppearance="?android:textAppearanceSmallPopupMenu" />
 
             <TextView
                 android:id="@+id/base_instalada"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/num_serie"
-                android:layout_marginLeft="10dp"
+                android:layout_toRightOf="@id/num_equipo"
+                android:layout_alignBaseline="@+id/num_equipo"
+                android:layout_marginLeft="15dp"
                 android:text="Base Instalada"
                 android:textAppearance="?android:textAppearanceSmall" />
-            <TextView
-                android:id="@+id/num_equipo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_toRightOf="@id/base_instalada"
-                android:layout_alignBaseline="@+id/base_instalada"
-                android:layout_marginLeft="15dp"
-                android:text="Numero Equipo"
-                android:textAppearance="?android:textAppearanceSmallPopupMenu" />
+
 
             <TextView
                 android:id="@+id/text_ultima_fecha"
@@ -70,7 +83,8 @@
                 android:layout_marginTop="@dimen/margin_small"
                 android:width="50sp"
                 android:height="50sp"
-                android:textAlignment="center" />
+                android:textAlignment="center"
+                android:theme="@style/CheckBoxEquipoFrio" />
 
             <TextView
                 android:id="@+id/estado_escaneo"
@@ -80,8 +94,25 @@
                 android:layout_marginLeft="10dp"
                 android:text="Estado Escaneo"
                 android:textAppearance="?android:textAppearanceSmall" />
+            <TextView
+                android:id="@+id/comentario"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/estado_escaneo"
+                android:layout_marginLeft="10dp"
+                android:text="Comentario"
+                android:textAppearance="?android:textAppearanceSmall" />
+
+            <ImageView
+                android:id="@+id/noscan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignEnd="@id/num_serie"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/ic_barcode_off"
+                android:visibility="gone"/>
+
         </RelativeLayout>
 
     </androidx.cardview.widget.CardView>
-
 </LinearLayout>

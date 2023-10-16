@@ -32,7 +32,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:src="@drawable/icon_scan_code"
+        android:src="@drawable/ic_barcode_scanner"
         android:tint="@color/white"
         android:backgroundTint="@color/aprobados"
         android:layout_margin="16dp"
@@ -49,6 +49,19 @@
         android:backgroundTint="@color/devuelto"
         android:layout_margin="16dp"
         android:tooltipText="Reconocimiento de imagenes"/>
+        <proyecto.app.clientesabc.clases.MovableFloatingActionButton
+            android:id="@+id/manualBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/camaraBtn"
+            android:src="@drawable/ic_barcode_off"
+            android:tint="@color/white"
+            android:backgroundTint="@color/rechazado"
+            android:layout_margin="16dp"
+            android:tooltipText="Reconocimiento de imagenes"
+            />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>
     <include

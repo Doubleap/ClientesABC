@@ -24,8 +24,8 @@
                                             <option name="values">
                                               <map>
                                                 <entry key="color" value="000000" />
-                                                <entry key="imagePath" value="C:\Users\andre\AppData\Local\Temp\baseline_qr_code_scanner_24.xml" />
-                                                <entry key="opacityPercent" value="60" />
+                                                <entry key="imagePath" value="C:\Users\andre\AppData\Local\Temp\baseline_kitchen_24.xml" />
+                                                <entry key="opacityPercent" value="80" />
                                                 <entry key="paddingPercent" value="5" />
                                                 <entry key="trimmed" value="true" />
                                               </map>
@@ -38,7 +38,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
-                                                <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/qr_code_scanner/baseline_qr_code_scanner_24.xml" />
+                                                <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/kitchen/baseline_kitchen_24.xml" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -83,8 +83,9 @@
                                   <option name="values">
                                     <map>
                                       <entry key="imageAsset" value="C:\Users\andre\Desktop\femsa-logo-900.jpg" />
-                                      <entry key="outputName" value="icon_scan_code" />
-                                      <entry key="themeColor" value="e5922c" />
+                                      <entry key="outputName" value="icon_refrigerator" />
+                                      <entry key="theme" value="CUSTOM" />
+                                      <entry key="themeColor" value="808080" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -395,8 +396,9 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="outputName" value="ic_settings_applications_black_24dp" />
-                            <entry key="sourceFile" value="C:\Users\andre" />
+                            <entry key="assetSourceType" value="FILE" />
+                            <entry key="outputName" value="ic_barcode_off" />
+                            <entry key="sourceFile" value="C:\Users\andre\Downloads\barcode_off.svg" />
                           </map>
                         </option>
                       </PersistentState>

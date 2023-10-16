@@ -579,6 +579,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 solicitud.put("W_CTE-IN_PLAN_INICIATIVA", cursor.getString(cursor.getColumnIndex("W_CTE-IN_PLAN_INICIATIVA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_PLAN_INICIATIVA")) : "");
             }catch(Exception e){}
 
+            try {
+                //CAMPOS NUEVOS PARA MODULO CENSO QUIPO FRIO
+                solicitud.put("W_CTE-CE_MOTIVO_ALERTA", cursor.getString(cursor.getColumnIndex("W_CTE-CE_MOTIVO_ALERTA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CE_MOTIVO_ALERTA")) : "");
+                solicitud.put("W_CTE-CE_LOCAL_ABIERTO", cursor.getString(cursor.getColumnIndex("W_CTE-CE_LOCAL_ABIERTO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CE_LOCAL_ABIERTO")) : "");
+                solicitud.put("W_CTE-CE_CONTACTO", cursor.getString(cursor.getColumnIndex("W_CTE-CE_CONTACTO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CE_CONTACTO")) : "");
+                solicitud.put("W_CTE-CE_CONTACTO_ADICIONAL", cursor.getString(cursor.getColumnIndex("W_CTE-CE_CONTACTO_ADICIONAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CE_CONTACTO_ADICIONAL")) : "");
+            }catch(Exception e){}
+
             formList.add(solicitud);
         }
 
@@ -591,194 +599,195 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ArrayList<HashMap<String, String>> formList = new ArrayList<>();
         String query = "SELECT * FROM FormHVKOF_old_solicitud WHERE rtrim(id_solicitud) = ?";
         Cursor cursor = mDataBase.rawQuery(query,new String[]{id_solicitud});
-        while (cursor.moveToNext()){
-            HashMap<String,String> solicitud = new HashMap<>();
-            solicitud.put("id_solicitud",cursor.getString(cursor.getColumnIndex("id_solicitud")) != null ? cursor.getString(cursor.getColumnIndex("id_solicitud")) : "" );
-            solicitud.put("IDFORM",cursor.getString(cursor.getColumnIndex("IDFORM")) != null ? cursor.getString(cursor.getColumnIndex("IDFORM")) : "" );
-            solicitud.put("TIPFORM",cursor.getString(cursor.getColumnIndex("TIPFORM")) != null ? cursor.getString(cursor.getColumnIndex("TIPFORM")) : "" );
-            solicitud.put("FECCRE",cursor.getString(cursor.getColumnIndex("FECCRE")) != null ? cursor.getString(cursor.getColumnIndex("FECCRE")) : "" );
-            solicitud.put("USUSOL",cursor.getString(cursor.getColumnIndex("USUSOL")) != null ? cursor.getString(cursor.getColumnIndex("USUSOL")) : "" );
-            solicitud.put("ESTADO",cursor.getString(cursor.getColumnIndex("ESTADO")).trim() != null ? cursor.getString(cursor.getColumnIndex("ESTADO")).trim() : "");
-            solicitud.put("W_CTE-AKONT",cursor.getString(cursor.getColumnIndex("W_CTE-AKONT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-AKONT")) : "" );
-            solicitud.put("W_CTE-ALTKN",cursor.getString(cursor.getColumnIndex("W_CTE-ALTKN")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ALTKN")) : "" );
-            solicitud.put("W_CTE-ANTLF",cursor.getString(cursor.getColumnIndex("W_CTE-ANTLF")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ANTLF")) : "" );
-            solicitud.put("W_CTE-BUKRS",cursor.getString(cursor.getColumnIndex("W_CTE-BUKRS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-BUKRS")) : "" );
-            solicitud.put("W_CTE-BZIRK",cursor.getString(cursor.getColumnIndex("W_CTE-BZIRK")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-BZIRK")) : "" );
-            solicitud.put("W_CTE-CITY1",cursor.getString(cursor.getColumnIndex("W_CTE-CITY1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CITY1")) : "" );
-            solicitud.put("W_CTE-CITY2",cursor.getString(cursor.getColumnIndex("W_CTE-CITY2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CITY2")) : "" );
-            solicitud.put("W_CTE-CTLPC",cursor.getString(cursor.getColumnIndex("W_CTE-CTLPC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CTLPC")) : "" );
-            solicitud.put("W_CTE-DATAB",cursor.getString(cursor.getColumnIndex("W_CTE-DATAB")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DATAB")) : "" );
-            solicitud.put("W_CTE-DATBI",cursor.getString(cursor.getColumnIndex("W_CTE-DATBI")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DATBI")) : "" );
-            solicitud.put("W_CTE-DBRTG",cursor.getString(cursor.getColumnIndex("W_CTE-DBRTG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DBRTG")) : "" );
-            solicitud.put("W_CTE-DMBTR1",String.format ("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-DMBTR1"))) );
-            solicitud.put("W_CTE-DMBTR2",String.format ("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-DMBTR2"))) );
-            solicitud.put("W_CTE-DMBTR3",String.format ("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-DMBTR3"))) );
-            solicitud.put("W_CTE-FAX_EXTENS",cursor.getString(cursor.getColumnIndex("W_CTE-FAX_EXTENS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FAX_EXTENS")) : "" );
-            solicitud.put("W_CTE-FAX_NUMBER",cursor.getString(cursor.getColumnIndex("W_CTE-FAX_NUMBER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FAX_NUMBER")) : "" );
-            solicitud.put("W_CTE-FDGRV",cursor.getString(cursor.getColumnIndex("W_CTE-FDGRV")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FDGRV")) : "" );
-            solicitud.put("W_CTE-FLAG_FACT",cursor.getString(cursor.getColumnIndex("W_CTE-FLAG_FACT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FLAG_FACT")) : "" );
-            solicitud.put("W_CTE-FLAG_NTEN",cursor.getString(cursor.getColumnIndex("W_CTE-FLAG_NTEN")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FLAG_NTEN")) : "" );
-            solicitud.put("W_CTE-HITYP",cursor.getString(cursor.getColumnIndex("W_CTE-HITYP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-HITYP")) : "" );
-            solicitud.put("W_CTE-HKUNNR",cursor.getString(cursor.getColumnIndex("W_CTE-HKUNNR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-HKUNNR")) : "" );
-            solicitud.put("W_CTE-HOME_CITY",cursor.getString(cursor.getColumnIndex("W_CTE-HOME_CITY")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-HOME_CITY")) : "" );
-            solicitud.put("W_CTE-HOUSE_NUM1",cursor.getString(cursor.getColumnIndex("W_CTE-HOUSE_NUM1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-HOUSE_NUM1")) : "" );
-            solicitud.put("W_CTE-HOUSE_NUM2",cursor.getString(cursor.getColumnIndex("W_CTE-HOUSE_NUM2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-HOUSE_NUM2")) : "" );
-            solicitud.put("W_CTE-INCO1",cursor.getString(cursor.getColumnIndex("W_CTE-INCO1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-INCO1")) : "" );
-            solicitud.put("W_CTE-INCO2",cursor.getString(cursor.getColumnIndex("W_CTE-INCO2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-INCO2")) : "" );
-            solicitud.put("W_CTE-KALKS",cursor.getString(cursor.getColumnIndex("W_CTE-KALKS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KALKS")) : "" );
-            solicitud.put("W_CTE-KATR3",cursor.getString(cursor.getColumnIndex("W_CTE-KATR3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR3")) : "" );
-            solicitud.put("W_CTE-KATR4",cursor.getString(cursor.getColumnIndex("W_CTE-KATR4")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR4")) : "" );
-            solicitud.put("W_CTE-KATR5",cursor.getString(cursor.getColumnIndex("W_CTE-KATR5")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR5")) : "" );
-            solicitud.put("W_CTE-KATR8",cursor.getString(cursor.getColumnIndex("W_CTE-KATR8")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR8")) : "" );
-            solicitud.put("W_CTE-KDGRP",cursor.getString(cursor.getColumnIndex("W_CTE-KDGRP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KDGRP")) : "" );
-            solicitud.put("W_CTE-KKBER",cursor.getString(cursor.getColumnIndex("W_CTE-KKBER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KKBER")) : "" );
-            solicitud.put("W_CTE-KLABC",cursor.getString(cursor.getColumnIndex("W_CTE-KLABC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KLABC")) : "" );
-            solicitud.put("W_CTE-KLIMK",cursor.getString(cursor.getColumnIndex("W_CTE-KLIMK")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KLIMK")) : "" );
-            solicitud.put("W_CTE-KNKLI",cursor.getString(cursor.getColumnIndex("W_CTE-KNKLI")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KNKLI")) : "" );
-            solicitud.put("W_CTE-KTGRD",cursor.getString(cursor.getColumnIndex("W_CTE-KTGRD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KTGRD")) : "" );
-            solicitud.put("W_CTE-KTOKD",cursor.getString(cursor.getColumnIndex("W_CTE-KTOKD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KTOKD")) : "" );
-            solicitud.put("W_CTE-KUKLA",cursor.getString(cursor.getColumnIndex("W_CTE-KUKLA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KUKLA")) : "" );
-            solicitud.put("W_CTE-KUNNR",cursor.getString(cursor.getColumnIndex("W_CTE-KUNNR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KUNNR")) : "" );
-            solicitud.put("W_CTE-KVGR1",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR1")) : "" );
-            solicitud.put("W_CTE-KVGR2",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR2")) : "" );
-            solicitud.put("W_CTE-KVGR3",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR3")) : "" );
-            solicitud.put("W_CTE-KVGR5",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR5")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR5")) : "" );
-            solicitud.put("W_CTE-LAND1",cursor.getString(cursor.getColumnIndex("W_CTE-LAND1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LAND1")) : "" );
-            solicitud.put("W_CTE-LIFNR",cursor.getString(cursor.getColumnIndex("W_CTE-LIFNR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LIFNR")) : "" );
-            solicitud.put("W_CTE-LIMSUG",String.format ("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-LIMSUG"))) );
-            solicitud.put("W_CTE-LOCATION",cursor.getString(cursor.getColumnIndex("W_CTE-LOCATION")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LOCATION")) : "" );
-            solicitud.put("W_CTE-LPRIO",cursor.getString(cursor.getColumnIndex("W_CTE-LPRIO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LPRIO")) : "" );
-            solicitud.put("W_CTE-LZONE",cursor.getString(cursor.getColumnIndex("W_CTE-LZONE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LZONE")) : "" );
-            solicitud.put("W_CTE-NAME_CO",cursor.getString(cursor.getColumnIndex("W_CTE-NAME_CO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NAME_CO")) : "" );
-            solicitud.put("W_CTE-NAME1",cursor.getString(cursor.getColumnIndex("W_CTE-NAME1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NAME1")) : "" );
-            solicitud.put("W_CTE-NAME2",cursor.getString(cursor.getColumnIndex("W_CTE-NAME2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NAME2")) : "" );
-            solicitud.put("W_CTE-NAME3",cursor.getString(cursor.getColumnIndex("W_CTE-NAME3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NAME3")) : "" );
-            solicitud.put("W_CTE-NAME4",cursor.getString(cursor.getColumnIndex("W_CTE-NAME4")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NAME4")) : "" );
-            solicitud.put("W_CTE-PERNR",cursor.getString(cursor.getColumnIndex("W_CTE-PERNR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PERNR")) : "" );
-            solicitud.put("W_CTE-PO_BOX",cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX")) : "" );
-            solicitud.put("W_CTE-PO_BOX_LOC",cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX_LOC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX_LOC")) : "" );
-            solicitud.put("W_CTE-PO_BOX_REG",cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX_REG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX_REG")) : "" );
-            solicitud.put("W_CTE-POST_CODE2",cursor.getString(cursor.getColumnIndex("W_CTE-POST_CODE2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-POST_CODE2")) : "" );
-            solicitud.put("W_CTE-PRFRE",cursor.getString(cursor.getColumnIndex("W_CTE-PRFRE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PRFRE")) : "" );
-            solicitud.put("W_CTE-PSON1",cursor.getString(cursor.getColumnIndex("W_CTE-PSON1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PSON1")) : "" );
-            solicitud.put("W_CTE-PSON2",cursor.getString(cursor.getColumnIndex("W_CTE-PSON2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PSON2")) : "" );
-            solicitud.put("W_CTE-PSON3",cursor.getString(cursor.getColumnIndex("W_CTE-PSON3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PSON3")) : "" );
-            solicitud.put("W_CTE-PSTLZ",cursor.getString(cursor.getColumnIndex("W_CTE-PSTLZ")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PSTLZ")) : "" );
-            solicitud.put("W_CTE-PVKSM",cursor.getString(cursor.getColumnIndex("W_CTE-PVKSM")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PVKSM")) : "" );
-            solicitud.put("W_CTE-REGION",cursor.getString(cursor.getColumnIndex("W_CTE-REGION")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-REGION")) : "" );
-            solicitud.put("W_CTE-ROOMNUMBER",cursor.getString(cursor.getColumnIndex("W_CTE-ROOMNUMBER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ROOMNUMBER")) : "" );
-            solicitud.put("W_CTE-SMTP_ADDR",cursor.getString(cursor.getColumnIndex("W_CTE-SMTP_ADDR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-SMTP_ADDR")) : "" );
-            solicitud.put("W_CTE-STCD1",cursor.getString(cursor.getColumnIndex("W_CTE-STCD1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STCD1")) : "" );
-            solicitud.put("W_CTE-STCD3",cursor.getString(cursor.getColumnIndex("W_CTE-STCD3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STCD3")) : "" );
-            solicitud.put("W_CTE-STR_SUPPL1",cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL1")) : "" );
-            solicitud.put("W_CTE-STR_SUPPL2",cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL2")) : "" );
-            solicitud.put("W_CTE-STR_SUPPL3",cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL3")) : "" );
-            solicitud.put("W_CTE-STREET",cursor.getString(cursor.getColumnIndex("W_CTE-STREET")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STREET")) : "" );
-            solicitud.put("W_CTE-TEL_EXTENS",cursor.getString(cursor.getColumnIndex("W_CTE-TEL_EXTENS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TEL_EXTENS")) : "" );
-            solicitud.put("W_CTE-TEL_NUMBER",cursor.getString(cursor.getColumnIndex("W_CTE-TEL_NUMBER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TEL_NUMBER")) : "" );
-            solicitud.put("W_CTE-TEL_NUMBER2",cursor.getString(cursor.getColumnIndex("W_CTE-TEL_NUMBER2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TEL_NUMBER2")) : "" );
-            solicitud.put("W_CTE-TELNUMBER2",cursor.getString(cursor.getColumnIndex("W_CTE-TELNUMBER2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TELNUMBER2")) : "" );
-            solicitud.put("W_CTE-TELNUMBER3",cursor.getString(cursor.getColumnIndex("W_CTE-TELNUMBER3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TELNUMBER3")) : "" );
-            solicitud.put("W_CTE-TOGRU",cursor.getString(cursor.getColumnIndex("W_CTE-TOGRU")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TOGRU")) : "" );
-            solicitud.put("W_CTE-UPDAT",cursor.getString(cursor.getColumnIndex("W_CTE-UPDAT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-UPDAT")) : "" );
-            solicitud.put("W_CTE-VKBUR",cursor.getString(cursor.getColumnIndex("W_CTE-VKBUR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VKBUR")) : "" );
-            solicitud.put("W_CTE-VKGRP",cursor.getString(cursor.getColumnIndex("W_CTE-VKGRP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VKGRP")) : "" );
-            solicitud.put("W_CTE-VKORG",cursor.getString(cursor.getColumnIndex("W_CTE-VKORG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VKORG")) : "" );
-            solicitud.put("W_CTE-VSBED",cursor.getString(cursor.getColumnIndex("W_CTE-VSBED")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VSBED")) : "" );
-            solicitud.put("W_CTE-VWERK",cursor.getString(cursor.getColumnIndex("W_CTE-VWERK")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VWERK")) : "" );
-            solicitud.put("W_CTE-WAERS",cursor.getString(cursor.getColumnIndex("W_CTE-WAERS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-WAERS")) : "" );
-            solicitud.put("W_CTE-XZVER",cursor.getString(cursor.getColumnIndex("W_CTE-XZVER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-XZVER")) : "" );
-            solicitud.put("W_CTE-ZGPOCANAL",cursor.getString(cursor.getColumnIndex("W_CTE-ZGPOCANAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZGPOCANAL")) : "" );
-            solicitud.put("W_CTE-ZTERM",cursor.getString(cursor.getColumnIndex("W_CTE-ZTERM")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZTERM")) : "" );
-            solicitud.put("W_CTE-ZTPOCANAL",cursor.getString(cursor.getColumnIndex("W_CTE-ZTPOCANAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZTPOCANAL")) : "" );
-            solicitud.put("W_CTE-ZSEGPRE",cursor.getString(cursor.getColumnIndex("W_CTE-ZSEGPRE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZSEGPRE")) : "" );
-            solicitud.put("W_CTE-ZWELS",cursor.getString(cursor.getColumnIndex("W_CTE-ZWELS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZWELS")) : "" );
-            solicitud.put("W_CTE-ZZAUART",cursor.getString(cursor.getColumnIndex("W_CTE-ZZAUART")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZAUART")) : "" );
-            solicitud.put("W_CTE-ZZBLOQU",cursor.getString(cursor.getColumnIndex("W_CTE-ZZBLOQU")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZBLOQU")) : "" );
-            solicitud.put("W_CTE-ZZCANAL",cursor.getString(cursor.getColumnIndex("W_CTE-ZZCANAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZCANAL")) : "" );
-            solicitud.put("W_CTE-ZZCATFOCO",cursor.getString(cursor.getColumnIndex("W_CTE-ZZCATFOCO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZCATFOCO")) : "" );
-            solicitud.put("W_CTE-ZZCRMA_LAT",cursor.getString(cursor.getColumnIndex("W_CTE-ZZCRMA_LAT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZCRMA_LAT")) : "" );
-            solicitud.put("W_CTE-ZZCRMA_LONG",cursor.getString(cursor.getColumnIndex("W_CTE-ZZCRMA_LONG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZCRMA_LONG")) : "" );
-            solicitud.put("W_CTE-ZZENT1",cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT1")) : "" );
-            solicitud.put("W_CTE-ZZENT2",cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT2")) : "" );
-            solicitud.put("W_CTE-ZZENT3",cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT3")) : "" );
-            solicitud.put("W_CTE-ZZENT4",cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT4")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT4")) : "" );
-            solicitud.put("W_CTE-ZZENT5",cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT5")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT5")) : "" );
-            solicitud.put("W_CTE-ZZERDAT",cursor.getString(cursor.getColumnIndex("W_CTE-ZZERDAT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZERDAT")) : "" );
-            solicitud.put("W_CTE-ZZGERENTE",cursor.getString(cursor.getColumnIndex("W_CTE-ZZGERENTE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZGERENTE")) : "" );
-            solicitud.put("W_CTE-ZZINTCO",cursor.getString(cursor.getColumnIndex("W_CTE-ZZINTCO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZINTCO")) : "" );
-            solicitud.put("W_CTE-ZZINTTACT",cursor.getString(cursor.getColumnIndex("W_CTE-ZZINTTACT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZINTTACT")) : "" );
-            solicitud.put("W_CTE-ZZJEFATURA",cursor.getString(cursor.getColumnIndex("W_CTE-ZZJEFATURA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZJEFATURA")) : "" );
-            solicitud.put("W_CTE-ZZOCCONS",cursor.getString(cursor.getColumnIndex("W_CTE-ZZOCCONS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZOCCONS")) : "" );
-            solicitud.put("W_CTE-ZZREJA",cursor.getString(cursor.getColumnIndex("W_CTE-ZZREJA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZREJA")) : "" );
-            solicitud.put("W_CTE-ZZSEGCOM",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGCOM")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGCOM")) : "" );
-            solicitud.put("W_CTE-ZZSEGDESC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGDESC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGDESC")) : "" );
-            solicitud.put("W_CTE-ZZSEGEXH",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGEXH")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGEXH")) : "" );
-            solicitud.put("W_CTE-ZZSEGPDE",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPDE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPDE")) : "" );
-            solicitud.put("W_CTE-ZZSEGPDV",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPDV")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPDV")) : "" );
-            solicitud.put("W_CTE-ZZSEGPORT",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPORT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPORT")) : "" );
-            solicitud.put("W_CTE-ZZSEGPRE",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPRE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPRE")) : "" );
-            solicitud.put("W_CTE-ZZSHARE",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSHARE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSHARE")) : "" );
-            solicitud.put("W_CTE-ZZSTAT",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSTAT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSTAT")) : "" );
-            solicitud.put("W_CTE-ZZSUBUNNEG",cursor.getString(cursor.getColumnIndex("W_CTE-ZZSUBUNNEG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSUBUNNEG")) : "" );
-            solicitud.put("W_CTE-ZZTIPSERV",cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPSERV")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPSERV")) : "" );
-            solicitud.put("W_CTE-ZZTFISI",cursor.getString(cursor.getColumnIndex("W_CTE-ZZTFISI")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZTFISI")) : "" );
-            solicitud.put("W_CTE-ZZUNNEG",cursor.getString(cursor.getColumnIndex("W_CTE-ZZUNNEG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZUNNEG")) : "" );
-            solicitud.put("W_CTE-ZZZONACOST",cursor.getString(cursor.getColumnIndex("W_CTE-ZZZONACOST")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZZONACOST")) : "" );
-            solicitud.put("W_CTE-COMENTARIOS",cursor.getString(cursor.getColumnIndex("W_CTE-COMENTARIOS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-COMENTARIOS")) : "" );
-            solicitud.put("fuera_politica_plazo",cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")) != null ? cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")) : "" );
-            solicitud.put("fuera_politica_monto",cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")) != null ? cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")) : "" );
-            solicitud.put("W_CTE-NOTIFICANTES",cursor.getString(cursor.getColumnIndex("W_CTE-NOTIFICANTES")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NOTIFICANTES")) : "" );
-            solicitud.put("W_CTE-ZZKEYACC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZKEYACC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZKEYACC")) : "" );
-            solicitud.put("W_CTE-ZIBASE",cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE")) != null ? removeLeadingZeroes(cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE"))) : "" );
-            solicitud.put("W_CTE-ZADICI",cursor.getString(cursor.getColumnIndex("W_CTE-ZADICI")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZADICI")) : "" );
-            solicitud.put("W_CTE-ZZUDATE",cursor.getString(cursor.getColumnIndex("W_CTE-ZZUDATE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZUDATE")) : "" );
-            solicitud.put("W_CTE-AUFSD",cursor.getString(cursor.getColumnIndex("W_CTE-AUFSD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-AUFSD")) : "" );
-            solicitud.put("W_CTE-LIFSD",cursor.getString(cursor.getColumnIndex("W_CTE-LIFSD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LIFSD")) : "" );
-            solicitud.put("W_CTE-FAKSD",cursor.getString(cursor.getColumnIndex("W_CTE-FAKSD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FAKSD")) : "" );
-            solicitud.put("W_CTE-CASSD",cursor.getString(cursor.getColumnIndex("W_CTE-CASSD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CASSD")) : "" );
-            solicitud.put("W_CTE-LOEVM",cursor.getString(cursor.getColumnIndex("W_CTE-LOEVM")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LOEVM")) : "" );
-            solicitud.put("W_CTE-TELF2",cursor.getString(cursor.getColumnIndex("W_CTE-TELF2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TELF2")) : "" );
-            solicitud.put("W_CTE-VTWEG",cursor.getString(cursor.getColumnIndex("W_CTE-VTWEG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VTWEG")) : "" );
-            solicitud.put("W_CTE-SPART",cursor.getString(cursor.getColumnIndex("W_CTE-SPART")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-SPART")) : "" );
-            solicitud.put("W_CTE-PERFK",cursor.getString(cursor.getColumnIndex("W_CTE-PERFK")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PERFK")) : "" );
-            solicitud.put("W_CTE-KVGR4",cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")) : "" );
-            solicitud.put("W_CTE-KONDA",cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")) : "" );
-            solicitud.put("W_CTE-RUTAHH",cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")) : "" );
-            solicitud.put("W_CTE-ZZESQUINA",cursor.getString(cursor.getColumnIndex("W_CTE-ZZESQUINA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZESQUINA")) : "" );
-            solicitud.put("W_CTE-ZZESTAC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZESTAC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZESTAC")) : "" );
-            solicitud.put("W_CTE-KATR2",cursor.getString(cursor.getColumnIndex("W_CTE-KATR2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR2")) : "" );
-            solicitud.put("W_CTE-ZZTIPONEC",cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPONEC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPONEC")) : "" );
-            solicitud.put("W_CTE-VBUND",cursor.getString(cursor.getColumnIndex("W_CTE-VBUND")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VBUND")) : "" );
+        while (cursor.moveToNext()) {
+            HashMap<String, String> solicitud = new HashMap<>();
+            solicitud.put("id_solicitud", cursor.getString(cursor.getColumnIndex("id_solicitud")) != null ? cursor.getString(cursor.getColumnIndex("id_solicitud")) : "");
+            solicitud.put("IDFORM", cursor.getString(cursor.getColumnIndex("IDFORM")) != null ? cursor.getString(cursor.getColumnIndex("IDFORM")) : "");
+            solicitud.put("TIPFORM", cursor.getString(cursor.getColumnIndex("TIPFORM")) != null ? cursor.getString(cursor.getColumnIndex("TIPFORM")) : "");
+            solicitud.put("FECCRE", cursor.getString(cursor.getColumnIndex("FECCRE")) != null ? cursor.getString(cursor.getColumnIndex("FECCRE")) : "");
+            solicitud.put("USUSOL", cursor.getString(cursor.getColumnIndex("USUSOL")) != null ? cursor.getString(cursor.getColumnIndex("USUSOL")) : "");
+            solicitud.put("ESTADO", cursor.getString(cursor.getColumnIndex("ESTADO")).trim() != null ? cursor.getString(cursor.getColumnIndex("ESTADO")).trim() : "");
+            solicitud.put("W_CTE-AKONT", cursor.getString(cursor.getColumnIndex("W_CTE-AKONT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-AKONT")) : "");
+            solicitud.put("W_CTE-ALTKN", cursor.getString(cursor.getColumnIndex("W_CTE-ALTKN")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ALTKN")) : "");
+            solicitud.put("W_CTE-ANTLF", cursor.getString(cursor.getColumnIndex("W_CTE-ANTLF")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ANTLF")) : "");
+            solicitud.put("W_CTE-BUKRS", cursor.getString(cursor.getColumnIndex("W_CTE-BUKRS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-BUKRS")) : "");
+            solicitud.put("W_CTE-BZIRK", cursor.getString(cursor.getColumnIndex("W_CTE-BZIRK")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-BZIRK")) : "");
+            solicitud.put("W_CTE-CITY1", cursor.getString(cursor.getColumnIndex("W_CTE-CITY1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CITY1")) : "");
+            solicitud.put("W_CTE-CITY2", cursor.getString(cursor.getColumnIndex("W_CTE-CITY2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CITY2")) : "");
+            solicitud.put("W_CTE-CTLPC", cursor.getString(cursor.getColumnIndex("W_CTE-CTLPC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CTLPC")) : "");
+            solicitud.put("W_CTE-DATAB", cursor.getString(cursor.getColumnIndex("W_CTE-DATAB")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DATAB")) : "");
+            solicitud.put("W_CTE-DATBI", cursor.getString(cursor.getColumnIndex("W_CTE-DATBI")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DATBI")) : "");
+            solicitud.put("W_CTE-DBRTG", cursor.getString(cursor.getColumnIndex("W_CTE-DBRTG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DBRTG")) : "");
+            solicitud.put("W_CTE-DMBTR1", String.format("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-DMBTR1"))));
+            solicitud.put("W_CTE-DMBTR2", String.format("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-DMBTR2"))));
+            solicitud.put("W_CTE-DMBTR3", String.format("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-DMBTR3"))));
+            solicitud.put("W_CTE-FAX_EXTENS", cursor.getString(cursor.getColumnIndex("W_CTE-FAX_EXTENS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FAX_EXTENS")) : "");
+            solicitud.put("W_CTE-FAX_NUMBER", cursor.getString(cursor.getColumnIndex("W_CTE-FAX_NUMBER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FAX_NUMBER")) : "");
+            solicitud.put("W_CTE-FDGRV", cursor.getString(cursor.getColumnIndex("W_CTE-FDGRV")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FDGRV")) : "");
+            solicitud.put("W_CTE-FLAG_FACT", cursor.getString(cursor.getColumnIndex("W_CTE-FLAG_FACT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FLAG_FACT")) : "");
+            solicitud.put("W_CTE-FLAG_NTEN", cursor.getString(cursor.getColumnIndex("W_CTE-FLAG_NTEN")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FLAG_NTEN")) : "");
+            solicitud.put("W_CTE-HITYP", cursor.getString(cursor.getColumnIndex("W_CTE-HITYP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-HITYP")) : "");
+            solicitud.put("W_CTE-HKUNNR", cursor.getString(cursor.getColumnIndex("W_CTE-HKUNNR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-HKUNNR")) : "");
+            solicitud.put("W_CTE-HOME_CITY", cursor.getString(cursor.getColumnIndex("W_CTE-HOME_CITY")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-HOME_CITY")) : "");
+            solicitud.put("W_CTE-HOUSE_NUM1", cursor.getString(cursor.getColumnIndex("W_CTE-HOUSE_NUM1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-HOUSE_NUM1")) : "");
+            solicitud.put("W_CTE-HOUSE_NUM2", cursor.getString(cursor.getColumnIndex("W_CTE-HOUSE_NUM2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-HOUSE_NUM2")) : "");
+            solicitud.put("W_CTE-INCO1", cursor.getString(cursor.getColumnIndex("W_CTE-INCO1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-INCO1")) : "");
+            solicitud.put("W_CTE-INCO2", cursor.getString(cursor.getColumnIndex("W_CTE-INCO2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-INCO2")) : "");
+            solicitud.put("W_CTE-KALKS", cursor.getString(cursor.getColumnIndex("W_CTE-KALKS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KALKS")) : "");
+            solicitud.put("W_CTE-KATR3", cursor.getString(cursor.getColumnIndex("W_CTE-KATR3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR3")) : "");
+            solicitud.put("W_CTE-KATR4", cursor.getString(cursor.getColumnIndex("W_CTE-KATR4")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR4")) : "");
+            solicitud.put("W_CTE-KATR5", cursor.getString(cursor.getColumnIndex("W_CTE-KATR5")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR5")) : "");
+            solicitud.put("W_CTE-KATR8", cursor.getString(cursor.getColumnIndex("W_CTE-KATR8")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR8")) : "");
+            solicitud.put("W_CTE-KDGRP", cursor.getString(cursor.getColumnIndex("W_CTE-KDGRP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KDGRP")) : "");
+            solicitud.put("W_CTE-KKBER", cursor.getString(cursor.getColumnIndex("W_CTE-KKBER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KKBER")) : "");
+            solicitud.put("W_CTE-KLABC", cursor.getString(cursor.getColumnIndex("W_CTE-KLABC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KLABC")) : "");
+            solicitud.put("W_CTE-KLIMK", cursor.getString(cursor.getColumnIndex("W_CTE-KLIMK")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KLIMK")) : "");
+            solicitud.put("W_CTE-KNKLI", cursor.getString(cursor.getColumnIndex("W_CTE-KNKLI")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KNKLI")) : "");
+            solicitud.put("W_CTE-KTGRD", cursor.getString(cursor.getColumnIndex("W_CTE-KTGRD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KTGRD")) : "");
+            solicitud.put("W_CTE-KTOKD", cursor.getString(cursor.getColumnIndex("W_CTE-KTOKD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KTOKD")) : "");
+            solicitud.put("W_CTE-KUKLA", cursor.getString(cursor.getColumnIndex("W_CTE-KUKLA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KUKLA")) : "");
+            solicitud.put("W_CTE-KUNNR", cursor.getString(cursor.getColumnIndex("W_CTE-KUNNR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KUNNR")) : "");
+            solicitud.put("W_CTE-KVGR1", cursor.getString(cursor.getColumnIndex("W_CTE-KVGR1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR1")) : "");
+            solicitud.put("W_CTE-KVGR2", cursor.getString(cursor.getColumnIndex("W_CTE-KVGR2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR2")) : "");
+            solicitud.put("W_CTE-KVGR3", cursor.getString(cursor.getColumnIndex("W_CTE-KVGR3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR3")) : "");
+            solicitud.put("W_CTE-KVGR5", cursor.getString(cursor.getColumnIndex("W_CTE-KVGR5")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR5")) : "");
+            solicitud.put("W_CTE-LAND1", cursor.getString(cursor.getColumnIndex("W_CTE-LAND1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LAND1")) : "");
+            solicitud.put("W_CTE-LIFNR", cursor.getString(cursor.getColumnIndex("W_CTE-LIFNR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LIFNR")) : "");
+            solicitud.put("W_CTE-LIMSUG", String.format("%,.2f", cursor.getDouble(cursor.getColumnIndex("W_CTE-LIMSUG"))));
+            solicitud.put("W_CTE-LOCATION", cursor.getString(cursor.getColumnIndex("W_CTE-LOCATION")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LOCATION")) : "");
+            solicitud.put("W_CTE-LPRIO", cursor.getString(cursor.getColumnIndex("W_CTE-LPRIO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LPRIO")) : "");
+            solicitud.put("W_CTE-LZONE", cursor.getString(cursor.getColumnIndex("W_CTE-LZONE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LZONE")) : "");
+            solicitud.put("W_CTE-NAME_CO", cursor.getString(cursor.getColumnIndex("W_CTE-NAME_CO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NAME_CO")) : "");
+            solicitud.put("W_CTE-NAME1", cursor.getString(cursor.getColumnIndex("W_CTE-NAME1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NAME1")) : "");
+            solicitud.put("W_CTE-NAME2", cursor.getString(cursor.getColumnIndex("W_CTE-NAME2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NAME2")) : "");
+            solicitud.put("W_CTE-NAME3", cursor.getString(cursor.getColumnIndex("W_CTE-NAME3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NAME3")) : "");
+            solicitud.put("W_CTE-NAME4", cursor.getString(cursor.getColumnIndex("W_CTE-NAME4")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NAME4")) : "");
+            solicitud.put("W_CTE-PERNR", cursor.getString(cursor.getColumnIndex("W_CTE-PERNR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PERNR")) : "");
+            solicitud.put("W_CTE-PO_BOX", cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX")) : "");
+            solicitud.put("W_CTE-PO_BOX_LOC", cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX_LOC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX_LOC")) : "");
+            solicitud.put("W_CTE-PO_BOX_REG", cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX_REG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PO_BOX_REG")) : "");
+            solicitud.put("W_CTE-POST_CODE2", cursor.getString(cursor.getColumnIndex("W_CTE-POST_CODE2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-POST_CODE2")) : "");
+            solicitud.put("W_CTE-PRFRE", cursor.getString(cursor.getColumnIndex("W_CTE-PRFRE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PRFRE")) : "");
+            solicitud.put("W_CTE-PSON1", cursor.getString(cursor.getColumnIndex("W_CTE-PSON1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PSON1")) : "");
+            solicitud.put("W_CTE-PSON2", cursor.getString(cursor.getColumnIndex("W_CTE-PSON2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PSON2")) : "");
+            solicitud.put("W_CTE-PSON3", cursor.getString(cursor.getColumnIndex("W_CTE-PSON3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PSON3")) : "");
+            solicitud.put("W_CTE-PSTLZ", cursor.getString(cursor.getColumnIndex("W_CTE-PSTLZ")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PSTLZ")) : "");
+            solicitud.put("W_CTE-PVKSM", cursor.getString(cursor.getColumnIndex("W_CTE-PVKSM")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PVKSM")) : "");
+            solicitud.put("W_CTE-REGION", cursor.getString(cursor.getColumnIndex("W_CTE-REGION")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-REGION")) : "");
+            solicitud.put("W_CTE-ROOMNUMBER", cursor.getString(cursor.getColumnIndex("W_CTE-ROOMNUMBER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ROOMNUMBER")) : "");
+            solicitud.put("W_CTE-SMTP_ADDR", cursor.getString(cursor.getColumnIndex("W_CTE-SMTP_ADDR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-SMTP_ADDR")) : "");
+            solicitud.put("W_CTE-STCD1", cursor.getString(cursor.getColumnIndex("W_CTE-STCD1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STCD1")) : "");
+            solicitud.put("W_CTE-STCD3", cursor.getString(cursor.getColumnIndex("W_CTE-STCD3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STCD3")) : "");
+            solicitud.put("W_CTE-STR_SUPPL1", cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL1")) : "");
+            solicitud.put("W_CTE-STR_SUPPL2", cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL2")) : "");
+            solicitud.put("W_CTE-STR_SUPPL3", cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STR_SUPPL3")) : "");
+            solicitud.put("W_CTE-STREET", cursor.getString(cursor.getColumnIndex("W_CTE-STREET")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STREET")) : "");
+            solicitud.put("W_CTE-TEL_EXTENS", cursor.getString(cursor.getColumnIndex("W_CTE-TEL_EXTENS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TEL_EXTENS")) : "");
+            solicitud.put("W_CTE-TEL_NUMBER", cursor.getString(cursor.getColumnIndex("W_CTE-TEL_NUMBER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TEL_NUMBER")) : "");
+            solicitud.put("W_CTE-TEL_NUMBER2", cursor.getString(cursor.getColumnIndex("W_CTE-TEL_NUMBER2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TEL_NUMBER2")) : "");
+            solicitud.put("W_CTE-TELNUMBER2", cursor.getString(cursor.getColumnIndex("W_CTE-TELNUMBER2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TELNUMBER2")) : "");
+            solicitud.put("W_CTE-TELNUMBER3", cursor.getString(cursor.getColumnIndex("W_CTE-TELNUMBER3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TELNUMBER3")) : "");
+            solicitud.put("W_CTE-TOGRU", cursor.getString(cursor.getColumnIndex("W_CTE-TOGRU")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TOGRU")) : "");
+            solicitud.put("W_CTE-UPDAT", cursor.getString(cursor.getColumnIndex("W_CTE-UPDAT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-UPDAT")) : "");
+            solicitud.put("W_CTE-VKBUR", cursor.getString(cursor.getColumnIndex("W_CTE-VKBUR")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VKBUR")) : "");
+            solicitud.put("W_CTE-VKGRP", cursor.getString(cursor.getColumnIndex("W_CTE-VKGRP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VKGRP")) : "");
+            solicitud.put("W_CTE-VKORG", cursor.getString(cursor.getColumnIndex("W_CTE-VKORG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VKORG")) : "");
+            solicitud.put("W_CTE-VSBED", cursor.getString(cursor.getColumnIndex("W_CTE-VSBED")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VSBED")) : "");
+            solicitud.put("W_CTE-VWERK", cursor.getString(cursor.getColumnIndex("W_CTE-VWERK")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VWERK")) : "");
+            solicitud.put("W_CTE-WAERS", cursor.getString(cursor.getColumnIndex("W_CTE-WAERS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-WAERS")) : "");
+            solicitud.put("W_CTE-XZVER", cursor.getString(cursor.getColumnIndex("W_CTE-XZVER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-XZVER")) : "");
+            solicitud.put("W_CTE-ZGPOCANAL", cursor.getString(cursor.getColumnIndex("W_CTE-ZGPOCANAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZGPOCANAL")) : "");
+            solicitud.put("W_CTE-ZTERM", cursor.getString(cursor.getColumnIndex("W_CTE-ZTERM")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZTERM")) : "");
+            solicitud.put("W_CTE-ZTPOCANAL", cursor.getString(cursor.getColumnIndex("W_CTE-ZTPOCANAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZTPOCANAL")) : "");
+            solicitud.put("W_CTE-ZSEGPRE", cursor.getString(cursor.getColumnIndex("W_CTE-ZSEGPRE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZSEGPRE")) : "");
+            solicitud.put("W_CTE-ZWELS", cursor.getString(cursor.getColumnIndex("W_CTE-ZWELS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZWELS")) : "");
+            solicitud.put("W_CTE-ZZAUART", cursor.getString(cursor.getColumnIndex("W_CTE-ZZAUART")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZAUART")) : "");
+            solicitud.put("W_CTE-ZZBLOQU", cursor.getString(cursor.getColumnIndex("W_CTE-ZZBLOQU")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZBLOQU")) : "");
+            solicitud.put("W_CTE-ZZCANAL", cursor.getString(cursor.getColumnIndex("W_CTE-ZZCANAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZCANAL")) : "");
+            solicitud.put("W_CTE-ZZCATFOCO", cursor.getString(cursor.getColumnIndex("W_CTE-ZZCATFOCO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZCATFOCO")) : "");
+            solicitud.put("W_CTE-ZZCRMA_LAT", cursor.getString(cursor.getColumnIndex("W_CTE-ZZCRMA_LAT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZCRMA_LAT")) : "");
+            solicitud.put("W_CTE-ZZCRMA_LONG", cursor.getString(cursor.getColumnIndex("W_CTE-ZZCRMA_LONG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZCRMA_LONG")) : "");
+            solicitud.put("W_CTE-ZZENT1", cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT1")) : "");
+            solicitud.put("W_CTE-ZZENT2", cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT2")) : "");
+            solicitud.put("W_CTE-ZZENT3", cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT3")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT3")) : "");
+            solicitud.put("W_CTE-ZZENT4", cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT4")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT4")) : "");
+            solicitud.put("W_CTE-ZZENT5", cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT5")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZENT5")) : "");
+            solicitud.put("W_CTE-ZZERDAT", cursor.getString(cursor.getColumnIndex("W_CTE-ZZERDAT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZERDAT")) : "");
+            solicitud.put("W_CTE-ZZGERENTE", cursor.getString(cursor.getColumnIndex("W_CTE-ZZGERENTE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZGERENTE")) : "");
+            solicitud.put("W_CTE-ZZINTCO", cursor.getString(cursor.getColumnIndex("W_CTE-ZZINTCO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZINTCO")) : "");
+            solicitud.put("W_CTE-ZZINTTACT", cursor.getString(cursor.getColumnIndex("W_CTE-ZZINTTACT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZINTTACT")) : "");
+            solicitud.put("W_CTE-ZZJEFATURA", cursor.getString(cursor.getColumnIndex("W_CTE-ZZJEFATURA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZJEFATURA")) : "");
+            solicitud.put("W_CTE-ZZOCCONS", cursor.getString(cursor.getColumnIndex("W_CTE-ZZOCCONS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZOCCONS")) : "");
+            solicitud.put("W_CTE-ZZREJA", cursor.getString(cursor.getColumnIndex("W_CTE-ZZREJA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZREJA")) : "");
+            solicitud.put("W_CTE-ZZSEGCOM", cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGCOM")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGCOM")) : "");
+            solicitud.put("W_CTE-ZZSEGDESC", cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGDESC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGDESC")) : "");
+            solicitud.put("W_CTE-ZZSEGEXH", cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGEXH")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGEXH")) : "");
+            solicitud.put("W_CTE-ZZSEGPDE", cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPDE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPDE")) : "");
+            solicitud.put("W_CTE-ZZSEGPDV", cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPDV")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPDV")) : "");
+            solicitud.put("W_CTE-ZZSEGPORT", cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPORT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPORT")) : "");
+            solicitud.put("W_CTE-ZZSEGPRE", cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPRE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSEGPRE")) : "");
+            solicitud.put("W_CTE-ZZSHARE", cursor.getString(cursor.getColumnIndex("W_CTE-ZZSHARE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSHARE")) : "");
+            solicitud.put("W_CTE-ZZSTAT", cursor.getString(cursor.getColumnIndex("W_CTE-ZZSTAT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSTAT")) : "");
+            solicitud.put("W_CTE-ZZSUBUNNEG", cursor.getString(cursor.getColumnIndex("W_CTE-ZZSUBUNNEG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZSUBUNNEG")) : "");
+            solicitud.put("W_CTE-ZZTIPSERV", cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPSERV")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPSERV")) : "");
+            solicitud.put("W_CTE-ZZTFISI", cursor.getString(cursor.getColumnIndex("W_CTE-ZZTFISI")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZTFISI")) : "");
+            solicitud.put("W_CTE-ZZUNNEG", cursor.getString(cursor.getColumnIndex("W_CTE-ZZUNNEG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZUNNEG")) : "");
+            solicitud.put("W_CTE-ZZZONACOST", cursor.getString(cursor.getColumnIndex("W_CTE-ZZZONACOST")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZZONACOST")) : "");
+            solicitud.put("W_CTE-COMENTARIOS", cursor.getString(cursor.getColumnIndex("W_CTE-COMENTARIOS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-COMENTARIOS")) : "");
+            solicitud.put("fuera_politica_plazo", cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")) != null ? cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")) : "");
+            solicitud.put("fuera_politica_monto", cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")) != null ? cursor.getString(cursor.getColumnIndex("fuera_politica_plazo")) : "");
+            solicitud.put("W_CTE-NOTIFICANTES", cursor.getString(cursor.getColumnIndex("W_CTE-NOTIFICANTES")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NOTIFICANTES")) : "");
+            solicitud.put("W_CTE-ZZKEYACC", cursor.getString(cursor.getColumnIndex("W_CTE-ZZKEYACC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZKEYACC")) : "");
+            solicitud.put("W_CTE-ZIBASE", cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE")) != null ? removeLeadingZeroes(cursor.getString(cursor.getColumnIndex("W_CTE-ZIBASE"))) : "");
+            solicitud.put("W_CTE-ZADICI", cursor.getString(cursor.getColumnIndex("W_CTE-ZADICI")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZADICI")) : "");
+            solicitud.put("W_CTE-ZZUDATE", cursor.getString(cursor.getColumnIndex("W_CTE-ZZUDATE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZUDATE")) : "");
+            solicitud.put("W_CTE-AUFSD", cursor.getString(cursor.getColumnIndex("W_CTE-AUFSD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-AUFSD")) : "");
+            solicitud.put("W_CTE-LIFSD", cursor.getString(cursor.getColumnIndex("W_CTE-LIFSD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LIFSD")) : "");
+            solicitud.put("W_CTE-FAKSD", cursor.getString(cursor.getColumnIndex("W_CTE-FAKSD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FAKSD")) : "");
+            solicitud.put("W_CTE-CASSD", cursor.getString(cursor.getColumnIndex("W_CTE-CASSD")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CASSD")) : "");
+            solicitud.put("W_CTE-LOEVM", cursor.getString(cursor.getColumnIndex("W_CTE-LOEVM")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LOEVM")) : "");
+            solicitud.put("W_CTE-TELF2", cursor.getString(cursor.getColumnIndex("W_CTE-TELF2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TELF2")) : "");
+            solicitud.put("W_CTE-VTWEG", cursor.getString(cursor.getColumnIndex("W_CTE-VTWEG")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VTWEG")) : "");
+            solicitud.put("W_CTE-SPART", cursor.getString(cursor.getColumnIndex("W_CTE-SPART")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-SPART")) : "");
+            solicitud.put("W_CTE-PERFK", cursor.getString(cursor.getColumnIndex("W_CTE-PERFK")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PERFK")) : "");
+            solicitud.put("W_CTE-KVGR4", cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KVGR4")) : "");
+            solicitud.put("W_CTE-KONDA", cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KONDA")) : "");
+            solicitud.put("W_CTE-RUTAHH", cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-RUTAHH")) : "");
+            solicitud.put("W_CTE-ZZESQUINA", cursor.getString(cursor.getColumnIndex("W_CTE-ZZESQUINA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZESQUINA")) : "");
+            solicitud.put("W_CTE-ZZESTAC", cursor.getString(cursor.getColumnIndex("W_CTE-ZZESTAC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZESTAC")) : "");
+            solicitud.put("W_CTE-KATR2", cursor.getString(cursor.getColumnIndex("W_CTE-KATR2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-KATR2")) : "");
+            solicitud.put("W_CTE-ZZTIPONEC", cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPONEC")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZTIPONEC")) : "");
+            solicitud.put("W_CTE-VBUND", cursor.getString(cursor.getColumnIndex("W_CTE-VBUND")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VBUND")) : "");
             try {
                 solicitud.put("W_CTE-ORT01", cursor.getString(cursor.getColumnIndex("W_CTE-ORT01")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ORT01")) : "");
                 solicitud.put("W_CTE-STCDT", cursor.getString(cursor.getColumnIndex("W_CTE-STCDT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STCDT")) : "");
                 solicitud.put("W_CTE-ZONA_FRANCA", cursor.getString(cursor.getColumnIndex("W_CTE-ZONA_FRANCA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZONA_FRANCA")) : "");
                 solicitud.put("W_CTE-FITYP", cursor.getString(cursor.getColumnIndex("W_CTE-FITYP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-FITYP")) : "");
                 solicitud.put("W_CTE-GUZTE", cursor.getString(cursor.getColumnIndex("W_CTE-GUZTE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-GUZTE")) : "");
-            }catch (Exception e){}
+            } catch (Exception e) {
+            }
             //CAMPOS PARA AVISOS DE EQUIPO FRIO
 
-            solicitud.put("W_CTE-IM_EQUIPMENT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) : "" );
-            solicitud.put("W_CTE-IM_PARTNER",cursor.getString(cursor.getColumnIndex("W_CTE-IM_PARTNER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_PARTNER")) : "" );
-            solicitud.put("W_CTE-IM_NOTIF_TYPE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_NOTIF_TYPE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NOTIF_TYPE")) : "" );
-            solicitud.put("W_CTE-IM_DESCRIPT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_DESCRIPT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_DESCRIPT")) : "" );
-            solicitud.put("W_CTE-IM_MATERIAL",cursor.getString(cursor.getColumnIndex("W_CTE-IM_MATERIAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_MATERIAL")) : "" );
-            solicitud.put("W_CTE-IM_SERIALNO",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SERIALNO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_SERIALNO")) : "" );
-            solicitud.put("W_CTE-IM_CAUSE_CODE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODE")) : "" );
-            solicitud.put("W_CTE-IM_CAUSE_CODEGRP",cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODEGRP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODEGRP")) : "" );
-            solicitud.put("W_CTE-IM_D_CODE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")) : "" );
-            solicitud.put("W_CTE-IM_D_CODEGRP",cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODEGRP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODEGRP")) : "" );
-            solicitud.put("W_CTE-IM_PRIORITY",cursor.getString(cursor.getColumnIndex("W_CTE-IM_PRIORITY")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_PRIORITY")) : "" );
-            solicitud.put("W_CTE-IM_SHORT_TEXT",cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) : "" );
-            solicitud.put("W_CTE-IM_TEXT_LINE",cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) : "" );
-            solicitud.put("W_CTE-IM_NUM_AVISO",cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) : "" );
+            solicitud.put("W_CTE-IM_EQUIPMENT", cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_EQUIPMENT")) : "");
+            solicitud.put("W_CTE-IM_PARTNER", cursor.getString(cursor.getColumnIndex("W_CTE-IM_PARTNER")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_PARTNER")) : "");
+            solicitud.put("W_CTE-IM_NOTIF_TYPE", cursor.getString(cursor.getColumnIndex("W_CTE-IM_NOTIF_TYPE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NOTIF_TYPE")) : "");
+            solicitud.put("W_CTE-IM_DESCRIPT", cursor.getString(cursor.getColumnIndex("W_CTE-IM_DESCRIPT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_DESCRIPT")) : "");
+            solicitud.put("W_CTE-IM_MATERIAL", cursor.getString(cursor.getColumnIndex("W_CTE-IM_MATERIAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_MATERIAL")) : "");
+            solicitud.put("W_CTE-IM_SERIALNO", cursor.getString(cursor.getColumnIndex("W_CTE-IM_SERIALNO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_SERIALNO")) : "");
+            solicitud.put("W_CTE-IM_CAUSE_CODE", cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODE")) : "");
+            solicitud.put("W_CTE-IM_CAUSE_CODEGRP", cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODEGRP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_CAUSE_CODEGRP")) : "");
+            solicitud.put("W_CTE-IM_D_CODE", cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODE")) : "");
+            solicitud.put("W_CTE-IM_D_CODEGRP", cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODEGRP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_D_CODEGRP")) : "");
+            solicitud.put("W_CTE-IM_PRIORITY", cursor.getString(cursor.getColumnIndex("W_CTE-IM_PRIORITY")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_PRIORITY")) : "");
+            solicitud.put("W_CTE-IM_SHORT_TEXT", cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_SHORT_TEXT")) : "");
+            solicitud.put("W_CTE-IM_TEXT_LINE", cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_TEXT_LINE")) : "");
+            solicitud.put("W_CTE-IM_NUM_AVISO", cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IM_NUM_AVISO")) : "");
 
             //CAMPOS NEUVOS DE NI Y PA PARA REALIZAR CONTRATOS O POLITICAS CON ESTA INFORMACION DENTRO DEL TEXTO FIRMABLE
-            solicitud.put("W_CTE-ESTADO_CIVIL",cursor.getString(cursor.getColumnIndex("W_CTE-ESTADO_CIVIL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ESTADO_CIVIL")) : "" );
-            solicitud.put("W_CTE-ACTIVIDAD_ECONOMICA",cursor.getString(cursor.getColumnIndex("W_CTE-ACTIVIDAD_ECONOMICA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ACTIVIDAD_ECONOMICA")) : "" );
-            solicitud.put("W_CTE-DURACION_CONTRATO",cursor.getString(cursor.getColumnIndex("W_CTE-DURACION_CONTRATO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DURACION_CONTRATO")) : "" );
-            solicitud.put("W_CTE-TIPO_CREDITO",cursor.getString(cursor.getColumnIndex("W_CTE-TIPO_CREDITO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TIPO_CREDITO")) : "" );
+            solicitud.put("W_CTE-ESTADO_CIVIL", cursor.getString(cursor.getColumnIndex("W_CTE-ESTADO_CIVIL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ESTADO_CIVIL")) : "");
+            solicitud.put("W_CTE-ACTIVIDAD_ECONOMICA", cursor.getString(cursor.getColumnIndex("W_CTE-ACTIVIDAD_ECONOMICA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ACTIVIDAD_ECONOMICA")) : "");
+            solicitud.put("W_CTE-DURACION_CONTRATO", cursor.getString(cursor.getColumnIndex("W_CTE-DURACION_CONTRATO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DURACION_CONTRATO")) : "");
+            solicitud.put("W_CTE-TIPO_CREDITO", cursor.getString(cursor.getColumnIndex("W_CTE-TIPO_CREDITO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-TIPO_CREDITO")) : "");
 
             try {
                 //CAMPOS NUEVOS PARA FORMULARIO ENTREGA DE TARJETAS
@@ -790,8 +799,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 solicitud.put("W_CTE-IN_CONCEPTO_ENTREGA2", cursor.getString(cursor.getColumnIndex("W_CTE-IN_CONCEPTO_ENTREGA2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_CONCEPTO_ENTREGA2")) : "");
                 solicitud.put("W_CTE-IN_PERIODO_VALIDEZ", cursor.getString(cursor.getColumnIndex("W_CTE-IN_PERIODO_VALIDEZ")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_PERIODO_VALIDEZ")) : "");
                 solicitud.put("W_CTE-IN_PLAN_INICIATIVA", cursor.getString(cursor.getColumnIndex("W_CTE-IN_PLAN_INICIATIVA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-IN_PLAN_INICIATIVA")) : "");
-            }catch (Exception e){}
+            } catch (Exception e) {
+            }
 
+            try {
+                //CAMPOS NUEVOS PARA MODULO CENSO QUIPO FRIO
+                solicitud.put("W_CTE-CE_MOTIVO_ALERTA", cursor.getString(cursor.getColumnIndex("W_CTE-CE_MOTIVO_ALERTA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CE_MOTIVO_ALERTA")) : "");
+                solicitud.put("W_CTE-CE_LOCAL_ABIERTO", cursor.getString(cursor.getColumnIndex("W_CTE-CE_LOCAL_ABIERTO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CE_LOCAL_ABIERTO")) : "");
+                solicitud.put("W_CTE-CE_CONTACTO", cursor.getString(cursor.getColumnIndex("W_CTE-CE_CONTACTO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CE_CONTACTO")) : "");
+                solicitud.put("W_CTE-CE_CONTACTO_ADICIONAL", cursor.getString(cursor.getColumnIndex("W_CTE-CE_CONTACTO_ADICIONAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CE_CONTACTO_ADICIONAL")) : "");
+            } catch (Exception e) {
+            }
             formList.add(solicitud);
         }
         cursor.close();
@@ -2229,6 +2247,63 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return  ef;
     }
 
+    public EquipoFrio getEquipoFrioDatosCenso(String num_placa){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        EquipoFrio ef = new EquipoFrio();
+        String query = "SELECT b.*, c.* FROM sapDBaseInstalada b " +
+                "LEFT JOIN CensoEquipoFrio c ON (b.kunnr = c.kunnr AND c.activo = 1 AND b.serge = c.num_placa) " +
+                "LEFT OUTER JOIN CensoEquipoFrio p2 ON (b.serge = p2.num_placa AND " +
+                "(c.fecha_lectura < p2.fecha_lectura OR (c.fecha_lectura = p2.fecha_lectura AND c.id < p2.id))) " +
+                "WHERE b.SERGE = ?  AND p2.num_placa IS NULL";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{num_placa});
+
+        while (cursor.moveToNext()){
+            if(cursor.getString(cursor.getColumnIndex("KDGRP")) !=  null)
+                ef.setKdgrp(cursor.getString(cursor.getColumnIndex("KDGRP")).trim());
+            if(cursor.getString(cursor.getColumnIndex("BZIRK")) !=  null)
+                ef.setBzirk(cursor.getString(cursor.getColumnIndex("BZIRK")).trim());
+            if(cursor.getString(cursor.getColumnIndex("KUNNR")) !=  null)
+                ef.setKunnr(cursor.getString(cursor.getColumnIndex("KUNNR")).trim());
+            if(cursor.getString(cursor.getColumnIndex("IBASE")) !=  null)
+                ef.setIbase(removeLeadingZeroes(cursor.getString(cursor.getColumnIndex("IBASE")).trim()));
+            if(cursor.getString(cursor.getColumnIndex("INSTANCE")) !=  null)
+                ef.setInstance(cursor.getString(cursor.getColumnIndex("INSTANCE")).trim());
+            if(cursor.getString(cursor.getColumnIndex("OBJECTTYP")) !=  null)
+                ef.setObjecttyp(cursor.getString(cursor.getColumnIndex("OBJECTTYP")).trim());
+            if(cursor.getString(cursor.getColumnIndex("OBJNR")) !=  null)
+                ef.setObjnr(cursor.getString(cursor.getColumnIndex("OBJNR")).trim());
+            if(cursor.getString(cursor.getColumnIndex("EQUNR")) !=  null)
+                ef.setEqunr(cursor.getString(cursor.getColumnIndex("EQUNR")).trim());
+            if(cursor.getString(cursor.getColumnIndex("MATNR")) !=  null)
+                ef.setMatnr(cursor.getString(cursor.getColumnIndex("MATNR")).trim());
+            if(cursor.getString(cursor.getColumnIndex("EQART")) !=  null)
+                ef.setEqart(cursor.getString(cursor.getColumnIndex("EQART")).trim());
+            if(cursor.getString(cursor.getColumnIndex("HERST")) !=  null)
+                ef.setHerst(cursor.getString(cursor.getColumnIndex("HERST")).trim());
+            if(cursor.getString(cursor.getColumnIndex("EQKTX")) !=  null)
+                ef.setEqktx(cursor.getString(cursor.getColumnIndex("EQKTX")).trim());
+            if(cursor.getString(cursor.getColumnIndex("SPRAS")) !=  null)
+                ef.setSpras(cursor.getString(cursor.getColumnIndex("SPRAS")).trim());
+            if(cursor.getString(cursor.getColumnIndex("MATKL")) !=  null)
+                ef.setMatkl(cursor.getString(cursor.getColumnIndex("MATKL")).trim());
+            if(cursor.getString(cursor.getColumnIndex("SERGE")) !=  null)
+                ef.setSerge(cursor.getString(cursor.getColumnIndex("SERGE")).trim());
+            if(cursor.getString(cursor.getColumnIndex("SERNR")) !=  null)
+                ef.setSernr(cursor.getString(cursor.getColumnIndex("SERNR")).trim());
+            if(cursor.getString(cursor.getColumnIndex("estado")) !=  null)
+                ef.setEstado(cursor.getString(cursor.getColumnIndex("estado")).trim());
+            if(cursor.getString(cursor.getColumnIndex("fecha_lectura")) !=  null)
+                ef.setFechaLectura(cursor.getString(cursor.getColumnIndex("fecha_lectura")).trim());
+            if(cursor.getString(cursor.getColumnIndex("num_placa")) !=  null)
+                ef.setNumPlaca(cursor.getString(cursor.getColumnIndex("num_placa")).trim());
+            if(cursor.getString(cursor.getColumnIndex("activo")) !=  null)
+                ef.setActivo(cursor.getString(cursor.getColumnIndex("activo")).trim());
+            if(cursor.getString(cursor.getColumnIndex("comentario")) !=  null)
+                ef.setActivo(cursor.getString(cursor.getColumnIndex("comentario")).trim());
+        }
+        cursor.close();
+        return  ef;
+    }
 
     public void EliminarContacto(int contactoid){
         SQLiteDatabase db = this.getWritableDatabase();
@@ -3137,13 +3212,22 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<EquipoFrio> getCensoEquiposFriosDB(String id_cliente){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<EquipoFrio> equiposFriosList = new ArrayList<>();
-        String query = "SELECT * FROM sapDBaseInstalada b LEFT OUTER JOIN CensoEquipoFrio c ON (b.kunnr = c.kunnr AND activo = 1) WHERE b.KUNNR = ? " +
+        String query = "SELECT b.*, c.* FROM sapDBaseInstalada b " +
+                "LEFT JOIN CensoEquipoFrio c ON (b.kunnr = c.kunnr AND c.activo = 1 AND b.serge = c.num_placa) " +
+                "LEFT OUTER JOIN CensoEquipoFrio p2 ON (b.serge = p2.num_placa AND " +
+                "(c.fecha_lectura < p2.fecha_lectura OR (c.fecha_lectura = p2.fecha_lectura AND c.id < p2.id))) " +
+                "WHERE b.KUNNR = ?  AND p2.num_placa IS NULL " +
                 " UNION "+
-                "SELECT b.*, c.* FROM CensoEquipoFrio c LEFT OUTER JOIN sapDBaseInstalada AS b ON (b.KUNNR <> c.kunnr AND b.SERGE = c.num_placa OR b.KUNNR = NULL) AND c.kunnr = ? AND c.activo = 1 WHERE c.KUNNR = ? AND c.activo = 1";
-        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_cliente,id_cliente,id_cliente});
+                "SELECT DISTINCT b.*, c.* FROM CensoEquipoFrio c " +
+                "LEFT JOIN sapDBaseInstalada AS b ON (b.serge IS NULL AND c.kunnr = ? AND c.activo = 1) " +
+                "WHERE c.KUNNR = ? AND c.activo = 1 AND c.num_placa NOT IN (SELECT serge FROM sapDBaseInstalada) " +
+                "and c.fecha_lectura = (SELECT MAX(fecha_lectura) FROM CensoEquipoFrio c2 WHERE c2.KUNNR = ? AND c2.activo = 1 AND c2.num_placa = c.num_placa) ";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_cliente,id_cliente,id_cliente,id_cliente});
 
         while (cursor.moveToNext()){
             EquipoFrio ef = new EquipoFrio();
+            if(cursor.getString(cursor.getColumnIndex("id")) !=  null)
+                ef.setId(cursor.getString(cursor.getColumnIndex("id")).trim());
             if(cursor.getString(cursor.getColumnIndex("KDGRP")) !=  null)
                 ef.setKdgrp(cursor.getString(cursor.getColumnIndex("KDGRP")).trim());
             if(cursor.getString(cursor.getColumnIndex("BZIRK")) !=  null)
@@ -3177,17 +3261,36 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             if(cursor.getString(cursor.getColumnIndex("SERNR")) !=  null)
                 ef.setSernr(cursor.getString(cursor.getColumnIndex("SERNR")).trim());
             if(cursor.getString(cursor.getColumnIndex("estado")) !=  null)
-                ef.setSernr(cursor.getString(cursor.getColumnIndex("estado")).trim());
+                ef.setEstado(cursor.getString(cursor.getColumnIndex("estado")).trim());
             if(cursor.getString(cursor.getColumnIndex("fecha_lectura")) !=  null)
-                ef.setSernr(cursor.getString(cursor.getColumnIndex("fecha_lectura")).trim());
+                ef.setFechaLectura(cursor.getString(cursor.getColumnIndex("fecha_lectura")).trim());
             if(cursor.getString(cursor.getColumnIndex("num_placa")) !=  null)
-                ef.setSernr(cursor.getString(cursor.getColumnIndex("num_placa")).trim());
-            if(cursor.getString(cursor.getColumnIndex("kunnr2")) !=  null)
-                ef.setSernr(cursor.getString(cursor.getColumnIndex("kunnr")).trim());
+                ef.setNumPlaca(cursor.getString(cursor.getColumnIndex("num_placa")).trim());
+            if(cursor.getString(cursor.getColumnIndex("activo")) !=  null)
+                ef.setActivo(cursor.getString(cursor.getColumnIndex("activo")).trim());
+            if(cursor.getString(cursor.getColumnIndex("comentario")) !=  null)
+                ef.setComentario(cursor.getString(cursor.getColumnIndex("comentario")).trim());
             equiposFriosList.add(ef);
         }
         cursor.close();
         return  equiposFriosList;
+    }
+    public boolean ExisteEquipoFrio(String num_equipo) {
+        int valor = 0;
+        try {
+            Cursor cursor = mDataBase.rawQuery("select count(*) as cantidad FROM SapDBaseInstalada WHERE SERGE = ?", new String[]{num_equipo});
+            if (cursor.moveToNext()) {
+                valor = cursor.getInt(cursor.getColumnIndex("cantidad"));
+            }
+            cursor.close();
+        }catch (Exception e){
+            Toasty.error(mContext,"Error al obtener existencia de equipo frio").show();
+            return false;
+        }
+        if(valor > 0)
+            return true;
+        else
+            return false;
     }
     public boolean ExisteEquipoFrioEnCliente(String cliente, String num_equipo) {
         int valor = 0;

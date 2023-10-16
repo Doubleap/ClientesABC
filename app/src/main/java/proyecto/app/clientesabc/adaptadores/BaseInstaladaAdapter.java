@@ -6,25 +6,41 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.CompoundButtonCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.material.checkbox.MaterialCheckBox;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
+import proyecto.app.clientesabc.actividades.SolicitudActivity;
+import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
+import proyecto.app.clientesabc.clases.DialogHandler;
+import proyecto.app.clientesabc.clases.SwipeableRecyclerViewTouchListener;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
 
 public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdapter.MyViewHolder> implements Filterable {
@@ -66,55 +82,118 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
         // - Obtener Elemento del data set en esta position
         // - Reemplazar aqui cualquier contenido dinamico dependiendo de algun valor de l dataset creado y o el contenido del dataset
         TextView textViewHead = holder.listView.findViewById(R.id.base_instalada);
-        textViewHead.setText(formListFiltered.get(position).getIbase());
+        TextView placa = holder.listView.findViewById(R.id.num_placa);
         TextView codigo = holder.listView.findViewById(R.id.num_serie);
-        codigo.setText(formListFiltered.get(position).getSernr());
         TextView nombre = holder.listView.findViewById(R.id.num_equipo);
-        nombre.setText(formListFiltered.get(position).getEqunr());
+        TextView ultima_fecha = (TextView) holder.listView.findViewById(R.id.text_ultima_fecha);
+        CheckBox censado = (CheckBox) holder.listView.findViewById(R.id.check_box);
         LinearLayout estado = (LinearLayout) holder.listView.findViewById(R.id.color_estado);
         TextView estado_text = (TextView) holder.listView.findViewById(R.id.estado_escaneo);
-        TextView ultima_fecha = (TextView) holder.listView.findViewById(R.id.text_ultima_fecha);
-        /*ImageView estado_circulo = holder.listView.findViewById(R.id.estado_circulo);
-        ImageView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
+        TextView comentario = (TextView) holder.listView.findViewById(R.id.comentario);
+        ImageView noscan = holder.listView.findViewById(R.id.noscan);
+        /*ImageView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
         TextView tipo_solicitud = (TextView) holder.listView.findViewById(R.id.tipo_solicitud);
         TextView idform = (TextView) holder.listView.findViewById(R.id.idform);
         TextView fechas = (TextView) holder.listView.findViewById(R.id.fechas_text);*/
+
+        CardView card_view = (CardView) holder.listView.findViewById(R.id.card_view);
+
+        textViewHead.setText("");
+        placa.setText("");
+        codigo.setText("");
+        nombre.setText("");
+        ultima_fecha.setText("");
+        estado_text.setText("");
+        comentario.setText("");
+
+        textViewHead.setText(formListFiltered.get(position).getIbase());
+        placa.setText(formListFiltered.get(position).getSerge());
+        codigo.setText(formListFiltered.get(position).getSernr());
+        nombre.setText(formListFiltered.get(position).getEqunr());
+        if(formListFiltered.get(position).getFechaLectura() != null)
+            ultima_fecha.setText(formListFiltered.get(position).getFechaLectura().trim());
+        comentario.setText(formListFiltered.get(position).getComentario());
 
         Drawable background = estado.getBackground();
         //Drawable background_circulo = estado_circulo.getBackground();
         int color = R.color.sinFormularios;
 
         if(formListFiltered.get(position).getEstado() != null) {
-            if (formListFiltered.get(position).getEstado().trim().equals("Pendiente")) {
-                color = R.color.pendientes;
-            }
-            if (formListFiltered.get(position).getEstado().trim().equals("Escaneado")) {
-                color = R.color.devuelto;
+            censado.setEnabled(false);
+            if (formListFiltered.get(position).getEstado().trim().equals("Escaneado") || formListFiltered.get(position).getEstado().trim().equals("Censado")) {
+                color = R.color.aprobados;
+                censado.setChecked(true);
             }
             if (formListFiltered.get(position).getEstado().trim().equals("Anomalia")) {
-                color = R.color.rechazado;
+                color = R.color.modificado;
+                placa.setText(formListFiltered.get(position).getNumPlaca());
             }
             if (formListFiltered.get(position).getEstado().trim().equals("Descubrimiento")) {
-                color = R.color.nuevo;
+                color = R.color.devuelto;
+                placa.setText(formListFiltered.get(position).getNumPlaca());
             }
-            if (formListFiltered.get(position).getEstado().trim().equals("No escaneado")) {
-                color = R.color.transmitido;
-            }
-            if (formListFiltered.get(position).getEstado().trim().equals("Modificado")) {
-                color = R.color.modificado;
-            }
-            if (formListFiltered.get(position).getEstado().trim().equals("Cancelado")) {
+            if (formListFiltered.get(position).getEstado().trim().equals("No escaneado") || formListFiltered.get(position).getEstado().trim().equals("Pendiente")) {
                 color = R.color.black;
+                noscan.setVisibility(View.VISIBLE);
+            }
+            if (formListFiltered.get(position).getEstado().trim().equals("Perdido")) {
+                color = R.color.rechazado;
+                placa.setText(formListFiltered.get(position).getNumPlaca());
             }
             estado_text.setText(formListFiltered.get(position).getEstado().trim());
         }else{
             estado_text.setText("Pendiente");
+            noscan.setVisibility(View.VISIBLE);
         }
+        ColorStateList colorStateList = new ColorStateList(
+                new int[][]{
+                        new int[]{-android.R.attr.state_checked}, // unchecked
+                        new int[]{android.R.attr.state_checked}, // checked
+                        new int[]{android.R.attr.state_enabled}, // enabled
+                        new int[]{-android.R.attr.state_enabled}, // enabled
+                },
+                new int[]{
+                        Color.parseColor(context.getResources().getString(color)),
+                        Color.parseColor(context.getResources().getString(color)),
+                        Color.parseColor(context.getResources().getString(color)),
+                        Color.parseColor(context.getResources().getString(color)),
+                }
+        );
+        CompoundButtonCompat.setButtonTintList(censado, colorStateList);
         estado_text.setTextColor(ContextCompat.getColor(context, color));
         estado.setBackground(ContextCompat.getDrawable(context, color));
 
-        ultima_fecha.setText("Pendiente");
-        //estado_circulo.getBackground().setTint(ContextCompat.getColor(context, color));
+
+        if(estado_text.getText().equals("Descubrimiento") || estado_text.getText().equals("Anomalia")) {
+            card_view.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+
+                    DialogHandler appdialog = new DialogHandler();
+
+                    appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaActivity.EliminarRegistroCenso(context,activity,formListFiltered.get(position).getNumPlaca()));
+                    return false;
+                }
+            });
+        }
+        codigo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //ModificarSolicitud(position);
+            }
+        });
+        noscan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bundle b = new Bundle();
+                b.putString("tipoSolicitud", "200");
+                b.putString("codigoCliente", formListFiltered.get(position).getKunnr());
+                b.putString("codigoEquipoFrio", formListFiltered.get(position).getSerge());
+                Intent intent = new Intent(context, SolicitudAvisosEquipoFrioActivity.class);
+                intent.putExtras(b); //Pase el parametro el Intent
+                context.startActivity(intent);
+            }
+        });
         /*
         tipo_solicitud.setText(formListFiltered.get(position).get("tipo_solicitud").trim());
         tipo_solicitud.setTextColor(color);
@@ -172,12 +251,7 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
 
         fechas.setText("Inicio: "+formattedDate+"\nFin: "+formattedDateEnd);
 */
-        codigo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //ModificarSolicitud(position);
-            }
-        });
+
         /*nombre.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

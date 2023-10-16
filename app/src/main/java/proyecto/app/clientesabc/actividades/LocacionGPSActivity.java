@@ -34,11 +34,42 @@ public class LocacionGPSActivity {
     private Activity activity;
 
     private LocationListener locationListener;
-
+    private LocationListenerCallback callback;
     LocacionGPSActivity() {
 
     }
 
+    public LocacionGPSActivity(Context context, LocationListenerCallback callback) {
+        locationManager = (LocationManager) context.getSystemService(context.LOCATION_SERVICE);
+
+        this.callback = callback;
+
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                if (callback != null) {
+                    callback.onLocationUpdate(location);
+                }
+            }
+            // Other LocationListener methods...
+        };
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
+            return;
+        }
+        try{
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, FASTEST_INTERVAL, 0, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, FASTEST_INTERVAL, 0, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, FASTEST_INTERVAL, 0, locationListener);
+        } catch (java.lang.SecurityException ex) {
+            Toasty.error(context, "Fallo en pedir la ubicacion").show();
+        } catch (IllegalArgumentException ex) {
+            Toasty.error(context, "Proveedor de ubicacion no existe").show();
+        }
+
+        Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+    }
     LocacionGPSActivity(Context c, Activity a, MaskedEditText lat, MaskedEditText longi){
         context = c;
         activity = a;
@@ -136,4 +167,7 @@ public class LocacionGPSActivity {
         return locationManager != null && (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) || locationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER));
     }
 
+    public interface LocationListenerCallback {
+        void onLocationUpdate(Location location);
+    }
 }

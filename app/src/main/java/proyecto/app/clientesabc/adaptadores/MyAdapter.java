@@ -354,6 +354,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
             intent = new Intent(context, SolicitudAvisosEquipoFrioActivity.class);
             intent.putExtras(b); //Pase el parametro el Intent
             context.startActivity(intent);
+        }else if(formListFiltered.get(position).get("ind_modelo").trim().equals("S")){
+            intent = new Intent(context, SolicitudAvisosEquipoFrioActivity.class);
+            intent.putExtras(b); //Pase el parametro el Intent
+            context.startActivity(intent);
         }
     }
 
