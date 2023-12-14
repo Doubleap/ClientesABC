@@ -13,6 +13,8 @@ public class EquipoFrio implements Cloneable{
     private String bzirk;
     @SerializedName("KUNNR")
     private String kunnr;
+    @SerializedName("KUNNR_CENSO")
+    private String kunnr_censo;
     @SerializedName("IBASE")
     private String ibase;
     @SerializedName("INSTANCE")
@@ -35,6 +37,8 @@ public class EquipoFrio implements Cloneable{
     private String spras;
     @SerializedName("MATKL")
     private String matkl;
+    @SerializedName("MAKTX")
+    private String maktx;
     @SerializedName("SERGE")
     private String serge;
     @SerializedName("SERNR")
@@ -49,6 +53,18 @@ public class EquipoFrio implements Cloneable{
     private String activo;
     @SerializedName("COMENTARIO")
     private String comentario;
+    @SerializedName("TRANSMITIDO")
+    private String transmitido;
+    @SerializedName("ID_SOLICITUD")
+    private String id_solicitud;
+
+    public String getIdSolicitud() {
+        return id_solicitud;
+    }
+
+    public void setIdSolicitud(String id_solicitud) {
+        this.id_solicitud = id_solicitud;
+    }
 
     public EquipoFrio() { }
     public EquipoFrio(String vkorg, String kdgrp, String bzirk, String kunnr, String ibase, String instance, String objecttyp, String objnr, String equnr, String matnr, String eqart, String herst, String eqktx, String spras, String matkl, String serge, String sernr) {
@@ -136,7 +152,13 @@ public class EquipoFrio implements Cloneable{
     public void setKunnr(String kunnr) {
         this.kunnr = kunnr;
     }
+    public String getKunnrCenso() {
+        return kunnr_censo;
+    }
 
+    public void setKunnrCenso(String kunnr_censo) {
+        this.kunnr_censo = kunnr_censo;
+    }
     public String getIbase() {
         return ibase;
     }
@@ -224,7 +246,13 @@ public class EquipoFrio implements Cloneable{
     public void setMatkl(String matkl) {
         this.matkl = matkl;
     }
+    public String getMaktx() {
+        return maktx;
+    }
 
+    public void setMaktx(String maktx) {
+        this.maktx = maktx;
+    }
     public String getSerge() {
         return serge;
     }
@@ -287,5 +315,13 @@ public class EquipoFrio implements Cloneable{
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getTransmitido() {
+        return transmitido;
+    }
+
+    public void setTransmitido(String transmitido) {
+        this.transmitido = transmitido;
     }
 }

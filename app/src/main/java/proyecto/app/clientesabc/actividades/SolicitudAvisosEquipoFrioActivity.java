@@ -104,6 +104,9 @@ import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
+import proyecto.app.clientesabc.clases.TransmisionAPI;
+import proyecto.app.clientesabc.clases.TransmisionLecturaCensoServidor;
+import proyecto.app.clientesabc.clases.TransmisionServidor;
 import proyecto.app.clientesabc.clases.Validaciones;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Comentario;
@@ -700,6 +703,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     }
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("sapdmateriales_pde")){
                         opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim(),1,4,null);
+                    }
+                    if(campos.get(i).get("tabla").trim().toLowerCase().equals("loc_motivo_no_scan_ef")){
+                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),"genera_formulario = 1");
                     }
                     ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
                     int selectedIndex = 0;
@@ -1827,14 +1833,107 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     insertValuesOld.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("userMC",""));
                     insertValuesOld.put("[FECCRE]", dateFormat.format(date));
                     long insertoOld = mDb.insertOrThrow("FormHvKof_old_solicitud", null, insertValuesOld);
-                    //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
-                    Intent sol = getIntent();
-                    sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    SolicitudAvisosEquipoFrioActivity.this.finish();
-                    //Bundle par = new Bundle();
-                    //par.putString("tipo_solicitud",tipoSolicitud);
-                    //SolicitudActivity.this.startActivity(sol);
-                    Toasty.success(getApplicationContext(), "Solicitud de Equipo Frio Creada", Toast.LENGTH_LONG).show();
+
+                    if(tipoSolicitud.equals("200")){
+                        //Guardar la alerta del equipo que no es posible escanear en el momento
+                        EquipoFrio eq = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, false);
+                        //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                        //Date date = new Date();
+                        ContentValues insertValuesA = new ContentValues();
+                        insertValuesA.put("id_solicitud", NextId);
+                        insertValuesA.put("bukrs", PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BUKRS",""));
+                        insertValuesA.put("bzirk", PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BZIRK",""));
+                        insertValuesA.put("ruta", PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_RUTAHH",""));
+                        insertValuesA.put("estado","Anomalia");
+                        insertValuesA.put("kunnr_censo",codigoCliente);
+                        insertValuesA.put("nombre_cliente",((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-NAME1")).getText().toString());
+                        insertValuesA.put("num_placa",codigoEquipoFrio);
+                        insertValuesA.put("coordenada_x", ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT")).getText().toString());
+                        insertValuesA.put("coordenada_y", ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG")).getText().toString());
+                        insertValuesA.put("activo", "1");
+                        insertValuesA.put("transmitido", "0");
+                        insertValuesA.put("fecha_lectura", dateFormat.format(date));
+                        insertValuesA.put("num_activo", eq.getSernr());
+                        insertValuesA.put("num_equipo", eq.getEqunr());
+                        insertValuesA.put("modelo_equipo", eq.getMatnr());
+                        insertValuesA.put("canal", ((OpcionSpinner)((Spinner) mapeoCamposDinamicosEnca.get("W_CTE-ZZCANAL")).getSelectedItem()).getId().trim() );
+                        insertValuesA.put("correo", ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-SMTP_ADDR")).getText().toString());
+                        insertValuesA.put("creado_por", PreferenceManager.getDefaultSharedPreferences(context).getString("userMC",""));
+                        insertValuesA.put("comentario", ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")).getText().toString());
+                        Spinner motivo = ((Spinner) mapeoCamposDinamicos.get("W_CTE-CE_MOTIVO_ALERTA"));
+                        String id_motivo = ((OpcionSpinner) motivo.getSelectedItem()).getId().trim();
+                        insertValuesA.put("id_motivo_alerta", id_motivo);
+
+                        if(Objects.requireNonNull(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT")).getText()).toString().replace("0","").replace(".","").replace(",","").trim().length() == 0 && Objects.requireNonNull(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG")).getText()).toString().replace("0","").replace(".","").replace(",","").trim().length() == 0){
+                            AlertDialog.Builder builder = new AlertDialog.Builder(SolicitudAvisosEquipoFrioActivity.this);
+                            builder.setIcon(R.drawable.icon_info_title);
+                            builder.setTitle("Coordenadas No capturadas!");
+                            builder.setCancelable(false);
+                            builder.setMessage("Desea continuar de todas maneras?");
+                            builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //if user pressed "yes", continue with execution
+                                    var inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValuesA);
+
+                                    if(inserto == -1){
+                                        Toasty.info(context, "No se pudo guardar la anomalía de equipo frio!").show();
+                                    }else{
+                                        //Enviar la anomalia de una vez a la base de datos de SQL Server
+                                        WeakReference<Context> weakRef = new WeakReference<Context>(SolicitudAvisosEquipoFrioActivity.this);
+                                        WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudAvisosEquipoFrioActivity.this);
+                                        //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
+                                        if (VariablesGlobales.UsarAPI()) {
+                                            //TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",NextId);
+                                            //f.execute();
+                                        } else {
+                                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "",NextId);
+                                            f.execute();
+                                        }
+                                    }
+                                    Toasty.success(getApplicationContext(), "Anomalía Creada", Toast.LENGTH_LONG).show();
+                                }
+                            });
+                            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //if user select "No", just cancel this dialog and continue with app
+                                    dialog.cancel();
+                                }
+                            });
+                            AlertDialog alert = builder.create();
+                            alert.show();
+                        }else{
+                            inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValuesA);
+
+                            if(inserto == -1){
+                                Toasty.info(context, "No se pudo guardar la anomalía de equipo frio!").show();
+                            }else{
+                                //Enviar la anomalia de una vez a la base de datos de SQL Server
+                                WeakReference<Context> weakRef = new WeakReference<Context>(SolicitudAvisosEquipoFrioActivity.this);
+                                WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudAvisosEquipoFrioActivity.this);
+                                //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
+                                if (VariablesGlobales.UsarAPI()) {
+                                    //TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",NextId);
+                                    //f.execute();
+                                } else {
+                                    TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "",NextId);
+                                    f.execute();
+                                }
+                            }
+                            Toasty.success(getApplicationContext(), "Anomalía Creada", Toast.LENGTH_LONG).show();
+                        }
+                    }else {
+
+                        //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
+                        Intent sol = getIntent();
+                        sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        SolicitudAvisosEquipoFrioActivity.this.finish();
+                        //Bundle par = new Bundle();
+                        //par.putString("tipo_solicitud",tipoSolicitud);
+                        //SolicitudActivity.this.startActivity(sol);
+                        Toasty.success(getApplicationContext(), "Solicitud de Equipo Frio Creada", Toast.LENGTH_LONG).show();
+                    }
                 }
             } catch (Exception e) {
                 Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -1904,18 +2003,20 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             EquipoFrio equipo = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
             if(equipo == null)
                 equipo = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, false);
+
             MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_EQUIPMENT"));
-            tv.setText(codigoEquipoFrio);
+            if(tv != null)
+                tv.setText(codigoEquipoFrio);
             MaskedEditText tvs = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_SERIALNO"));
-            if(equipo != null)
+            if(equipo != null && tvs != null)
                 tvs.setText(equipo.getSernr());
             try {
                 SearchableSpinner tvm = ((SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-IM_MATERIAL"));
-                if(equipo != null)
+                if(equipo != null && tvm != null)
                     tvm.setSelection(VariablesGlobales.getIndex(tvm, equipo.getMatnr()));
             }catch(Exception e){
                 MaskedEditText tvm = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_MATERIAL"));
-                if(equipo != null)
+                if(equipo != null && tvm != null)
                     tvm.setText(equipo.getMatnr());
             }
             MaskedEditText tvp = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_PARTNER"));
@@ -2054,6 +2155,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             }
                             sp.setEnabled(false);
                         }
+
 
                         sp = ((Spinner) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
                         if(sp != null)
@@ -2316,12 +2418,17 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     ViewGroup slidingTabStrip = (ViewGroup) misTabs.getChildAt(0);
-                    int tamxpestana = (slidingTabStrip.getWidth())/misTabs.getTabCount();
-                    for (int i = 0; i < misTabs.getTabCount(); i++) {
-                        View tab = slidingTabStrip.getChildAt(i);
-                        tab.setMinimumWidth(tamxpestana);
-                        LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) tab.getLayoutParams();
-                        tab.setLayoutParams(layoutParams);
+                    try {
+                        int tamxpestana = (slidingTabStrip.getWidth()) / misTabs.getTabCount();
+                        for (int i = 0; i < misTabs.getTabCount(); i++) {
+                            View tab = slidingTabStrip.getChildAt(i);
+                            tab.setMinimumWidth(tamxpestana);
+                            LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) tab.getLayoutParams();
+                            tab.setLayoutParams(layoutParams);
+                        }
+                    }catch(ArithmeticException e){
+                        Toasty.error(getBaseContext(),"No se generó ningun tab de informacion.").show();
+                        finish();
                     }
                 }
             });

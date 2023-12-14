@@ -37,6 +37,8 @@ import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.Interfaces.InterfaceApi;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
+import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -170,7 +172,13 @@ public class ValidarFlujoClienteAPI extends AsyncTask<Void,String,ArrayList<Json
             //activity.get().finish();
             Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
         }
-        SolicitudModificacionActivity.SolicitudPermitida(context.get(), activity.get(), mensajes);
+
+        if(context.get().getClass().getSimpleName().equals("SolicitudModificacionActivity"))
+            SolicitudModificacionActivity.SolicitudPermitida(context.get(), activity.get(), mensajes);
+        else if(context.get().getClass().getSimpleName().equals("SolicitudAvisosEquipoFrioActivity"))
+            SolicitudAvisosEquipoFrioActivity.SolicitudPermitida(context.get(), activity.get(), mensajes);
+        else if(context.get().getClass().getSimpleName().equals("SolicitudCreditoActivity"))
+            SolicitudCreditoActivity.SolicitudPermitida(context.get(), activity.get(), mensajes);
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

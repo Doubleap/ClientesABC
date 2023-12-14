@@ -232,6 +232,11 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                                             mDataBase.execSQL(sqlInsert);
                                             sqlInsert = "INSERT INTO grid_interlocutor_old_solicitud SELECT * FROM fromDB.grid_interlocutor_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
                                             mDataBase.execSQL(sqlInsert);
+
+                                            //Insertar registros de Censos de Equipo Frio que aún no se hayan transmitido para no perder ninguna lectura, alerta o anomalia.
+                                            sqlInsert = "INSERT INTO CensoEquipoFrio SELECT * FROM fromDB.CensoEquipoFrio WHERE id NOT IN (Select id FROM CensoEquipoFrio)";
+                                            mDataBase.execSQL(sqlInsert);
+
                                         }catch (SQLiteException e) {
                                             xceptionFlag = true;
                                             messageFlag = "Bases de datos incompatibles. Intente de nuevo." + e.getMessage();

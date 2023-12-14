@@ -1,7 +1,10 @@
 package proyecto.app.clientesabc.clases;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -35,21 +38,19 @@ import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
-import proyecto.app.clientesabc.actividades.PanelActivity;
-import proyecto.app.clientesabc.actividades.SolicitudesActivity;
+import proyecto.app.clientesabc.actividades.SolicitudActivity;
+import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
+import proyecto.app.clientesabc.adaptadores.BaseInstaladaAdapter;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.modelos.EquipoFrio;
 
-import static androidx.core.content.ContextCompat.startActivity;
-
-public class TransmisionServidor extends AsyncTask<Void,String,Void> {
+public class TransmisionLecturaCensoServidor extends AsyncTask<Void,String,Void> {
 
     private String solicitudes_procesadas;
     private WeakReference<ListView> listView;
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
-    private String filePath;
-    private String wholePath;
-    private String id_solicitud;
+    private EquipoFrio equipoFrio;
     private boolean xceptionFlag = false;
     private String errorFlag = "Transmision NO pudo realizarse.";
     private Socket socket;
@@ -58,12 +59,10 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
     private DataBaseHelper mDBHelper;
     AlertDialog dialog;
 
-    public TransmisionServidor(WeakReference<Context> context, WeakReference<Activity> act, String path, String fullPath, String id_solicitud){
+    public TransmisionLecturaCensoServidor(WeakReference<Context> context, WeakReference<Activity> act, EquipoFrio equipoFrio){
         this.context = context;
         this.activity = act;
-        this.filePath = path;
-        this.wholePath = fullPath;
-        this.id_solicitud = id_solicitud;
+        this.equipoFrio = equipoFrio;
         mDBHelper = new DataBaseHelper(this.context.get());
     }
 
@@ -82,29 +81,17 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
         errorFlag = "Transmision NO pudo realizarse.";
 
         try {
-            //Validar si existen solicitudes para indicar que no ya todas las solicitudes se han transmitido con exito
-            //mDBHelper.RestaurarEstadosSolicitudesTransmitidas();
-            int cantidad = mDBHelper.CantidadSolicitudesTransmision();
-            int cantidad_censos = mDBHelper.CantidadCensosTransmision();
-            //int cantidad = 1;
-            if(cantidad <= 0 && cantidad_censos <= 0){
-                xceptionFlag = true;
-                errorFlag = "No hay solicitudes ni censos nuevos para transmitir!";
-            }else {
                 publishProgress("Estableciendo comunicación...");
                 String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
                 if(mensaje.equals("")) {
                     socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", "").trim(), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "").trim()));
-                    // Enviar archivo en socket
-                    //File myFile = new File("/data/user/0/proyecto.app.clientesabc/databases/", "FAWM_ANDROID_2");
-                    //files.add(myFile);
 
                     SQLiteDatabase mDataBase = SQLiteDatabase.openDatabase(context.get().getDatabasePath("TRANSMISION_").getPath() + PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), null, SQLiteDatabase.CREATE_IF_NECESSARY);
 
+
                     //Crear una base de datos solo para los datos que deben ser transmitidos
                     publishProgress("Extrayendo datos...");
-                    String sqlDrop = "DROP TABLE IF EXISTS 'FormHvKof_solicitud';DROP TABLE IF EXISTS 'FormHvKof_old_solicitud';DROP TABLE IF EXISTS 'encuesta_solicitud';DROP TABLE IF EXISTS 'encuesta_gec_solicitud';DROP TABLE IF EXISTS 'grid_contacto_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_solicitud';DROP TABLE IF EXISTS 'grid_bancos_solicitud';DROP TABLE IF EXISTS 'grid_visitas_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_solicitud';DROP TABLE IF EXISTS 'adjuntos_solicitud';" +
-                            "DROP TABLE IF EXISTS 'grid_contacto_old_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_old_solicitud';DROP TABLE IF EXISTS 'grid_bancos_old_solicitud';DROP TABLE IF EXISTS 'grid_visitas_old_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_old_solicitud';DROP TABLE IF EXISTS 'CensoEquipoFrio';";
+                    String sqlDrop = "DROP TABLE IF EXISTS 'CensoEquipoFrio';";
                     String sqlAttach = "ATTACH DATABASE '"+context.get().getDatabasePath("FAWM_ANDROID_2").getPath()+"' AS fromDB";
                     String[] droptables = sqlDrop.split(";");
                     for (String query : droptables) {
@@ -112,50 +99,12 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                     }
                     mDataBase.execSQL(sqlAttach);
 
-                    String filtroUnicaSolicitud = "";
-                    if (id_solicitud.trim().length() > 0) {
-                        filtroUnicaSolicitud = " AND trim(id_solicitud) = '" + id_solicitud.trim() + "'";
-                    }
-                    //Comenzar a crear las tablas segun lo que existe actualmente en la base de datos
-                    String sqlCreate = "CREATE TABLE FormHvKof_solicitud AS SELECT * FROM fromDB.FormHvKof_solicitud WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud;
-                    mDataBase.execSQL(sqlCreate);
-                    sqlCreate = "CREATE TABLE encuesta_solicitud AS SELECT * FROM fromDB.encuesta_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado') " + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-                    sqlCreate = "CREATE TABLE encuesta_gec_solicitud AS SELECT * FROM fromDB.encuesta_gec_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-                    sqlCreate = "CREATE TABLE grid_contacto_solicitud AS SELECT * FROM fromDB.grid_contacto_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-                    sqlCreate = "CREATE TABLE grid_bancos_solicitud AS SELECT * FROM fromDB.grid_bancos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-                    sqlCreate = "CREATE TABLE grid_impuestos_solicitud AS SELECT * FROM fromDB.grid_impuestos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-                    sqlCreate = "CREATE TABLE grid_visitas_solicitud AS SELECT * FROM fromDB.grid_visitas_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-                    sqlCreate = "CREATE TABLE grid_interlocutor_solicitud AS SELECT * FROM fromDB.grid_interlocutor_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-                    sqlCreate = "CREATE TABLE adjuntos_solicitud AS SELECT * FROM fromDB.adjuntos_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-
-                    //Datos de formularios de modificaicion, credito o avisos de Equipo frio, con datos en tablas OLD
-                    sqlCreate = "CREATE TABLE FormHvKof_old_solicitud AS SELECT * FROM fromDB.FormHvKof_old_solicitud WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud;
-                    mDataBase.execSQL(sqlCreate);
-                /*sqlCreate = "CREATE TABLE encuesta_old_solicitud AS SELECT * FROM fromDB.encuesta_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado') "+filtroUnicaSolicitud+")";
-                mDataBase.execSQL(sqlCreate);
-                sqlCreate = "CREATE TABLE encuesta_gec_old_solicitud AS SELECT * FROM fromDB.encuesta_gec_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')"+filtroUnicaSolicitud+")";
-                mDataBase.execSQL(sqlCreate);*/
-                    sqlCreate = "CREATE TABLE grid_contacto_old_solicitud AS SELECT * FROM fromDB.grid_contacto_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-                    sqlCreate = "CREATE TABLE grid_bancos_old_solicitud AS SELECT * FROM fromDB.grid_bancos_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-                    sqlCreate = "CREATE TABLE grid_impuestos_old_solicitud AS SELECT * FROM fromDB.grid_impuestos_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-                    sqlCreate = "CREATE TABLE grid_visitas_old_solicitud AS SELECT * FROM fromDB.grid_visitas_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-                    sqlCreate = "CREATE TABLE grid_interlocutor_old_solicitud AS SELECT * FROM fromDB.grid_interlocutor_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
-                    mDataBase.execSQL(sqlCreate);
-
                     //Tabla de CensoEquipoFrio nueva a partir de del año 2024
-                    sqlCreate = "CREATE TABLE CensoEquipoFrio AS SELECT * FROM fromDB.CensoEquipoFrio WHERE transmitido = 0 or transmitido IS NULL or transmitido = null";
+                    String sqlCreate = "";
+                    if(equipoFrio.getSerge() == null)
+                        sqlCreate = "CREATE TABLE CensoEquipoFrio AS SELECT * FROM fromDB.CensoEquipoFrio WHERE kunnr_censo = '"+equipoFrio.getKunnrCenso()+"' AND num_placa = '"+equipoFrio.getSerge()+"' AND fecha_lectura = '"+equipoFrio.getFechaLectura()+"' AND transmitido = '0'";
+                    else
+                        sqlCreate = "CREATE TABLE CensoEquipoFrio AS SELECT * FROM fromDB.CensoEquipoFrio WHERE kunnr_censo = '"+equipoFrio.getKunnrCenso()+"' AND num_placa = '"+equipoFrio.getNumPlaca()+"' AND fecha_lectura = '"+equipoFrio.getFechaLectura()+"' AND transmitido = '0'";
                     mDataBase.execSQL(sqlCreate);
 
                     publishProgress("Empaquetando datos...");
@@ -188,7 +137,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                     dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
                     dos.flush();
                     //Comando String que indicara que se queire realizar Sincronizacion/Transmision
-                    dos.writeUTF("Transmision");
+                    dos.writeUTF("TransmisionLecturaCenso");
                     dos.flush();
                     //Enviar Ruta que se quiere transmitir
                     /*dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
@@ -252,8 +201,8 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                         }
                         dos.writeUTF("END");
                         dos.flush();
-                        publishProgress("Actualizando solicitudes...");
-                        solicitudes_procesadas = new String(r, Charset.defaultCharset());
+                        publishProgress("Actualizando censo...");
+                        //solicitudes_procesadas = new String(r, Charset.defaultCharset());
                     }
 
                     //O cerrarlo aqui estara bien?
@@ -262,7 +211,6 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                     xceptionFlag = true;
                     errorFlag = mensaje;
                 }
-            }
             publishProgress("Transmision Finalizada...");
         } catch (IOException e) {
             xceptionFlag = true;
@@ -311,13 +259,15 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
             Toasty.error(context.get(),errorFlag,Toast.LENGTH_LONG).show();
         }
         else{
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-            Date date = new Date();
-            PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("ultimaTransmision", dateFormat.format(date)).apply();
-            Toasty.success(context.get(),"Transmision Finalizada Correctamente!",Toast.LENGTH_LONG).show();
+            Toasty.success(context.get(),"Transmisión exitosa de "+equipoFrio.getEstado()+"!",Toast.LENGTH_LONG).show();
             //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
-            mDBHelper.ActualizarEstadosSolicitudesTransmitidas(solicitudes_procesadas);
-            mDBHelper.ActualizarEstadosCensosTransmitidos();
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put("transmitido","1");
+            long update = db.update("CensoEquipoFrio",values,"trim(kunnr_censo) = ? AND trim(num_placa) = ? AND fecha_lectura = ? AND transmitido = '0'",new String[]{equipoFrio.getKunnrCenso(),equipoFrio.getSerge(),equipoFrio.getFechaLectura()});
+            if(update <= 0){
+                Toasty.success(context.get(),"No se actualizo el estado de transmision de la lectura!",Toast.LENGTH_LONG).show();
+            }
         }
         try {
             dialog.dismiss();
@@ -333,8 +283,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
             Intent intent = activity.get().getIntent();
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             activity.get().finish();
-
-            if (activity.get() instanceof BaseInstaladaActivity || activity.get() instanceof PanelActivity || activity.get() instanceof SolicitudesActivity) {
+            if (activity.get() instanceof BaseInstaladaActivity) {
                 activity.get().overridePendingTransition(0, 0);
                 startActivity(context.get(), intent, null);
                 activity.get().overridePendingTransition(0, 0);

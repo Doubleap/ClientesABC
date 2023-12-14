@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/margin_medium"
             android:paddingTop="@dimen/margin_small"
             android:paddingBottom="@dimen/margin_medium">
 
@@ -37,18 +37,37 @@
 
             <TextView
                 android:id="@+id/num_serie"
-                android:layout_width="166dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:layout_toEndOf="@id/num_placa"
+                android:layout_below="@id/num_placa"
+                android:layout_marginStart="10dp"
                 android:text="Numero de Serie"
-                android:textAppearance="?android:textAppearanceMedium" />
+                android:textAppearance="?android:textAppearanceSmall" />
+
+            <TextView
+                android:id="@+id/modelo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/num_placa"
+                android:layout_marginStart="10dp"
+                android:layout_toEndOf="@id/num_placa"
+                android:text="Modelo Equipo"
+                android:textAppearance="?android:textAppearanceSmall" />
+
+            <ImageView
+                android:id="@+id/transmitido"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/ic_not_sent_yet"
+                android:tooltipText="Generar Formulario de Anomalia con evidencia."
+                android:visibility="visible" />
 
             <TextView
                 android:id="@+id/num_equipo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/num_placa"
+                android:layout_below="@id/num_serie"
                 android:layout_marginLeft="10dp"
                 android:text="Numero Equipo"
                 android:textAppearance="?android:textAppearanceSmallPopupMenu" />
@@ -57,9 +76,9 @@
                 android:id="@+id/base_instalada"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toRightOf="@id/num_equipo"
                 android:layout_alignBaseline="@+id/num_equipo"
                 android:layout_marginLeft="15dp"
+                android:layout_toRightOf="@id/num_equipo"
                 android:text="Base Instalada"
                 android:textAppearance="?android:textAppearanceSmall" />
 
@@ -84,7 +103,8 @@
                 android:width="50sp"
                 android:height="50sp"
                 android:textAlignment="center"
-                android:theme="@style/CheckBoxEquipoFrio" />
+                android:theme="@style/CheckBoxEquipoFrio"
+                android:visibility="invisible"/>
 
             <TextView
                 android:id="@+id/estado_escaneo"
@@ -94,6 +114,7 @@
                 android:layout_marginLeft="10dp"
                 android:text="Estado Escaneo"
                 android:textAppearance="?android:textAppearanceSmall" />
+
             <TextView
                 android:id="@+id/comentario"
                 android:layout_width="match_parent"
@@ -103,15 +124,77 @@
                 android:text="Comentario"
                 android:textAppearance="?android:textAppearanceSmall" />
 
-            <ImageView
-                android:id="@+id/noscan"
+            <com.rey.material.widget.LinearLayout
+                android:id="@+id/menu_bottom"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignEnd="@id/num_serie"
-                android:layout_alignParentRight="true"
-                android:background="@drawable/ic_barcode_off"
-                android:visibility="gone"/>
+                android:layout_below="@id/comentario"
+                android:layout_alignParentEnd="true">
+                <ImageView
+                    android:id="@+id/ver_anomalia"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:background="@drawable/icon_view"
+                    android:tooltipText="Consultar anomalia generada"
+                    android:visibility="gone"
+                    />
+                <ImageView
+                    android:id="@+id/alerta"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:background="@drawable/ic_baseline_warning_24"
+                    android:tooltipText="Generar Alerta. A la tercera alerta deberá generar una Anomalia" />
 
+                <FrameLayout
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_gravity="bottom"
+                    android:layout_marginLeft="-8dp"
+                    android:backgroundTint="@color/devuelto"
+                    android:contextClickable="false">
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/cantidad_alertas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:backgroundTint="@color/devuelto"
+                        android:src="@android:color/transparent" />
+
+                    <TextView
+                        android:id="@+id/label_cantidad_alertas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:elevation="16dp"
+                        android:text="0"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+
+                        android:textColor="@android:color/white"
+                        android:textColorHighlight="@color/modificado"
+                        android:textSize="7dp" />
+                </FrameLayout>
+
+                <ImageView
+                    android:id="@+id/anomalia"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:background="@drawable/ic_baseline_add_alert_24"
+                    android:tooltipText="Generar Formulario de Anomalia con evidencia."
+                    android:visibility="visible" />
+
+                <ImageView
+                    android:id="@+id/eliminar"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginLeft="10dp"
+                    android:background="@drawable/icon_delete"
+                    android:tooltipText="Generar Formulario de Anomalia con evidencia." />
+
+
+            </com.rey.material.widget.LinearLayout>
         </RelativeLayout>
 
     </androidx.cardview.widget.CardView>

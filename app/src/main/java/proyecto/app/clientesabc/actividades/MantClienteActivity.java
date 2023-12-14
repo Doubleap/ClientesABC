@@ -34,6 +34,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -278,6 +279,7 @@ public class MantClienteActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull final MyViewHolder holder, int position) {
             // - Obtener Elemento del data set en esta position
             // - Reemplazar aqui cualquier contenido dinamico dependiendo de algun valor de l dataset creado y o el contenido del dataset
+
             TextView codigo = holder.listView.findViewById(R.id.textViewHead);
             codigo.setText(formListFiltered.get(position).get("codigo") == null?"":formListFiltered.get(position).get("codigo").trim());
             TextView nombre = holder.listView.findViewById(R.id.textViewDesc);
@@ -287,15 +289,44 @@ public class MantClienteActivity extends AppCompatActivity {
             idfiscal.setText(formListFiltered.get(position).get("idfiscal") == null?"":formListFiltered.get(position).get("idfiscal").trim());
             TextView correo = holder.listView.findViewById(R.id.correo);
             correo.setText(formListFiltered.get(position).get("correo") == null?"":formListFiltered.get(position).get("correo").trim());
-            if(formListFiltered.get(position).get("correo") == null || formListFiltered.get(position).get("correo").equals("")){
-                correo.setVisibility(View.GONE);
+            final String codigoCliente = codigo.getText().toString().trim();
+            final String nombreCliente = nombre.getText().toString().trim();
+            final String canalCliente = formListFiltered.get(position).get("canal").trim();
+            final String correoCliente = correo.getText().toString().trim();
+            if(formListFiltered.get(holder.getAdapterPosition()).get("correo") == null || formListFiltered.get(position).get("correo").equals("")){
+                //correo.setVisibility(View.GONE);
+            }else{
+                correo.setVisibility(View.VISIBLE);
             }
             TextView razonSocial = holder.listView.findViewById(R.id.textRazonSocial);
             razonSocial.setText(formListFiltered.get(position).get("razonSocial") == null?"":formListFiltered.get(position).get("razonSocial").trim());
-            if(formListFiltered.get(position).get("razonSocial") == null){
+            if(formListFiltered.get(holder.getAdapterPosition()).get("razonSocial") == null){
                 razonSocial.setVisibility(View.GONE);
+            }else{
+                razonSocial.setVisibility(View.VISIBLE);
             }
-
+            com.rey.material.widget.LinearLayout  base_instalada_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.base_instalada_layout);
+            ImageView imagen_base_instalada = (ImageView)holder.listView.findViewById(R.id.imagen_base_instalada);
+            TextView label_cantidad_base_instalada = (TextView)holder.listView.findViewById(R.id.label_cantidad_base_instalada);
+            if(formListFiltered.get(holder.getAdapterPosition()).get("cant_base_instalada") == null || formListFiltered.get(holder.getAdapterPosition()).get("cant_base_instalada").equals("") || formListFiltered.get(holder.getAdapterPosition()).get("cant_base_instalada").equals("0")){
+                base_instalada_layout.setVisibility(View.GONE);
+            }else{
+                base_instalada_layout.setVisibility(View.VISIBLE);
+                label_cantidad_base_instalada.setText(formListFiltered.get(position).get("cant_base_instalada"));
+                imagen_base_instalada.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Bundle bc = new Bundle();
+                        bc.putString("codigo_cliente", codigoCliente);
+                        bc.putString("nombre_cliente", nombreCliente);
+                        bc.putString("canal_cliente", canalCliente);
+                        bc.putString("correo_cliente", correoCliente);
+                        intent = new Intent(getApplicationContext(),BaseInstaladaActivity.class);
+                        intent.putExtras(bc); //Pase el parametro el Intent
+                        startActivity(intent);
+                    }
+                });
+            }
             /*TextView ubicacion = holder.listView.findViewById(R.id.ubicacion);
             ubicacion.setText(formListFiltered.get(position).get("ubicacion"));
             TextView direccion = holder.listView.findViewById(R.id.direccion);
@@ -339,8 +370,7 @@ public class MantClienteActivity extends AppCompatActivity {
             }
             color_gec.setBackground(ContextCompat.getDrawable(getBaseContext(), color));
 
-            final String codigoCliente = codigo.getText().toString().trim();
-            final String nombreCliente = nombre.getText().toString().trim();
+
             codigo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -437,6 +467,8 @@ public class MantClienteActivity extends AppCompatActivity {
                                     bc = new Bundle();
                                     bc.putString("codigo_cliente", codigoCliente);
                                     bc.putString("nombre_cliente", nombreCliente);
+                                    bc.putString("canal_cliente", canalCliente);
+                                    bc.putString("correo_cliente", correoCliente);
                                     intent = new Intent(getApplicationContext(),BaseInstaladaActivity.class);
                                     intent.putExtras(bc); //Pase el parametro el Intent
                                     startActivity(intent);

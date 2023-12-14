@@ -14,7 +14,9 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -24,6 +26,9 @@ import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
@@ -38,14 +43,17 @@ import android.view.View;
 import android.view.Window;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
@@ -57,6 +65,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.JsonArray;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
@@ -83,6 +92,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
@@ -90,6 +100,9 @@ import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.BaseInstaladaAdapter;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.clases.ConsultaClienteAPI;
+import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
+import proyecto.app.clientesabc.clases.ConsultaEquipoFrioServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.FileHelper;
 import proyecto.app.clientesabc.clases.KeyPairBoolData;
@@ -99,6 +112,10 @@ import proyecto.app.clientesabc.clases.MultiSpinnerListener;
 import proyecto.app.clientesabc.clases.MultiSpinnerSearch;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.TesseractOCR;
+import proyecto.app.clientesabc.clases.TransmisionAPI;
+import proyecto.app.clientesabc.clases.TransmisionLecturaCensoServidor;
+import proyecto.app.clientesabc.clases.TransmisionServidor;
+import proyecto.app.clientesabc.clases.ValidacionAnomaliaServidor;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
@@ -107,7 +124,7 @@ import androidx.core.content.ContextCompat;
 
 public class BaseInstaladaActivity extends AppCompatActivity implements LocacionGPSActivity.LocationListenerCallback{
     DataBaseHelper db;
-    private static SQLiteDatabase mDb;
+    public static SQLiteDatabase mDb;
     private RecyclerView recyclerView;
     private static BaseInstaladaAdapter mAdapter;
     LocacionGPSActivity locationServices;
@@ -122,10 +139,16 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
     boolean isFABOpen = false;
     String codigo_cliente;
     String nombre_cliente;
+    String canal_cliente;
+    String correo_cliente;
     ArrayList<EquipoFrio> formList;
     ArrayList<HashMap<String, String>> filteredFormList;
     Toolbar toolbar;
     static Uri mPhotoUri;
+    private CameraManager mCameraManager;
+    private String mCameraId;
+    private FloatingActionButton toggleButton;
+    private boolean activar_foco;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,6 +158,8 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
         if(b != null) {
             codigo_cliente = b.getString("codigo_cliente");
             nombre_cliente = b.getString("nombre_cliente");
+            canal_cliente = b.getString("canal_cliente");
+            correo_cliente = b.getString("correo_cliente");
         }
         db = new DataBaseHelper(this);
 
@@ -153,7 +178,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
         setContentView(R.layout.activity_base_instalada);
         RecyclerView rv = findViewById(R.id.recycler_view);
 
-        mAdapter = new BaseInstaladaAdapter(formList,this,BaseInstaladaActivity.this);
+        mAdapter = new BaseInstaladaAdapter(formList,this,BaseInstaladaActivity.this,canal_cliente,correo_cliente,nombre_cliente);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
@@ -161,7 +186,28 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
         fab = findViewById(R.id.scanBtn);
         fab2 = findViewById(R.id.camaraBtn);
         fab3 = findViewById(R.id.manualBtn);
-        //fab1.hide();fab2.hide();
+
+        boolean isFlashAvailable = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT);
+        if (!isFlashAvailable) {
+            showNoFlashError();
+        }
+        mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try {
+            mCameraId = mCameraManager.getCameraIdList()[0];
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+
+        toggleButton = findViewById(R.id.onOffFlashlight);
+        toggleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switchFlashLight(activar_foco);
+            }
+        });
+
+        //fab1.hide();
+        fab3.hide();
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -169,6 +215,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                 Bundle bc = new Bundle();
                 bc.putString("campoEscaneo", "censo_equipo_frio");
                 bc.putInt("requestCode", VariablesGlobales.ESCANEO_EQUIPO_FRIO);
+                bc.putBoolean("flash", activar_foco);
                 intent.putExtras(bc); //Pase el parametro el Intent
                 startActivityForResult(intent,VariablesGlobales.ESCANEO_EQUIPO_FRIO);
             }
@@ -292,7 +339,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
         formList = db.getCensoEquiposFriosDB(codigo_cliente);
         RecyclerView rv = findViewById(R.id.recycler_view);
 
-        mAdapter = new BaseInstaladaAdapter(formList,this, BaseInstaladaActivity.this);
+        mAdapter = new BaseInstaladaAdapter(formList,this, BaseInstaladaActivity.this,canal_cliente,correo_cliente,nombre_cliente);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
@@ -301,6 +348,27 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
         toolbar.setSubtitleTextColor(Color.DKGRAY);
     }
 
+    public void showNoFlashError() {
+        AlertDialog alert = new AlertDialog.Builder(this)
+                .create();
+        alert.setTitle("Oops!");
+        alert.setMessage("Flash not available in this device...");
+        alert.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+        alert.show();
+    }
+
+    public void switchFlashLight(boolean status) {
+        if(status){
+            toggleButton.setImageIcon(Icon.createWithResource(getApplicationContext(),R.drawable.icon_flashlight_off));
+        }else{
+            toggleButton.setImageIcon(Icon.createWithResource(getApplicationContext(),R.drawable.icon_flashlight_on));
+        }
+        activar_foco = !activar_foco;
+    }
     private void showDialogFilters(View view) {
         final Dialog dialog =new Dialog(view.getContext());
         dialog.setContentView(R.layout.filtros_solicitudes_dialog_layout);
@@ -423,7 +491,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                 if (b != null) {
                     //Se verifica el codigo leida y se pueden dar las siguientes situaciones:
                     //1. El codigo del equipo frio si existe en el cliente, simplemente se marca como censado
-                    //2. El codigo del equipo no existe en sistema, se debe agregar a la lista de censados como DESCUBRIMIENTO o anomalía
+                    //2. El codigo del equipo no existe en sistema, se debe agregar a la lista de censados como HALLAZGO o anomalía
                     //3. El codigo del equipo leida esta en otro cliente
                     //4. Hay un equipo que no puede ser censado pero si esta en la lista del cliente(NO tiene placa, NO esta en sitio, no existe), Se debe poder indicar que el equipo no pudo ser censado y ver que estado ponerle
 
@@ -434,68 +502,340 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                         Date date = new Date();
                         ContentValues insertValues = new ContentValues();
                         insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BUKRS",""));
+                        insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BZIRK",""));
                         insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_RUTAHH",""));
-                        insertValues.put("estado","Censado");
-                        insertValues.put("kunnr",codigo_cliente);
-                        insertValues.put("num_placa",b.getString("codigo"));
+                        insertValues.put("estado","Verificado");
+                        insertValues.put("kunnr_censo",codigo_cliente);
+                        insertValues.put("nombre_cliente", nombre_cliente);
+                        insertValues.put("num_placa",eq.getSerge());
                         insertValues.put("coordenada_x", latitude);
                         insertValues.put("coordenada_y", longitude);
                         insertValues.put("activo", "1");
+                        insertValues.put("transmitido", "0");
                         insertValues.put("fecha_lectura", dateFormat.format(date));
                         insertValues.put("num_activo", eq.getSernr());
                         insertValues.put("num_equipo", eq.getEqunr());
                         insertValues.put("modelo_equipo", eq.getMatnr());
+                        insertValues.put("correo", correo_cliente);
+                        insertValues.put("canal", canal_cliente);
                         insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("userMC",""));
 
-                        long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+                        if(latitude == 0 && longitude == 0){
+                            AlertDialog.Builder builder = new AlertDialog.Builder(BaseInstaladaActivity.this);
+                            builder.setIcon(R.drawable.icon_info_title);
+                            builder.setTitle("Confirmación");
+                            builder.setCancelable(false);
+                            builder.setMessage("No se han capturado las coordenadas geograficas. Desea continuar de todas maneras?");
+                            Bundle finalB = b;
+                            builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //if user pressed "yes", continue with execution
+                                    long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
 
-                        if(inserto == -1){
-                            Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                                    if(inserto == -1){
+                                        Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                                    }else{
+                                        //Intentar 1 vez el envio automatico de la lectura.
+                                        WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
+                                        WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+
+                                        if (VariablesGlobales.UsarAPI()) {
+                                            /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                                EnableWiFi();
+                                            }
+                                            f.execute();*/
+                                        } else {
+                                            EquipoFrio ef = db.getEquipoFrioDatosCenso(finalB.getString("codigo"));
+                                            TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                            if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                f.EnableWiFi();
+                                            } else {
+                                                f.DisableWiFi();
+                                            }
+                                            f.execute();
+                                            //Validacion de Anomalia Pendiente del equipo Verificado Local y Del servidor
+                                            long update = db.ValidacionAnomalia(finalB.getString("codigo"));
+                                            //if(update > 0) {
+                                            ValidacionAnomaliaServidor a = new ValidacionAnomaliaServidor(weakRef, weakRefA, ef);
+                                            if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                a.EnableWiFi();
+                                            } else {
+                                                a.DisableWiFi();
+                                            }
+                                            a.execute();
+                                            //}
+                                        }
+                                    }
+                                }
+                            });
+                            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //if user select "No", just cancel this dialog and continue with app
+                                    dialog.cancel();
+                                }
+                            });
+                            AlertDialog alert = builder.create();
+                            alert.show();
+                        }else{
+                            long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+
+                            if(inserto == -1){
+                                Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                            }else{
+                                //Intentar 1 vez el envio automatico de la lectura.
+                                WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
+                                WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+
+                                if (VariablesGlobales.UsarAPI()) {
+                                /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                    EnableWiFi();
+                                }
+                                f.execute();*/
+                                } else {
+                                    EquipoFrio ef = db.getEquipoFrioDatosCenso(b.getString("codigo"));
+                                    TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                    if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                        f.EnableWiFi();
+                                    } else {
+                                        f.DisableWiFi();
+                                    }
+                                    f.execute();
+                                    //Validacion de Anomalia Pendiente del equipo Verificado Local y Del servidor
+                                    long update = db.ValidacionAnomalia(b.getString("codigo"));
+                                    //if(update > 0) {
+                                    ValidacionAnomaliaServidor a = new ValidacionAnomaliaServidor(weakRef, weakRefA, ef);
+                                    if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                        a.EnableWiFi();
+                                    } else {
+                                        a.DisableWiFi();
+                                    }
+                                    a.execute();
+                                    //}
+                                }
+                            }
                         }
+
                     }else
-                    //2. El codigo del equipo no existe en sistema, se debe agregar a la lista de censados como DESCUBRIMIENTO o anomalía
+                    //2. El codigo del equipo no existe en sistema, se debe agregar a la lista de censados como HALLAZGO o anomalía
                     if (!db.ExisteEquipoFrio(b.getString("codigo"))) {
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                         Date date = new Date();
                         ContentValues insertValues = new ContentValues();
                         insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BUKRS",""));
+                        insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BZIRK",""));
                         insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_RUTAHH",""));
-                        insertValues.put("estado","Descubrimiento");
-                        insertValues.put("kunnr",codigo_cliente);
-                        insertValues.put("num_placa",b.getString("codigo"));
+                        insertValues.put("estado","Hallazgo");
+                        insertValues.put("kunnr_censo",codigo_cliente);
+                        insertValues.put("nombre_cliente", nombre_cliente);
+                        insertValues.put("num_placa",b.getString("codigo").trim());
                         insertValues.put("coordenada_x", latitude);
                         insertValues.put("coordenada_y", longitude);
                         insertValues.put("activo", "1");
+                        insertValues.put("transmitido", "0");
                         insertValues.put("fecha_lectura", dateFormat.format(date));
-                        insertValues.put("comentario","NO existe este número de placa en sistema!");
+                        insertValues.put("correo", correo_cliente);
+                        insertValues.put("canal", canal_cliente);
+                        insertValues.put("comentario","Número de placa no aparece en ningun cliente instalado.");
 
-                        long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+                        if(latitude == 0 && longitude == 0){
+                            AlertDialog.Builder builder = new AlertDialog.Builder(BaseInstaladaActivity.this);
+                            builder.setIcon(R.drawable.icon_info_title);
+                            builder.setTitle("Confirmación");
+                            builder.setCancelable(false);
+                            builder.setMessage("No se han capturado las coordenadas geograficas. Desea continuar de todas maneras?");
+                            Bundle finalB = b;
+                            builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //if user pressed "yes", continue with execution
+                                    long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
 
-                        if(inserto == -1){
-                            Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                                    if(inserto == -1){
+                                        Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                                    }else{
+                                        //Intentar 1 vez el envio automatico de la lectura.
+                                        WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
+                                        WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+
+                                        if (VariablesGlobales.UsarAPI()) {
+                                            /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                                EnableWiFi();
+                                            }
+                                            f.execute();*/
+                                        } else {
+                                            EquipoFrio ef = new EquipoFrio();
+                                            ef.setKunnrCenso(codigo_cliente);
+                                            ef.setEstado("Hallazgo");
+                                            ef.setNumPlaca(finalB.getString("codigo").trim());
+                                            ef.setSerge(finalB.getString("codigo").trim());
+                                            ef.setActivo("1");
+                                            ef.setTransmitido("0");
+                                            ef.setFechaLectura(dateFormat.format(date));
+                                            ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
+
+                                            TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                            if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                f.EnableWiFi();
+                                            } else {
+                                                f.DisableWiFi();
+                                            }
+                                            f.execute();
+                                        }
+                                    }
+                                }
+                            });
+                            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //if user select "No", just cancel this dialog and continue with app
+                                    dialog.cancel();
+                                }
+                            });
+                            AlertDialog alert = builder.create();
+                            alert.show();
+                        }else{
+                            long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+
+                            if(inserto == -1){
+                                Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                            }else{
+                                //Intentar 1 vez el envio automatico de la lectura.
+                                WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
+                                WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+
+                                if (VariablesGlobales.UsarAPI()) {
+                                            /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                                EnableWiFi();
+                                            }
+                                            f.execute();*/
+                                } else {
+                                    EquipoFrio ef = new EquipoFrio();
+                                    ef.setKunnrCenso(codigo_cliente);
+                                    ef.setEstado("Hallazgo");
+                                    ef.setNumPlaca(b.getString("codigo").trim());
+                                    ef.setSerge(b.getString("codigo").trim());
+                                    ef.setActivo("1");
+                                    ef.setTransmitido("0");
+                                    ef.setFechaLectura(dateFormat.format(date));
+                                    ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
+
+                                    TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                    if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                        f.EnableWiFi();
+                                    } else {
+                                        f.DisableWiFi();
+                                    }
+                                    f.execute();
+                                }
+                            }
                         }
-                    }else
-                    //3. El codigo del equipo leido esta en OTRO CLIENTE
-                    if (db.ExisteEquipoFrio(b.getString("codigo"))) {
+                    }//3. El codigo del equipo leida esta en otro cliente
+                    else if (db.ExisteEquipoFrio(b.getString("codigo"))) {
                         EquipoFrio eq = db.getEquipoFrioDatosCenso(b.getString("codigo"));
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                         Date date = new Date();
                         ContentValues insertValues = new ContentValues();
                         insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BUKRS",""));
+                        insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BZIRK",""));
                         insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_RUTAHH",""));
-                        insertValues.put("estado","Descubrimiento");
-                        insertValues.put("kunnr",codigo_cliente);
-                        insertValues.put("num_placa",b.getString("codigo"));
+                        insertValues.put("estado","Hallazgo");
+                        insertValues.put("kunnr_censo",codigo_cliente);
+                        insertValues.put("nombre_cliente", nombre_cliente);
+                        insertValues.put("num_placa",eq.getSerge());
                         insertValues.put("coordenada_x", latitude);
                         insertValues.put("coordenada_y", longitude);
                         insertValues.put("activo", "1");
+                        insertValues.put("transmitido", "0");
                         insertValues.put("fecha_lectura", dateFormat.format(date));
+                        insertValues.put("num_activo", eq.getSernr());
+                        insertValues.put("num_equipo", eq.getEqunr());
+                        insertValues.put("modelo_equipo", eq.getMatnr());
+                        insertValues.put("correo", correo_cliente);
+                        insertValues.put("canal", canal_cliente);
+                        insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("userMC",""));
                         insertValues.put("comentario","Pertenece a otro cliente "+eq.getKunnr()+"!");
 
-                        long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+                        if(latitude == 0 && longitude == 0){
+                            AlertDialog.Builder builder = new AlertDialog.Builder(BaseInstaladaActivity.this);
+                            builder.setIcon(R.drawable.icon_info_title);
+                            builder.setTitle("Confirmación");
+                            builder.setCancelable(false);
+                            builder.setMessage("No se han capturado las coordenadas geograficas. Desea continuar de todas maneras?");
+                            Bundle finalB = b;
+                            builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //if user pressed "yes", continue with execution
+                                    long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
 
-                        if(inserto == -1){
-                            Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                                    if(inserto == -1){
+                                        Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                                    }else{
+                                        //Intentar 1 vez el envio automatico de la lectura.
+                                        WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
+                                        WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+
+                                        if (VariablesGlobales.UsarAPI()) {
+                                /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                    EnableWiFi();
+                                }
+                                f.execute();*/
+                                        } else {
+                                            EquipoFrio ef = db.getEquipoFrioDatosCenso(finalB.getString("codigo"));
+                                            TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                            if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                f.EnableWiFi();
+                                            } else {
+                                                f.DisableWiFi();
+                                            }
+                                            f.execute();
+                                        }
+                                    }
+                                }
+                            });
+                            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //if user select "No", just cancel this dialog and continue with app
+                                    dialog.cancel();
+                                }
+                            });
+                            AlertDialog alert = builder.create();
+                            alert.show();
+                        }else{
+                            long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+
+                            if(inserto == -1){
+                                Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                            }else{
+                                //Intentar 1 vez el envio automatico de la lectura.
+                                WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
+                                WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+
+                                if (VariablesGlobales.UsarAPI()) {
+                                /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                    EnableWiFi();
+                                }
+                                f.execute();*/
+                                } else {
+                                    EquipoFrio ef = db.getEquipoFrioDatosCenso(b.getString("codigo"));
+                                    TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                    if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                        f.EnableWiFi();
+                                    } else {
+                                        f.DisableWiFi();
+                                    }
+                                    f.execute();
+                                }
+                            }
                         }
                     }
                 }
@@ -617,6 +957,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                     @Override
                                     public void onSuccess(Text visionText) {
                                         Toasty.info(getApplicationContext(), "RECONOCIO LOS CARACTERES : " + visionText.getText()).show();
+
                                     }
                                 })
                                 .addOnFailureListener(
@@ -721,6 +1062,355 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                         @Override
                                         public void onSuccess(Text visionText) {
                                             Toasty.info(getApplicationContext(), "RECONOCIO LOS CARACTERES : " + visionText.getText()).show();
+                                            //Se verifica el codigo leida y se pueden dar las siguientes situaciones:
+                                            //1. El codigo del equipo frio si existe en el cliente, simplemente se marca como censado
+                                            //2. El codigo del equipo no existe en sistema, se debe agregar a la lista de censados como HALLAZGO o anomalía
+                                            //3. El codigo del equipo leida esta en otro cliente
+                                            //4. Hay un equipo que no puede ser censado pero si esta en la lista del cliente(NO tiene placa, NO esta en sitio, no existe), Se debe poder indicar que el equipo no pudo ser censado y ver que estado ponerle
+
+                                            //Caso 1. El codigo del equipo frio si exsite en el cliente, simplemente se marca como censado con un nuevo regsitro en CensoEquipoFrio
+                                            if (db.ExisteEquipoFrioEnCliente(codigo_cliente, visionText.getText())) {
+                                                EquipoFrio eq = db.getEquipoFrioDB(codigo_cliente, visionText.getText(), false);
+                                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                                                Date date = new Date();
+                                                ContentValues insertValues = new ContentValues();
+                                                insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BUKRS", ""));
+                                                insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BZIRK", ""));
+                                                insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_RUTAHH", ""));
+                                                insertValues.put("estado", "Verificado");
+                                                insertValues.put("kunnr_censo", codigo_cliente);
+                                                insertValues.put("nombre_cliente", nombre_cliente);
+                                                insertValues.put("num_placa", eq.getSerge());
+                                                insertValues.put("coordenada_x", latitude);
+                                                insertValues.put("coordenada_y", longitude);
+                                                insertValues.put("activo", "1");
+                                                insertValues.put("transmitido", "0");
+                                                insertValues.put("fecha_lectura", dateFormat.format(date));
+                                                insertValues.put("num_activo", eq.getSernr());
+                                                insertValues.put("num_equipo", eq.getEqunr());
+                                                insertValues.put("modelo_equipo", eq.getMatnr());
+                                                insertValues.put("correo", correo_cliente);
+                                                insertValues.put("canal", canal_cliente);
+                                                insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("userMC", ""));
+
+                                                if (latitude == 0 && longitude == 0) {
+                                                    AlertDialog.Builder builder = new AlertDialog.Builder(BaseInstaladaActivity.this);
+                                                    builder.setIcon(R.drawable.icon_info_title);
+                                                    builder.setTitle("Confirmación");
+                                                    builder.setCancelable(false);
+                                                    builder.setMessage("No se han capturado las coordenadas geograficas. Desea continuar de todas maneras?");
+
+                                                    builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(DialogInterface dialog, int which) {
+                                                            //if user pressed "yes", continue with execution
+                                                            long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+
+                                                            if (inserto == -1) {
+                                                                Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                                                            } else {
+                                                                //Intentar 1 vez el envio automatico de la lectura.
+                                                                WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
+                                                                WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+
+                                                                if (VariablesGlobales.UsarAPI()) {
+                                                                    /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                                                    if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                                                        EnableWiFi();
+                                                                    }
+                                                                    f.execute();*/
+                                                                } else {
+                                                                    EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
+                                                                    TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                                                    if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                                        f.EnableWiFi();
+                                                                    } else {
+                                                                        f.DisableWiFi();
+                                                                    }
+                                                                    f.execute();
+                                                                    //Validacion de Anomalia Pendiente del equipo Verificado Local y Del servidor
+                                                                    long update = db.ValidacionAnomalia(visionText.getText());
+                                                                    //if(update > 0) {
+                                                                    ValidacionAnomaliaServidor a = new ValidacionAnomaliaServidor(weakRef, weakRefA, ef);
+                                                                    if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                                        a.EnableWiFi();
+                                                                    } else {
+                                                                        a.DisableWiFi();
+                                                                    }
+                                                                    a.execute();
+                                                                    //}
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                    builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(DialogInterface dialog, int which) {
+                                                            //if user select "No", just cancel this dialog and continue with app
+                                                            dialog.cancel();
+                                                        }
+                                                    });
+                                                    AlertDialog alert = builder.create();
+                                                    alert.show();
+                                                } else {
+                                                    long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+
+                                                    if (inserto == -1) {
+                                                        Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                                                    } else {
+                                                        //Intentar 1 vez el envio automatico de la lectura.
+                                                        WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
+                                                        WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+
+                                                        if (VariablesGlobales.UsarAPI()) {
+                                                                    /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                                                    if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                                                        EnableWiFi();
+                                                                    }
+                                                                    f.execute();*/
+                                                        } else {
+                                                            EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
+                                                            TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                                            if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                                f.EnableWiFi();
+                                                            } else {
+                                                                f.DisableWiFi();
+                                                            }
+                                                            f.execute();
+                                                            //Validacion de Anomalia Pendiente del equipo Verificado Local y Del servidor
+                                                            long update = db.ValidacionAnomalia(visionText.getText());
+                                                            //if(update > 0) {
+                                                            ValidacionAnomaliaServidor a = new ValidacionAnomaliaServidor(weakRef, weakRefA, ef);
+                                                            if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                                a.EnableWiFi();
+                                                            } else {
+                                                                a.DisableWiFi();
+                                                            }
+                                                            a.execute();
+                                                            //}
+                                                        }
+                                                    }
+                                                }
+                                            } else
+                                                //2. El codigo del equipo no existe en sistema, se debe agregar a la lista de censados como HALLAZGO o anomalía
+                                                if (!db.ExisteEquipoFrio(visionText.getText())) {
+                                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                                                    Date date = new Date();
+                                                    ContentValues insertValues = new ContentValues();
+                                                    insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BUKRS", ""));
+                                                    insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BZIRK", ""));
+                                                    insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_RUTAHH", ""));
+                                                    insertValues.put("estado", "Hallazgo");
+                                                    insertValues.put("kunnr_censo", codigo_cliente);
+                                                    insertValues.put("nombre_cliente", nombre_cliente);
+                                                    insertValues.put("num_placa", visionText.getText());
+                                                    insertValues.put("coordenada_x", latitude);
+                                                    insertValues.put("coordenada_y", longitude);
+                                                    insertValues.put("activo", "1");
+                                                    insertValues.put("transmitido", "0");
+                                                    insertValues.put("fecha_lectura", dateFormat.format(date));
+                                                    insertValues.put("correo", correo_cliente);
+                                                    insertValues.put("canal", canal_cliente);
+                                                    insertValues.put("comentario", "Número de placa no aparece en ningun cliente instalado.");
+
+                                                    if (latitude == 0 && longitude == 0) {
+                                                        AlertDialog.Builder builder = new AlertDialog.Builder(BaseInstaladaActivity.this);
+                                                        builder.setIcon(R.drawable.icon_info_title);
+                                                        builder.setTitle("Confirmación");
+                                                        builder.setCancelable(false);
+                                                        builder.setMessage("No se han capturado las coordenadas geograficas. Desea continuar de todas maneras?");
+
+                                                        builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialog, int which) {
+                                                                //if user pressed "yes", continue with execution
+                                                                long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+
+                                                                if (inserto == -1) {
+                                                                    Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                                                                } else {
+                                                                    //Intentar 1 vez el envio automatico de la lectura.
+                                                                    WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
+                                                                    WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+
+                                                                    if (VariablesGlobales.UsarAPI()) {
+                                                            /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                                                EnableWiFi();
+                                                            }
+                                                            f.execute();*/
+                                                                    } else {
+                                                                        EquipoFrio ef = new EquipoFrio();
+                                                                        ef.setKunnrCenso(codigo_cliente);
+                                                                        ef.setEstado("Hallazgo");
+                                                                        ef.setNumPlaca(visionText.getText());
+                                                                        ef.setSerge(visionText.getText());
+                                                                        ef.setActivo("1");
+                                                                        ef.setTransmitido("0");
+                                                                        ef.setFechaLectura(dateFormat.format(date));
+                                                                        ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
+
+                                                                        TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                                                        if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                                            f.EnableWiFi();
+                                                                        } else {
+                                                                            f.DisableWiFi();
+                                                                        }
+                                                                        f.execute();
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialog, int which) {
+                                                                //if user select "No", just cancel this dialog and continue with app
+                                                                dialog.cancel();
+                                                            }
+                                                        });
+                                                        AlertDialog alert = builder.create();
+                                                        alert.show();
+                                                    } else {
+                                                        long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+
+                                                        if (inserto == -1) {
+                                                            Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                                                        } else {
+                                                            //Intentar 1 vez el envio automatico de la lectura.
+                                                            WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
+                                                            WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+
+                                                            if (VariablesGlobales.UsarAPI()) {
+                                                            /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                                                EnableWiFi();
+                                                            }
+                                                            f.execute();*/
+                                                            } else {
+                                                                EquipoFrio ef = new EquipoFrio();
+                                                                ef.setKunnrCenso(codigo_cliente);
+                                                                ef.setEstado("Hallazgo");
+                                                                ef.setNumPlaca(visionText.getText());
+                                                                ef.setSerge(visionText.getText());
+                                                                ef.setActivo("1");
+                                                                ef.setTransmitido("0");
+                                                                ef.setFechaLectura(dateFormat.format(date));
+                                                                ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
+
+                                                                TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                                                if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                                    f.EnableWiFi();
+                                                                } else {
+                                                                    f.DisableWiFi();
+                                                                }
+                                                                f.execute();
+                                                            }
+                                                        }
+                                                    }
+                                                }//3. El codigo del equipo leida esta en otro cliente
+                                                else if (db.ExisteEquipoFrio(visionText.getText())) {
+                                                    EquipoFrio eq = db.getEquipoFrioDatosCenso(visionText.getText());
+                                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                                                    Date date = new Date();
+                                                    ContentValues insertValues = new ContentValues();
+                                                    insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BUKRS", ""));
+                                                    insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BZIRK", ""));
+                                                    insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_RUTAHH", ""));
+                                                    insertValues.put("estado", "Hallazgo");
+                                                    insertValues.put("kunnr_censo", codigo_cliente);
+                                                    insertValues.put("nombre_cliente", nombre_cliente);
+                                                    insertValues.put("num_placa", eq.getSerge());
+                                                    insertValues.put("coordenada_x", latitude);
+                                                    insertValues.put("coordenada_y", longitude);
+                                                    insertValues.put("activo", "1");
+                                                    insertValues.put("transmitido", "0");
+                                                    insertValues.put("fecha_lectura", dateFormat.format(date));
+                                                    insertValues.put("num_activo", eq.getSernr());
+                                                    insertValues.put("num_equipo", eq.getEqunr());
+                                                    insertValues.put("modelo_equipo", eq.getMatnr());
+                                                    insertValues.put("correo", correo_cliente);
+                                                    insertValues.put("canal", canal_cliente);
+                                                    insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("userMC", ""));
+                                                    insertValues.put("comentario", "Pertenece a otro cliente " + eq.getKunnr() + "!");
+
+
+                                                    if (latitude == 0 && longitude == 0) {
+                                                        AlertDialog.Builder builder = new AlertDialog.Builder(BaseInstaladaActivity.this);
+                                                        builder.setIcon(R.drawable.icon_info_title);
+                                                        builder.setTitle("Confirmación");
+                                                        builder.setCancelable(false);
+                                                        builder.setMessage("No se han capturado las coordenadas geograficas. Desea continuar de todas maneras?");
+
+                                                        builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialog, int which) {
+                                                                //if user pressed "yes", continue with execution
+                                                                long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+
+                                                                if (inserto == -1) {
+                                                                    Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                                                                } else {
+                                                                    //Intentar 1 vez el envio automatico de la lectura.
+                                                                    WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
+                                                                    WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+
+                                                                    if (VariablesGlobales.UsarAPI()) {
+                                                                        /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                                                        if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                                                            EnableWiFi();
+                                                                        }
+                                                                        f.execute();*/
+                                                                    } else {
+                                                                        EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
+                                                                        TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                                                        if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                                            f.EnableWiFi();
+                                                                        } else {
+                                                                            f.DisableWiFi();
+                                                                        }
+                                                                        f.execute();
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialog, int which) {
+                                                                //if user select "No", just cancel this dialog and continue with app
+                                                                dialog.cancel();
+                                                            }
+                                                        });
+                                                        AlertDialog alert = builder.create();
+                                                        alert.show();
+                                                    } else {
+                                                        long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+
+                                                        if (inserto == -1) {
+                                                            Toasty.info(getApplicationContext(), "No se pudo guardar la lectura de equipo frio ejecutada!").show();
+                                                        } else {
+                                                            //Intentar 1 vez el envio automatico de la lectura.
+                                                            WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
+                                                            WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+
+                                                            if (VariablesGlobales.UsarAPI()) {
+                                                                        /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                                                        if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                                                            EnableWiFi();
+                                                                        }
+                                                                        f.execute();*/
+                                                            } else {
+                                                                EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
+                                                                TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                                                if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                                    f.EnableWiFi();
+                                                                } else {
+                                                                    f.DisableWiFi();
+                                                                }
+                                                                f.execute();
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                         }
                                     })
                                     .addOnFailureListener(
@@ -738,43 +1428,31 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
             }
         }
     }
+
+    public static void EquipoFrioEncontradoenSAP(Context context, Activity activity, ArrayList<JsonArray> estructurasSAP) {
+        if (estructurasSAP.size() == 0) {
+            Toasty.error(context.getApplicationContext(), "No se pudo obtener la informacion del equipo frio!").show();
+            activity.finish();
+            return;
+        }
+        JsonArray equipoFrio;
+        equipoFrio = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("EquipoFrio");
+    }
+    public static void EquipoFrioNOEncontradoenSAP(Context context, Activity activity, ArrayList<JsonArray> estructurasSAP) {
+        if (estructurasSAP.size() == 0) {
+            Toasty.error(context.getApplicationContext(), "No se pudo obtener la informacion del equipo frio!").show();
+            activity.finish();
+            return;
+        }
+        JsonArray equipoFrio;
+        equipoFrio = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("EquipoFrio");
+    }
+
     @Override
     public void onLocationUpdate(Location location) {
         // Handle location updates in your activity here
         latitude = location.getLatitude();
         longitude = location.getLongitude();
-    }
-
-    public static Bitmap ColorToGrayscale(Bitmap bm) {
-        Bitmap grayScale = Bitmap.createBitmap(bm.getWidth(), bm.getHeight(), Bitmap.Config.RGB_565);
-
-        ColorMatrix cm = new ColorMatrix();
-        cm.setSaturation(0);
-
-        Paint p = new Paint();
-        p.setColorFilter(new ColorMatrixColorFilter(cm));
-
-        new Canvas(grayScale).drawBitmap(bm, 0, 0, p);
-
-        return grayScale;
-    }
-
-    public static Bitmap GrayscaleToBin(Bitmap bm, int threshold) {
-        Bitmap bin = Bitmap.createBitmap(bm.getWidth(), bm.getHeight(), Bitmap.Config.ARGB_8888);
-
-        ColorMatrix cm = new ColorMatrix(new float[] {
-                85.f, 85.f, 85.f, 0.f, -255.f * threshold,
-                85.f, 85.f, 85.f, 0.f, -255.f * threshold,
-                85.f, 85.f, 85.f, 0.f, -255.f * threshold,
-                0f, 0f, 0f, 1f, 0f
-        });
-
-        Paint p = new Paint();
-        p.setColorFilter(new ColorMatrixColorFilter(cm));
-
-        new Canvas(bin).drawBitmap(bm, 0, 0, p);
-
-        return bin;
     }
 
     public static class EliminarRegistroCenso implements Runnable {
@@ -789,10 +1467,10 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
 
         @Override
         public void run() {
-
             ContentValues updateValues = new ContentValues();
-            updateValues.put("activo", "0");
-            long modifico = mDb.update("CensoEquipoFrio", updateValues, "num_placa = ?", new String[]{id});
+            updateValues.put("activo", 0);
+
+            long modifico = mDb.update("CensoEquipoFrio", updateValues, "num_placa = ?",new String[]{id});
 
             if(modifico > 0){
                 Intent intent = activity.getIntent();

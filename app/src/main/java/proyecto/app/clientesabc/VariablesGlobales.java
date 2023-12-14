@@ -39,13 +39,14 @@ public class VariablesGlobales extends Application {
     //private static String urlApi = "http://kofcrofcdesa02:90/MaestroClientes/";//Ambiente calidad CAM
     //private static String urlApi = "http://10.0.2.2:51123/";//Local host
     //private static String urlApi = "http://10.153.58.132/";//Servidor produccion para BD, pero ambiente calidad en VM uruguay(El ambiente de produccion es el appservice en azure), ocupa VPN
+    //private static String urlApi = "http://10.153.152.69:90/MaestroClientes/"; //URL CAM CALIDAD
     private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API en el app service azure
-    private static String nombrePais = "Guatemala Volcanes";
-    private static String sociedad = "1657";
-    private static String orgvta = "0657";
-    private static String land1 = "GT";
-    private static String cadenaRM = "0000210027";
-    private static String ktokd = "GCMC";
+    private static String nombrePais = "Panamá";
+    private static String sociedad = "F451";
+    private static String orgvta = "0451";
+    private static String land1 = "PA";
+    private static String cadenaRM = "0000200000";
+    private static String ktokd = "PCMA";
 
     /*
     private static String nombrePais = "Costa Rica";

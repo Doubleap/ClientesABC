@@ -1170,7 +1170,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 if(cedula == null)
                                     cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IN_CEDULA_RECIBE");
                                 MaskedEditText finalCedula = cedula;
-                                final MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
+                                MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
+                                if(idfiscal == null)
+                                    idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IN_CEDULA_RECIBE");
                                 final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
                                 if(cedula != null){
                                     //cedula.setFilters(new InputFilter[]{new RegexInputFilter("[A-Z-a-z]")});
@@ -1217,30 +1219,36 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         cedula.setMask("E-####-######");
                                     }
                                     if (opcion.getId().equals("G2")) {//CUI
-                                        idfiscal.setMask("#############");
-                                        listaCamposObligatorios.remove("W_CTE-STCD1");
-                                        cedula.setError(null);
-                                        if(!listaCamposObligatorios.contains("W_CTE-STCD3")) {
-                                            listaCamposObligatorios.add("W_CTE-STCD3");
+                                        if(idfiscal != null) {
+                                            idfiscal.setMask("#############");
+                                            listaCamposObligatorios.remove("W_CTE-STCD1");
+                                            cedula.setError(null);
+                                            if (!listaCamposObligatorios.contains("W_CTE-STCD3")) {
+                                                listaCamposObligatorios.add("W_CTE-STCD3");
+                                            }
+                                            idfiscal.setError("El campo CUI/PASAPORTE es obligatorio!");
                                         }
-                                        idfiscal.setError("El campo CUI/PASAPORTE es obligatorio!");
                                     }
                                     if (opcion.getId().equals("G3")) {//Pasaporte
-                                        idfiscal.setMask("AAAAAAAAA***");
-                                        listaCamposObligatorios.remove("W_CTE-STCD1");
-                                        cedula.setError(null);
-                                        if(!listaCamposObligatorios.contains("W_CTE-STCD3")) {
-                                            listaCamposObligatorios.add("W_CTE-STCD3");
+                                        if(idfiscal != null) {
+                                            idfiscal.setMask("AAAAAAAAA***");
+                                            listaCamposObligatorios.remove("W_CTE-STCD1");
+                                            cedula.setError(null);
+                                            if (!listaCamposObligatorios.contains("W_CTE-STCD3")) {
+                                                listaCamposObligatorios.add("W_CTE-STCD3");
+                                            }
+                                            idfiscal.setError("El campo CUI/PASAPORTE es obligatorio!");
                                         }
-                                        idfiscal.setError("El campo CUI/PASAPORTE es obligatorio!");
                                     }
                                     if (opcion.getId().equals("G4")) {//NIT
-                                        listaCamposObligatorios.remove("W_CTE-STCD3");
-                                        idfiscal.setError(null);
-                                        if(!listaCamposObligatorios.contains("W_CTE-STCD1")){
-                                            listaCamposObligatorios.add("W_CTE-STCD1");
+                                        if(idfiscal != null) {
+                                            listaCamposObligatorios.remove("W_CTE-STCD3");
+                                            idfiscal.setError(null);
+                                            if (!listaCamposObligatorios.contains("W_CTE-STCD1")) {
+                                                listaCamposObligatorios.add("W_CTE-STCD1");
+                                            }
+                                            cedula.setError("El campo NIT es obligatorio!");
                                         }
-                                        cedula.setError("El campo NIT es obligatorio!");
                                     }
                                     if (opcion.getId().contains("G")  || opcion.getId().contains("C")
                                             && (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F446")
@@ -5893,8 +5901,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                 h.setMargins(0, 0, 0, 0);
                 ll.setLayoutParams(h);
-                bottomNavigation.setVisibility(View.GONE);
-                bottomNavigation.animate().translationY(150);
+                if(bottomNavigation != null) {
+                    bottomNavigation.setVisibility(View.GONE);
+                    bottomNavigation.animate().translationY(150);
+                }
 
                 LinearLayout v = new LinearLayout(context.getApplicationContext());
                 v.setOrientation(LinearLayout.VERTICAL);

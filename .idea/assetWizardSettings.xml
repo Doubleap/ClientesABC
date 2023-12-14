@@ -24,8 +24,8 @@
                                             <option name="values">
                                               <map>
                                                 <entry key="color" value="000000" />
-                                                <entry key="imagePath" value="C:\Users\andre\AppData\Local\Temp\baseline_kitchen_24.xml" />
-                                                <entry key="opacityPercent" value="80" />
+                                                <entry key="imagePath" value="C:\Users\andre\AppData\Local\Temp\baseline_flashlight_off_24.xml" />
+                                                <entry key="opacityPercent" value="60" />
                                                 <entry key="paddingPercent" value="5" />
                                                 <entry key="trimmed" value="true" />
                                               </map>
@@ -38,7 +38,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
-                                                <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/kitchen/baseline_kitchen_24.xml" />
+                                                <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/flashlight_off/baseline_flashlight_off_24.xml" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -83,8 +83,7 @@
                                   <option name="values">
                                     <map>
                                       <entry key="imageAsset" value="C:\Users\andre\Desktop\femsa-logo-900.jpg" />
-                                      <entry key="outputName" value="icon_refrigerator" />
-                                      <entry key="theme" value="CUSTOM" />
+                                      <entry key="outputName" value="icon_flashlight_off" />
                                       <entry key="themeColor" value="808080" />
                                     </map>
                                   </option>
@@ -386,7 +385,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/action/ic_settings_applications_black_24dp.xml" />
+                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/history/baseline_history_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -396,8 +395,8 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="assetSourceType" value="FILE" />
-                            <entry key="outputName" value="ic_barcode_off" />
+                            <entry key="color" value="0db4e7" />
+                            <entry key="outputName" value="ic_historial" />
                             <entry key="sourceFile" value="C:\Users\andre\Downloads\barcode_off.svg" />
                           </map>
                         </option>

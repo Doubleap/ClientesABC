@@ -12,6 +12,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 
@@ -27,8 +28,8 @@ public class LocacionGPSActivity {
     private MaskedEditText mLatitudeTextView;
     private MaskedEditText mLongitudeTextView;
     private long UPDATE_INTERVAL = 10 * 1000;  /* 10 secs */
-    private long FASTEST_INTERVAL = 1000; /* 1 sec */
-
+    private long FASTEST_INTERVAL = 5000; /* 1 sec */
+    private AlertDialog mAlertDialog;
     private LocationManager locationManager;
     private Context context;
     private Activity activity;
@@ -41,9 +42,9 @@ public class LocacionGPSActivity {
 
     public LocacionGPSActivity(Context context, LocationListenerCallback callback) {
         locationManager = (LocationManager) context.getSystemService(context.LOCATION_SERVICE);
-
+        this.context = context;
         this.callback = callback;
-
+        mAlertDialog = new AlertDialog.Builder(this.context).create();
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
@@ -51,8 +52,21 @@ public class LocacionGPSActivity {
                     callback.onLocationUpdate(location);
                 }
             }
-            // Other LocationListener methods...
+            @Override
+            public void onProviderEnabled(@NonNull String provider) {
+            }
+
+            @Override
+            public void onProviderDisabled(@NonNull String provider) {
+
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
         };
+        checkLocation();
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
@@ -141,25 +155,26 @@ public class LocacionGPSActivity {
     }
 
     private void showAlert() {
-        final AlertDialog.Builder dialog = new AlertDialog.Builder(context);
-        dialog.setTitle("Habilitar ubicacion")
-                .setMessage("Su configuracion de ubicacion esta 'Apagada'.\nPor favor habilitar para " +
-                        " poder ubicar las coordenadas del cliente.")
-                .setPositiveButton("Configuracion de ubicacion", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+        if(!mAlertDialog.isShowing()) {
+            AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+            dialog.setMessage("Su configuracion de ubicacion esta 'Desactivada'.\nPor favor activela para poder ubicar las coordenadas del cliente.");
+                    dialog.setPositiveButton("Configuracion de ubicacion", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface paramDialogInterface, int paramInt) {
 
-                        Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                        context.startActivity(myIntent);
-                    }
-                })
-                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-
-                    }
-                });
-        dialog.show();
+                            Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            context.startActivity(myIntent);
+                        }
+                    })
+                    .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                            paramDialogInterface.dismiss();
+                        }
+                    });
+            mAlertDialog = dialog.create();
+            mAlertDialog.show();
+        }
     }
 
     private boolean isLocationEnabled() {

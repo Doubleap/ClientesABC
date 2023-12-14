@@ -68,18 +68,68 @@
                 android:layout_marginTop="@dimen/margin_small"
                 android:text="Cancelar"
                 android:textAlignment="center"
-                android:layout_below="@+id/estado_text"
                 android:layout_alignParentEnd="true"
                 android:background="@drawable/icon_menu"/>
 
-            <TextView
-                android:id="@+id/correo"
+            <com.rey.material.widget.LinearLayout
+                android:id="@+id/correo_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/textRazonSocial"
-                android:layout_marginLeft="10dp"
-                android:text="Correo Electronico"
-                android:textAppearance="?android:textAppearanceSmall" />
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/correo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:layout_weight=".95"
+                    android:text="Correo Electronico"
+                    android:textAppearance="?android:textAppearanceSmall" />
+
+                <com.rey.material.widget.LinearLayout
+                    android:id="@+id/base_instalada_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignBottom="@id/correo_layout"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/imagen_base_instalada"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:background="@drawable/icon_refrigerator"
+                        android:tooltipText="Cantidad Bases Instalada del cliente" />
+
+                    <FrameLayout
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_gravity="bottom"
+                        android:layout_marginLeft="-12dp"
+                        android:backgroundTint="@color/gray"
+                        android:contextClickable="false">
+
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:id="@+id/cantidad_alertas"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:backgroundTint="@color/infoColor"
+                            android:src="@android:color/transparent" />
+                        <TextView
+                            android:id="@+id/label_cantidad_base_instalada"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:elevation="16dp"
+                            android:text="0"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:textColor="@android:color/white"
+                            android:textSize="8dp" />
+                    </FrameLayout>
+                </com.rey.material.widget.LinearLayout>
+            </com.rey.material.widget.LinearLayout>
             <!--<TextView
                 android:id="@+id/ubicacion"
                 android:layout_width="match_parent"

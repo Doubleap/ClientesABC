@@ -3,7 +3,13 @@ package proyecto.app.clientesabc.actividades;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
+import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.ToggleButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -23,6 +29,9 @@ public class EscanearActivity extends AppCompatActivity implements ZXingScannerV
     private ZXingScannerView escanerZXing;
     private String campoEscaneo;
     private int requestCode;
+    private boolean flash;
+    private CameraManager mCameraManager;
+    private String mCameraId;
     @Override
     public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -30,6 +39,13 @@ public class EscanearActivity extends AppCompatActivity implements ZXingScannerV
         if(b != null) {
             campoEscaneo = b.getString("campoEscaneo");
             requestCode = b.getInt("requestCode");
+            flash = b.getBoolean("flash");
+        }
+        mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try {
+            mCameraId = mCameraManager.getCameraIdList()[0];
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
         }
         //escanerZXing = new ZXingScannerView(this);
         escanerZXing = new ZXingScannerView(this) {
@@ -45,8 +61,23 @@ public class EscanearActivity extends AppCompatActivity implements ZXingScannerV
         escanerZXing.setFormats(formato);
         escanerZXing.setMinimumWidth(5000);
         escanerZXing.setMinimumHeight(500);
+        escanerZXing.setFlash(flash);
+        ToggleButton toggleButton = new ToggleButton(this);
+        toggleButton.setTextOff("Encender Luz");
+        toggleButton.setTextOn("Apagar Luz");
+        toggleButton.setChecked(flash);
+        toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                escanerZXing.setFlash(isChecked);
+            }
+        });
+        //escanerZXing.addView(toggleButton);
+
         // Hacer que el contenido de la actividad sea el escaner
-        setContentView(escanerZXing);
+        addContentView(toggleButton,new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+        addContentView(escanerZXing,new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT));
+        //setContentView(toggleButton);
     }
 
     @Override

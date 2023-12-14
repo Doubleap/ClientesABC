@@ -1,54 +1,98 @@
 package proyecto.app.clientesabc.adaptadores;
 
+import static android.view.View.GONE;
+
 import android.app.Activity;
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.CompoundButtonCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.checkbox.MaterialCheckBox;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.honeywell.aidc.AidcManager;
+import com.honeywell.aidc.BarcodeFailureEvent;
+import com.honeywell.aidc.BarcodeReadEvent;
+import com.honeywell.aidc.BarcodeReader;
+import com.honeywell.aidc.InvalidScannerNameException;
+import com.honeywell.aidc.ScannerNotClaimedException;
+import com.honeywell.aidc.ScannerUnavailableException;
+import com.honeywell.aidc.UnsupportedPropertyException;
+import com.vicmikhailau.maskededittext.MaskedEditText;
 
+import java.lang.ref.WeakReference;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
+import proyecto.app.clientesabc.actividades.LocacionGPSActivity;
 import proyecto.app.clientesabc.actividades.SolicitudActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.clases.DialogHandler;
+import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.SwipeableRecyclerViewTouchListener;
+import proyecto.app.clientesabc.clases.TransmisionLecturaCensoServidor;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
+import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
-public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdapter.MyViewHolder> implements Filterable {
+public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdapter.MyViewHolder> implements Filterable , LocacionGPSActivity.LocationListenerCallback {
     private ArrayList<EquipoFrio> mDataset;
     private ArrayList<EquipoFrio> formListFiltered;
     private Context context;
     private Activity activity;
-    DataBaseHelper db;
+    private DataBaseHelper db;
+    private static SQLiteDatabase mDb;
+    private double latitude = 0.0;
+    private double longitude = 0.0;
+    private String correo_cliente;
+    private String canal_cliente;
+    private String nombre_cliente;
+    //LocacionGPSActivity locationServices;
+    boolean coordenadasCapturadas = false;
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
@@ -61,12 +105,17 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
         }
     }
     // Constructor de Adaptador HashMap
-    public BaseInstaladaAdapter(ArrayList<EquipoFrio> myDataset, Context c, Activity a) {
+    public BaseInstaladaAdapter(ArrayList<EquipoFrio> myDataset, Context c, Activity a, String canal_cliente, String correo_cliente, String nombre_cliente) {
         mDataset = myDataset;
         formListFiltered = mDataset;
         context = c;
         activity = a;
         db = new DataBaseHelper(context);
+        mDb = db.getWritableDatabase();
+        this.canal_cliente = canal_cliente;
+        this.correo_cliente = correo_cliente;
+        this.nombre_cliente = nombre_cliente;
+        //locationServices = new LocacionGPSActivity(context, BaseInstaladaAdapter.this);
     }
     // Crear nuevas Views. Puedo crear diferentes layouts para diferentes adaptadores desde la misma clase
     @NonNull
@@ -85,31 +134,41 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
         TextView placa = holder.listView.findViewById(R.id.num_placa);
         TextView codigo = holder.listView.findViewById(R.id.num_serie);
         TextView nombre = holder.listView.findViewById(R.id.num_equipo);
+        TextView modelo = holder.listView.findViewById(R.id.modelo);
         TextView ultima_fecha = (TextView) holder.listView.findViewById(R.id.text_ultima_fecha);
         CheckBox censado = (CheckBox) holder.listView.findViewById(R.id.check_box);
         LinearLayout estado = (LinearLayout) holder.listView.findViewById(R.id.color_estado);
         TextView estado_text = (TextView) holder.listView.findViewById(R.id.estado_escaneo);
         TextView comentario = (TextView) holder.listView.findViewById(R.id.comentario);
-        ImageView noscan = holder.listView.findViewById(R.id.noscan);
+        ImageView anomalia = holder.listView.findViewById(R.id.anomalia);
+        ImageView alerta = holder.listView.findViewById(R.id.alerta);
+        ImageView eliminar = holder.listView.findViewById(R.id.eliminar);
+        FloatingActionButton cantidad_alertas = (FloatingActionButton)holder.listView.findViewById(R.id.cantidad_alertas);
+        TextView label_cantidad_alertas = (TextView)holder.listView.findViewById(R.id.label_cantidad_alertas);
+        LinearLayout menu_bottom = (LinearLayout) holder.listView.findViewById(R.id.menu_bottom);
+        ImageView transmitido = holder.listView.findViewById(R.id.transmitido);
+        ImageView ver_anomalia = holder.listView.findViewById(R.id.ver_anomalia);
         /*ImageView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
         TextView tipo_solicitud = (TextView) holder.listView.findViewById(R.id.tipo_solicitud);
         TextView idform = (TextView) holder.listView.findViewById(R.id.idform);
         TextView fechas = (TextView) holder.listView.findViewById(R.id.fechas_text);*/
-
+        int num_alertas = 0;
         CardView card_view = (CardView) holder.listView.findViewById(R.id.card_view);
 
         textViewHead.setText("");
         placa.setText("");
         codigo.setText("");
         nombre.setText("");
+        modelo.setText("");
         ultima_fecha.setText("");
         estado_text.setText("");
         comentario.setText("");
-
+        Integer maximoAlertas = db.MaximoAlertas(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BUKRS",""));
         textViewHead.setText(formListFiltered.get(position).getIbase());
         placa.setText(formListFiltered.get(position).getSerge());
         codigo.setText(formListFiltered.get(position).getSernr());
         nombre.setText(formListFiltered.get(position).getEqunr());
+        modelo.setText(formListFiltered.get(position).getEqktx());
         if(formListFiltered.get(position).getFechaLectura() != null)
             ultima_fecha.setText(formListFiltered.get(position).getFechaLectura().trim());
         comentario.setText(formListFiltered.get(position).getComentario());
@@ -118,32 +177,108 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
         //Drawable background_circulo = estado_circulo.getBackground();
         int color = R.color.sinFormularios;
 
+        if(formListFiltered.get(position).getTransmitido() != null && formListFiltered.get(position).getTransmitido().equals("0")){
+            transmitido.setVisibility(View.VISIBLE);
+            transmitido.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //Enviar la anomalia de una vez a la base de datos de SQL Server
+                    WeakReference<Context> weakRef = new WeakReference<Context>(context);
+                    WeakReference<Activity> weakRefA = new WeakReference<Activity>(activity);
+                    //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
+                    if (VariablesGlobales.UsarAPI()) {
+                        //TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",NextId);
+                        //f.execute();
+                    } else {
+                        //TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "",NextId);
+                        //f.execute();
+                        //Intentar 1 vez el envio automatico de la lectura.
+                        EquipoFrio ef = db.getEquipoFrioDatosCenso(formListFiltered.get(position).getNumPlaca());
+                        if(ef != null) {
+                            TransmisionLecturaCensoServidor l = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                            if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion", "").equals("wifi")) {
+                                l.EnableWiFi();
+                            } else {
+                                l.DisableWiFi();
+                            }
+                            l.execute();
+                        }
+                    }
+                }
+            });
+        }else{
+            transmitido.setVisibility(View.GONE);
+        }
         if(formListFiltered.get(position).getEstado() != null) {
             censado.setEnabled(false);
-            if (formListFiltered.get(position).getEstado().trim().equals("Escaneado") || formListFiltered.get(position).getEstado().trim().equals("Censado")) {
+            if (formListFiltered.get(position).getEstado().trim().equals("Verificado")) {
                 color = R.color.aprobados;
                 censado.setChecked(true);
+                eliminar.setVisibility(GONE);
+                alerta.setVisibility(GONE);
+                cantidad_alertas.setVisibility(GONE);
+                anomalia.setVisibility(GONE);
+                censado.setVisibility(View.VISIBLE);
+                menu_bottom.setVisibility(View.GONE);
+
             }
-            if (formListFiltered.get(position).getEstado().trim().equals("Anomalia")) {
+            if (formListFiltered.get(position).getEstado().trim().equals("Anomalia") || formListFiltered.get(position).getEstado().trim().equals("Anomalía")) {
+                color = R.color.rechazado;
+                placa.setText(formListFiltered.get(position).getSerge());
+                alerta.setVisibility(GONE);
+                anomalia.setVisibility(GONE);
+                cantidad_alertas.setVisibility(GONE);
+                label_cantidad_alertas.setVisibility(GONE);
+                eliminar.setVisibility(GONE);
+                //menu_bottom.setVisibility(View.GONE);
+                ver_anomalia.setVisibility(View.VISIBLE);
+                ver_anomalia.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Bundle b = new Bundle();
+                        b.putString("tipoSolicitud", "200");
+                        b.putString("idSolicitud", formListFiltered.get(position).getIdSolicitud());
+                        b.putString("codigoCliente", formListFiltered.get(position).getKunnr());
+                        b.putString("codigoEquipoFrio", formListFiltered.get(position).getSerge());
+                        Intent intent = new Intent(context, SolicitudAvisosEquipoFrioActivity.class);
+                        intent.putExtras(b); //Pase el parametro el Intent
+                        context.startActivity(intent);
+                    }
+                });
+            }
+
+            if (formListFiltered.get(position).getEstado().trim().equals("Alerta")) {
+                color = R.color.devuelto;
+                placa.setText(formListFiltered.get(position).getSerge());
+                eliminar.setVisibility(View.GONE);
+                //alerta.setVisibility(GONE);
+                //cantidad_alertas.setVisibility(GONE);
+                num_alertas = db.CatidadAlertasPeriodo(formListFiltered.get(position).getSerge());
+                label_cantidad_alertas.setText(String.valueOf(num_alertas));
+            }
+            if (formListFiltered.get(position).getEstado().trim().equals("Pendiente") || formListFiltered.get(position).getEstado().trim().equals("No escaneado")) {
+                color = R.color.pendientes;
+                alerta.setVisibility(View.VISIBLE);
+                cantidad_alertas.setVisibility(View.VISIBLE);
+                anomalia.setVisibility(View.VISIBLE);
+                eliminar.setVisibility(GONE);
+            }
+            if (formListFiltered.get(position).getEstado().trim().equals("Hallazgo")) {
                 color = R.color.modificado;
                 placa.setText(formListFiltered.get(position).getNumPlaca());
-            }
-            if (formListFiltered.get(position).getEstado().trim().equals("Descubrimiento")) {
-                color = R.color.devuelto;
-                placa.setText(formListFiltered.get(position).getNumPlaca());
-            }
-            if (formListFiltered.get(position).getEstado().trim().equals("No escaneado") || formListFiltered.get(position).getEstado().trim().equals("Pendiente")) {
-                color = R.color.black;
-                noscan.setVisibility(View.VISIBLE);
-            }
-            if (formListFiltered.get(position).getEstado().trim().equals("Perdido")) {
-                color = R.color.rechazado;
-                placa.setText(formListFiltered.get(position).getNumPlaca());
+                eliminar.setVisibility(View.VISIBLE);
+                alerta.setVisibility(GONE);
+                cantidad_alertas.setVisibility(GONE);
+                anomalia.setVisibility(GONE);
             }
             estado_text.setText(formListFiltered.get(position).getEstado().trim());
         }else{
+            color = R.color.pendientes;
             estado_text.setText("Pendiente");
-            noscan.setVisibility(View.VISIBLE);
+            alerta.setVisibility(View.VISIBLE);
+            cantidad_alertas.setVisibility(View.VISIBLE);
+            anomalia.setVisibility(View.VISIBLE);
+            eliminar.setVisibility(GONE);
         }
         ColorStateList colorStateList = new ColorStateList(
                 new int[][]{
@@ -163,16 +298,28 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
         estado_text.setTextColor(ContextCompat.getColor(context, color));
         estado.setBackground(ContextCompat.getDrawable(context, color));
 
+        if(comentario.getText().toString().trim().equals("")){
+            comentario.setVisibility(View.GONE);
+        }else{
+            comentario.setVisibility(View.VISIBLE);
+        }
 
-        if(estado_text.getText().equals("Descubrimiento") || estado_text.getText().equals("Anomalia")) {
+
+        //Funcionalidades con clicks
+        if(estado_text.getText().equals("Hallazgo")) {
             card_view.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-
                     DialogHandler appdialog = new DialogHandler();
-
-                    appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaActivity.EliminarRegistroCenso(context,activity,formListFiltered.get(position).getNumPlaca()));
+                    appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaAdapter.EliminarRegistroCenso(context,activity,formListFiltered.get(position).getNumPlaca()));
                     return false;
+                }
+            });
+            eliminar.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    DialogHandler appdialog = new DialogHandler();
+                    appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaAdapter.EliminarRegistroCenso(context,activity,formListFiltered.get(position).getNumPlaca()));
                 }
             });
         }
@@ -182,9 +329,37 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                 //ModificarSolicitud(position);
             }
         });
-        noscan.setOnClickListener(new View.OnClickListener() {
+        if(num_alertas < maximoAlertas) {
+            alerta.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {//Genera un registro en tabla CensoEquipoFrio con comentario obligatoria y alerta
+                    displayDialogGenerarAlerta(formListFiltered.get(position).getKunnr(), formListFiltered.get(position).getSerge(), latitude, longitude);
+                }
+            });
+        }else{
+            alerta.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {//Genera un registro en tabla CensoEquipoFrio con comentario obligatoria y alerta
+                    Toasty.error(context,"Ha llegado al máximo de alertas permitido por equipo!\n\nPor favor generar la anomalía correspondiente para el seguimiento apropiado del equipo",Toasty.LENGTH_LONG).show();
+                }
+            });
+        }
+        cantidad_alertas.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {//Genera un registro en tabla CensoEquipoFrio con comentario obligatoria y alerta
+                displayDialogGenerarAlerta(formListFiltered.get(position).getKunnr(), formListFiltered.get(position).getSerge(),  latitude, longitude);
+            }
+        });
+        label_cantidad_alertas.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {//Genera un registro en tabla CensoEquipoFrio con comentario obligatoria y alerta
+                displayDialogGenerarAlerta(formListFiltered.get(position).getKunnr(), formListFiltered.get(position).getSerge(),  latitude, longitude);
+            }
+        });
+        anomalia.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Toasty.info(context, "Abriendo Anomalía...", Toast.LENGTH_SHORT).show();
                 Bundle b = new Bundle();
                 b.putString("tipoSolicitud", "200");
                 b.putString("codigoCliente", formListFiltered.get(position).getKunnr());
@@ -390,7 +565,17 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
             };
             holder.listView.setOnClickListener(mOnClickListener);*/
     }
+    @Override
+    public void onLocationUpdate(Location location) {
+        // Handle location updates in your activity here
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
+        /*if(!coordenadasCapturadas) {
+            Toasty.success(context, "Coordenadas Capturadas!").show();
+            coordenadasCapturadas = true;
+        }*/
 
+    }
     /*private void ModificarSolicitud(int position) {
         Bundle b = new Bundle();
         Intent intent = null;
@@ -468,7 +653,209 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
             }
         };
     }
+    public void displayDialogGenerarAlerta(final String codigoCliente, final String numPlaca, Double latitude, Double longitude) {
+        ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_loc_motivo_no_scan_ef", "genera_formulario='0'");
+        if(opciones.size() == 1){
+            Toasty.warning(context, "NO existen motivos de alerta!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final Dialog d=new Dialog(context);
+        d.setContentView(R.layout.generar_alerta_dialog_layout);
 
+        //INITIALIZE VIEWS
+        final TextView title = d.findViewById(R.id.title);
+        final SearchableSpinner motivoSpinner = (SearchableSpinner) d.findViewById(R.id.motivoSpinner);
+        final MaskedEditText comentario = (MaskedEditText) d.findViewById(R.id.comentario);
+        motivoSpinner.setTitle("Generar Alerta placa #"+numPlaca);
+        motivoSpinner.setPositiveButton("Cerrar");
+        TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
+        lp.setMargins(0, -10, 0, 25);
+        motivoSpinner.setPadding(0,0,0,0);
+        motivoSpinner.setLayoutParams(lp);
+        motivoSpinner.setPopupBackgroundResource(R.drawable.menu_item);
+        Button saveBtn= d.findViewById(R.id.saveBtn);
+
+        //SAVE, en este caso solo es aceptar, ir a a pintar el formulario correspondiente dependiendo del equipo frio seleccionado
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String motivo = ((OpcionSpinner)motivoSpinner.getSelectedItem()).getId();
+                String comentario_txt = comentario.getText().toString();
+                if(motivo.isEmpty()){
+                    Toasty.warning(v.getContext(), "Por favor seleccione un motivo para la alerta!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if(comentario_txt.isEmpty()){
+                    Toasty.warning(v.getContext(), "Por favor realice un comentario explicativo de la alerta!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                try{
+                   //Guardar la alerta del equipo que no es posible escanear en el momento
+                    EquipoFrio eq = db.getEquipoFrioDB(codigoCliente, numPlaca, false);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    Date date = new Date();
+                    ContentValues insertValues = new ContentValues();
+                    insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BUKRS",""));
+                    insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BZIRK",""));
+                    insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_RUTAHH",""));
+                    insertValues.put("estado","Alerta");
+                    insertValues.put("kunnr_censo",codigoCliente);
+                    insertValues.put("nombre_cliente", nombre_cliente);
+                    insertValues.put("num_placa",numPlaca);
+                    insertValues.put("coordenada_x", latitude);
+                    insertValues.put("coordenada_y", longitude);
+                    insertValues.put("activo", "1");
+                    insertValues.put("transmitido", "0");
+                    insertValues.put("fecha_lectura", dateFormat.format(date));
+                    insertValues.put("num_activo", eq.getSernr());
+                    insertValues.put("num_equipo", eq.getEqunr());
+                    insertValues.put("modelo_equipo", eq.getMatnr());
+                    insertValues.put("correo", correo_cliente);
+                    insertValues.put("canal", canal_cliente);
+                    insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(context).getString("userMC",""));
+                    insertValues.put("comentario", comentario.getText().toString());
+                    insertValues.put("id_motivo_alerta", ((OpcionSpinner) motivoSpinner.getSelectedItem()).getId());
+
+                    //Justo antes de guardar, SI NO TIENE LAS COORDENADAS, preguntar si realmente quiere realizar el regsitro del censo SIN coordendas
+
+                    if(latitude.equals(0) && longitude.equals(0)){
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                        builder.setIcon(R.drawable.icon_info_title);
+                        builder.setTitle("Confirmación");
+                        builder.setCancelable(false);
+                        builder.setMessage("No se han capturado las coordenadas. Desea continuar de todas maneras?");
+                        builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //if user pressed "yes", continue with execution
+                                long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+
+                                if(inserto == -1){
+                                    Toasty.info(context, "No se pudo guardar la alerta de equipo frio!").show();
+                                }else{
+                                    //Intentar 1 vez el envio automatico de la lectura.
+                                    WeakReference<Context> weakRef = new WeakReference<Context>(context);
+                                    WeakReference<Activity> weakRefA = new WeakReference<Activity>(activity);
+
+                                    if (VariablesGlobales.UsarAPI()) {
+                                /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                    EnableWiFi();
+                                }
+                                f.execute();*/
+                                    } else {
+                                        EquipoFrio ef = db.getEquipoFrioDatosCenso(numPlaca);
+                                        TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                        if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion", "").equals("wifi")) {
+                                            f.EnableWiFi();
+                                        } else {
+                                            f.DisableWiFi();
+                                        }
+                                        f.execute();
+                                    }
+
+                                }
+                            }
+                        });
+                        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //if user select "No", just cancel this dialog and continue with app
+                                dialog.cancel();
+                            }
+                        });
+                        AlertDialog alert = builder.create();
+                        alert.show();
+                    }else{
+                        long inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValues);
+
+                        if(inserto == -1){
+                            Toasty.info(context, "No se pudo guardar la alerta de equipo frio!").show();
+                        }else{
+                            //Intentar 1 vez el envio automatico de la lectura.
+                            WeakReference<Context> weakRef = new WeakReference<Context>(context);
+                            WeakReference<Activity> weakRefA = new WeakReference<Activity>(activity);
+
+                            if (VariablesGlobales.UsarAPI()) {
+                                /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
+                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
+                                    EnableWiFi();
+                                }
+                                f.execute();*/
+                            } else {
+                                EquipoFrio ef = db.getEquipoFrioDatosCenso(numPlaca);
+                                TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
+                                if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion", "").equals("wifi")) {
+                                    f.EnableWiFi();
+                                } else {
+                                    f.DisableWiFi();
+                                }
+                                f.execute();
+                            }
+
+                        }
+                    }
+
+
+                } catch(Exception e) {
+                    Toasty.error(v.getContext(), "No se pudo guardar la alerta al equipo!."+e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+                d.dismiss();
+            }
+        });
+
+        //Para campos de seleccion
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        for (int j = 0; j < opciones.size(); j++){
+            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+        }
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable spinner_back = context.getDrawable(R.drawable.spinner_background);
+        motivoSpinner.setBackground(spinner_back);
+        motivoSpinner.setAdapter(dataAdapter);
+        motivoSpinner.setSelection(0);
+
+        //SHOW DIALOG
+        d.show();
+        Window window = d.getWindow();
+        if (window != null) {
+            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
+    public static class EliminarRegistroCenso implements Runnable {
+        Context context;
+        Activity activity;
+        String id;
+        public EliminarRegistroCenso(Context context, Activity activity, String id) {
+            this.context = context;
+            this.activity = activity;
+            this.id = id;
+        }
+
+        @Override
+        public void run() {
+            ContentValues updateValues = new ContentValues();
+            updateValues.put("activo", 0);
+
+            long modifico = mDb.update("CensoEquipoFrio", updateValues, "num_placa = ?",new String[]{id});
+
+            if(modifico > 0){
+                Intent intent = activity.getIntent();
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                activity.finish();
+                activity.overridePendingTransition(0, 0);
+                activity.startActivity(intent);
+                activity.overridePendingTransition(0, 0);
+                Toasty.success(context,"Registro Eliminado!").show();
+            }
+        }
+    }
     /*public Filter getMultiFilter() {
         return new Filter() {
             @Override
