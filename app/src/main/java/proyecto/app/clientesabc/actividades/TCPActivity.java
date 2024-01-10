@@ -17,11 +17,13 @@ import androidx.annotation.NonNull;
 import android.text.InputFilter;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -112,23 +114,51 @@ public class TCPActivity extends AppCompatActivity
 
         addConexion = findViewById(R.id.add_conexion);
         tipo_conexion = findViewById(R.id.tipo_conexion);
+        TextView label_puerto = findViewById(R.id.secTxt);
 
         ArrayList<OpcionSpinner> listatipos = new ArrayList<>();
         OpcionSpinner opWifi = new OpcionSpinner("wifi","WiFi");
         OpcionSpinner opGPRS = new OpcionSpinner("gprs","GPRS");
+        OpcionSpinner opAPI = new OpcionSpinner("api","REST API");
         //OpcionSpinner opLocal = new OpcionSpinner("local","Local");
         listatipos.add(opWifi);
         listatipos.add(opGPRS);
+        //listatipos.add(opAPI);
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(this, R.layout.simple_spinner_item, listatipos);
         // Drop down layout style - list view with radio button
         dataAdapter.setDropDownViewResource(R.layout.spinner_item);
         // attaching data adapter to spinner
         tipo_conexion.setAdapter(dataAdapter);
+        tipo_conexion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if(((OpcionSpinner)tipo_conexion.getSelectedItem()).getId().toString().equals("api")){
+                    PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("tipo_conexion",((OpcionSpinner)tipo_conexion.getSelectedItem()).getId()).apply();
+                    ip_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("url_api",VariablesGlobales.getUrlApi()));
+                    puerto_text.setVisibility(View.GONE);
+                    label_puerto.setVisibility(View.GONE);
+                }
+                else{
+                    PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("tipo_conexion",((OpcionSpinner)tipo_conexion.getSelectedItem()).getId()).apply();
+                    ip_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("Ip",""));
+                    puerto_text.setVisibility(View.VISIBLE);
+                    label_puerto.setVisibility(View.VISIBLE);
+                }
+            }
 
-        tipo_conexion.setSelection(VariablesGlobales.getIndex(tipo_conexion,PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("tipo_conexion","")));
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Toasty.warning(TCPActivity.this,"Selecciona una opcion válida").show();
+            }
+        });
+
+        tipo_conexion.setSelection(VariablesGlobales.getIndex(tipo_conexion,PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("tipo_conexion","gprs")));
         ip_text = findViewById(R.id.txtservidor);
-        ip_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("Ip",""));
+        if(((OpcionSpinner)tipo_conexion.getSelectedItem()) != null && ((OpcionSpinner)tipo_conexion.getSelectedItem()).getId().toString().equals("api"))
+            ip_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("url_api", VariablesGlobales.getUrlApi()));
+        else
+            ip_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("Ip",""));
         puerto_text = (EditText)findViewById(R.id.txtPuerto);
         puerto_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("Puerto",""));
         ruta_text = findViewById(R.id.txtRuta);
@@ -187,10 +217,16 @@ public class TCPActivity extends AppCompatActivity
                     puerto_text.setText(puerto_text.getText().toString().trim());
                     ruta_text.setText(ruta_text.getText().toString().trim());
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("tipo_conexion",((OpcionSpinner)tipo_conexion.getSelectedItem()).getId()).apply();
-                    PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
+
+                    if(((OpcionSpinner)tipo_conexion.getSelectedItem()).getId().equals("api")) {
+                        PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("url_api", ip_text.getText().toString()).apply();
+                        VariablesGlobales.setUrlApi(ip_text.getText().toString());
+                    }else
+                        PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
+
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                     PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
-                    if (VariablesGlobales.UsarAPI()) {
+                    if (((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("api")) {
                         PruebaConexionAPI f = new PruebaConexionAPI(weakRef, weakRefA);
                         if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                             EnableWiFi();
@@ -232,7 +268,7 @@ public class TCPActivity extends AppCompatActivity
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
 
-                            if (VariablesGlobales.UsarAPI()) {
+                            if (PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("tipo_conexion","").equals("api")) {
                                 SincronizacionAPI s = new SincronizacionAPI(weakRef, weakRefA);
                                 if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                                     EnableWiFi();
@@ -259,7 +295,7 @@ public class TCPActivity extends AppCompatActivity
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Puerto",puerto_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
 
-                            if (VariablesGlobales.UsarAPI()) {
+                            if (PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("tipo_conexion","").equals("api")) {
                                 TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, filePath, wholePath,"");
                                 if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                                     EnableWiFi();

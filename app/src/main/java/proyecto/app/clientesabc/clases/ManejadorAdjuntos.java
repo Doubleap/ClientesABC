@@ -347,7 +347,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
         WeakReference<Context> weakRefs = new WeakReference<Context>(context);
         WeakReference<Activity> weakRefAs = new WeakReference<Activity>(activity);
         //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-        if (VariablesGlobales.UsarAPI()) {
+        if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("api")) {
             AdjuntoAPI s = new AdjuntoAPI(weakRefs, weakRefAs, adjunto_img, adjunto_txt, d);
             if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
                 s.EnableWiFi();

@@ -366,7 +366,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             WeakReference<Context> weakRefs1 = new WeakReference<Context>(this);
             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(this);
 
-            if (VariablesGlobales.UsarAPI()) {
+            if (PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("tipo_conexion","").equals("api")) {
                 ConsultaClienteAPI c = new ConsultaClienteAPI(weakRefs1, weakRefAs1, codigoCliente);
                 if(PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion","").equals("wifi")){
                     c.EnableWiFi();
@@ -1883,7 +1883,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                                         WeakReference<Context> weakRef = new WeakReference<Context>(SolicitudAvisosEquipoFrioActivity.this);
                                         WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudAvisosEquipoFrioActivity.this);
                                         //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                                        if (VariablesGlobales.UsarAPI()) {
+                                        if (PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("tipo_conexion","").equals("api")) {
                                             //TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",NextId);
                                             //f.execute();
                                         } else {
@@ -1913,7 +1913,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                                 WeakReference<Context> weakRef = new WeakReference<Context>(SolicitudAvisosEquipoFrioActivity.this);
                                 WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudAvisosEquipoFrioActivity.this);
                                 //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                                if (VariablesGlobales.UsarAPI()) {
+                                if (PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("tipo_conexion","").equals("api")) {
                                     //TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",NextId);
                                     //f.execute();
                                 } else {

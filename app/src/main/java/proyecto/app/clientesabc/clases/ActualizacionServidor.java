@@ -147,7 +147,7 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
                                 activity.get().runOnUiThread(new Runnable() {
                                     public void run() {
                                         DialogHandler appdialog = new DialogHandler();
-                                        appdialog.Confirm(activity.get(), "Version Antigua", "Al aceptar esta instalacion estara devolviendose a una version ANTERIOR a la actual. Desea continuar con la instalacion?", "No", "Si", new ActualizacionServidor.ActualizarVersion(context.get(), file));
+                                        appdialog.Confirm(activity.get(), "Version Descargada Antigua", "Al aceptar esta instalacion estara devolviendose a una version ANTERIOR a la actual. Desea continuar con la instalacion?", "No", "Si", new ActualizacionServidor.ActualizarVersion(context.get(), file));
 
                                     }
                                 });

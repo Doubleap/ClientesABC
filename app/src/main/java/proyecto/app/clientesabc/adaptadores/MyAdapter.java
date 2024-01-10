@@ -14,6 +14,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.preference.PreferenceManager;
 import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -299,7 +300,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                                 WeakReference<Context> weakRef = new WeakReference<Context>(context);
                                 WeakReference<Activity> weakRefA = new WeakReference<Activity>((Activity)context);
                                 //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                                if (VariablesGlobales.UsarAPI()) {
+                                if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("api")) {
                                     TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",formListFiltered.get(position).get("id_solicitud").trim());
                                     f.execute();
                                 } else {

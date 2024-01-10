@@ -113,6 +113,7 @@ import proyecto.app.clientesabc.clases.MultiSpinnerSearch;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.TesseractOCR;
 import proyecto.app.clientesabc.clases.TransmisionAPI;
+import proyecto.app.clientesabc.clases.TransmisionLecturaCensoAPI;
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoServidor;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
 import proyecto.app.clientesabc.clases.ValidacionAnomaliaServidor;
@@ -540,12 +541,20 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                         WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                         WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
 
-                                        if (VariablesGlobales.UsarAPI()) {
-                                            /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                                EnableWiFi();
+                                        if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
+                                            EquipoFrio ef = db.getEquipoFrioDatosCenso(finalB.getString("codigo"));
+                                            TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA,ef);
+                                            f.execute();
+                                            //Validacion de Anomalia Pendiente del equipo Verificado Local y Del servidor
+                                            long update = db.ValidacionAnomalia(finalB.getString("codigo"));
+                                            //if(update > 0) {
+                                            /*ValidacionAnomaliaAPI a = new ValidacionAnomaliaAPI(weakRef, weakRefA, ef);
+                                            if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                a.EnableWiFi();
+                                            } else {
+                                                a.DisableWiFi();
                                             }
-                                            f.execute();*/
+                                            a.execute();*/
                                         } else {
                                             EquipoFrio ef = db.getEquipoFrioDatosCenso(finalB.getString("codigo"));
                                             TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
@@ -589,12 +598,20 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                 WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                 WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
 
-                                if (VariablesGlobales.UsarAPI()) {
-                                /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                    EnableWiFi();
-                                }
-                                f.execute();*/
+                                if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
+                                    EquipoFrio ef = db.getEquipoFrioDatosCenso(b.getString("codigo"));
+                                    TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA,ef);
+                                    f.execute();
+                                    //Validacion de Anomalia Pendiente del equipo Verificado Local y Del servidor
+                                    /*long update = db.ValidacionAnomalia(finalB.getString("codigo"));
+                                    //if(update > 0) {
+                                    ValidacionAnomaliaAPI a = new ValidacionAnomaliaAPI(weakRef, weakRefA, ef);
+                                    if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                        a.EnableWiFi();
+                                    } else {
+                                        a.DisableWiFi();
+                                    }
+                                    a.execute();*/
                                 } else {
                                     EquipoFrio ef = db.getEquipoFrioDatosCenso(b.getString("codigo"));
                                     TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
@@ -660,24 +677,23 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                         //Intentar 1 vez el envio automatico de la lectura.
                                         WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                         WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+                                        EquipoFrio ef = new EquipoFrio();
+                                        ef.setKunnrCenso(codigo_cliente);
+                                        ef.setEstado("Hallazgo");
+                                        ef.setNumPlaca(finalB.getString("codigo").trim());
+                                        ef.setSerge(finalB.getString("codigo").trim());
+                                        ef.setActivo("1");
+                                        ef.setTransmitido("0");
+                                        ef.setFechaLectura(dateFormat.format(date));
+                                        ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
 
-                                        if (VariablesGlobales.UsarAPI()) {
-                                            /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                                EnableWiFi();
+                                        if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
+                                            TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA,ef);
+                                            if(PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")){
+                                                f.EnableWiFi();
                                             }
-                                            f.execute();*/
+                                            f.execute();
                                         } else {
-                                            EquipoFrio ef = new EquipoFrio();
-                                            ef.setKunnrCenso(codigo_cliente);
-                                            ef.setEstado("Hallazgo");
-                                            ef.setNumPlaca(finalB.getString("codigo").trim());
-                                            ef.setSerge(finalB.getString("codigo").trim());
-                                            ef.setActivo("1");
-                                            ef.setTransmitido("0");
-                                            ef.setFechaLectura(dateFormat.format(date));
-                                            ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
-
                                             TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                                             if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                                 f.EnableWiFi();
@@ -707,24 +723,23 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                 //Intentar 1 vez el envio automatico de la lectura.
                                 WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                 WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+                                EquipoFrio ef = new EquipoFrio();
+                                ef.setKunnrCenso(codigo_cliente);
+                                ef.setEstado("Hallazgo");
+                                ef.setNumPlaca(b.getString("codigo").trim());
+                                ef.setSerge(b.getString("codigo").trim());
+                                ef.setActivo("1");
+                                ef.setTransmitido("0");
+                                ef.setFechaLectura(dateFormat.format(date));
+                                ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
 
-                                if (VariablesGlobales.UsarAPI()) {
-                                            /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                                EnableWiFi();
-                                            }
-                                            f.execute();*/
+                                if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
+                                    TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA,ef);
+                                    if(PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")){
+                                        f.EnableWiFi();
+                                    }
+                                    f.execute();
                                 } else {
-                                    EquipoFrio ef = new EquipoFrio();
-                                    ef.setKunnrCenso(codigo_cliente);
-                                    ef.setEstado("Hallazgo");
-                                    ef.setNumPlaca(b.getString("codigo").trim());
-                                    ef.setSerge(b.getString("codigo").trim());
-                                    ef.setActivo("1");
-                                    ef.setTransmitido("0");
-                                    ef.setFechaLectura(dateFormat.format(date));
-                                    ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
-
                                     TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                                     if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                         f.EnableWiFi();
@@ -780,15 +795,15 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                         //Intentar 1 vez el envio automatico de la lectura.
                                         WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                         WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+                                        EquipoFrio ef = db.getEquipoFrioDatosCenso(finalB.getString("codigo"));
 
-                                        if (VariablesGlobales.UsarAPI()) {
-                                /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                    EnableWiFi();
-                                }
-                                f.execute();*/
+                                        if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
+                                            TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA,ef);
+                                            if(PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")){
+                                                f.EnableWiFi();
+                                            }
+                                            f.execute();
                                         } else {
-                                            EquipoFrio ef = db.getEquipoFrioDatosCenso(finalB.getString("codigo"));
                                             TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                                             if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                                 f.EnableWiFi();
@@ -818,15 +833,15 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                 //Intentar 1 vez el envio automatico de la lectura.
                                 WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                 WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+                                EquipoFrio ef = db.getEquipoFrioDatosCenso(b.getString("codigo"));
 
-                                if (VariablesGlobales.UsarAPI()) {
-                                /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                    EnableWiFi();
-                                }
-                                f.execute();*/
+                                if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
+                                    TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA,ef);
+                                    if(PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")){
+                                        f.EnableWiFi();
+                                    }
+                                    f.execute();
                                 } else {
-                                    EquipoFrio ef = db.getEquipoFrioDatosCenso(b.getString("codigo"));
                                     TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                                     if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                         f.EnableWiFi();
@@ -1112,15 +1127,25 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                                 //Intentar 1 vez el envio automatico de la lectura.
                                                                 WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                                                 WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+                                                                EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
 
-                                                                if (VariablesGlobales.UsarAPI()) {
-                                                                    /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                                                    if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                                                        EnableWiFi();
+                                                                if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
+                                                                    TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA,ef);
+                                                                    if(PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")){
+                                                                        f.EnableWiFi();
                                                                     }
-                                                                    f.execute();*/
+                                                                    f.execute();
+                                                                    //Validacion de Anomalia Pendiente del equipo Verificado Local y Del servidor
+                                                                    long update = db.ValidacionAnomalia(visionText.getText());
+                                                                    //if(update > 0) {
+                                                                    /*ValidacionAnomaliaAPI a = new ValidacionAnomaliaAPI(weakRef, weakRefA, ef);
+                                                                    if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+                                                                        a.EnableWiFi();
+                                                                    } else {
+                                                                        a.DisableWiFi();
+                                                                    }
+                                                                    a.execute();*/
                                                                 } else {
-                                                                    EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
                                                                     TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                                                                     if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                                                         f.EnableWiFi();
@@ -1161,15 +1186,20 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                         //Intentar 1 vez el envio automatico de la lectura.
                                                         WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                                         WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+                                                        EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
 
-                                                        if (VariablesGlobales.UsarAPI()) {
-                                                                    /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                                                    if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                                                        EnableWiFi();
-                                                                    }
-                                                                    f.execute();*/
+                                                        if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
+                                                            TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA,ef);
+                                                            if(PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")){
+                                                                f.EnableWiFi();
+                                                            }
+                                                            f.execute();
+                                                            //Validacion de Anomalia Pendiente del equipo Verificado Local y Del servidor
+                                                            long update = db.ValidacionAnomalia(visionText.getText());
+                                                            //if(update > 0) {
+                                                            /*ValidacionAnomaliaAPI a = new ValidacionAnomaliaAPI(weakRef, weakRefA, ef);
+                                                            a.execute();*/
                                                         } else {
-                                                            EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
                                                             TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                                                             if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                                                 f.EnableWiFi();
@@ -1232,24 +1262,20 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                                     //Intentar 1 vez el envio automatico de la lectura.
                                                                     WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                                                     WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+                                                                    EquipoFrio ef = new EquipoFrio();
+                                                                    ef.setKunnrCenso(codigo_cliente);
+                                                                    ef.setEstado("Hallazgo");
+                                                                    ef.setNumPlaca(visionText.getText());
+                                                                    ef.setSerge(visionText.getText());
+                                                                    ef.setActivo("1");
+                                                                    ef.setTransmitido("0");
+                                                                    ef.setFechaLectura(dateFormat.format(date));
+                                                                    ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
 
-                                                                    if (VariablesGlobales.UsarAPI()) {
-                                                            /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                                                EnableWiFi();
-                                                            }
-                                                            f.execute();*/
+                                                                    if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
+                                                                        TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, ef);
+                                                                        f.execute();
                                                                     } else {
-                                                                        EquipoFrio ef = new EquipoFrio();
-                                                                        ef.setKunnrCenso(codigo_cliente);
-                                                                        ef.setEstado("Hallazgo");
-                                                                        ef.setNumPlaca(visionText.getText());
-                                                                        ef.setSerge(visionText.getText());
-                                                                        ef.setActivo("1");
-                                                                        ef.setTransmitido("0");
-                                                                        ef.setFechaLectura(dateFormat.format(date));
-                                                                        ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
-
                                                                         TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                                                                         if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                                                             f.EnableWiFi();
@@ -1279,24 +1305,20 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                             //Intentar 1 vez el envio automatico de la lectura.
                                                             WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
+                                                            EquipoFrio ef = new EquipoFrio();
+                                                            ef.setKunnrCenso(codigo_cliente);
+                                                            ef.setEstado("Hallazgo");
+                                                            ef.setNumPlaca(visionText.getText());
+                                                            ef.setSerge(visionText.getText());
+                                                            ef.setActivo("1");
+                                                            ef.setTransmitido("0");
+                                                            ef.setFechaLectura(dateFormat.format(date));
+                                                            ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
 
-                                                            if (VariablesGlobales.UsarAPI()) {
-                                                            /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                                            if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                                                EnableWiFi();
-                                                            }
-                                                            f.execute();*/
+                                                            if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
+                                                                TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, ef);
+                                                                f.execute();
                                                             } else {
-                                                                EquipoFrio ef = new EquipoFrio();
-                                                                ef.setKunnrCenso(codigo_cliente);
-                                                                ef.setEstado("Hallazgo");
-                                                                ef.setNumPlaca(visionText.getText());
-                                                                ef.setSerge(visionText.getText());
-                                                                ef.setActivo("1");
-                                                                ef.setTransmitido("0");
-                                                                ef.setFechaLectura(dateFormat.format(date));
-                                                                ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
-
                                                                 TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                                                                 if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                                                     f.EnableWiFi();
@@ -1353,15 +1375,11 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                                     //Intentar 1 vez el envio automatico de la lectura.
                                                                     WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                                                     WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
-
-                                                                    if (VariablesGlobales.UsarAPI()) {
-                                                                        /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                                                        if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                                                            EnableWiFi();
-                                                                        }
-                                                                        f.execute();*/
+                                                                    EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
+                                                                    if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
+                                                                        TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, ef);
+                                                                        f.execute();
                                                                     } else {
-                                                                        EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
                                                                         TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                                                                         if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                                                             f.EnableWiFi();
@@ -1391,15 +1409,11 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                             //Intentar 1 vez el envio automatico de la lectura.
                                                             WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
-
-                                                            if (VariablesGlobales.UsarAPI()) {
-                                                                        /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                                                        if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                                                            EnableWiFi();
-                                                                        }
-                                                                        f.execute();*/
+                                                            EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
+                                                            if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
+                                                                TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, ef);
+                                                                f.execute();
                                                             } else {
-                                                                EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
                                                                 TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                                                                 if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                                                     f.EnableWiFi();

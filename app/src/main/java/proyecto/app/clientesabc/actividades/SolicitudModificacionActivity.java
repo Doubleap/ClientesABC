@@ -347,48 +347,48 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         intent.addCategory(Intent.CATEGORY_OPENABLE);
                         try {
                             //startActivityForResult(intent, 200);
-                            startActivityForResult(Intent.createChooser(intent, "Seleccione un archivo para adjuntar!"),200);
+                            startActivityForResult(Intent.createChooser(intent, "Seleccione un archivo para adjuntar!"), 200);
                         } catch (ActivityNotFoundException e) {
                             Log.e("tag", getResources().getString(R.string.no_activity));
                         }
                         return true;
                     case R.id.action_save:
                         int numErrores = 0;
-                        String mensajeError="";
-                        if(getCurrentFocus() != null)
+                        String mensajeError = "";
+                        if (getCurrentFocus() != null)
                             getCurrentFocus().clearFocus();
                         //Validacion de Datos Obligatorios Automatico
-                        for(int i=0; i < listaCamposObligatorios.size(); i++) {
-                            try{
+                        for (int i = 0; i < listaCamposObligatorios.size(); i++) {
+                            try {
                                 MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposObligatorios.get(i)));
                                 String valor = tv.getText().toString().trim();
-                                if(listaCamposObligatorios.get(i).contains("W_CTE-SMTP_ADDR")){
-                                    if(tv.isFocused())
+                                if (listaCamposObligatorios.get(i).contains("W_CTE-SMTP_ADDR")) {
+                                    if (tv.isFocused())
                                         tv.clearFocus();
                                 }
-                                if(valor.isEmpty()){
-                                    tv.setError("El campo "+tv.getTag()+" es obligatorio!");
+                                if (valor.isEmpty()) {
+                                    tv.setError("El campo " + tv.getTag() + " es obligatorio!");
                                     numErrores++;
-                                    mensajeError += "- "+tv.getTag()+"\n";
+                                    mensajeError += "- " + tv.getTag() + "\n";
                                 }
-                                if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") || listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG")){
-                                    if(valor.equals("0")){
-                                        tv.setError("El campo "+tv.getTag()+" no puede ser 0!");
+                                if (listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") || listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG")) {
+                                    if (valor.equals("0")) {
+                                        tv.setError("El campo " + tv.getTag() + " no puede ser 0!");
                                         numErrores++;
-                                        mensajeError += "- "+tv.getTag()+"\n";
+                                        mensajeError += "- " + tv.getTag() + "\n";
                                     }
-                                    if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") && !Validaciones.ValidarCoordenadaY(tv)){
+                                    if (listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") && !Validaciones.ValidarCoordenadaY(tv)) {
                                         numErrores++;
                                         mensajeError += "- Formato Coordenada Y invalido\n";
                                     }
-                                    if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG") && !Validaciones.ValidarCoordenadaX(tv)){
+                                    if (listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG") && !Validaciones.ValidarCoordenadaX(tv)) {
                                         numErrores++;
                                         mensajeError += "- Formato Coordenada X invalido\n";
                                     }
                                 }
-                            }catch(Exception e){
+                            } catch (Exception e) {
                                 Spinner combo = ((Spinner) mapeoCamposDinamicos.get(listaCamposObligatorios.get(i)));
-                                if(combo != null) {
+                                if (combo != null) {
                                     if (combo.getSelectedItem() != null) {
                                         String valor = ((OpcionSpinner) combo.getAdapter().getItem((int) combo.getSelectedItemId())).getId();
 
@@ -408,19 +408,19 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                         }
                         //Validacion Formato Coordenadas en caso de tener algun valor pero que NO son obligatorios
-                        if(mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT") != null){
-                            MaskedEditText texto = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"));
-                            if(!texto.getText().toString().replace("0","").replace(".","").isEmpty()){
-                                if(!listaCamposObligatorios.contains("W_CTE-ZZCRMA_LAT") && !Validaciones.ValidarCoordenadaY(texto)){
+                        if (mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT") != null) {
+                            MaskedEditText texto = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"));
+                            if (!texto.getText().toString().replace("0", "").replace(".", "").isEmpty()) {
+                                if (!listaCamposObligatorios.contains("W_CTE-ZZCRMA_LAT") && !Validaciones.ValidarCoordenadaY(texto)) {
                                     numErrores++;
                                     mensajeError += "- Formato Coordenada Y invalido\n";
                                 }
                             }
                         }
-                        if(mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG") != null){
-                            MaskedEditText texto = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
-                            if(!texto.getText().toString().replace("0","").replace(".","").isEmpty()){
-                                if(!listaCamposObligatorios.contains("W_CTE-ZZCRMA_LONG") && !Validaciones.ValidarCoordenadaX(texto)){
+                        if (mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG") != null) {
+                            MaskedEditText texto = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
+                            if (!texto.getText().toString().replace("0", "").replace(".", "").isEmpty()) {
+                                if (!listaCamposObligatorios.contains("W_CTE-ZZCRMA_LONG") && !Validaciones.ValidarCoordenadaX(texto)) {
                                     numErrores++;
                                     mensajeError += "- Formato Coordenada X invalido\n";
                                 }
@@ -429,33 +429,33 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         //Validar si el tipo de pago es por transferencia, debe ingresar al menos 1 cuenta bancaria.
                         Spinner comboTipoPago = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR2"));
                         String tipoPago = "";
-                        if(comboTipoPago != null && comboTipoPago.getSelectedItem() != null) {
+                        if (comboTipoPago != null && comboTipoPago.getSelectedItem() != null) {
                             tipoPago = ((OpcionSpinner) comboTipoPago.getAdapter().getItem((int) comboTipoPago.getSelectedItemId())).getId();
-                            if(tipoPago.equals("T") && bancosSolicitud.size() == 0)
+                            if (tipoPago.equals("T") && bancosSolicitud.size() == 0)
                                 mensajeError += "- Tipo de Pago por Transferencia. Debe ingresar al menos 1 cuenta bancaria.\n";
                         }
-                        MaskedEditText correo = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-SMTP_ADDR");
-                        if(mapeoCamposDinamicos.get("W_CTE-SMTP_ADDR") != null ){
-                            if(correo.isFocused())
+                        MaskedEditText correo = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-SMTP_ADDR");
+                        if (mapeoCamposDinamicos.get("W_CTE-SMTP_ADDR") != null) {
+                            if (correo.isFocused())
                                 correo.clearFocus();
                         }
                         //Validacion de bloques obligatorios
                         //Validacion de encuestas ejecutadas
-                        CheckBox encuesta = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA");
-                        if(encuesta!= null && !encuesta.isChecked()){
+                        CheckBox encuesta = (CheckBox) mapeoCamposDinamicos.get("W_CTE-ENCUESTA");
+                        if (encuesta != null && !encuesta.isChecked()) {
                             numErrores++;
                             mensajeError += "- Debe ejecutar la encuesta GEC!\n";
                         }
-                        CheckBox encuesta_gec = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
-                        if(encuesta_gec != null && !encuesta_gec.isChecked()){
+                        CheckBox encuesta_gec = (CheckBox) mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
+                        if (encuesta_gec != null && !encuesta_gec.isChecked()) {
                             numErrores++;
                             mensajeError += "- Debe ejecutar la encuesta de Canales!\n";
                         }
                         //Validar el campo de ruta de reparto del grid de visitas
                         Spinner comboModalidad = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR5"));
                         String modalidad = "";
-                        String tipoVisita = PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_TIPORUTA","ZPV").toString();//"ZPV";
-                        if(comboModalidad != null) {
+                        String tipoVisita = PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_TIPORUTA", "ZPV").toString();//"ZPV";
+                        if (comboModalidad != null) {
                             modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
                         /*if(comboModalidad != null && comboModalidad.getSelectedItem() != null) {
                             modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
@@ -491,21 +491,21 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             numErrores++;
                             mensajeError += "- Modalidad de Venta!\n";
                         }*/
-                        if(visitasSolicitud.size() > 0) {
+                        if (visitasSolicitud.size() > 0) {
                             //Al menos 1 dia de visita
-                            if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_L")) != null) {
-                                if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_L")).getText().toString().isEmpty())
-                                    if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_K")).getText().toString().isEmpty())
-                                        if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_M")).getText().toString().isEmpty())
-                                            if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_J")).getText().toString().isEmpty())
-                                                if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_V")).getText().toString().isEmpty())
-                                                    if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_S")).getText().toString().isEmpty()) {
+                            if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita + "_L")) != null) {
+                                if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita + "_L")).getText().toString().isEmpty())
+                                    if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita + "_K")).getText().toString().isEmpty())
+                                        if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita + "_M")).getText().toString().isEmpty())
+                                            if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita + "_J")).getText().toString().isEmpty())
+                                                if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita + "_V")).getText().toString().isEmpty())
+                                                    if (((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita + "_S")).getText().toString().isEmpty()) {
                                                         numErrores++;
                                                         mensajeError += "- El cliente debe tener al menos 1 día de visita!\n";
                                                     }
                             }
-                            int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZJV");
-                            if(indiceEspecializada != -1){
+                            int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZJV");
+                            if (indiceEspecializada != -1) {
                                 //Al menos 1 dia de visita
                                 if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_L")) != null) {
                                     if (((TextInputEditText) mapeoCamposDinamicos.get("ZJV_L")).getText().toString().isEmpty())
@@ -521,7 +521,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                         }
                         //Validacion de cedula
-                        MaskedEditText textoCedula = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-STCD1"));
+                        MaskedEditText textoCedula = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD1"));
+                        if (textoCedula == null)
+                            textoCedula = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IN_CEDULA_RECIBE"));
                         Spinner tipoRegimen = ((Spinner)mapeoCamposDinamicos.get("W_CTE-KATR3"));
                         if(textoCedula != null && tipoRegimen != null) {
                             ValidarCedula(textoCedula.getText().toString(), ((OpcionSpinner) tipoRegimen.getSelectedItem()).getId(), PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS", ""),false);
@@ -613,7 +615,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             WeakReference<Context> weakRefs1 = new WeakReference<Context>(this);
             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(this);
 
-            if (VariablesGlobales.UsarAPI()) {
+            if (PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion","").equals("api")) {
                 ValidarFlujoClienteAPI v = new ValidarFlujoClienteAPI(weakRefs1, weakRefAs1, codigoCliente, tipoSolicitud, "0");
                 v.execute();
                 ConsultaClienteAPI c = new ConsultaClienteAPI(weakRefs1, weakRefAs1, codigoCliente);
@@ -2557,7 +2559,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             if(isValidPhoneNumber(et.getText().toString(),bukrs)){
                                 WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                 WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
-                                if (VariablesGlobales.UsarAPI()) {
+                                if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
                                     GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, codigoCliente, et.getText().toString());
                                     v.execute();
                                 } else {
@@ -6044,10 +6046,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     if(listaFinal.get(i).equals("W_CTE-SMTP_ADDR")){
                         correoValidado = isValidEmail(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString());
                     }
-                    if(listaFinal.get(i).equals("W_CTE-STCD1")){
+                    if(listaFinal.get(i).equals("W_CTE-STCD1") && ((MaskedEditText) mapeoCamposDinamicos.get(listaFinal.get(i).trim())) != null){
                         ValidarCedula(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-KATR3").getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-BUKRS").getAsString(),true);
                     }
-                    if(listaFinal.get(i).equals("W_CTE-STCDT")){
+                    if(listaFinal.get(i).equals("W_CTE-STCDT") && ((MaskedEditText) mapeoCamposDinamicos.get(listaFinal.get(i).trim())) != null){
                         ValidarCedula(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-STCDT").getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-BUKRS").getAsString(),true);
                     }
                 } catch (Exception e) {
@@ -7524,6 +7526,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 if (!matcher.matches()) {
                     cedulaValidada = false;
                     return true;
+                }else {
+                    cedulaValidada = true;
                 }
                 break;
             case "F446"://GT Embocem

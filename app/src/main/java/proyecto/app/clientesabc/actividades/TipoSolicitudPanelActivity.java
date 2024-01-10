@@ -107,11 +107,7 @@ public class TipoSolicitudPanelActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.comunicacion:
-                        if(!VariablesGlobales.UsarAPI()) {
-                            intent = new Intent(getBaseContext(), TCPActivity.class);
-                        }else{
-                            intent = new Intent(getBaseContext(), APIConfigActivity.class);
-                        }
+                        intent = new Intent(getBaseContext(), TCPActivity.class);
                         startActivity(intent);
                         break;
                     case R.id.clientes:

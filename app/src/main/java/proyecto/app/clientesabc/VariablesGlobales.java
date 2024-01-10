@@ -35,18 +35,18 @@ public class VariablesGlobales extends Application {
         return comentariosAutomaticos;
     }
 
-    //private static String urlApi = "http://kofcrofcapl01/MaestroClientes/";//Ambiente produccion CAM
+    private static String urlApi = "http://kofcrazapl01/MaestroClientes/";//Ambiente produccion CAM
     //private static String urlApi = "http://kofcrofcdesa02:90/MaestroClientes/";//Ambiente calidad CAM
     //private static String urlApi = "http://10.0.2.2:51123/";//Local host
     //private static String urlApi = "http://10.153.58.132/";//Servidor produccion para BD, pero ambiente calidad en VM uruguay(El ambiente de produccion es el appservice en azure), ocupa VPN
     //private static String urlApi = "http://10.153.152.69:90/MaestroClientes/"; //URL CAM CALIDAD
-    private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API en el app service azure
-    private static String nombrePais = "Panamá";
-    private static String sociedad = "F451";
-    private static String orgvta = "0451";
-    private static String land1 = "PA";
-    private static String cadenaRM = "0000200000";
-    private static String ktokd = "PCMA";
+    //private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API en el app service azure
+    private static String nombrePais = "Nicaragua";
+    private static String sociedad = "F445";
+    private static String orgvta = "0445";
+    private static String land1 = "NI";
+    private static String cadenaRM = "0000180000";
+    private static String ktokd = "NCMA";
 
     /*
     private static String nombrePais = "Costa Rica";
@@ -242,7 +242,7 @@ public class VariablesGlobales extends Application {
         String IP_REGEXP = zeroTo255 + "\\." + zeroTo255 + "\\." + zeroTo255 + "\\." + zeroTo255;
         Pattern IP_PATTERN = Pattern.compile(IP_REGEXP);
         String retorno = "";
-        if(!VariablesGlobales.UsarAPI()) {
+        if(!PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("api")) {
             try {
                 if (!IP_PATTERN.matcher(PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()).matches())
                     return "La IP '" + PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim() + "' es inválida. Revise los datos de comunicación.";
@@ -255,9 +255,7 @@ public class VariablesGlobales extends Application {
                 return "El puerto '" + PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto", "").trim() + "' es inválido. Revise los datos de comunicación.";
             }
         }else{
-            if(PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("")){
-                return "Por favor cargue los datos de la sociedad en la opcion 'Configuracion General' del menu principal.";
-            }
+
         }
 
         return retorno;
@@ -412,7 +410,7 @@ public class VariablesGlobales extends Application {
         return usarAPI;
     }
 
-    public void setUsarAPI(boolean usarAPI) {
-        this.usarAPI = usarAPI;
+    public static void setUsarAPI(boolean usarAPI_) {
+        usarAPI = usarAPI_;
     }
 }

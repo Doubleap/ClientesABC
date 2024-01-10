@@ -148,11 +148,13 @@ public class MantClienteActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.comunicacion:
-                        if(!VariablesGlobales.UsarAPI()) {
+                        intent = new Intent(getBaseContext(), TCPActivity.class);
+                        /*PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("tipo_conexion","").equals("api")
+                        if(!PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("tipo_conexion","").equals("api")) {
                             intent = new Intent(getBaseContext(), TCPActivity.class);
                         }else{
                             intent = new Intent(getBaseContext(), APIConfigActivity.class);
-                        }
+                        }*/
                         startActivity(intent);
                         break;
                     case R.id.clientes:

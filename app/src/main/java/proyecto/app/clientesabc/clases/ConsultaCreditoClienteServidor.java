@@ -199,7 +199,7 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
             dialog.hide();
         }
         if(xceptionFlag){
-            Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
+            Toasty.error(context.get(),messageFlag.replaceAll("<br\\>","\n"),Toast.LENGTH_LONG).show();
             activity.get().finish();
         }
         SolicitudCreditoActivity.LlenarCampos(context.get(), activity.get(), estructuras);

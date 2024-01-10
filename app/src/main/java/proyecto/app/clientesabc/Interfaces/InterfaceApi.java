@@ -21,7 +21,7 @@ import retrofit2.http.Query;
 import retrofit2.http.Streaming;
 public interface InterfaceApi {
 
-    String ftp = "";//vacio para api sin servidor FTP o '/ftp' para uso de servidor de FTP por app service azure
+    String ftp = "/ftp";//vacio para api sin servidor FTP o '/ftp' para uso de servidor de FTP por app service azure (Usar siempre con FTP ya que se agrego parametro en API para usar FTP servidor)
     @Streaming
     @FormUrlEncoded
     @POST("Token")
@@ -70,6 +70,10 @@ public interface InterfaceApi {
     @Multipart
     @POST("api"+ftp+"/Transmision/{bukrs}/{ruta}/{version}")
     Call<ResponseBody> Transmision(@Part("description") RequestBody description, @Part MultipartBody.Part file, @Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("version") String version);
+
+    @Multipart
+    @POST("api"+ftp+"/TransmisionLecturaCenso/{bukrs}/{ruta}/{version}")
+    Call<ResponseBody> TransmisionLecturaCenso(@Part("description") RequestBody description, @Part MultipartBody.Part file, @Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("version") String version);
 
     @Streaming
     @GET("api"+ftp+"/ConfiguracionPais/{bukrs}")

@@ -287,7 +287,7 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
         if(solicitudSeleccionada.size() == 0 ) {
             WeakReference<Context> weakRefs1 = new WeakReference<Context>(this);
             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(this);
-            if (VariablesGlobales.UsarAPI()) {
+            if (PreferenceManager.getDefaultSharedPreferences(ConsultaClienteTotalActivity.this).getString("tipo_conexion","").equals("api")) {
                 ConsultaClienteTotalAPI c = new ConsultaClienteTotalAPI(weakRefs1, weakRefAs1, codigoCliente);
                 c.execute();
             } else {
@@ -2445,7 +2445,7 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
         WeakReference<Context> weakRefs = new WeakReference<Context>(context);
         WeakReference<Activity> weakRefAs = new WeakReference<Activity>(activity);
         //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-        if (VariablesGlobales.UsarAPI()) {
+        if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("api")) {
             AdjuntoAPI s = new AdjuntoAPI(weakRefs, weakRefAs, adjunto_img, adjunto_txt, d);
             if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
                 s.EnableWiFi();

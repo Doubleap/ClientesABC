@@ -134,7 +134,7 @@ public class PanelActivity extends AppCompatActivity {
                         WeakReference<Context> weakRefs = new WeakReference<Context>(PanelActivity.this);
                         WeakReference<Activity> weakRefAs = new WeakReference<Activity>(PanelActivity.this);
                         //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                        if (VariablesGlobales.UsarAPI()) {
+                        if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion","").equals("api")) {
                             SincronizacionAPI s = new SincronizacionAPI(weakRefs, weakRefAs);
                             if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                 s.EnableWiFi();
@@ -157,7 +157,7 @@ public class PanelActivity extends AppCompatActivity {
                         WeakReference<Context> weakRef = new WeakReference<Context>(PanelActivity.this);
                         WeakReference<Activity> weakRefA = new WeakReference<Activity>(PanelActivity.this);
 
-                        if (VariablesGlobales.UsarAPI()) {
+                        if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion","").equals("api")) {
                             TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "", "");
                             if (PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                 f.EnableWiFi();
@@ -214,11 +214,7 @@ public class PanelActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.comunicacion:
-                        if(!VariablesGlobales.UsarAPI()) {
-                            intent = new Intent(getBaseContext(), TCPActivity.class);
-                        }else{
-                            intent = new Intent(getBaseContext(), APIConfigActivity.class);
-                        }
+                        intent = new Intent(getBaseContext(), TCPActivity.class);
                         startActivity(intent);
                         break;
                     case R.id.clientes:

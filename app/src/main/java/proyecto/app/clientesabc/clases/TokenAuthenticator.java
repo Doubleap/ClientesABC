@@ -34,6 +34,7 @@ import proyecto.app.clientesabc.actividades.LoginActivity;
 public class TokenAuthenticator  implements Authenticator {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
+    private int cantidadIntentos = 0;
     TokenAuthenticator(WeakReference<Context> c, WeakReference<Activity> a){
         this.context = c;
         this.activity = a;
@@ -63,20 +64,20 @@ public class TokenAuthenticator  implements Authenticator {
                     if(refrescado.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error_description") != null){
                         String errorServer = refrescado.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error_description").getAsString();
                         String finalErrorServer = errorServer;
-                        /*activity.get().runOnUiThread(new Runnable() {
+                        activity.get().runOnUiThread(new Runnable() {
                             public void run() {
                                 Toasty.info(context.get(), "API Error: "+ finalErrorServer).show();
                             }
-                        });*/
+                        });
 
                     }else if(refrescado.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error") != null && refrescado.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error_description") == null) {
                         String errorServer = refrescado.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error").getAsString();
                         String finalErrorServer = errorServer;
-                        /*activity.get().runOnUiThread(new Runnable() {
+                        activity.get().runOnUiThread(new Runnable() {
                             public void run() {
                                 Toasty.info(context.get(), "API Error: "+ finalErrorServer).show();
                             }
-                        });*/
+                        });
                     }
 
                     newAccessToken = PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", "");
@@ -90,13 +91,16 @@ public class TokenAuthenticator  implements Authenticator {
                     if(respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error") != null && respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error_description") == null)
                         errorServer = respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error").getAsString();
                     String finalErrorServer = errorServer;
-                    /*activity.get().runOnUiThread(new Runnable() {
+                    activity.get().runOnUiThread(new Runnable() {
                         public void run() {
-                            Toasty.info(context.get(), "API Error: "+finalErrorServer).show();
+                            Toasty.error(context.get(), "API Error: "+finalErrorServer).show();
                         }
-                    });*/
+                    });
+                    //newAccessToken = PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", "");
+                    return null;
                 }
                 newAccessToken = PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", "");
+
             }
         } catch (ParseException e) {
             e.printStackTrace();
@@ -107,11 +111,11 @@ public class TokenAuthenticator  implements Authenticator {
                 if(respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error") != null && respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error_description") == null)
                     errorServer = respuesta.get(0).getAsJsonArray().get(0).getAsJsonObject().get("error").getAsString();
                 String finalErrorServer = errorServer;
-                /*activity.get().runOnUiThread(new Runnable() {
+                activity.get().runOnUiThread(new Runnable() {
                     public void run() {
                         Toasty.info(context.get(), "API Error: "+finalErrorServer).show();
                     }
-                });*/
+                });
             }
             newAccessToken = PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", "");
         }

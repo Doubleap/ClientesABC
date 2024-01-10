@@ -85,9 +85,7 @@ public class TransmisionLecturaCensoServidor extends AsyncTask<Void,String,Void>
                 String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
                 if(mensaje.equals("")) {
                     socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", "").trim(), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "").trim()));
-
                     SQLiteDatabase mDataBase = SQLiteDatabase.openDatabase(context.get().getDatabasePath("TRANSMISION_").getPath() + PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), null, SQLiteDatabase.CREATE_IF_NECESSARY);
-
 
                     //Crear una base de datos solo para los datos que deben ser transmitidos
                     publishProgress("Extrayendo datos...");
@@ -211,7 +209,7 @@ public class TransmisionLecturaCensoServidor extends AsyncTask<Void,String,Void>
                     xceptionFlag = true;
                     errorFlag = mensaje;
                 }
-            publishProgress("Transmision Finalizada...");
+            publishProgress("Transmision Censo Finalizada...");
         } catch (IOException e) {
             xceptionFlag = true;
             errorFlag = e.getMessage();

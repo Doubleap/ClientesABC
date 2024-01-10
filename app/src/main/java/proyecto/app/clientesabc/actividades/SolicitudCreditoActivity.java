@@ -511,7 +511,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         if(solicitudSeleccionada.size() == 0 ) {
             WeakReference<Context> weakRefs1 = new WeakReference<Context>(this);
             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(this);
-            if (VariablesGlobales.UsarAPI()) {
+            if (PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion","").equals("api")) {
                 ValidarFlujoClienteAPI v = new ValidarFlujoClienteAPI(weakRefs1, weakRefAs1, codigoCliente, tipoSolicitud, "0");
                 v.execute();
                 ConsultaCreditoClienteAPI c = new ConsultaCreditoClienteAPI(weakRefs1, weakRefAs1, codigoCliente, tipoCreditoSAP);

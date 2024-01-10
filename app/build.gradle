@@ -12,7 +12,7 @@ android {
     compileOptions.encoding "UTF-8"
     compileSdkVersion 31
     defaultConfig {
-        applicationId "clientesabc.app.panama"
+        applicationId "clientesabc.app.nicaragua"
         minSdkVersion 23
         targetSdkVersion 31
         versionCode 16

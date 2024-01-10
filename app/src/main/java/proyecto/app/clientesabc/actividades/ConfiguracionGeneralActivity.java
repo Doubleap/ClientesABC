@@ -190,7 +190,7 @@ public class ConfiguracionGeneralActivity extends AppCompatActivity
                 final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
                 WeakReference<Context> weakRefs1 = new WeakReference<Context>(parent.getContext());
                 WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(ConfiguracionGeneralActivity.this);
-                if(VariablesGlobales.UsarAPI()) {
+                if(PreferenceManager.getDefaultSharedPreferences(ConfiguracionGeneralActivity.this).getString("tipo_conexion","").equals("api")) {
                     ConfiguracionPaisAPI v = new ConfiguracionPaisAPI(weakRefs1, weakRefAs1, opcion.getId());
                     v.execute();
                 }else{
@@ -234,7 +234,7 @@ public class ConfiguracionGeneralActivity extends AppCompatActivity
                             grupo_cuentas = "RCMA";
                             break;
                         case "F445":
-                            grupo_cuentas = "RCMA";
+                            grupo_cuentas = "NCMA";
                             break;
                         case "F446":
                             grupo_cuentas = "GCMA";
@@ -283,7 +283,7 @@ public class ConfiguracionGeneralActivity extends AppCompatActivity
 
                     }
 
-                    //Modificar xml segun los datos traidos e la Base de Datos
+                    //Modificar xml segun los datos traidos de la Base de Datos
                     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
                     documentBuilderFactory.setIgnoringComments(true);
                     documentBuilderFactory.setIgnoringElementContentWhitespace(true);
@@ -356,7 +356,7 @@ public class ConfiguracionGeneralActivity extends AppCompatActivity
                             con.setIp(Ip);
                             con.setPuerto(Puerto);
                             con.setDefecto(defecto);
-                            if (!VariablesGlobales.UsarAPI()) {
+                            if (!PreferenceManager.getDefaultSharedPreferences(ConfiguracionGeneralActivity.this).getString("tipo_conexion","").equals("api")) {
                                 TCPActivity.AgregarNuevaConexion(context, con);
                             }
 

@@ -163,7 +163,7 @@ public class LoginActivity extends AppCompatActivity {
         femsa_logo.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(VariablesGlobales.UsarAPI()){
+                if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("api")){
                      if(mUserView.getText().toString().isEmpty() || mPasswordView.getText().toString().isEmpty()){
                         Toasty.warning(getBaseContext(),"Debe Ingresar sus credenciales antes de continuar!").show();
                     }else{
@@ -180,7 +180,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
-        if(!VariablesGlobales.UsarAPI()){
+        if(!PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("api")){
             File externalStorage = getExternalFilesDir(null);
             String externalStoragePath = externalStorage.getAbsolutePath();
             File file = new File(externalStoragePath + File.separator + getPackageName() + File.separator +"configuracion.xml");
@@ -289,7 +289,7 @@ public class LoginActivity extends AppCompatActivity {
                         con.setIp(Ip);
                         con.setPuerto(Puerto);
                         con.setDefecto(defecto);
-                        if(!VariablesGlobales.UsarAPI()) {
+                        if(!PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("api")) {
                             TCPActivity.AgregarNuevaConexion(LoginActivity.this, con);
                         }
 
@@ -392,7 +392,7 @@ public class LoginActivity extends AppCompatActivity {
                                     con.setIp(Ip);
                                     con.setPuerto(Puerto);
                                     con.setDefecto(defecto);
-                                    if(!VariablesGlobales.UsarAPI()) {
+                                    if(!PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("api")) {
                                         TCPActivity.AgregarNuevaConexion(LoginActivity.this, con);
                                     }
                                     if(defecto && PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("Ip","").equals("")) {
@@ -466,7 +466,7 @@ public class LoginActivity extends AppCompatActivity {
                         startActivity(intent);*/
                         break;
                     case R.id.comunicacion:
-                        if(VariablesGlobales.UsarAPI()){
+                        if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("api")){
                             String id_usuarioMC = VariablesGlobales.UsuarioHH2UsuarioMC(LoginActivity.this, mUserView.getText().toString());
                             PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", mUserView.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("userMC", id_usuarioMC).apply();
@@ -475,11 +475,8 @@ public class LoginActivity extends AppCompatActivity {
                         Bundle b = new Bundle();
                         //TODO seleccionar el tipo de solicitud por el UI
                         b.putBoolean("deshabilitarTransmision", true); //id de solicitud
-                        if(!VariablesGlobales.UsarAPI()) {
-                            intent = new Intent(LoginActivity.this, TCPActivity.class);
-                        }else{
-                            intent = new Intent(LoginActivity.this, APIConfigActivity.class);
-                        }
+                        intent = new Intent(LoginActivity.this, TCPActivity.class);
+
                         intent.putExtras(b);
                         startActivity(intent);
 
@@ -501,7 +498,7 @@ public class LoginActivity extends AppCompatActivity {
                         WeakReference<Context> weakRefs = new WeakReference<Context>(LoginActivity.this);
                         WeakReference<Activity> weakRefAs = new WeakReference<Activity>(LoginActivity.this);
 
-                        if (VariablesGlobales.UsarAPI()) {
+                        if (PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("api")) {
                             ActualizacionAPI a = new ActualizacionAPI(weakRefs, weakRefAs);
                             if (PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion", "").equals("wifi")) {
                                 a.EnableWiFi();
@@ -657,7 +654,7 @@ public class LoginActivity extends AppCompatActivity {
 
         DataBaseHelper db = new DataBaseHelper(getBaseContext());
         if(ultimaSincronizacion.equals("No hay") || hours > 24){
-            if(VariablesGlobales.UsarAPI()){
+            if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("api")){
                 String id_usuarioMC = VariablesGlobales.UsuarioHH2UsuarioMC(LoginActivity.this, mUserView.getText().toString());
                 PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", mUserView.getText().toString()).apply();
                 PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("userMC", id_usuarioMC).apply();
@@ -667,7 +664,7 @@ public class LoginActivity extends AppCompatActivity {
             Bundle b = new Bundle();
             //TODO seleccionar el tipo de solicitud por el UI
             b.putBoolean("deshabilitarTransmision", true); //id de solicitud
-            if(!VariablesGlobales.UsarAPI()) {
+            if(!PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("api")) {
                 intent = new Intent(LoginActivity.this, TCPActivity.class);
             }else{
                 intent = new Intent(LoginActivity.this, APIConfigActivity.class);
@@ -795,11 +792,7 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intent);
                 break;
             case R.id.comunicacion:
-                if(!VariablesGlobales.UsarAPI()) {
-                    intent = new Intent(this,TCPActivity.class);
-                }else{
-                    intent = new Intent(this, APIConfigActivity.class);
-                }
+                intent = new Intent(this,TCPActivity.class);
                 startActivity(intent);
                 break;
             case R.id.clientes:
@@ -831,7 +824,7 @@ public class LoginActivity extends AppCompatActivity {
             context = baseContext;
         }
         public void run() {
-            if(VariablesGlobales.UsarAPI()){
+            if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("api")){
                 String id_usuarioMC = VariablesGlobales.UsuarioHH2UsuarioMC(LoginActivity.this, mUserView.getText().toString());
                 PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", mUserView.getText().toString()).apply();
                 PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("userMC", id_usuarioMC).apply();
@@ -840,11 +833,8 @@ public class LoginActivity extends AppCompatActivity {
             Bundle b = new Bundle();
             //TODO seleccionar el tipo de solicitud por el UI
             b.putBoolean("deshabilitarTransmision", true); //id de solicitud
-            if(!VariablesGlobales.UsarAPI()) {
-                intent = new Intent(LoginActivity.this, TCPActivity.class);
-            }else{
-                intent = new Intent(LoginActivity.this, APIConfigActivity.class);
-            }
+            intent = new Intent(LoginActivity.this, TCPActivity.class);
+
             intent.putExtras(b);
             startActivity(intent);
         }

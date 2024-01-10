@@ -20,6 +20,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -69,6 +70,7 @@ public class APIConfigActivity extends AppCompatActivity
     private Button probarConexionButton;
     private Spinner tipo_conexion;
     private EditText ip_text;
+    private TextView elemento_invisible;
     private EditText puerto_text;
     private MaskedEditText ruta_text;
 
@@ -77,6 +79,7 @@ public class APIConfigActivity extends AppCompatActivity
     private String wholePath="";
     private AppCompatButton addConexion;
     private String m_Text = "";
+    private int contadorEditar = 0;
 
     @SuppressLint("StaticFieldLeak")
     private static de.codecrafters.tableview.TableView<Conexion> tv_conexiones;
@@ -125,7 +128,28 @@ public class APIConfigActivity extends AppCompatActivity
 
         tipo_conexion.setSelection(VariablesGlobales.getIndex(tipo_conexion,PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).getString("tipo_conexion","")));
         ip_text = findViewById(R.id.txtservidor);
-        ip_text.setText(VariablesGlobales.getUrlApi());
+        elemento_invisible = findViewById(R.id.elemento_invisible);
+        ip_text.setText(PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).getString("url_api",VariablesGlobales.getUrlApi()));
+        elemento_invisible.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(contadorEditar == 9){
+                    elemento_invisible.setVisibility(View.GONE);
+                    ip_text.setEnabled(true);
+                    Toasty.success(APIConfigActivity.this, "URL API ahora puede ser modificada!", Toast.LENGTH_SHORT).show();
+                    /*ip_text.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                        @Override
+                        public void onFocusChange(View v, boolean hasFocus) {
+                            if (!hasFocus) {
+                                VariablesGlobales.setUrlApi(ip_text.getText().toString());
+                                Toasty.success(APIConfigActivity.this, "URL API ha sido guardada", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });*/
+                }
+                contadorEditar++;
+            }
+        });
         ruta_text = findViewById(R.id.txtRuta);
         InputFilter[] editFilters = ruta_text.getFilters();
         InputFilter[] newFilters = null;
@@ -147,9 +171,9 @@ public class APIConfigActivity extends AppCompatActivity
                     ip_text.setText(ip_text.getText().toString().trim());
                     ruta_text.setText(ruta_text.getText().toString().trim());
                     PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).edit().putString("tipo_conexion",((OpcionSpinner)tipo_conexion.getSelectedItem()).getId()).apply();
-                    PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
+                    PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).edit().putString("url_api",ip_text.getText().toString()).apply();
                     PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
-                    if (VariablesGlobales.UsarAPI()) {
+                    if (PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).getString("tipo_conexion","").equals("api")) {
                         PruebaConexionAPI f = new PruebaConexionAPI(weakRef, weakRefA);
                         if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                             EnableWiFi();
@@ -187,10 +211,10 @@ public class APIConfigActivity extends AppCompatActivity
                             WeakReference<Context> weakRef = new WeakReference<Context>(APIConfigActivity.this);
                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(APIConfigActivity.this);
                             PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).edit().putString("tipo_conexion",((OpcionSpinner)tipo_conexion.getSelectedItem()).getId()).apply();
-                            PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
+                            PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).edit().putString("url_api",ip_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
 
-                            if (VariablesGlobales.UsarAPI()) {
+                            if (PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).getString("tipo_conexion","").equals("api")) {
                                 SincronizacionAPI s = new SincronizacionAPI(weakRef, weakRefA);
                                 if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                                     EnableWiFi();
@@ -213,10 +237,10 @@ public class APIConfigActivity extends AppCompatActivity
                             WeakReference<Context> weakRef = new WeakReference<Context>(APIConfigActivity.this);
                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(APIConfigActivity.this);
                             PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).edit().putString("tipo_conexion",((OpcionSpinner)tipo_conexion.getSelectedItem()).getId()).apply();
-                            PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).edit().putString("Ip",ip_text.getText().toString()).apply();
+                            PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).edit().putString("url_api",ip_text.getText().toString()).apply();
                             PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).edit().putString("W_CTE_RUTAHH",ruta_text.getText().toString()).apply();
 
-                            if (VariablesGlobales.UsarAPI()) {
+                            if (PreferenceManager.getDefaultSharedPreferences(APIConfigActivity.this).getString("tipo_conexion","").equals("api")) {
                                 TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, filePath, wholePath,"");
                                 if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
                                     EnableWiFi();
@@ -243,14 +267,14 @@ public class APIConfigActivity extends AppCompatActivity
         Drawable d = getResources().getDrawable(R.drawable.botella_coca_header_der,null);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
-        toolbar.setTitle("Configuración de Comunicación");
+        toolbar.setTitle("Configuración de Comunicación API REST");
         toolbar.setBackground(d);
     }
 
     private boolean validarConexion(){
         boolean retorno = true;
         if(ip_text.getText().toString().trim().isEmpty()){
-            Toasty.warning(getBaseContext(),"Por favor digite una direccion IP válida.").show();
+            Toasty.warning(getBaseContext(),"Por favor digite una direccion url api válida.").show();
             retorno = false;
         }
         if(ruta_text.getText().toString().trim().isEmpty()){

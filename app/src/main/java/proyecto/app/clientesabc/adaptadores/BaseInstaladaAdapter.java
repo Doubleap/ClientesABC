@@ -75,6 +75,7 @@ import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.SwipeableRecyclerViewTouchListener;
+import proyecto.app.clientesabc.clases.TransmisionLecturaCensoAPI;
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoServidor;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
@@ -185,15 +186,14 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                     //Enviar la anomalia de una vez a la base de datos de SQL Server
                     WeakReference<Context> weakRef = new WeakReference<Context>(context);
                     WeakReference<Activity> weakRefA = new WeakReference<Activity>(activity);
+                    EquipoFrio ef = db.getEquipoFrioDatosCenso(formListFiltered.get(position).getNumPlaca());
                     //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                    if (VariablesGlobales.UsarAPI()) {
-                        //TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",NextId);
-                        //f.execute();
+                    if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("api")) {
+                        if(ef != null) {
+                            TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, ef);
+                            f.execute();
+                        }
                     } else {
-                        //TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "",NextId);
-                        //f.execute();
-                        //Intentar 1 vez el envio automatico de la lectura.
-                        EquipoFrio ef = db.getEquipoFrioDatosCenso(formListFiltered.get(position).getNumPlaca());
                         if(ef != null) {
                             TransmisionLecturaCensoServidor l = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                             if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion", "").equals("wifi")) {
@@ -535,7 +535,7 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                                 WeakReference<Context> weakRef = new WeakReference<Context>(context);
                                 WeakReference<Activity> weakRefA = new WeakReference<Activity>((Activity)context);
                                 //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-                                if (VariablesGlobales.UsarAPI()) {
+                                if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("api")) {
                                     TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",formListFiltered.get(position).get("id_solicitud").trim());
                                     f.execute();
                                 } else {
@@ -736,15 +736,12 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                                     //Intentar 1 vez el envio automatico de la lectura.
                                     WeakReference<Context> weakRef = new WeakReference<Context>(context);
                                     WeakReference<Activity> weakRefA = new WeakReference<Activity>(activity);
+                                    EquipoFrio ef = db.getEquipoFrioDatosCenso(numPlaca);
 
-                                    if (VariablesGlobales.UsarAPI()) {
-                                /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                    EnableWiFi();
-                                }
-                                f.execute();*/
+                                    if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("api")) {
+                                        TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, ef);
+                                        f.execute();
                                     } else {
-                                        EquipoFrio ef = db.getEquipoFrioDatosCenso(numPlaca);
                                         TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                                         if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion", "").equals("wifi")) {
                                             f.EnableWiFi();
@@ -775,15 +772,11 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                             //Intentar 1 vez el envio automatico de la lectura.
                             WeakReference<Context> weakRef = new WeakReference<Context>(context);
                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(activity);
-
-                            if (VariablesGlobales.UsarAPI()) {
-                                /*TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, filePath, wholePath,"");
-                                if(((OpcionSpinner) tipo_conexion.getSelectedItem()).getId().equals("wifi")){
-                                    EnableWiFi();
-                                }
-                                f.execute();*/
+                            EquipoFrio ef = db.getEquipoFrioDatosCenso(numPlaca);
+                            if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("api")) {
+                                TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, ef);
+                                f.execute();
                             } else {
-                                EquipoFrio ef = db.getEquipoFrioDatosCenso(numPlaca);
                                 TransmisionLecturaCensoServidor f = new TransmisionLecturaCensoServidor(weakRef, weakRefA, ef);
                                 if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion", "").equals("wifi")) {
                                     f.EnableWiFi();

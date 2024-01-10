@@ -74,7 +74,7 @@ public class PruebaConexionAPI extends AsyncTask<Void,Void,Void> {
                 if(response.body() == null){
                     messageFlag =  response.message()+". ";
                     xceptionFlag = true;
-                }
+                }else
                 if (!response.body().contentType().toString().equals("text/html")) {
                     xceptionFlag = true;
                     messageFlag += response.body().string();
