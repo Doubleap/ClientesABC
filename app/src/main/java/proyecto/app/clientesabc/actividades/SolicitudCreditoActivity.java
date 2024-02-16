@@ -595,6 +595,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }else
         if(subtitulo.contains("BLOQUEO")){
             tipo += "B";
+        }else
+        if(subtitulo.contains("DIFERIDO") || subtitulo.contains("CHEQUE")){
+            tipo += "B";
         }
         tipo += "C";
         if(subtitulo.contains("INFORMAL")){
@@ -605,6 +608,10 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         }else
         if(subtitulo.contains("FORMAL ABC")){
             tipo += "F";
+        }
+        else
+        if(subtitulo.contains("DIFERIDO") || subtitulo.contains("CHEQUE")){
+            tipo += "I";
         }
         return tipo;
     }
@@ -1000,11 +1007,13 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim(), filtroAdicional);
                     }
                     ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+                    ArrayList<OpcionSpinner> listaopciones_old = new ArrayList<>();
                     int selectedIndex = 0;
                     int selectedIndexOld = 0;
                     String valorDefectoxRuta = PreferenceManager.getDefaultSharedPreferences(getContext()).getString(campos.get(i).get("campo").trim().replace("-","_"),"");
                     for (int j = 0; j < opciones.size(); j++){
                         listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+                        listaopciones_old.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
                         if(solicitudSeleccionada.size() > 0){
                             //valor de la solicitud seleccionada
                             if(opciones.get(j).get("id").trim().equals(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim())){
@@ -1025,8 +1034,10 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     }
                     // Creando el adaptador(opciones) para el comboBox deseado
                     ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, listaopciones);
+                    ArrayAdapter<OpcionSpinner> dataAdapter_old = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, listaopciones_old);
                     // Drop down layout style - list view with radio button
                     dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+                    dataAdapter_old.setDropDownViewResource(R.layout.spinner_item);
                     // attaching data adapter to spinner
                     combo.setAdapter(dataAdapter);
 
@@ -1374,7 +1385,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         combo_old.setLayoutParams(lp_old);
                         combo_old.setBackground(getResources().getDrawable(R.drawable.spinner_background_old, null));
 
-                        combo_old.setAdapter(dataAdapter);
+                        combo_old.setAdapter(dataAdapter_old);
                         combo_old.setSelection(selectedIndexOld);
 
                         if(btnAyudai != null)
@@ -1907,9 +1918,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
                     //Excepciones de visualizacion y configuracionde campos dados por la tabla ConfigCampos
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
-                    if(excepcion == -1){
-                        excepcion = getIndexConfigCampo("*");
-                    }
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
                         Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i));
@@ -4751,10 +4759,16 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         if(sp != null && cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()) != null)
                         sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString().trim()));
 
-                        sp = ((Spinner) mapeoCamposDinamicosOld.get(listaFinal.get(i).trim()));
-                        if(sp != null && cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()) != null)
-                            sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString().trim()));
-
+                        Spinner sp_old = ((Spinner) mapeoCamposDinamicosOld.get(listaFinal.get(i).trim()));
+                        if(sp_old != null && cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()) != null) {
+                            if(VariablesGlobales.getIndex(sp_old, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()) == -1 ){
+                                ArrayAdapter<OpcionSpinner> dataAdapter_old = ((ArrayAdapter<OpcionSpinner>) sp_old.getAdapter());
+                                OpcionSpinner opcionSAP_old = new OpcionSpinner(cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim(),cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()+" - "+cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim());
+                                dataAdapter_old.add(opcionSAP_old);
+                                dataAdapter_old.notifyDataSetChanged();
+                            }
+                            sp_old.setSelection(VariablesGlobales.getIndex(sp_old, cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString().trim()));
+                        }
                         sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaFinal.get(i).trim()));
                         if(sp != null && cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()) != null)
                             sp.setSelection(VariablesGlobales.getIndex(sp,cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString().trim()));
@@ -4764,12 +4778,20 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             sp = ((Spinner) mapeoCamposDinamicos.get(listaFinal.get(i)));
                             if(sp != null && credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()) != null)
                                 sp.setSelection(VariablesGlobales.getIndex(sp,credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString()));
+                            sp_old = ((Spinner) mapeoCamposDinamicosOld.get(listaFinal.get(i)));
+                            if(sp_old != null && credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()) != null) {
+                                if(VariablesGlobales.getIndex(sp_old, credito.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()) == -1 ){
+                                    ArrayAdapter<OpcionSpinner> dataAdapter_old = ((ArrayAdapter<OpcionSpinner>) sp_old.getAdapter());
+                                    OpcionSpinner opcionSAP_old = new OpcionSpinner(credito.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim(),credito.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()+" - "+credito.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim());
+                                    dataAdapter_old.add(opcionSAP_old);
+                                    dataAdapter_old.notifyDataSetChanged();
+                                }
+                                sp_old.setSelection(VariablesGlobales.getIndex(sp_old, credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString()));
+                            }
                             sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaFinal.get(i)));
                             if(sp != null && credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()) != null)
                                 sp.setSelection(VariablesGlobales.getIndex(sp,credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString()));
-                            sp = ((Spinner) mapeoCamposDinamicosOld.get(listaFinal.get(i)));
-                            if(sp != null && credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()) != null)
-                                sp.setSelection(VariablesGlobales.getIndex(sp,credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString()));
+
                         }
                     } catch (Exception e2) {
                         try {
@@ -4950,7 +4972,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             if(subtitulo.toLowerCase().contains("formal abc"))
                 clasi = "ABC";
 
-            ArrayList<HashMap<String, String>> datosNuevoCredito = mDBHelper.getValidaCreditos(tipo, clasi);
+            /*ArrayList<HashMap<String, String>> datosNuevoCredito = mDBHelper.getValidaCreditos(tipo, clasi);
 
             //Campos para modificacion de credito
             Spinner zzauart = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-ZZAUART");
@@ -5013,7 +5035,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             if(credit_group != null) {
                 credit_group.setSelection(VariablesGlobales.getIndex(credit_group, datosNuevoCredito.get(0).get("credit_group").trim()));
             }
-
+*/
             try {
                 Spinner pson2 = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
                 if (pson2 != null) {
@@ -5363,6 +5385,34 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     pson2.setSelection(VariablesGlobales.getIndex(pson2, "E"));
                 }
             }catch(Exception e){}
+
+            //S4H
+            Spinner check_rule = (Spinner)mapeoCamposDinamicos.get("W_CTE-CHECK_RULE");
+            if(check_rule != null) {
+                check_rule.setSelection(VariablesGlobales.getIndex(check_rule, datosNuevoCredito.get(0).get("check_rule").trim()));
+            }
+            check_rule = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CHECK_RULE");
+            if(check_rule != null) {
+                check_rule.setSelection(VariablesGlobales.getIndex(check_rule, credito.get(0).getAsJsonObject().get("check_rule").getAsString()));
+            }
+
+            Spinner limit_rule = (Spinner)mapeoCamposDinamicos.get("W_CTE-LIMIT_RULE");
+            if(limit_rule != null) {
+                limit_rule.setSelection(VariablesGlobales.getIndex(limit_rule, datosNuevoCredito.get(0).get("limit_rule").trim()));
+            }
+            limit_rule = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-LIMIT_RULE");
+            if(limit_rule != null) {
+                limit_rule.setSelection(VariablesGlobales.getIndex(limit_rule, credito.get(0).getAsJsonObject().get("limit_rule").getAsString()));
+            }
+
+            Spinner credit_group = (Spinner)mapeoCamposDinamicos.get("W_CTE-CREDIT_GROUP");
+            if(credit_group != null) {
+                credit_group.setSelection(VariablesGlobales.getIndex(credit_group, datosNuevoCredito.get(0).get("credit_group").trim()));
+            }
+            credit_group = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CREDIT_GROUP");
+            if(credit_group != null) {
+                credit_group.setSelection(VariablesGlobales.getIndex(credit_group, credito.get(0).getAsJsonObject().get("credit_group").getAsString()));
+            }
 
             //Actualizar el bloque de bancos = [{ "bankl": "'001'", "banks": "'UY'", "bankn": "001", "koinh": "IGUAL A RAZÓN SOCIAL", "bkref": "CHEQUE AL DIA", "bkont": "CJ" }];
             tb_bancos.getDataAdapter().getData().get(0).setBkref("CHEQUE DIFERIDO");
@@ -5870,6 +5920,12 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         for (int i = 0; i < configExcepciones.size(); i++) {
             HashMap<String, String> map = configExcepciones.get(i);
             if (map.containsValue(campo)) {
+                return i;
+            }
+        }
+        for (int i = 0; i < configExcepciones.size(); i++) {
+            HashMap<String, String> map = configExcepciones.get(i);
+            if (map.get("campo").equals("*")) {
                 return i;
             }
         }

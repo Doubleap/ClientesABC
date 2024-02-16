@@ -22,10 +22,10 @@ import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
-    private static boolean usarAPI = false;
-    public static boolean UsarAPI() {
-        return usarAPI;
-    }
+    //private static boolean usarAPI = false;
+    //public static boolean UsarAPI() {
+        //return usarAPI;
+    //}
     private static boolean aceptarVisitaCero = false;
     public static boolean AceptarVisitaCero() {
         return aceptarVisitaCero;
@@ -35,18 +35,19 @@ public class VariablesGlobales extends Application {
         return comentariosAutomaticos;
     }
 
-    private static String urlApi = "http://kofcrazapl01/MaestroClientes/";//Ambiente produccion CAM
+    //private static String urlApi = "https://kofcrazapl01.na.kof.ccf/MaestroClientes/";//Ambiente produccion CAM
     //private static String urlApi = "http://kofcrofcdesa02:90/MaestroClientes/";//Ambiente calidad CAM
     //private static String urlApi = "http://10.0.2.2:51123/";//Local host
     //private static String urlApi = "http://10.153.58.132/";//Servidor produccion para BD, pero ambiente calidad en VM uruguay(El ambiente de produccion es el appservice en azure), ocupa VPN
     //private static String urlApi = "http://10.153.152.69:90/MaestroClientes/"; //URL CAM CALIDAD
-    //private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API en el app service azure
-    private static String nombrePais = "Nicaragua";
-    private static String sociedad = "F445";
-    private static String orgvta = "0445";
-    private static String land1 = "NI";
-    private static String cadenaRM = "0000180000";
-    private static String ktokd = "NCMA";
+    private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API en el app service azure
+    private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.56.71/FAWM_HVKOF;instance=MSSQLSERVER;user=maestro_clientes;password=kofcrmcli$;";
+    private static String nombrePais = "Costa Rica";
+    private static String sociedad = "F443";
+    private static String orgvta = "0443";
+    private static String land1 = "CR";
+    private static String cadenaRM = "0000160000";
+    private static String ktokd = "RCMA";
 
     /*
     private static String nombrePais = "Costa Rica";
@@ -406,11 +407,11 @@ public class VariablesGlobales extends Application {
         VariablesGlobales.nombrePais = nombrePais;
     }
 
-    public boolean getUsarAPI() {
-        return usarAPI;
+    public static String getConexionSQLServer() {
+        return conexionSQLServer;
     }
 
-    public static void setUsarAPI(boolean usarAPI_) {
-        usarAPI = usarAPI_;
+    public static void setConexionSQLServer(String conexionSQLServer) {
+        VariablesGlobales.conexionSQLServer = conexionSQLServer;
     }
 }

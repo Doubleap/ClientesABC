@@ -143,7 +143,8 @@ public class ConsultaCreditoClienteAPI extends AsyncTask<Void,String,ArrayList<J
     protected void onProgressUpdate(String... progress) {
         super.onProgressUpdate(progress);
         TextView v = (TextView) dialog.findViewById(R.id.mensaje_espera);
-        v.setText(progress[0]);
+        if(v!=null)
+            v.setText(progress[0]);
     }
     @Override
     protected void onPreExecute() {
@@ -162,7 +163,7 @@ public class ConsultaCreditoClienteAPI extends AsyncTask<Void,String,ArrayList<J
         });
         dialog = builder.create();
         if(!activity.get().isFinishing()) {
-            dialog.show();
+            //dialog.show();
         }
     }
     @Override

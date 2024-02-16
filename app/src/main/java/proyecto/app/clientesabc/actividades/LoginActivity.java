@@ -16,6 +16,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.preference.PreferenceManager;
 
 import androidx.annotation.NonNull;
@@ -62,6 +63,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -536,6 +542,7 @@ public class LoginActivity extends AppCompatActivity {
                     Manifest.permission.ACCESS_NETWORK_STATE}, 0);
             //return;
         }
+
         //TODO seleccionar el tipo de solicitud por el UI
         //Intent i = new Intent(LoginActivity.this, EscanearActivity.class);
         //startActivityForResult(i,2);

@@ -2,6 +2,8 @@ package proyecto.app.clientesabc.adaptadores;
 
 import static android.view.View.GONE;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -25,7 +27,9 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -58,6 +62,12 @@ import com.honeywell.aidc.UnsupportedPropertyException;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.lang.ref.WeakReference;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -70,8 +80,10 @@ import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
 import proyecto.app.clientesabc.actividades.LocacionGPSActivity;
+import proyecto.app.clientesabc.actividades.PanelActivity;
 import proyecto.app.clientesabc.actividades.SolicitudActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
+import proyecto.app.clientesabc.actividades.SolicitudesActivity;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.SwipeableRecyclerViewTouchListener;
@@ -311,7 +323,7 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                 @Override
                 public boolean onLongClick(View v) {
                     DialogHandler appdialog = new DialogHandler();
-                    appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaAdapter.EliminarRegistroCenso(context,activity,formListFiltered.get(position).getNumPlaca()));
+                    appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaAdapter.DesactivarRegistroCenso(context,activity,formListFiltered.get(position)));
                     return false;
                 }
             });
@@ -319,7 +331,7 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                 @Override
                 public void onClick(View v) {
                     DialogHandler appdialog = new DialogHandler();
-                    appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaAdapter.EliminarRegistroCenso(context,activity,formListFiltered.get(position).getNumPlaca()));
+                    appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaAdapter.DesactivarRegistroCenso(context,activity,formListFiltered.get(position)));
                 }
             });
         }
@@ -715,6 +727,7 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                     insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(context).getString("userMC",""));
                     insertValues.put("comentario", comentario.getText().toString());
                     insertValues.put("id_motivo_alerta", ((OpcionSpinner) motivoSpinner.getSelectedItem()).getId());
+                    insertValues.put("fuente", "Alerta");
 
                     //Justo antes de guardar, SI NO TIENE LAS COORDENADAS, preguntar si realmente quiere realizar el regsitro del censo SIN coordendas
 
@@ -821,14 +834,103 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
         }
     }
 
-    public static class EliminarRegistroCenso implements Runnable {
+    public class DesactivarRegistroCenso extends AsyncTask<Void,String,Void> {
         Context context;
         Activity activity;
-        String id;
-        public EliminarRegistroCenso(Context context, Activity activity, String id) {
+        EquipoFrio equipoFrio;
+        android.app.AlertDialog dialog;
+        public DesactivarRegistroCenso(Context context, Activity activity, EquipoFrio equipoFrio) {
             this.context = context;
             this.activity = activity;
-            this.id = id;
+            this.equipoFrio = equipoFrio;
+        }
+        @Override
+        protected Void doInBackground(Void... voids) {
+            ContentValues updateValues = new ContentValues();
+            updateValues.put("activo", 0);
+
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+            try {
+                Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                Connection conn = DriverManager.getConnection(VariablesGlobales.getConexionSQLServer());
+                Statement comm;
+                try {
+                    // create command to read data
+                    comm = conn.createStatement();
+                    String comando = "UPDATE CensoEquipoFrio SET activo = 0 WHERE num_placa = ? and estado = 'Hallazgo'";
+                    PreparedStatement stmt = conn.prepareStatement(comando);
+                    stmt.setString(1,equipoFrio.getNumPlaca());
+                    stmt.executeUpdate();
+                } catch (SQLException e) {
+                    Toasty.error(context,e.getMessage()).show();
+                }
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+
+            long modifico = mDb.update("CensoEquipoFrio", updateValues, "num_placa = ? and estado = 'Hallazgo'",new String[]{equipoFrio.getNumPlaca()});
+
+            if(modifico > 0){
+                Intent intent = activity.getIntent();
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                activity.finish();
+                activity.overridePendingTransition(0, 0);
+                activity.startActivity(intent);
+                activity.overridePendingTransition(0, 0);
+
+            }
+            dialog.dismiss();
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+            builder.setCancelable(false);
+            builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    //errorFlag = "Proceso cancelado por el usuario.";
+                    cancel(false);
+                }
+            });
+            builder.setView(R.layout.layout_loading_dialog);
+            //builder.setTitle("Actualizando registro...");
+
+            dialog = builder.create();
+
+            if(!activity.isFinishing()) {
+                dialog.show();
+                TextView t = (TextView)dialog.findViewById(R.id.mensaje_espera);
+                t.setText("Actualizando registro...");
+            }
+        }
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+        }
+    }
+
+    public static class EliminarRegistroCenso implements Runnable  {
+        Context context;
+        Activity activity;
+        EquipoFrio equipoFrio;
+        public EliminarRegistroCenso(Context context, Activity activity, EquipoFrio equipoFrio) {
+            this.context = context;
+            this.activity = activity;
+            this.equipoFrio = equipoFrio;
         }
 
         @Override
@@ -836,7 +938,36 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
             ContentValues updateValues = new ContentValues();
             updateValues.put("activo", 0);
 
-            long modifico = mDb.update("CensoEquipoFrio", updateValues, "num_placa = ?",new String[]{id});
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+            try {
+                Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                Connection conn = DriverManager.getConnection(VariablesGlobales.getConexionSQLServer());
+                Statement comm;
+                try {
+                    // create command to read data
+                    comm = conn.createStatement();
+                    String comando = "UPDATE CensoEquipoFrio SET activo = 0 WHERE num_placa = ? and estado = 'Hallazgo'";
+                    PreparedStatement stmt = conn.prepareStatement(comando);
+                    stmt.setString(1,equipoFrio.getNumPlaca());
+                    stmt.executeUpdate();
+                } catch (SQLException e) {
+                    Toasty.error(context,e.getMessage()).show();
+                }
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+
+            long modifico = mDb.update("CensoEquipoFrio", updateValues, "num_placa = ? and estado = 'Hallazgo'",new String[]{equipoFrio.getNumPlaca()});
 
             if(modifico > 0){
                 Intent intent = activity.getIntent();
@@ -847,6 +978,7 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                 activity.overridePendingTransition(0, 0);
                 Toasty.success(context,"Registro Eliminado!").show();
             }
+
         }
     }
     /*public Filter getMultiFilter() {

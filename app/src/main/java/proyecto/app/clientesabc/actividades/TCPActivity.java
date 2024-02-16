@@ -123,7 +123,7 @@ public class TCPActivity extends AppCompatActivity
         //OpcionSpinner opLocal = new OpcionSpinner("local","Local");
         listatipos.add(opWifi);
         listatipos.add(opGPRS);
-        //listatipos.add(opAPI);
+        listatipos.add(opAPI);
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(this, R.layout.simple_spinner_item, listatipos);
         // Drop down layout style - list view with radio button
@@ -153,7 +153,7 @@ public class TCPActivity extends AppCompatActivity
             }
         });
 
-        tipo_conexion.setSelection(VariablesGlobales.getIndex(tipo_conexion,PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("tipo_conexion","gprs")));
+        tipo_conexion.setSelection(VariablesGlobales.getIndex(tipo_conexion,PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("tipo_conexion","api")));
         ip_text = findViewById(R.id.txtservidor);
         if(((OpcionSpinner)tipo_conexion.getSelectedItem()) != null && ((OpcionSpinner)tipo_conexion.getSelectedItem()).getId().toString().equals("api"))
             ip_text.setText(PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).getString("url_api", VariablesGlobales.getUrlApi()));

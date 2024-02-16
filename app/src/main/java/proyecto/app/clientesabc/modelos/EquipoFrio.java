@@ -57,6 +57,8 @@ public class EquipoFrio implements Cloneable{
     private String transmitido;
     @SerializedName("ID_SOLICITUD")
     private String id_solicitud;
+    @SerializedName("FUENTE")
+    private String fuente;
 
     public String getIdSolicitud() {
         return id_solicitud;
@@ -323,5 +325,13 @@ public class EquipoFrio implements Cloneable{
 
     public void setTransmitido(String transmitido) {
         this.transmitido = transmitido;
+    }
+
+    public String getFuente() {
+        return fuente;
+    }
+
+    public void setFuente(String fuente) {
+        this.fuente = fuente;
     }
 }

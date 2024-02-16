@@ -350,16 +350,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
     }
 
     public void showNoFlashError() {
-        AlertDialog alert = new AlertDialog.Builder(this)
-                .create();
-        alert.setTitle("Oops!");
-        alert.setMessage("Flash not available in this device...");
-        alert.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                finish();
-            }
-        });
-        alert.show();
+        Toasty.warning(BaseInstaladaActivity.this,"Dispositivo NO tiene flash").show();
     }
 
     public void switchFlashLight(boolean status) {
@@ -519,6 +510,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                         insertValues.put("modelo_equipo", eq.getMatnr());
                         insertValues.put("correo", correo_cliente);
                         insertValues.put("canal", canal_cliente);
+                        insertValues.put("fuente", "Escaner");
                         insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("userMC",""));
 
                         if(latitude == 0 && longitude == 0){
@@ -657,7 +649,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                         insertValues.put("correo", correo_cliente);
                         insertValues.put("canal", canal_cliente);
                         insertValues.put("comentario","Número de placa no aparece en ningun cliente instalado.");
-
+                        insertValues.put("fuente", "Escaner");
                         if(latitude == 0 && longitude == 0){
                             AlertDialog.Builder builder = new AlertDialog.Builder(BaseInstaladaActivity.this);
                             builder.setIcon(R.drawable.icon_info_title);
@@ -686,6 +678,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                         ef.setTransmitido("0");
                                         ef.setFechaLectura(dateFormat.format(date));
                                         ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
+                                        ef.setFuente("Escaner");
 
                                         if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
                                             TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA,ef);
@@ -732,6 +725,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                 ef.setTransmitido("0");
                                 ef.setFechaLectura(dateFormat.format(date));
                                 ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
+                                ef.setFuente("Escaner");
 
                                 if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
                                     TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA,ef);
@@ -775,6 +769,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                         insertValues.put("canal", canal_cliente);
                         insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("userMC",""));
                         insertValues.put("comentario","Pertenece a otro cliente "+eq.getKunnr()+"!");
+                        insertValues.put("fuente","Escaner");
 
                         if(latitude == 0 && longitude == 0){
                             AlertDialog.Builder builder = new AlertDialog.Builder(BaseInstaladaActivity.this);
@@ -1076,7 +1071,17 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                     .addOnSuccessListener(new OnSuccessListener<Text>() {
                                         @Override
                                         public void onSuccess(Text visionText) {
-                                            Toasty.info(getApplicationContext(), "RECONOCIO LOS CARACTERES : " + visionText.getText()).show();
+                                            String lecturaDepurada = visionText.getText().replaceAll("[^0-9^A-Z^a-z]", "");
+                                            if(PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BUKRS", "").equals("F443")
+                                            || PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BUKRS", "").equals("F445")
+                                            || PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BUKRS", "").equals("F451")){
+                                                lecturaDepurada = visionText.getText().replaceAll("[^0-9]", "");
+                                            }
+                                            if(lecturaDepurada.length() == 0){
+                                                Toasty.info(getApplicationContext(), "La imagen no reconoció ningun número! \nIntente de nuevo y recorte bien la imagen.").show();
+                                                return;
+                                            }
+                                            Toasty.info(getApplicationContext(), "RECONOCIO LOS CARACTERES : " + lecturaDepurada).show();
                                             //Se verifica el codigo leida y se pueden dar las siguientes situaciones:
                                             //1. El codigo del equipo frio si existe en el cliente, simplemente se marca como censado
                                             //2. El codigo del equipo no existe en sistema, se debe agregar a la lista de censados como HALLAZGO o anomalía
@@ -1084,8 +1089,8 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                             //4. Hay un equipo que no puede ser censado pero si esta en la lista del cliente(NO tiene placa, NO esta en sitio, no existe), Se debe poder indicar que el equipo no pudo ser censado y ver que estado ponerle
 
                                             //Caso 1. El codigo del equipo frio si exsite en el cliente, simplemente se marca como censado con un nuevo regsitro en CensoEquipoFrio
-                                            if (db.ExisteEquipoFrioEnCliente(codigo_cliente, visionText.getText())) {
-                                                EquipoFrio eq = db.getEquipoFrioDB(codigo_cliente, visionText.getText(), false);
+                                            if (db.ExisteEquipoFrioEnCliente(codigo_cliente, lecturaDepurada)) {
+                                                EquipoFrio eq = db.getEquipoFrioDB(codigo_cliente, lecturaDepurada, false);
                                                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                                                 Date date = new Date();
                                                 ContentValues insertValues = new ContentValues();
@@ -1107,6 +1112,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                 insertValues.put("correo", correo_cliente);
                                                 insertValues.put("canal", canal_cliente);
                                                 insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("userMC", ""));
+                                                insertValues.put("fuente", "Imagen");
 
                                                 if (latitude == 0 && longitude == 0) {
                                                     AlertDialog.Builder builder = new AlertDialog.Builder(BaseInstaladaActivity.this);
@@ -1115,6 +1121,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                     builder.setCancelable(false);
                                                     builder.setMessage("No se han capturado las coordenadas geograficas. Desea continuar de todas maneras?");
 
+                                                    String finalLecturaDepurada = lecturaDepurada;
                                                     builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
                                                         @Override
                                                         public void onClick(DialogInterface dialog, int which) {
@@ -1127,7 +1134,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                                 //Intentar 1 vez el envio automatico de la lectura.
                                                                 WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                                                 WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
-                                                                EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
+                                                                EquipoFrio ef = db.getEquipoFrioDatosCenso(finalLecturaDepurada);
 
                                                                 if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
                                                                     TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA,ef);
@@ -1136,7 +1143,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                                     }
                                                                     f.execute();
                                                                     //Validacion de Anomalia Pendiente del equipo Verificado Local y Del servidor
-                                                                    long update = db.ValidacionAnomalia(visionText.getText());
+                                                                    long update = db.ValidacionAnomalia(finalLecturaDepurada);
                                                                     //if(update > 0) {
                                                                     /*ValidacionAnomaliaAPI a = new ValidacionAnomaliaAPI(weakRef, weakRefA, ef);
                                                                     if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
@@ -1154,7 +1161,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                                     }
                                                                     f.execute();
                                                                     //Validacion de Anomalia Pendiente del equipo Verificado Local y Del servidor
-                                                                    long update = db.ValidacionAnomalia(visionText.getText());
+                                                                    long update = db.ValidacionAnomalia(finalLecturaDepurada);
                                                                     //if(update > 0) {
                                                                     ValidacionAnomaliaServidor a = new ValidacionAnomaliaServidor(weakRef, weakRefA, ef);
                                                                     if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
@@ -1186,7 +1193,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                         //Intentar 1 vez el envio automatico de la lectura.
                                                         WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                                         WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
-                                                        EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
+                                                        EquipoFrio ef = db.getEquipoFrioDatosCenso(lecturaDepurada);
 
                                                         if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
                                                             TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA,ef);
@@ -1195,7 +1202,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                             }
                                                             f.execute();
                                                             //Validacion de Anomalia Pendiente del equipo Verificado Local y Del servidor
-                                                            long update = db.ValidacionAnomalia(visionText.getText());
+                                                            long update = db.ValidacionAnomalia(lecturaDepurada);
                                                             //if(update > 0) {
                                                             /*ValidacionAnomaliaAPI a = new ValidacionAnomaliaAPI(weakRef, weakRefA, ef);
                                                             a.execute();*/
@@ -1208,7 +1215,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                             }
                                                             f.execute();
                                                             //Validacion de Anomalia Pendiente del equipo Verificado Local y Del servidor
-                                                            long update = db.ValidacionAnomalia(visionText.getText());
+                                                            long update = db.ValidacionAnomalia(lecturaDepurada);
                                                             //if(update > 0) {
                                                             ValidacionAnomaliaServidor a = new ValidacionAnomaliaServidor(weakRef, weakRefA, ef);
                                                             if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
@@ -1223,7 +1230,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                 }
                                             } else
                                                 //2. El codigo del equipo no existe en sistema, se debe agregar a la lista de censados como HALLAZGO o anomalía
-                                                if (!db.ExisteEquipoFrio(visionText.getText())) {
+                                                if (!db.ExisteEquipoFrio(lecturaDepurada)) {
                                                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                                                     Date date = new Date();
                                                     ContentValues insertValues = new ContentValues();
@@ -1233,7 +1240,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                     insertValues.put("estado", "Hallazgo");
                                                     insertValues.put("kunnr_censo", codigo_cliente);
                                                     insertValues.put("nombre_cliente", nombre_cliente);
-                                                    insertValues.put("num_placa", visionText.getText());
+                                                    insertValues.put("num_placa", lecturaDepurada);
                                                     insertValues.put("coordenada_x", latitude);
                                                     insertValues.put("coordenada_y", longitude);
                                                     insertValues.put("activo", "1");
@@ -1242,6 +1249,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                     insertValues.put("correo", correo_cliente);
                                                     insertValues.put("canal", canal_cliente);
                                                     insertValues.put("comentario", "Número de placa no aparece en ningun cliente instalado.");
+                                                    insertValues.put("fuente", "Imagen");
 
                                                     if (latitude == 0 && longitude == 0) {
                                                         AlertDialog.Builder builder = new AlertDialog.Builder(BaseInstaladaActivity.this);
@@ -1250,6 +1258,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                         builder.setCancelable(false);
                                                         builder.setMessage("No se han capturado las coordenadas geograficas. Desea continuar de todas maneras?");
 
+                                                        String finalLecturaDepurada1 = lecturaDepurada;
                                                         builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
                                                             @Override
                                                             public void onClick(DialogInterface dialog, int which) {
@@ -1265,12 +1274,13 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                                     EquipoFrio ef = new EquipoFrio();
                                                                     ef.setKunnrCenso(codigo_cliente);
                                                                     ef.setEstado("Hallazgo");
-                                                                    ef.setNumPlaca(visionText.getText());
-                                                                    ef.setSerge(visionText.getText());
+                                                                    ef.setNumPlaca(finalLecturaDepurada1);
+                                                                    ef.setSerge(finalLecturaDepurada1);
                                                                     ef.setActivo("1");
                                                                     ef.setTransmitido("0");
                                                                     ef.setFechaLectura(dateFormat.format(date));
                                                                     ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
+                                                                    ef.setFuente("Imagen");
 
                                                                     if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
                                                                         TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, ef);
@@ -1308,12 +1318,13 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                             EquipoFrio ef = new EquipoFrio();
                                                             ef.setKunnrCenso(codigo_cliente);
                                                             ef.setEstado("Hallazgo");
-                                                            ef.setNumPlaca(visionText.getText());
-                                                            ef.setSerge(visionText.getText());
+                                                            ef.setNumPlaca(lecturaDepurada);
+                                                            ef.setSerge(lecturaDepurada);
                                                             ef.setActivo("1");
                                                             ef.setTransmitido("0");
                                                             ef.setFechaLectura(dateFormat.format(date));
                                                             ef.setComentario("Número de placa no aparece en ningun cliente instalado.");
+                                                            ef.setFuente("Imagen");
 
                                                             if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
                                                                 TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, ef);
@@ -1330,8 +1341,8 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                         }
                                                     }
                                                 }//3. El codigo del equipo leida esta en otro cliente
-                                                else if (db.ExisteEquipoFrio(visionText.getText())) {
-                                                    EquipoFrio eq = db.getEquipoFrioDatosCenso(visionText.getText());
+                                                else if (db.ExisteEquipoFrio(lecturaDepurada)) {
+                                                    EquipoFrio eq = db.getEquipoFrioDatosCenso(lecturaDepurada);
                                                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                                                     Date date = new Date();
                                                     ContentValues insertValues = new ContentValues();
@@ -1354,7 +1365,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                     insertValues.put("canal", canal_cliente);
                                                     insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("userMC", ""));
                                                     insertValues.put("comentario", "Pertenece a otro cliente " + eq.getKunnr() + "!");
-
+                                                    insertValues.put("fuente", "Imagen");
 
                                                     if (latitude == 0 && longitude == 0) {
                                                         AlertDialog.Builder builder = new AlertDialog.Builder(BaseInstaladaActivity.this);
@@ -1363,6 +1374,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                         builder.setCancelable(false);
                                                         builder.setMessage("No se han capturado las coordenadas geograficas. Desea continuar de todas maneras?");
 
+                                                        String finalLecturaDepurada2 = lecturaDepurada;
                                                         builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
                                                             @Override
                                                             public void onClick(DialogInterface dialog, int which) {
@@ -1375,7 +1387,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                                     //Intentar 1 vez el envio automatico de la lectura.
                                                                     WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                                                     WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
-                                                                    EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
+                                                                    EquipoFrio ef = db.getEquipoFrioDatosCenso(finalLecturaDepurada2);
                                                                     if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
                                                                         TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, ef);
                                                                         f.execute();
@@ -1409,7 +1421,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                                             //Intentar 1 vez el envio automatico de la lectura.
                                                             WeakReference<Context> weakRef = new WeakReference<Context>(BaseInstaladaActivity.this);
                                                             WeakReference<Activity> weakRefA = new WeakReference<Activity>(BaseInstaladaActivity.this);
-                                                            EquipoFrio ef = db.getEquipoFrioDatosCenso(visionText.getText());
+                                                            EquipoFrio ef = db.getEquipoFrioDatosCenso(lecturaDepurada);
                                                             if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("tipo_conexion","").equals("api")) {
                                                                 TransmisionLecturaCensoAPI f = new TransmisionLecturaCensoAPI(weakRef, weakRefA, ef);
                                                                 f.execute();

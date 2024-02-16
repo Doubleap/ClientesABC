@@ -234,7 +234,10 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                                             mDataBase.execSQL(sqlInsert);
 
                                             //Insertar registros de Censos de Equipo Frio que aún no se hayan transmitido para no perder ninguna lectura, alerta o anomalia.
-                                            sqlInsert = "INSERT INTO CensoEquipoFrio SELECT * FROM fromDB.CensoEquipoFrio WHERE id NOT IN (Select id FROM CensoEquipoFrio)";
+                                            sqlInsert = "INSERT INTO CensoEquipoFrio "+
+                                            "SELECT DISTINCT * "+
+                                            "FROM fromDB.CensoEquipoFrio WHERE id NOT IN (Select id FROM CensoEquipoFrio)";
+
                                             mDataBase.execSQL(sqlInsert);
 
                                         }catch (SQLiteException e) {

@@ -285,7 +285,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 break;
             case "1661":
             case "Z001":
-                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, STRAS as direccion, 'Estado' as estado, KLABC as klabc, stcd1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud " +
+                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, STRAS as direccion, 'Estado' as estado, KLABC as klabc, stcd1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
                         ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada"+
                         " FROM SAPDClientes";
                 break;
@@ -1185,11 +1185,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             String query = "SELECT FECCRE from FormHvkof_solicitud where id_solicitud = ?";
             Cursor cursor = mDataBase.rawQuery(query,new String[]{idSolicitud});
             if (cursor.moveToNext()){
-                //whereVigencia = " AND c.fecini <= '"+cursor.getString(0)+"' AND c.fecfin >= '"+cursor.getString(0)+"'";
+                whereVigencia = " AND c.fecini <= '"+cursor.getString(0)+"' AND c.fecfin >= '"+cursor.getString(0)+"'";
             }
             cursor.close();
         }else{
-            //whereVigencia = " AND c.fecini <= datetime('now') AND c.fecfin >= datetime('now')";
+            whereVigencia = " AND c.fecini <= datetime('now') AND c.fecfin >= datetime('now')";
         }
         String query = "SELECT * FROM (" +
                 "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo, c.comentario_auto " +
@@ -1219,7 +1219,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 "                LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 "                LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
                 "                WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' " +
-                "                AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
+                "                AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') "+ whereVigencia +
                 ") T " +
                 " ORDER BY T.panta, T.orden_seccion, T.orden_hh";
         Cursor cursor = mDataBase.rawQuery(query,null);
@@ -3370,11 +3370,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public boolean ExisteEquipoFrio(String num_equipo) {
         int valor = 0;
         try {
-            Cursor cursor = mDataBase.rawQuery("select count(*) as cantidad FROM SapDBaseInstalada WHERE SERGE = ?", new String[]{num_equipo});
+            Cursor cursor = mDataBase.rawQuery("select count(*) as cantidad FROM SapDBaseInstalada WHERE rtrim(SERGE) = ?", new String[]{num_equipo});
             if (cursor.moveToNext()) {
                 valor = cursor.getInt(cursor.getColumnIndex("cantidad"));
             }
-            if((cursor == null) || (cursor.getCount() == 0)){
+            if((cursor == null) || valor == 0){
                 cursor = mDataBase.rawQuery("select count(*) as cantidad FROM SapDBaseInstalada WHERE (ltrim(SERNR, '0') = ? OR SERNR = ?)", new String[]{num_equipo});
                 if (cursor.moveToNext()) {
                     valor = cursor.getInt(cursor.getColumnIndex("cantidad"));
@@ -3393,7 +3393,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public boolean ExisteEquipoFrioEnCliente(String cliente, String num_equipo) {
         int valor = 0;
         try {
-            Cursor cursor = mDataBase.rawQuery("select count(*) as cantidad FROM SapDBaseInstalada WHERE KUNNR = ? AND SERGE = ?", new String[]{cliente,num_equipo});
+            Cursor cursor = mDataBase.rawQuery("select count(*) as cantidad FROM SapDBaseInstalada WHERE KUNNR = ? AND rtrim(SERGE) = ?", new String[]{cliente,num_equipo});
             if (cursor.moveToNext()) {
                 valor = cursor.getInt(cursor.getColumnIndex("cantidad"));
             }
