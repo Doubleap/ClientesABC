@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_solicitud"
+        android:icon="@drawable/icon_form"
+        android:enabled="true"
+        android:title="Solicitud" />
+    <item
+        android:id="@+id/action_base_instalada"
+        android:icon="@drawable/icon_refrigerator"
+        android:enabled="true"
+        android:title="Base Instalada"/>
+    <item
+        android:id="@+id/action_disponible"
+        android:icon="@drawable/stock_disponible"
+        android:enabled="true"
+        android:title="Eq. Frio Disponible"/>
+</menu>

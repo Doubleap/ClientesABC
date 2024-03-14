@@ -19,6 +19,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
@@ -73,12 +74,14 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -99,11 +102,14 @@ import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.ComentarioTableAdapter;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.adaptadores.SpinnerImageAdapter;
+import proyecto.app.clientesabc.clases.ConfiguracionPaisServidor;
 import proyecto.app.clientesabc.clases.ConsultaClienteAPI;
 import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
+import proyecto.app.clientesabc.clases.TraerEquipoDisponibleServidor;
 import proyecto.app.clientesabc.clases.TransmisionAPI;
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoServidor;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
@@ -126,7 +132,11 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     static String idSolicitud = "";
     static String codigoCliente = "";
     static String codigoEquipoFrio = "";
+    static String monitor = "";
+    static String numPuertas = "";
     static String idForm = "";
+    static String tituloMonitor ="";
+    static ArrayList<HashMap<String, String>> datosMonitor;
     static int minAdjuntos = 0;
     @SuppressLint("StaticFieldLeak")
     private static DataBaseHelper mDBHelper;
@@ -191,13 +201,22 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             idSolicitud = b.getString("idSolicitud");
             codigoCliente = b.getString("codigoCliente");
             codigoEquipoFrio = b.getString("codigoEquipoFrio");
+            monitor = b.getString("monitor");
+            numPuertas  = b.getString("numPuertas");
         }
+        tituloMonitor = "";
+        if(monitor.equals("1"))
+            tituloMonitor = " (Monitor)";
+
+
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setMax(10);
 
         bottomNavigation = findViewById(R.id.bottom_navigation);
         mDBHelper = new DataBaseHelper(this);
         mDb = mDBHelper.getWritableDatabase();
+
+        datosMonitor = mDBHelper.getDatosVistaMonitorEquipoFrioDB(codigoCliente);
 
         getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.botella_coca_header_der,null));
 
@@ -229,7 +248,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             mapeoCamposDinamicosOld.clear();
             setTitle(codigoCliente+"-");
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
-            getSupportActionBar().setSubtitle(descripcion);
+            getSupportActionBar().setSubtitle(descripcion + tituloMonitor);
         }
         minAdjuntos = mDBHelper.CantidadAdjuntosMinima(tipoSolicitud);
         if(solicitudSeleccionada.size() > 0) {
@@ -256,7 +275,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         listaCamposDinamicos.clear();
         listaCamposBloque.clear();
         listaCamposObligatorios.clear();
-
 
         configExcepciones = mDBHelper.getConfigExcepciones(tipoSolicitud);
 
@@ -689,6 +707,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
                     //Si son catalogos de equipo frio debo las columnas de ID y Descripcion estan en otros indice de columnas
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim());
+
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_causas") || campos.get(i).get("tabla").trim().toLowerCase().equals("ef_prioridades")){
                         opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),3,4,null);
                         if(campos.get(i).get("campo").trim().toLowerCase().equals("w_cte-im_cause_codegrp")){
@@ -733,15 +752,43 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                                 combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
                             }
                         }
-
                     }
-                    // Creando el adaptador(opciones) para el comboBox deseado
                     ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, listaopciones);
-                    // Drop down layout style - list view with radio button
-                    dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-                    // attaching data adapter to spinner
-                    combo.setAdapter(dataAdapter);
-                    combo.setSelection(selectedIndex);
+                    SpinnerImageAdapter dataAdapter2;
+                    // Creando el adaptador(opciones) para el comboBox deseado
+                    if(campos.get(i).get("campo").trim().contains("IM_DESCRIPT")) {
+                        WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
+                        WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+                        TraerEquipoDisponibleServidor v = new TraerEquipoDisponibleServidor(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(requireContext()).getString("W_CTE_VWERK",""), tipoFormulario, numPuertas);
+                        v.execute();
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                                if(opcion.getRel1() != null)
+                                    Toasty.info(getContext(),opcion.getRel1()+" puerta(s)").show();
+                                //Calcular lo que la falatria de cajas para comprar si instala mas puertas de lo sugerido
+                                Double puertas_seleccionadas = opcion.getRel1()!=null?Double.parseDouble(opcion.getRel1()):0.0;
+                                Double venta_comprometida = (puertas_seleccionadas*Double.parseDouble(datosMonitor.get(0).get("cajas_monitor_ef").replaceAll("[A-Z]",""))) - Double.parseDouble(datosMonitor.get(0).get("venta_actual").toString().replaceAll("[A-Z]",""));
+                                ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")).setText(String.format(Locale.US, "%.2f", venta_comprometida)+" "+getResources().getString(R.string.unidad_caja_monitor)+"");
+
+                                if(position == 0)
+                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }else {
+                        dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, listaopciones);
+                        // Drop down layout style - list view with radio button
+                        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+                        // attaching data adapter to spinner
+                        combo.setAdapter(dataAdapter);
+                        combo.setSelection(selectedIndex);
+                    }
 
                     //Campo de regimen fiscal, se debe cambiar el formato de cedula segun el tipo de cedula
                     if(campos.get(i).get("campo").trim().equals("W_CTE-KATR3")){
@@ -1003,7 +1050,11 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    final TextView opcion = (TextView) parent.getSelectedView();
+                                    TextView opcion = null;
+                                    if(parent.getSelectedView() instanceof TextView)
+                                        opcion = (TextView) parent.getSelectedView();
+                                    else if(parent.getSelectedView() instanceof RelativeLayout)
+                                        opcion = ((TextView)((RelativeLayout)parent.getSelectedView()).findViewById(R.id.nombre));
                                     if(position == 0 && opcion != null)
                                         opcion.setError("El campo es obligatorio!");
                                 }
@@ -1978,6 +2029,28 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 ((AppCompatActivity)activity).getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
                 ((AppCompatActivity)activity).getSupportActionBar().setCustomView(v);
             }
+        }
+    }
+
+    public static void ActualizarEquiposDisponibles(Context context, Activity activity, ArrayList<JsonArray> mensajes) {
+        String mensaje="";
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        listaopciones.add(new OpcionSpinner("","Modelo : Stock(Reservado)",false));
+        if(mensajes.size() > 0 && mensajes.get(0)  != null && mensajes.get(0).size() > 0){
+            for(int x = 0; x < mensajes.get(0).getAsJsonArray().size() ; x++){
+                JsonObject opcion = mensajes.get(0).getAsJsonArray().get(x).getAsJsonObject();
+                OpcionSpinner opcionSpinner = new OpcionSpinner(opcion.get("modelo").getAsString(),opcion.get("modelo").getAsString() +" : " +opcion.get("stock").getAsString() +" (" + opcion.get("reservado").getAsString()+") ");
+                if( (Integer.parseInt(opcion.get("stock").getAsString()) - Integer.parseInt(opcion.get("reservado").getAsString())) == 0)
+                    opcionSpinner.setEnabled(false);
+                opcionSpinner.setRel1(opcion.get("num_puertas").getAsString());
+                listaopciones.add(opcionSpinner);
+            }
+            Spinner modelos = (Spinner)mapeoCamposDinamicos.get("W_CTE-IM_DESCRIPT");
+
+            ArrayAdapter dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
+            // attaching data adapter to spinner
+            modelos.setAdapter(dataAdapter);
+
         }
     }
 

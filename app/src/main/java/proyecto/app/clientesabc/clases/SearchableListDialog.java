@@ -6,8 +6,10 @@ import android.app.DialogFragment;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,13 +17,23 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ListView;
 import android.widget.SearchView;
 
+import androidx.appcompat.widget.AppCompatTextView;
+import androidx.appcompat.widget.Toolbar;
+
+import com.rey.material.widget.TextView;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.modelos.EquipoFrio;
+import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 public class SearchableListDialog extends DialogFragment implements
         SearchView.OnQueryTextListener, SearchView.OnCloseListener {
@@ -31,6 +43,7 @@ public class SearchableListDialog extends DialogFragment implements
     private ArrayAdapter listAdapter;
 
     private ListView _listViewItems;
+    ArrayList<OpcionSpinner> formListFiltered;
 
     private SearchableItem _searchableItem;
 
@@ -49,8 +62,7 @@ public class SearchableListDialog extends DialogFragment implements
     }
 
     public static SearchableListDialog newInstance(List items) {
-        SearchableListDialog multiSelectExpandableFragment = new
-                SearchableListDialog();
+        SearchableListDialog multiSelectExpandableFragment = new SearchableListDialog();
 
         Bundle args = new Bundle();
         args.putSerializable(ITEMS, (Serializable) items);
@@ -67,10 +79,8 @@ public class SearchableListDialog extends DialogFragment implements
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams
-                .SOFT_INPUT_STATE_HIDDEN);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
@@ -95,10 +105,10 @@ public class SearchableListDialog extends DialogFragment implements
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
         alertDialog.setView(rootView);
 
-        String strPositiveButton = _strPositiveButtonText == null ? "CLOSE" : _strPositiveButtonText;
+        String strPositiveButton = _strPositiveButtonText == null ? "Cerrar" : _strPositiveButtonText;
         alertDialog.setPositiveButton(strPositiveButton, _onClickListener);
 
-        String strTitle = _strTitle == null ? "Select Item" : _strTitle;
+        String strTitle = _strTitle == null ? "Buscar" : _strTitle;
         alertDialog.setTitle(strTitle);
 
         final AlertDialog dialog = alertDialog.create();
@@ -154,17 +164,17 @@ public class SearchableListDialog extends DialogFragment implements
         mgr.hideSoftInputFromWindow(_searchView.getWindowToken(), 0);
 
 
-        List items = (List) getArguments().getSerializable(ITEMS);
+        ArrayList items = (ArrayList) getArguments().getSerializable(ITEMS);
 
         _listViewItems = (ListView) rootView.findViewById(R.id.listItems);
 
         //create the adapter by passing your ArrayList data
-        listAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_list_item_1,
-                items);
+        listAdapter = new CustomArrayAdapter(getActivity(), items);
         //attach the adapter to the list
         _listViewItems.setAdapter(listAdapter);
 
         _listViewItems.setTextFilterEnabled(true);
+
 
         _listViewItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -189,6 +199,7 @@ public class SearchableListDialog extends DialogFragment implements
     @Override
     public boolean onQueryTextChange(String s) {
 //        listAdapter.filterData(s);
+        ListView _listViewItemsFiltered = new ListView(getContext());
         if (TextUtils.isEmpty(s)) {
 //                _listViewItems.clearTextFilter();
             ((ArrayAdapter) _listViewItems.getAdapter()).getFilter().filter(null);

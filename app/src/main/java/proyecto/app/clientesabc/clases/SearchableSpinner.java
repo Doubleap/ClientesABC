@@ -1,16 +1,21 @@
 package proyecto.app.clientesabc.clases;
 
+import static proyecto.app.clientesabc.R.drawable.botella_coca_header_der;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
+import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.SpinnerAdapter;
 import androidx.appcompat.widget.AppCompatSpinner;
 
@@ -18,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.adaptadores.SpinnerImageAdapter;
+import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchListener,
         SearchableListDialog.SearchableItem{
@@ -29,6 +36,7 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
 
     private boolean _isDirty;
     private ArrayAdapter _arrayAdapter;
+    private SpinnerImageAdapter _baseAdapter;
     private String _strHintText;
     private boolean _isFromInit;
 
@@ -65,13 +73,13 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
         _searchableListDialog.setOnSearchableItemClickListener(this);
         setOnTouchListener(this);
 
-        _arrayAdapter = (ArrayAdapter) getAdapter();
+        /*_arrayAdapter = (ArrayAdapter) getAdapter();
         if (!TextUtils.isEmpty(_strHintText)) {
             ArrayAdapter arrayAdapter = new ArrayAdapter(_context, android.R.layout
                     .simple_list_item_1, new String[]{_strHintText});
             _isFromInit = true;
             setAdapter(arrayAdapter);
-        }
+        }*/
     }
 
     @Override
@@ -94,7 +102,7 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
                         if(scanForActivity(_context).getFragmentManager().findFragmentByTag("TAG") == null)
                             _searchableListDialog.show(scanForActivity(_context).getFragmentManager(), "TAG");
                     }catch (Exception e){
-                        Log.println(0,"TAG","Selccion de SearchableSpinner muy rapida, recuperando del error.");
+                        Log.println(Log.ERROR,"TAG","Seleccion de SearchableSpinner muy rapida, recuperando del error.");
                     }
                 //}
             }
@@ -105,17 +113,21 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
     @Override
     public void setAdapter(SpinnerAdapter adapter) {
 
-        if (!_isFromInit) {
-            _arrayAdapter = (ArrayAdapter) adapter;
-            if (!TextUtils.isEmpty(_strHintText) && !_isDirty) {
-                ArrayAdapter arrayAdapter = new ArrayAdapter(_context, android.R.layout
-                        .simple_list_item_1, new String[]{_strHintText});
-                super.setAdapter(arrayAdapter);
+        try {
+            if (!_isFromInit) {
+                _arrayAdapter = (ArrayAdapter) adapter;
+                if (!TextUtils.isEmpty(_strHintText) && !_isDirty) {
+                    ArrayAdapter arrayAdapter = new ArrayAdapter(_context, R.layout.simple_spinner_item, new String[]{_strHintText});
+                    super.setAdapter(arrayAdapter);
+                } else {
+                    super.setAdapter(adapter);
+                }
+
             } else {
+                _isFromInit = false;
                 super.setAdapter(adapter);
             }
-
-        } else {
+        }catch(Exception e){
             _isFromInit = false;
             super.setAdapter(adapter);
         }

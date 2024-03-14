@@ -8,6 +8,8 @@ import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -17,12 +19,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -61,6 +65,7 @@ import com.honeywell.aidc.UnsupportedPropertyException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
@@ -329,6 +334,66 @@ public class MantClienteActivity extends AppCompatActivity {
                     }
                 });
             }
+
+            com.rey.material.widget.LinearLayout  puertas_por_instalar_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.puertas_por_instalar_layout);
+            ImageView imagen_puertas_por_instalar = (ImageView)holder.listView.findViewById(R.id.imagen_puertas_por_instalar);
+            TextView label_cantidad_puertas_por_instalar = (TextView)holder.listView.findViewById(R.id.label_cantidad_puertas_por_instalar);
+            if(formListFiltered.get(holder.getAdapterPosition()).get("puertas_por_instalar") == null || formListFiltered.get(holder.getAdapterPosition()).get("puertas_por_instalar").equals("")){
+                puertas_por_instalar_layout.setVisibility(View.GONE);
+            }else{
+                puertas_por_instalar_layout.setVisibility(View.VISIBLE);
+                Integer puertas = formListFiltered.get(position).get("puertas_por_instalar") != null ? Integer.parseInt(formListFiltered.get(position).get("puertas_por_instalar").toString()) : 0;
+                label_cantidad_puertas_por_instalar.setText(puertas.toString());
+                FloatingActionButton cantidad_puertas_por_instalar =  (FloatingActionButton)holder.listView.findViewById(R.id.cantidad_puertas_por_instalar);
+
+                ColorStateList colorStateListPendiente = new ColorStateList(
+                        new int[][]{
+                                new int[]{}
+                        },
+                        new int[]{
+                                Color.parseColor("#0000FF")
+                        }
+                );
+                ColorStateList colorStateListAprobado = new ColorStateList(
+                        new int[][]{
+                                new int[]{}
+                        },
+                        new int[]{
+                                Color.parseColor("#00FF00")
+                        }
+                );
+                ColorStateList colorStateListRechazado = new ColorStateList(
+                        new int[][]{
+                                new int[]{}
+                        },
+                        new int[]{
+                                Color.parseColor("#FF0000")
+                        }
+                );
+                if(puertas == 0){
+                    cantidad_puertas_por_instalar.setBackgroundTintList(colorStateListPendiente);
+                }else if(puertas > 0){
+                    cantidad_puertas_por_instalar.setBackgroundTintList(colorStateListAprobado);
+                }else if(puertas < 0){
+                    cantidad_puertas_por_instalar.setBackgroundTintList(colorStateListRechazado);
+                }
+
+                imagen_puertas_por_instalar.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //Toasty.info(v.getContext(),"Ingresar a ver datos del cliente de monitor de equipo frio").show();
+                        Bundle bc = new Bundle();
+                        bc.putString("codigo_cliente", codigoCliente);
+                        bc.putString("nombre_cliente", nombreCliente);
+                        bc.putString("canal_cliente", canalCliente);
+                        bc.putString("correo_cliente", correoCliente);
+                        intent = new Intent(getApplicationContext(),MonitorEquipoFrioActivity.class);
+                        intent.putExtras(bc); //Pase el parametro el Intent
+                        startActivity(intent);
+                    }
+                });
+            }
+
             /*TextView ubicacion = holder.listView.findViewById(R.id.ubicacion);
             ubicacion.setText(formListFiltered.get(position).get("ubicacion"));
             TextView direccion = holder.listView.findViewById(R.id.direccion);
@@ -635,6 +700,8 @@ public class MantClienteActivity extends AppCompatActivity {
                             Bundle b = new Bundle();
                             b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
                             b.putString("codigoCliente", codigoCliente);
+                            b.putString("monitor", "0");
+                            b.putString("numPuertas", "0");
                             intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
                             intent.putExtras(b); //Pase el parametro el Intent
                             startActivity(intent);
@@ -693,6 +760,8 @@ public class MantClienteActivity extends AppCompatActivity {
                     b.putString("tipoSolicitud", tipoSolicitud);
                     b.putString("codigoCliente", codigoCliente);
                     b.putString("codigoEquipoFrio", codigoEquipoFrio);
+                    b.putString("monitor", "0");
+                    b.putString("numPuertas", "0");
                     intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
                     intent.putExtras(b); //Pase el parametro el Intent
                     startActivity(intent);
@@ -746,6 +815,8 @@ public class MantClienteActivity extends AppCompatActivity {
                                                 b.putString("tipoSolicitud", tipoSolicitud);
                                                 b.putString("codigoCliente", codigoCliente);
                                                 b.putString("codigoEquipoFrio", equipo.getEqunr().trim());
+                                                b.putString("monitor", "0");
+                                                b.putString("numPuertas", "0");
                                                 intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
                                                 intent.putExtras(b); //Pase el parametro el Intent
                                                 startActivity(intent);

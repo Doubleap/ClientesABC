@@ -1,24 +1,59 @@
 package proyecto.app.clientesabc.modelos;
 
+import com.rey.material.widget.TextView;
+
 public class OpcionSpinner {
     private String id;
     private String name;
     private String rel1;
+    private String rel2;
     private int selected;
+    private TextView texto;
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    private boolean enabled;
 
     public OpcionSpinner(String id, String name) {
         this.id = id;
         this.name = name;
+        this.enabled = true;
     }
     public OpcionSpinner(String id, String name, String rel1) {
         this.id = id;
         this.name = name;
         this.rel1 = rel1;
+        this.enabled = true;
+    }
+    public OpcionSpinner(String id, String name, String rel1, boolean enabled) {
+        this.id = id;
+        this.name = name;
+        this.rel1 = rel1;
+        this.enabled = enabled;
+    }
+    public OpcionSpinner(String id, String name, String rel1, String rel2, boolean enabled) {
+        this.id = id;
+        this.name = name;
+        this.rel1 = rel1;
+        this.rel2 = rel2;
+        this.enabled = enabled;
     }
     public OpcionSpinner(String id, String name, int selected) {
         this.id = id;
         this.name = name;
         this.selected = selected;
+        this.enabled = true;
+    }
+    public OpcionSpinner(String id, String name, boolean enabled) {
+        this.id = id;
+        this.name = name;
+        this.enabled = enabled;
     }
     public String getId() {
         return id;
@@ -59,5 +94,21 @@ public class OpcionSpinner {
 
     public void setRel1(String rel1) {
         this.rel1 = rel1;
+    }
+
+    public String getRel2() {
+        return rel2;
+    }
+
+    public void setRel2(String rel2) {
+        this.rel2 = rel2;
+    }
+
+    public TextView getTexto() {
+        return texto;
+    }
+
+    public void setTexto(TextView texto) {
+        this.texto = texto;
     }
 }

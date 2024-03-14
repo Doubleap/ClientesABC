@@ -271,14 +271,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         switch(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")){
             case "F443":
                 query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
-                        ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada"+
-                        " FROM SAPDClientes";
+                        ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada,v.puertas_por_instalar"+
+                        " FROM SAPDClientes " +
+                        " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
                 break;
             case "F445":
-            case "F446":
+            case "F451":
+                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
+                        ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada,v.puertas_por_instalar"+
+                        " FROM SAPDClientes " +
+                        " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
+                    break;
             case "1657":
             case "1658":
-            case "F451":
+            case "F446":
                 query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
                         ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada"+
                         " FROM SAPDClientes";
@@ -307,6 +313,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("latitud",cursor.getString(cursor.getColumnIndex("latitud")) != null ? cursor.getString(cursor.getColumnIndex("latitud")) : "");
             user.put("longitud",cursor.getString(cursor.getColumnIndex("longitud")) != null ? cursor.getString(cursor.getColumnIndex("longitud")) : "");
             user.put("cant_base_instalada",cursor.getString(cursor.getColumnIndex("cant_base_instalada")) != null ? cursor.getString(cursor.getColumnIndex("cant_base_instalada")) : "");
+            user.put("puertas_por_instalar",cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) != null ? cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) : "");
             user.put("canal",cursor.getString(cursor.getColumnIndex("canal")) != null ? cursor.getString(cursor.getColumnIndex("canal")) : "");
             clientList.add(user);
         }
@@ -1838,6 +1845,31 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, String>> getOrdenesServicioPermitidas(){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
         String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'E' order by orden";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> flujo = new HashMap<>();
+            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_form")).trim());
+            flujo.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")).trim());
+            flujoList.add(flujo);
+        }
+        cursor.close();
+        return  flujoList;
+    }
+    public ArrayList<HashMap<String, String>> getOrdenesServicioPermitidasMonitor(Integer puertas_por_instalar, Integer puertas_instaladas){
+        ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'E'";
+
+        if(puertas_por_instalar > 0) {
+            if (puertas_instaladas == 0)
+                query += " AND (descripcion like '%INSTALACION%') ";
+            else
+                query += " AND (descripcion like '%CAMBIO%' OR descripcion like '%INSTALACION%') ";
+        }
+        else
+        if(puertas_por_instalar < 0)
+            query += " AND (descripcion like '%CAMBIO%' OR descripcion like '%RETIRO%') ";
+
+        query += " order by orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> flujo = new HashMap<>();
@@ -3459,7 +3491,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return id_solicitud;
     }
-
+    public String getNombreImagenModelo(String codigo_modelo)
+    {
+        String nombreImagen = "";
+        //Trae la el id_solicitud de la anomalia para poder visualizarla en la parte de base instalada y censos.
+        String query = "SELECT nombreImagen FROM cat_loc_modelo_ef where codigoSAP = ?";
+        Cursor cursor = mDataBase.rawQuery(query, new String[]{codigo_modelo});
+        if (cursor.moveToNext()){
+            nombreImagen = cursor.getString(0);
+        }
+        cursor.close();
+        return nombreImagen;
+    }
     public String getGrupoCredito() {
         String grupoCredito = "";
         String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
@@ -3473,5 +3516,41 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return  grupoCredito;
+    }
+
+    public ArrayList<HashMap<String, String>> getDatosVistaMonitorEquipoFrioDB(String id_cliente){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, String>> dataMonitor = new ArrayList<>();
+        String query = "SELECT * FROM VistaMonitorEquipoFrio v WHERE v.codigo_cliente = ?";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_cliente});
+
+        while (cursor.moveToNext()){
+            HashMap<String, String> solicitud = new HashMap<>();
+            solicitud.put("estado", cursor.getString(cursor.getColumnIndex("estado")) != null ? cursor.getString(cursor.getColumnIndex("estado")) : "");
+            solicitud.put("prioridad", cursor.getString(cursor.getColumnIndex("prioridad")) != null ? cursor.getString(cursor.getColumnIndex("prioridad")) : "");
+            solicitud.put("desc_prioridad", cursor.getString(cursor.getColumnIndex("desc_prioridad")) != null ? cursor.getString(cursor.getColumnIndex("desc_prioridad")) : "");
+            solicitud.put("ruta", cursor.getString(cursor.getColumnIndex("ruta")) != null ? cursor.getString(cursor.getColumnIndex("ruta")) : "");
+            solicitud.put("codigo_cliente", cursor.getString(cursor.getColumnIndex("codigo_cliente")) != null ? cursor.getString(cursor.getColumnIndex("codigo_cliente")) : "");
+            solicitud.put("nombre_cliente", cursor.getString(cursor.getColumnIndex("nombre_cliente")) != null ? cursor.getString(cursor.getColumnIndex("nombre_cliente")) : "");
+            solicitud.put("gec", cursor.getString(cursor.getColumnIndex("gec")) != null ? cursor.getString(cursor.getColumnIndex("gec")) : "");
+            solicitud.put("desc_gec", cursor.getString(cursor.getColumnIndex("desc_gec")) != null ? cursor.getString(cursor.getColumnIndex("desc_gec")) : "");
+            solicitud.put("tipo_canal", cursor.getString(cursor.getColumnIndex("tipo_canal")) != null ? cursor.getString(cursor.getColumnIndex("tipo_canal")) : "");
+            solicitud.put("desc_tipo_canal", cursor.getString(cursor.getColumnIndex("desc_tipo_canal")) != null ? cursor.getString(cursor.getColumnIndex("desc_tipo_canal")) : "");
+            solicitud.put("venta_actual", cursor.getString(cursor.getColumnIndex("venta_actual")) != null ? cursor.getString(cursor.getColumnIndex("venta_actual")) : "");
+            solicitud.put("venta_comprometida", cursor.getString(cursor.getColumnIndex("venta_comprometida")) != null ? cursor.getString(cursor.getColumnIndex("venta_comprometida")) : "");
+            solicitud.put("venta_total", cursor.getString(cursor.getColumnIndex("venta_total")) != null ? cursor.getString(cursor.getColumnIndex("venta_total")) : "");
+            solicitud.put("puertas_sugeridas", cursor.getString(cursor.getColumnIndex("puertas_sugeridas")) != null ? cursor.getString(cursor.getColumnIndex("puertas_sugeridas")) : "");
+            solicitud.put("puertas_instaladas", cursor.getString(cursor.getColumnIndex("puertas_instaladas")) != null ? cursor.getString(cursor.getColumnIndex("puertas_instaladas")) : "");
+            solicitud.put("puertas_proceso", cursor.getString(cursor.getColumnIndex("puertas_proceso")) != null ? cursor.getString(cursor.getColumnIndex("puertas_proceso")) : "");
+            solicitud.put("puertas_por_instalar", cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) != null ? cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) : "");
+            solicitud.put("puertas_objetivo", cursor.getString(cursor.getColumnIndex("puertas_objetivo")) != null ? cursor.getString(cursor.getColumnIndex("puertas_objetivo")) : "");
+            solicitud.put("solicitud", cursor.getString(cursor.getColumnIndex("solicitud")) != null ? cursor.getString(cursor.getColumnIndex("solicitud")) : "");
+            solicitud.put("cajas_monitor_ef", cursor.getString(cursor.getColumnIndex("cajas_monitor_ef")) != null ? cursor.getString(cursor.getColumnIndex("cajas_monitor_ef")) : "");
+            solicitud.put("pais", cursor.getString(cursor.getColumnIndex("pais")) != null ? cursor.getString(cursor.getColumnIndex("pais")) : "");
+
+            dataMonitor.add(solicitud);
+        }
+        cursor.close();
+        return  dataMonitor;
     }
 }

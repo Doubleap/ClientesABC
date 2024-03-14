@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:clickable="true"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/nombre"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:layout_toStartOf="@id/imagen"
+        android:drawablePadding="8dp"
+        android:gravity="center_vertical|start"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingStart="16dp"
+        android:ellipsize="none"
+        android:text="Texto de la opcion"
+        android:textAppearance="@style/TextAppearance.AppCompat.Menu" />
+
+    <ImageView
+        android:id="@+id/imagen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerInParent="true"
+        android:contentDescription="Datos del modelo"
+        android:src="@drawable/icon_about" />
+</RelativeLayout>
