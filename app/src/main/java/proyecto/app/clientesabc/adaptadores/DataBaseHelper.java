@@ -17,6 +17,8 @@ import android.util.Log;
 
 //import com.androidbuts.multispinnerfilter.KeyPairBoolData;
 
+import org.chalup.microorm.MicroOrm;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -45,6 +47,8 @@ import proyecto.app.clientesabc.modelos.Horarios;
 import proyecto.app.clientesabc.modelos.Impuesto;
 import proyecto.app.clientesabc.modelos.Interlocutor;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
+import proyecto.app.clientesabc.modelos.OpcionesRespuesta;
+import proyecto.app.clientesabc.modelos.PreguntasEncuesta;
 import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Range")
@@ -2778,18 +2782,46 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //ENCUESTA GEC
     public ArrayList<HashMap<String, String>> getPreguntasGec(){
         ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
-        String sql_encuesta = "select zid_quest,text,text2  from cat_preguntas_gec p where bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
+        String sql_encuesta = "select zid_quest,text,text2,orden  from cat_preguntas_gec p where bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
             user.put("zid_quest",cursor.getString(0).trim());
             user.put("text",cursor.getString(1).trim());
             user.put("text2",cursor.getString(2).trim());
+            user.put("orden",cursor.getString(3).trim());
             preguntasList.add(user);
         }
         cursor.close();
         return  preguntasList;
     }
+
+    public List<PreguntasEncuesta> getPreguntasEncuesta(){
+        List<PreguntasEncuesta> preguntasList = new ArrayList<>();
+        String sql_encuesta = "SELECT p.id_preguntas_encuesta,p.id_encuesta,e.nombre as nombreEncuesta,e.descripcion as descripcionEncuesta,p.id_bukrs,b.desc_bukrs,p.id_tipo_pregunta,t.tipo,p.texto,p.tooltip,p.orden\n" +
+                "  FROM preguntas_encuesta p\n" +
+                "  JOIN cat_bukrs b on b.id_bukrs=p.id_bukrs\n" +
+                "  JOIN cat_tipo_pregunta t on t.id_tipo_pregunta=p.id_tipo_pregunta\n" +
+                "  JOIN cat_encuestas e ON e.id_encuesta=p.id_encuesta\n" +
+                "  WHERE p.id_bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        MicroOrm uOrm = new MicroOrm();
+        preguntasList = uOrm.listFromCursor(cursor, PreguntasEncuesta.class);
+        cursor.close();
+
+        for (PreguntasEncuesta preguntasEncuesta : preguntasList) {
+            sql_encuesta="SELECT * from opciones_respuestas where id_preguntas_encuesta="+preguntasEncuesta.getId();
+            Cursor cursor2 = mDataBase.rawQuery(sql_encuesta,null);
+            List<OpcionesRespuesta> opcionesRespuestas= uOrm.listFromCursor(cursor2, OpcionesRespuesta.class);
+            preguntasEncuesta.setOpciones(opcionesRespuestas);
+            cursor2.close();
+        }
+
+
+
+        return  preguntasList;
+    }
+
 
     public String getGecSegunEncuestaRealizada(Integer monto_total) {
         String gec = "";

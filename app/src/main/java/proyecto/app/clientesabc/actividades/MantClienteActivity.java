@@ -1,5 +1,7 @@
 package proyecto.app.clientesabc.actividades;
 
+import static proyecto.app.clientesabc.actividades.SolicitudActivity.displayDialogEncuestaGec;
+
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.SearchManager;
@@ -71,6 +73,7 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
+import proyecto.app.clientesabc.adaptadores.EncuestaGecAdapter;
 import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
@@ -334,6 +337,32 @@ public class MantClienteActivity extends AppCompatActivity {
                     }
                 });
             }
+
+            //ENCUESTA GEC
+            com.rey.material.widget.LinearLayout  encuesta_gec_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.encuesta_gec_layout);
+            ImageView imagen_encuesta_gec = (ImageView)holder.listView.findViewById(R.id.imagen_encuesta_gec);
+            if(false){
+                base_instalada_layout.setVisibility(View.GONE);
+            }else{
+                base_instalada_layout.setVisibility(View.VISIBLE);
+                imagen_encuesta_gec.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Bundle bc = new Bundle();
+                        bc.putString("codigo_cliente", codigoCliente);
+                        bc.putString("nombre_cliente", nombreCliente);
+                        bc.putString("canal_cliente", canalCliente);
+                        bc.putString("correo_cliente", correoCliente);
+                        bc.putString("tipo_encuesta","GVC");
+                        intent = new Intent(getApplicationContext(), EncuestaGecActivity.class);
+                        intent.putExtras(bc); //Pase el parametro el Intent
+                        startActivity(intent);
+                    }
+                });
+            }
+            //ENCUESTA GEC
+
+
 
             com.rey.material.widget.LinearLayout  puertas_por_instalar_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.puertas_por_instalar_layout);
             ImageView imagen_puertas_por_instalar = (ImageView)holder.listView.findViewById(R.id.imagen_puertas_por_instalar);

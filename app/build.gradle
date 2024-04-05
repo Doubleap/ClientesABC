@@ -3,13 +3,17 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
         debug {
-            storeFile file('C:\\Users\\andre\\.android\\debug.keystore')
+            storeFile file('C:\\Users\\artun\\.android\\debug.keystore')
             keyAlias 'androiddebugkey'
             storePassword 'android'
             keyPassword 'android'
         }
     }
-    compileOptions.encoding "UTF-8"
+    compileOptions {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+        encoding = "UTF-8"
+    }
     compileSdkVersion 31
     defaultConfig {
         applicationId "proyecto.app.clientesabc"
@@ -64,6 +68,8 @@ repositories {
     jcenter()
 }
 dependencies {
+
+    implementation 'org.chalup.microorm:microorm:0.8.0'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     //noinspection GradleCompatible
     implementation 'androidx.appcompat:appcompat:1.2.0'
