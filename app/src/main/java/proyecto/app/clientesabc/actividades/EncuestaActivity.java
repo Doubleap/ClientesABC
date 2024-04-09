@@ -20,9 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,14 +28,15 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
-import proyecto.app.clientesabc.adaptadores.EncuestaGecAdapter;
+import proyecto.app.clientesabc.adaptadores.EncuestaAdapter;
+import proyecto.app.clientesabc.clases.CheckBoxGroupView;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
 import proyecto.app.clientesabc.modelos.PreguntasEncuesta;
 
-public class EncuestaGecActivity extends AppCompatActivity{
+public class EncuestaActivity extends AppCompatActivity{
     DataBaseHelper db;
     public static SQLiteDatabase mDb;
-    private static EncuestaGecAdapter mAdapter;
+    private static EncuestaAdapter mAdapter;
     String codigo_cliente;
     String nombre_cliente;
     String canal_cliente;
@@ -68,7 +67,7 @@ public class EncuestaGecActivity extends AppCompatActivity{
         //setContentView(R.layout.activity_base_instalada);
         rv = findViewById(R.id.recycler_view);
 
-        mAdapter = new EncuestaGecAdapter(preguntas,this, EncuestaGecActivity.this,canal_cliente,correo_cliente,nombre_cliente);
+        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,canal_cliente,correo_cliente,nombre_cliente);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
@@ -101,7 +100,7 @@ public class EncuestaGecActivity extends AppCompatActivity{
         preguntas = db.getPreguntasEncuesta();
         RecyclerView rv = findViewById(R.id.recycler_view);
 
-        mAdapter = new EncuestaGecAdapter(preguntas,this, EncuestaGecActivity.this,canal_cliente,correo_cliente,nombre_cliente);
+        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,canal_cliente,correo_cliente,nombre_cliente);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
@@ -135,9 +134,9 @@ public class EncuestaGecActivity extends AppCompatActivity{
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                         Date date = new Date();
                         ContentValues insertValues = new ContentValues();
-                        insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(EncuestaGecActivity.this).getString("W_CTE_BUKRS",""));
-                        insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(EncuestaGecActivity.this).getString("W_CTE_BZIRK",""));
-                        insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(EncuestaGecActivity.this).getString("W_CTE_RUTAHH",""));
+                        insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BUKRS",""));
+                        insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BZIRK",""));
+                        insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_RUTAHH",""));
                         insertValues.put("estado","Verificado");
                         insertValues.put("kunnr_censo",codigo_cliente);
                         insertValues.put("nombre_cliente", nombre_cliente);
@@ -151,7 +150,7 @@ public class EncuestaGecActivity extends AppCompatActivity{
                         insertValues.put("correo", correo_cliente);
                         insertValues.put("canal", canal_cliente);
                         insertValues.put("fuente", "Escaner");
-                        insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(EncuestaGecActivity.this).getString("userMC",""));
+                        insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("userMC",""));
 
 
                     }else
@@ -160,9 +159,9 @@ public class EncuestaGecActivity extends AppCompatActivity{
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                         Date date = new Date();
                         ContentValues insertValues = new ContentValues();
-                        insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(EncuestaGecActivity.this).getString("W_CTE_BUKRS",""));
-                        insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(EncuestaGecActivity.this).getString("W_CTE_BZIRK",""));
-                        insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(EncuestaGecActivity.this).getString("W_CTE_RUTAHH",""));
+                        insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BUKRS",""));
+                        insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BZIRK",""));
+                        insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_RUTAHH",""));
                         insertValues.put("estado","Hallazgo");
                         insertValues.put("kunnr_censo",codigo_cliente);
                         insertValues.put("nombre_cliente", nombre_cliente);
@@ -180,9 +179,9 @@ public class EncuestaGecActivity extends AppCompatActivity{
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                         Date date = new Date();
                         ContentValues insertValues = new ContentValues();
-                        insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(EncuestaGecActivity.this).getString("W_CTE_BUKRS",""));
-                        insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(EncuestaGecActivity.this).getString("W_CTE_BZIRK",""));
-                        insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(EncuestaGecActivity.this).getString("W_CTE_RUTAHH",""));
+                        insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BUKRS",""));
+                        insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BZIRK",""));
+                        insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_RUTAHH",""));
                         insertValues.put("estado","Hallazgo");
                         insertValues.put("kunnr_censo",codigo_cliente);
                         insertValues.put("nombre_cliente", nombre_cliente);
@@ -195,7 +194,7 @@ public class EncuestaGecActivity extends AppCompatActivity{
                         insertValues.put("modelo_equipo", eq.getMatnr());
                         insertValues.put("correo", correo_cliente);
                         insertValues.put("canal", canal_cliente);
-                        insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(EncuestaGecActivity.this).getString("userMC",""));
+                        insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("userMC",""));
                         insertValues.put("comentario","Pertenece a otro cliente "+eq.getKunnr()+"!");
                         insertValues.put("fuente","Escaner");
                     }
@@ -222,6 +221,7 @@ public class EncuestaGecActivity extends AppCompatActivity{
 
     private boolean validarRespuestas(Context context){
         boolean valido=true;
+        String msj = "Por favor validar las preguntas: ";
         for (int i=0; i<mAdapter.getItemCount(); i++){
 
 
@@ -229,28 +229,58 @@ public class EncuestaGecActivity extends AppCompatActivity{
 
             switch (viewHolder.getItemViewType()){
                 case 1:
-                    EncuestaGecAdapter.TextoHolder textoHolder = (EncuestaGecAdapter.TextoHolder) viewHolder;
+                    EncuestaAdapter.TextoHolder textoHolder = (EncuestaAdapter.TextoHolder) viewHolder;
 
-                    EditText editText = textoHolder.listView.findViewById(R.id.spinner);
+                    EditText editText = textoHolder.listView.findViewById(R.id.multiple_group);
 
                     if(editText.getText().toString().isEmpty()){
-                        Toasty.error(context,"TEST CAMPO").show();
+                        TextView numPregunta = textoHolder.listView.findViewById(R.id.orden_pregunta);
+                        msj+=numPregunta.getText()+", ";
                         valido=false;
                     }
                     break;
                 case 2:
-                    EncuestaGecAdapter.SeleccionHolder seleccionHolder = (EncuestaGecAdapter.SeleccionHolder) viewHolder;
+                    EncuestaAdapter.SeleccionHolder seleccionHolder = (EncuestaAdapter.SeleccionHolder) viewHolder;
 
-                    EditText editTextSeleccion = seleccionHolder.listView.findViewById(R.id.spinner);
+//                   EditText editTextSeleccion = seleccionHolder.listView.findViewById(R.id.multiple_group);
+//
+//                   if(editTextSeleccion.getText().toString().isEmpty()){
+//                        TextView numPregunta = seleccionHolder.listView.findViewById(R.id.orden_pregunta);
+//                        msj+=numPregunta.getText()+", ";
+//                        valido=false;
+//                   }
+                    break;
+                case 3:
+                    EncuestaAdapter.MultipleHolder multipleHolder = (EncuestaAdapter.MultipleHolder) viewHolder;
 
-                    if(editTextSeleccion.getText().toString().isEmpty()){
-                        Toasty.error(context,"TEST CAMPO").show();
+                    CheckBoxGroupView checkBoxGroupView = multipleHolder.listView.findViewById(R.id.checkGroup);
+
+                    if(checkBoxGroupView.getCheckboxesChecked().isEmpty()){
+                        TextView numPregunta = multipleHolder.listView.findViewById(R.id.orden_pregunta);
+                        msj+=numPregunta.getText()+", ";
+                        valido=false;
+                    }
+                    break;
+                case 4:
+                    EncuestaAdapter.NumericoHolder numericoHolder = (EncuestaAdapter.NumericoHolder) viewHolder;
+
+                    EditText editTextNum = numericoHolder.listView.findViewById(R.id.multiple_group);
+
+                    if(editTextNum.getText().toString().isEmpty()){
+                        TextView numPregunta = numericoHolder.listView.findViewById(R.id.orden_pregunta);
+                        msj+=numPregunta.getText()+", ";
                         valido=false;
                     }
                     break;
             }
 
         }
+
+        if(!valido){
+            msj=msj.substring(0,msj.length()-2);
+            Toasty.error(context,msj).show();
+        }
+
         return valido;
     }
 }

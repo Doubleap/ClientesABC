@@ -1,12 +1,9 @@
 package proyecto.app.clientesabc.actividades;
 
-import static proyecto.app.clientesabc.actividades.SolicitudActivity.displayDialogEncuestaGec;
-
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
-import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -21,14 +18,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -40,7 +35,6 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -67,13 +61,11 @@ import com.honeywell.aidc.UnsupportedPropertyException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
-import proyecto.app.clientesabc.adaptadores.EncuestaGecAdapter;
 import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
@@ -354,7 +346,7 @@ public class MantClienteActivity extends AppCompatActivity {
                         bc.putString("canal_cliente", canalCliente);
                         bc.putString("correo_cliente", correoCliente);
                         bc.putString("tipo_encuesta","GVC");
-                        intent = new Intent(getApplicationContext(), EncuestaGecActivity.class);
+                        intent = new Intent(getApplicationContext(), EncuestaActivity.class);
                         intent.putExtras(bc); //Pase el parametro el Intent
                         startActivity(intent);
                     }

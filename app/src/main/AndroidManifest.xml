@@ -121,7 +121,7 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
-            android:name=".actividades.EncuestaGecActivity"
+            android:name=".actividades.EncuestaActivity"
             android:label="Encuesta GEC"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />

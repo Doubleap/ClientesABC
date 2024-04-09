@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TableRow;
@@ -27,6 +28,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
+import androidx.gridlayout.widget.GridLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.vicmikhailau.maskededittext.MaskedEditText;
@@ -48,15 +50,16 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.LocacionGPSActivity;
+import proyecto.app.clientesabc.clases.CheckBoxGroupView;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoAPI;
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoServidor;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
+import proyecto.app.clientesabc.modelos.OpcionCheckBox;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
-import proyecto.app.clientesabc.modelos.OpcionesRespuesta;
 import proyecto.app.clientesabc.modelos.PreguntasEncuesta;
 
-public class EncuestaGecAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements LocacionGPSActivity.LocationListenerCallback {
+public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements LocacionGPSActivity.LocationListenerCallback {
     private List<PreguntasEncuesta>  preguntas;
     private Context context;
     private Activity activity;
@@ -88,8 +91,24 @@ public class EncuestaGecAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             listView = v;
         }
     }
+    public class MultipleHolder extends RecyclerView.ViewHolder {
+        // each data item is just a string in this case
+        public View listView;
+        private MultipleHolder(View v) {
+            super(v);
+            listView = v;
+        }
+    }
+    public class NumericoHolder extends RecyclerView.ViewHolder {
+        // each data item is just a string in this case
+        public View listView;
+        private NumericoHolder(View v) {
+            super(v);
+            listView = v;
+        }
+    }
     // Constructor de Adaptador HashMap
-    public EncuestaGecAdapter(List<PreguntasEncuesta> dbpreguntas, Context c, Activity a, String canal_cliente, String correo_cliente, String nombre_cliente) {
+    public EncuestaAdapter(List<PreguntasEncuesta> dbpreguntas, Context c, Activity a, String canal_cliente, String correo_cliente, String nombre_cliente) {
         preguntas = dbpreguntas;
         context = c;
         activity = a;
@@ -105,14 +124,28 @@ public class EncuestaGecAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // New View creada
         RecyclerView.ViewHolder viewHolder;
-        if(viewType==1){
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.encuesta_texto_item, parent, false);
-            viewHolder = new TextoHolder(v);
-
-        }else{
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.encuesta_seleccion_item, parent, false);
-            viewHolder = new SeleccionHolder(v);
+        View v;
+        switch (viewType){
+            case 1:
+                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.encuesta_texto_item, parent, false);
+                viewHolder = new TextoHolder(v);
+                break;
+            case 2:
+                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.encuesta_seleccion_item, parent, false);
+                viewHolder = new SeleccionHolder(v);
+                break;
+            case 3:
+                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.encuesta_multiple_item, parent, false);
+                viewHolder = new MultipleHolder(v);
+                break;
+            case 4:
+                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.encuesta_numerico_item, parent, false);
+                viewHolder = new NumericoHolder(v);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + viewType);
         }
+
 
         return viewHolder;
     }
@@ -132,7 +165,6 @@ public class EncuestaGecAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 TextoHolder textoHolder = (TextoHolder) holder;
                 pregunta = textoHolder.listView.findViewById(R.id.pregunta);
                 orden = textoHolder.listView.findViewById(R.id.orden_pregunta);
-//                cardView = textoHolder.listView.findViewWithTag()
                 pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
                 orden.setText(String.valueOf(preguntas.get(position).getOrden()));
                 break;
@@ -140,7 +172,7 @@ public class EncuestaGecAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 SeleccionHolder seleccionHolder = (SeleccionHolder) holder;
                 pregunta = seleccionHolder.listView.findViewById(R.id.pregunta);
                 orden = seleccionHolder.listView.findViewById(R.id.orden_pregunta);
-                Spinner spinner = seleccionHolder.listView.findViewById(R.id.spinner);
+                Spinner spinner = seleccionHolder.listView.findViewById(R.id.multiple_group);
 
 
                 ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
@@ -159,27 +191,38 @@ public class EncuestaGecAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
                 orden.setText(String.valueOf(preguntas.get(position).getOrden()));
                 break;
-            default:
-                SeleccionHolder defaultHolder = (SeleccionHolder) holder;
-                pregunta = defaultHolder.listView.findViewById(R.id.pregunta);
-                orden = defaultHolder.listView.findViewById(R.id.orden_pregunta);
-                Spinner spinner1 = defaultHolder.listView.findViewById(R.id.spinner);
+            case 3:
+                MultipleHolder multipleHolder = (MultipleHolder) holder;
+                pregunta = multipleHolder.listView.findViewById(R.id.pregunta);
+                orden = multipleHolder.listView.findViewById(R.id.orden_pregunta);
+                pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
+                orden.setText(String.valueOf(preguntas.get(position).getOrden()));
 
 
-
-                ArrayList<OpcionSpinner> listaopciones1 = new ArrayList<>();
-                int selectedIndex1 = 0;
+                CheckBoxGroupView checkBoxGroupView = multipleHolder.listView.findViewById(R.id.checkGroup);
+                checkBoxGroupView.setColumnCount(2);
                 for (int j = 0; j < preguntas.get(position).getOpciones().size(); j++){
-                    listaopciones1.add(new OpcionSpinner(preguntas.get(position).getOpciones().get(j).getIdTexto(), preguntas.get(position).getOpciones().get(j).getTexto()));
+                    OpcionCheckBox checkBox = new OpcionCheckBox(context);
+                    checkBox.setText(preguntas.get(position).getOpciones().get(j).getTexto());
+                    checkBox.setIdTexto(preguntas.get(position).getOpciones().get(j).getIdTexto());
+                    checkBoxGroupView.put(checkBox);
                 }
-                // Creando el adaptador(opciones) para el comboBox deseado
-                ArrayAdapter<OpcionSpinner> dataAdapter1 = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones1);
-                // Drop down layout style - list view with radio button
-                dataAdapter1.setDropDownViewResource(R.layout.spinner_item);
-                // attaching data adapter to spinner
-                Drawable spinner_back1 = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
-                spinner1.setBackground(spinner_back1);
-                spinner1.setAdapter(dataAdapter1);
+
+
+
+                break;
+
+            case 4:
+                NumericoHolder numericoHolder = (NumericoHolder) holder;
+                pregunta = numericoHolder.listView.findViewById(R.id.pregunta);
+                orden = numericoHolder.listView.findViewById(R.id.orden_pregunta);
+                pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
+                orden.setText(String.valueOf(preguntas.get(position).getOrden()));
+                break;
+            default:
+                TextoHolder textoHolderdefault = (TextoHolder) holder;
+                pregunta = textoHolderdefault.listView.findViewById(R.id.pregunta);
+                orden = textoHolderdefault.listView.findViewById(R.id.orden_pregunta);
                 pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
                 orden.setText(String.valueOf(preguntas.get(position).getOrden()));
                 break;
@@ -191,15 +234,13 @@ public class EncuestaGecAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
 
     }
+
+
     @Override
     public void onLocationUpdate(Location location) {
         // Handle location updates in your activity here
         latitude = location.getLatitude();
         longitude = location.getLongitude();
-        /*if(!coordenadasCapturadas) {
-            Toasty.success(context, "Coordenadas Capturadas!").show();
-            coordenadasCapturadas = true;
-        }*/
 
     }
 
@@ -380,194 +421,6 @@ public class EncuestaGecAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         }
     }
 
-    public class DesactivarRegistroCenso extends AsyncTask<Void,String,Void> {
-        Context context;
-        Activity activity;
-        EquipoFrio equipoFrio;
-        android.app.AlertDialog dialog;
-        public DesactivarRegistroCenso(Context context, Activity activity, EquipoFrio equipoFrio) {
-            this.context = context;
-            this.activity = activity;
-            this.equipoFrio = equipoFrio;
-        }
-        @Override
-        protected Void doInBackground(Void... voids) {
-            ContentValues updateValues = new ContentValues();
-            updateValues.put("activo", 0);
-
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-            try {
-                Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            try {
-                Connection conn = DriverManager.getConnection(VariablesGlobales.getConexionSQLServer());
-                Statement comm;
-                try {
-                    // create command to read data
-                    comm = conn.createStatement();
-                    String comando = "UPDATE CensoEquipoFrio SET activo = 0 WHERE num_placa = ? and estado = 'Hallazgo'";
-                    PreparedStatement stmt = conn.prepareStatement(comando);
-                    stmt.setString(1,equipoFrio.getNumPlaca());
-                    stmt.executeUpdate();
-                } catch (SQLException e) {
-                    Toasty.error(context,e.getMessage()).show();
-                }
-
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-
-            long modifico = mDb.update("CensoEquipoFrio", updateValues, "num_placa = ? and estado = 'Hallazgo'",new String[]{equipoFrio.getNumPlaca()});
-
-            if(modifico > 0){
-                Intent intent = activity.getIntent();
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                activity.finish();
-                activity.overridePendingTransition(0, 0);
-                activity.startActivity(intent);
-                activity.overridePendingTransition(0, 0);
-
-            }
-            dialog.dismiss();
-            return null;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
-            builder.setCancelable(false);
-            builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                @Override
-                public void onCancel(DialogInterface dialog) {
-                    //errorFlag = "Proceso cancelado por el usuario.";
-                    cancel(false);
-                }
-            });
-            builder.setView(R.layout.layout_loading_dialog);
-            //builder.setTitle("Actualizando registro...");
-
-            dialog = builder.create();
-
-            if(!activity.isFinishing()) {
-                dialog.show();
-                TextView t = (TextView)dialog.findViewById(R.id.mensaje_espera);
-                t.setText("Actualizando registro...");
-            }
-        }
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-
-        }
-    }
-
-    public static class EliminarRegistroCenso implements Runnable  {
-        Context context;
-        Activity activity;
-        EquipoFrio equipoFrio;
-        public EliminarRegistroCenso(Context context, Activity activity, EquipoFrio equipoFrio) {
-            this.context = context;
-            this.activity = activity;
-            this.equipoFrio = equipoFrio;
-        }
-
-        @Override
-        public void run() {
-            ContentValues updateValues = new ContentValues();
-            updateValues.put("activo", 0);
-
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-            try {
-                Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            try {
-                Connection conn = DriverManager.getConnection(VariablesGlobales.getConexionSQLServer());
-                Statement comm;
-                try {
-                    // create command to read data
-                    comm = conn.createStatement();
-                    String comando = "UPDATE CensoEquipoFrio SET activo = 0 WHERE num_placa = ? and estado = 'Hallazgo'";
-                    PreparedStatement stmt = conn.prepareStatement(comando);
-                    stmt.setString(1,equipoFrio.getNumPlaca());
-                    stmt.executeUpdate();
-                } catch (SQLException e) {
-                    Toasty.error(context,e.getMessage()).show();
-                }
-
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-
-            long modifico = mDb.update("CensoEquipoFrio", updateValues, "num_placa = ? and estado = 'Hallazgo'",new String[]{equipoFrio.getNumPlaca()});
-
-            if(modifico > 0){
-                Intent intent = activity.getIntent();
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                activity.finish();
-                activity.overridePendingTransition(0, 0);
-                activity.startActivity(intent);
-                activity.overridePendingTransition(0, 0);
-                Toasty.success(context,"Registro Eliminado!").show();
-            }
-
-        }
-    }
-    /*public Filter getMultiFilter() {
-        return new Filter() {
-            @Override
-            protected FilterResults performFiltering(CharSequence charSequence) {
-                String[] charString = charSequence.toString().split(",");
-                FilterResults filterResults = new FilterResults();
-                ArrayList<HashMap<String, String>> filteredList = new ArrayList<>();
-                for(int x=0; x < charString.length; x++) {
-                    if (charString[x].isEmpty()) {
-                        formListFiltered = mDataset;
-                    } else {
-                        for (EquipoFrio row : mDataset) {
-                            if (row.get("estado") != null && row.get("estado").trim().contains(charString[x]))
-                                filteredList.add(row);
-                            else if (row.get("tipo_solicitud") != null && row.get("tipo_solicitud").trim().contains(charString[x])) {
-                                filteredList.add(row);
-                            }
-                        }
-                        formListFiltered = filteredList;
-                    }
-
-                    filterResults.values = formListFiltered;
-                }
-                activity.runOnUiThread(new Runnable() {
-                    public void run() {
-                        Toolbar toolbar = (Toolbar) activity.findViewById(R.id.toolbar);
-                        if(toolbar != null)
-                            toolbar.setTitle("Mis Solicitudes ("+formListFiltered.size()+" de "+mDataset.size()+")");
-                    }
-                });
-                return filterResults;
-            }
-            @SuppressWarnings("unchecked")
-            @Override
-            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
-                formListFiltered = (ArrayList<HashMap<String, String>>) filterResults.values;
-                // refresh the list with filtered data
-                notifyDataSetChanged();
-            }
-        };
-    }*/
 
     @Override
     public int getItemViewType(int position) {
