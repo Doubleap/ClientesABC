@@ -3585,4 +3585,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return  dataMonitor;
     }
+
+
+    public long getValidacionEncuestaPendiente() {
+        long cantidad = 0;
+        String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
+        String kkber = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_AREACREDITO","");
+//        String sql_encuesta = "select count(*) from respuesta_pregunta p where bukrs = '" + sociedad + "' AND kkber = '" + kkber + "'";
+        String sql_encuesta = "select count(*) from respuesta_pregunta p";
+
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            cantidad = cursor.getLong(0);
+        }
+        cursor.close();
+        return  cantidad;
+    }
 }

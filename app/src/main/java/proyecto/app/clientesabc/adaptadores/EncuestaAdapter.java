@@ -51,6 +51,7 @@ import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.LocacionGPSActivity;
 import proyecto.app.clientesabc.clases.CheckBoxGroupView;
+import proyecto.app.clientesabc.clases.PreguntaTextView;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoAPI;
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoServidor;
@@ -65,10 +66,6 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private Activity activity;
     private DataBaseHelper db;
     private static SQLiteDatabase mDb;
-    private double latitude = 0.0;
-    private double longitude = 0.0;
-    private String correo_cliente;
-    private String canal_cliente;
     private String nombre_cliente;
     //LocacionGPSActivity locationServices;
     // Provide a reference to the views for each data item
@@ -108,14 +105,12 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
     // Constructor de Adaptador HashMap
-    public EncuestaAdapter(List<PreguntasEncuesta> dbpreguntas, Context c, Activity a, String canal_cliente, String correo_cliente, String nombre_cliente) {
+    public EncuestaAdapter(List<PreguntasEncuesta> dbpreguntas, Context c, Activity a, String nombre_cliente) {
         preguntas = dbpreguntas;
         context = c;
         activity = a;
         db = new DataBaseHelper(context);
         mDb = db.getWritableDatabase();
-        this.canal_cliente = canal_cliente;
-        this.correo_cliente = correo_cliente;
         this.nombre_cliente = nombre_cliente;
     }
     // Crear nuevas Views. Puedo crear diferentes layouts para diferentes adaptadores desde la misma clase
@@ -155,7 +150,7 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         // - Obtener Elemento del data set en esta position
         // - Reemplazar aqui cualquier contenido dinamico dependiendo de algun valor de l dataset creado y o el contenido del dataset
 
-        TextView pregunta;
+        PreguntaTextView pregunta;
         TextView orden;
         CardView cardView;
         int viewType = holder.getItemViewType();
@@ -166,6 +161,7 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 pregunta = textoHolder.listView.findViewById(R.id.pregunta);
                 orden = textoHolder.listView.findViewById(R.id.orden_pregunta);
                 pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
+                pregunta.setPreguntasEncuesta(preguntas.get(position));
                 orden.setText(String.valueOf(preguntas.get(position).getOrden()));
                 break;
             case 2:
@@ -178,7 +174,7 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
                 int selectedIndex = 0;
                 for (int j = 0; j < preguntas.get(position).getOpciones().size(); j++){
-                    listaopciones.add(new OpcionSpinner(preguntas.get(position).getOpciones().get(j).getIdTexto(), preguntas.get(position).getOpciones().get(j).getTexto()));
+                    listaopciones.add(new OpcionSpinner(preguntas.get(position).getOpciones().get(j).getId(),preguntas.get(position).getOpciones().get(j).getIdTexto(), preguntas.get(position).getOpciones().get(j).getTexto()));
                 }
                 // Creando el adaptador(opciones) para el comboBox deseado
                 ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones);
@@ -189,6 +185,7 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 spinner.setBackground(spinner_back);
                 spinner.setAdapter(dataAdapter);
                 pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
+                pregunta.setPreguntasEncuesta(preguntas.get(position));
                 orden.setText(String.valueOf(preguntas.get(position).getOrden()));
                 break;
             case 3:
@@ -196,6 +193,7 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 pregunta = multipleHolder.listView.findViewById(R.id.pregunta);
                 orden = multipleHolder.listView.findViewById(R.id.orden_pregunta);
                 pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
+                pregunta.setPreguntasEncuesta(preguntas.get(position));
                 orden.setText(String.valueOf(preguntas.get(position).getOrden()));
 
 
@@ -217,6 +215,7 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 pregunta = numericoHolder.listView.findViewById(R.id.pregunta);
                 orden = numericoHolder.listView.findViewById(R.id.orden_pregunta);
                 pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
+                pregunta.setPreguntasEncuesta(preguntas.get(position));
                 orden.setText(String.valueOf(preguntas.get(position).getOrden()));
                 break;
             default:
@@ -239,8 +238,6 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public void onLocationUpdate(Location location) {
         // Handle location updates in your activity here
-        latitude = location.getLatitude();
-        longitude = location.getLongitude();
 
     }
 
@@ -309,8 +306,6 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     insertValues.put("num_activo", eq.getSernr());
                     insertValues.put("num_equipo", eq.getEqunr());
                     insertValues.put("modelo_equipo", eq.getMatnr());
-                    insertValues.put("correo", correo_cliente);
-                    insertValues.put("canal", canal_cliente);
                     insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(context).getString("userMC",""));
                     insertValues.put("comentario", comentario.getText().toString());
                     insertValues.put("id_motivo_alerta", ((OpcionSpinner) motivoSpinner.getSelectedItem()).getId());

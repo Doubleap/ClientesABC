@@ -12,6 +12,7 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,10 +20,15 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
@@ -30,8 +36,12 @@ import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.EncuestaAdapter;
 import proyecto.app.clientesabc.clases.CheckBoxGroupView;
+import proyecto.app.clientesabc.clases.PreguntaTextView;
+import proyecto.app.clientesabc.clases.TransmisionEncuestaServidor;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
+import proyecto.app.clientesabc.modelos.OpcionSpinner;
 import proyecto.app.clientesabc.modelos.PreguntasEncuesta;
+import proyecto.app.clientesabc.modelos.RespuestaPregunta;
 
 public class EncuestaActivity extends AppCompatActivity{
     DataBaseHelper db;
@@ -39,10 +49,9 @@ public class EncuestaActivity extends AppCompatActivity{
     private static EncuestaAdapter mAdapter;
     String codigo_cliente;
     String nombre_cliente;
-    String canal_cliente;
-    String correo_cliente;
     String tipo_encuesta;
     List<PreguntasEncuesta> preguntas;
+    List<RespuestaPregunta> respuestaPreguntas;
     RecyclerView rv;
 
     @Override
@@ -52,12 +61,9 @@ public class EncuestaActivity extends AppCompatActivity{
         if(b != null) {
             codigo_cliente = b.getString("codigo_cliente");
             nombre_cliente = b.getString("nombre_cliente");
-            canal_cliente = b.getString("canal_cliente");
-            correo_cliente = b.getString("correo_cliente");
             tipo_encuesta = b.getString("tipo_encuesta");
         }
         db = new DataBaseHelper(this);
-
         db = new DataBaseHelper(this);
         mDb = db.getWritableDatabase();
         preguntas = db.getPreguntasEncuesta();
@@ -67,7 +73,7 @@ public class EncuestaActivity extends AppCompatActivity{
         //setContentView(R.layout.activity_base_instalada);
         rv = findViewById(R.id.recycler_view);
 
-        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,canal_cliente,correo_cliente,nombre_cliente);
+        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
@@ -83,7 +89,10 @@ public class EncuestaActivity extends AppCompatActivity{
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                validarRespuestas(v.getContext());
+                if(validarRespuestas(v.getContext())){
+                    guardarRespuestas(v.getContext());
+                };
+
             }
         });
 
@@ -100,7 +109,7 @@ public class EncuestaActivity extends AppCompatActivity{
         preguntas = db.getPreguntasEncuesta();
         RecyclerView rv = findViewById(R.id.recycler_view);
 
-        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,canal_cliente,correo_cliente,nombre_cliente);
+        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
@@ -147,8 +156,6 @@ public class EncuestaActivity extends AppCompatActivity{
                         insertValues.put("num_activo", eq.getSernr());
                         insertValues.put("num_equipo", eq.getEqunr());
                         insertValues.put("modelo_equipo", eq.getMatnr());
-                        insertValues.put("correo", correo_cliente);
-                        insertValues.put("canal", canal_cliente);
                         insertValues.put("fuente", "Escaner");
                         insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("userMC",""));
 
@@ -169,8 +176,6 @@ public class EncuestaActivity extends AppCompatActivity{
                         insertValues.put("activo", "1");
                         insertValues.put("transmitido", "0");
                         insertValues.put("fecha_lectura", dateFormat.format(date));
-                        insertValues.put("correo", correo_cliente);
-                        insertValues.put("canal", canal_cliente);
                         insertValues.put("comentario","Número de placa no aparece en ningun cliente instalado.");
                         insertValues.put("fuente", "Escaner");
                     }//3. El codigo del equipo leida esta en otro cliente
@@ -192,8 +197,6 @@ public class EncuestaActivity extends AppCompatActivity{
                         insertValues.put("num_activo", eq.getSernr());
                         insertValues.put("num_equipo", eq.getEqunr());
                         insertValues.put("modelo_equipo", eq.getMatnr());
-                        insertValues.put("correo", correo_cliente);
-                        insertValues.put("canal", canal_cliente);
                         insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("userMC",""));
                         insertValues.put("comentario","Pertenece a otro cliente "+eq.getKunnr()+"!");
                         insertValues.put("fuente","Escaner");
@@ -232,7 +235,7 @@ public class EncuestaActivity extends AppCompatActivity{
                     EncuestaAdapter.TextoHolder textoHolder = (EncuestaAdapter.TextoHolder) viewHolder;
 
                     EditText editText = textoHolder.listView.findViewById(R.id.multiple_group);
-
+                    TextView textView = textoHolder.listView.findViewById(R.id.pregunta);
                     if(editText.getText().toString().isEmpty()){
                         TextView numPregunta = textoHolder.listView.findViewById(R.id.orden_pregunta);
                         msj+=numPregunta.getText()+", ";
@@ -283,4 +286,130 @@ public class EncuestaActivity extends AppCompatActivity{
 
         return valido;
     }
+
+
+    private void guardarRespuestas(Context context){
+        UUID UUID = java.util.UUID.randomUUID();
+        respuestaPreguntas= new ArrayList<RespuestaPregunta>();
+        for (int i=0; i<mAdapter.getItemCount(); i++){
+//id
+
+
+
+            RespuestaPregunta respuestaPregunta = new RespuestaPregunta();
+            respuestaPregunta.setGUID(UUID.toString());
+            respuestaPregunta.setEncuesta(tipo_encuesta);
+            respuestaPregunta.setFecha(new java.sql.Date(Calendar.getInstance().getTimeInMillis()));
+            respuestaPregunta.setNombreCliente(nombre_cliente);
+            respuestaPregunta.setCodigoCliente(codigo_cliente);
+            respuestaPregunta.setSociedad(PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BUKRS",""));
+
+
+
+            RecyclerView.ViewHolder viewHolder = rv.findViewHolderForAdapterPosition(i);
+            PreguntaTextView pregunta;
+            EditText respuesta;
+            switch (viewHolder.getItemViewType()){
+                case 1:
+                    EncuestaAdapter.TextoHolder textoHolder = (EncuestaAdapter.TextoHolder) viewHolder;
+
+
+                    pregunta = textoHolder.listView.findViewById(R.id.pregunta);
+                    respuesta = textoHolder.listView.findViewById(R.id.multiple_group);
+
+                    respuestaPregunta.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
+                    respuestaPregunta.setTextoPregunta(pregunta.getText().toString());
+                    respuestaPregunta.setRespuesta(respuesta.getText().toString());
+                    respuestaPregunta.setIdTipoPregunta(viewHolder.getItemViewType());
+                    respuestaPreguntas.add(respuestaPregunta);
+
+                    break;
+                case 2:
+                    EncuestaAdapter.SeleccionHolder seleccionHolder = (EncuestaAdapter.SeleccionHolder) viewHolder;
+
+                    pregunta = seleccionHolder.listView.findViewById(R.id.pregunta);
+                    Spinner respuestaSpinner = seleccionHolder.listView.findViewById(R.id.multiple_group);
+
+                    respuestaPregunta.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
+                    respuestaPregunta.setTextoPregunta(pregunta.getText().toString());
+                    OpcionSpinner opcionSeleccionada = (OpcionSpinner)respuestaSpinner.getSelectedItem();
+                    respuestaPregunta.setRespuesta(opcionSeleccionada.getName());
+                    respuestaPregunta.setIdTipoPregunta(viewHolder.getItemViewType());
+                    respuestaPregunta.setIdRespuesta(String.valueOf(opcionSeleccionada.getIdSql()));
+                    respuestaPregunta.setIdTextoRespuesta(opcionSeleccionada.getId());
+                    respuestaPreguntas.add(respuestaPregunta);
+                    break;
+                case 3:
+                    EncuestaAdapter.MultipleHolder multipleHolder = (EncuestaAdapter.MultipleHolder) viewHolder;
+                    CheckBoxGroupView checkBoxGroupView = multipleHolder.listView.findViewById(R.id.checkGroup);
+                    pregunta = multipleHolder.listView.findViewById(R.id.pregunta);
+//                    respuesta = multipleHolder.listView.findViewById(R.id.multiple_group);
+
+                    respuestaPregunta.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
+                    respuestaPregunta.setTextoPregunta(pregunta.getText().toString());
+//                    respuestaPregunta.setIdTipoPregunta();
+
+//
+//                    respuestaPregunta.setTextoPregunta(pregunta.getText().toString());
+//                    respuestaPregunta.setRespuesta(respuesta.getText().toString());
+//                    respuestaPregunta.setIdTipoPregunta(viewHolder.getItemViewType());
+//                  respuestaPregunta.setIdPregunta();
+//                    respuestaPreguntas.add(respuestaPregunta);
+
+
+
+                    if(checkBoxGroupView.getCheckboxesChecked().isEmpty()){
+                        //TextView numPregunta = multipleHolder.listView.findViewById(R.id.orden_pregunta);
+                    }
+                    break;
+                case 4:
+                    EncuestaAdapter.NumericoHolder numericoHolder = (EncuestaAdapter.NumericoHolder) viewHolder;
+
+                    pregunta = numericoHolder.listView.findViewById(R.id.pregunta);
+                    respuesta = numericoHolder.listView.findViewById(R.id.multiple_group);
+
+
+                    respuestaPregunta.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
+                    respuestaPregunta.setTextoPregunta(pregunta.getText().toString());
+                    respuestaPregunta.setRespuesta(respuesta.getText().toString());
+                    respuestaPregunta.setIdTipoPregunta(viewHolder.getItemViewType());
+                    respuestaPreguntas.add(respuestaPregunta);
+                    break;
+            }
+
+        }
+
+        ContentValues respuestaValue = new ContentValues();
+        for (RespuestaPregunta respuestaPregunta : respuestaPreguntas){
+            respuestaValue.put("GUID", respuestaPregunta.getGUID());
+            respuestaValue.put("id_pregunta_encuesta", respuestaPregunta.getIdPregunta());
+            respuestaValue.put("id_tipo_pregunta", respuestaPregunta.getIdTipoPregunta());
+            respuestaValue.put("texto_pregunta", respuestaPregunta.getTextoPregunta());
+            respuestaValue.put("respuesta", respuestaPregunta.getRespuesta());
+            respuestaValue.put("fecha_ejecucion", respuestaPregunta.getFecha().toString());
+            respuestaValue.put("texto_encuesta", respuestaPregunta.getEncuesta());
+            respuestaValue.put("codigo_cliente", respuestaPregunta.getCodigoCliente());
+            respuestaValue.put("nombre_cliente", respuestaPregunta.getNombreCliente());
+            respuestaValue.put("bukrs", respuestaPregunta.getSociedad());
+            try {
+                mDb.insert("respuesta_pregunta", null, respuestaValue);
+                respuestaValue.clear();
+            } catch (Exception e) {
+                Toasty.error(getApplicationContext(), "Error Insertando Respuesta Encuesta", Toasty.LENGTH_SHORT).show();
+            }
+        }
+        WeakReference<Context> weakRef = new WeakReference<Context>(EncuestaActivity.this);
+        WeakReference<Activity> weakRefA = new WeakReference<Activity>(EncuestaActivity.this);
+        TransmisionEncuestaServidor f = new TransmisionEncuestaServidor(weakRef,weakRefA,UUID.toString());
+        if (PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
+            f.EnableWiFi();
+        } else {
+            f.DisableWiFi();
+        }
+        f.execute();
+
+
+
+    }
+
 }
