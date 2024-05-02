@@ -39,6 +39,7 @@ import proyecto.app.clientesabc.clases.CheckBoxGroupView;
 import proyecto.app.clientesabc.clases.PreguntaTextView;
 import proyecto.app.clientesabc.clases.TransmisionEncuestaServidor;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
+import proyecto.app.clientesabc.modelos.OpcionCheckBox;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 import proyecto.app.clientesabc.modelos.PreguntasEncuesta;
 import proyecto.app.clientesabc.modelos.RespuestaPregunta;
@@ -51,8 +52,9 @@ public class EncuestaActivity extends AppCompatActivity{
     String nombre_cliente;
     String tipo_encuesta;
     List<PreguntasEncuesta> preguntas;
-    List<RespuestaPregunta> respuestaPreguntas;
+    List<RespuestaPregunta> respuestaPreguntas = new ArrayList<>();
     RecyclerView rv;
+    boolean encuestaNueva = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,13 +69,17 @@ public class EncuestaActivity extends AppCompatActivity{
         db = new DataBaseHelper(this);
         mDb = db.getWritableDatabase();
         preguntas = db.getPreguntasEncuesta();
+        respuestaPreguntas = db.getRespuestasEncuestaCliente(codigo_cliente);
 
+        if(!respuestaPreguntas.isEmpty()){
+            encuestaNueva=false;
+        }
 
         setContentView(R.layout.encuesta_gec_layout);
         //setContentView(R.layout.activity_base_instalada);
         rv = findViewById(R.id.recycler_view);
 
-        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente);
+        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente,respuestaPreguntas);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
@@ -109,7 +115,7 @@ public class EncuestaActivity extends AppCompatActivity{
         preguntas = db.getPreguntasEncuesta();
         RecyclerView rv = findViewById(R.id.recycler_view);
 
-        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente);
+        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente,respuestaPreguntas);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
@@ -289,17 +295,21 @@ public class EncuestaActivity extends AppCompatActivity{
 
 
     private void guardarRespuestas(Context context){
-        UUID UUID = java.util.UUID.randomUUID();
-        respuestaPreguntas= new ArrayList<RespuestaPregunta>();
+        UUID myGUID = java.util.UUID.randomUUID();
+        if(!respuestaPreguntas.isEmpty()){
+            myGUID = java.util.UUID.fromString(respuestaPreguntas.get(0).getGUID());
+        }
+        respuestaPreguntas.clear();
+
         for (int i=0; i<mAdapter.getItemCount(); i++){
 //id
 
 
 
             RespuestaPregunta respuestaPregunta = new RespuestaPregunta();
-            respuestaPregunta.setGUID(UUID.toString());
+            respuestaPregunta.setGUID(myGUID.toString());
             respuestaPregunta.setEncuesta(tipo_encuesta);
-            respuestaPregunta.setFecha(new java.sql.Date(Calendar.getInstance().getTimeInMillis()));
+            respuestaPregunta.setFecha((new java.sql.Date(Calendar.getInstance().getTimeInMillis())).toString());
             respuestaPregunta.setNombreCliente(nombre_cliente);
             respuestaPregunta.setCodigoCliente(codigo_cliente);
             respuestaPregunta.setSociedad(PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BUKRS",""));
@@ -320,7 +330,9 @@ public class EncuestaActivity extends AppCompatActivity{
                     respuestaPregunta.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
                     respuestaPregunta.setTextoPregunta(pregunta.getText().toString());
                     respuestaPregunta.setRespuesta(respuesta.getText().toString());
-                    respuestaPregunta.setIdTipoPregunta(viewHolder.getItemViewType());
+                    respuestaPregunta.setIdTextoRespuesta(respuesta.getText().toString());
+                    respuestaPregunta.setIdRespuesta("0");
+                    respuestaPregunta.setIdTipoPregunta(String.valueOf(viewHolder.getItemViewType()));
                     respuestaPreguntas.add(respuestaPregunta);
 
                     break;
@@ -334,7 +346,7 @@ public class EncuestaActivity extends AppCompatActivity{
                     respuestaPregunta.setTextoPregunta(pregunta.getText().toString());
                     OpcionSpinner opcionSeleccionada = (OpcionSpinner)respuestaSpinner.getSelectedItem();
                     respuestaPregunta.setRespuesta(opcionSeleccionada.getName());
-                    respuestaPregunta.setIdTipoPregunta(viewHolder.getItemViewType());
+                    respuestaPregunta.setIdTipoPregunta(String.valueOf(viewHolder.getItemViewType()));
                     respuestaPregunta.setIdRespuesta(String.valueOf(opcionSeleccionada.getIdSql()));
                     respuestaPregunta.setIdTextoRespuesta(opcionSeleccionada.getId());
                     respuestaPreguntas.add(respuestaPregunta);
@@ -343,18 +355,34 @@ public class EncuestaActivity extends AppCompatActivity{
                     EncuestaAdapter.MultipleHolder multipleHolder = (EncuestaAdapter.MultipleHolder) viewHolder;
                     CheckBoxGroupView checkBoxGroupView = multipleHolder.listView.findViewById(R.id.checkGroup);
                     pregunta = multipleHolder.listView.findViewById(R.id.pregunta);
-//                    respuesta = multipleHolder.listView.findViewById(R.id.multiple_group);
 
-                    respuestaPregunta.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
-                    respuestaPregunta.setTextoPregunta(pregunta.getText().toString());
-//                    respuestaPregunta.setIdTipoPregunta();
 
-//
-//                    respuestaPregunta.setTextoPregunta(pregunta.getText().toString());
-//                    respuestaPregunta.setRespuesta(respuesta.getText().toString());
-//                    respuestaPregunta.setIdTipoPregunta(viewHolder.getItemViewType());
-//                  respuestaPregunta.setIdPregunta();
-//                    respuestaPreguntas.add(respuestaPregunta);
+                    
+
+                    List<OpcionCheckBox> opcionesSeleccionadas = (List<OpcionCheckBox>) checkBoxGroupView.getCheckboxesChecked();
+
+                    for (OpcionCheckBox opcion:opcionesSeleccionadas) {
+
+                        RespuestaPregunta respuestaPreguntaOpcion = new RespuestaPregunta();
+                        respuestaPreguntaOpcion.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
+                        respuestaPreguntaOpcion.setTextoPregunta(pregunta.getText().toString());
+                        respuestaPreguntaOpcion.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
+                        respuestaPreguntaOpcion.setTextoPregunta(pregunta.getText().toString());
+                        respuestaPreguntaOpcion.setGUID(myGUID.toString());
+                        respuestaPreguntaOpcion.setEncuesta(tipo_encuesta);
+                        respuestaPreguntaOpcion.setFecha((new java.sql.Date(Calendar.getInstance().getTimeInMillis())).toString());
+                        respuestaPreguntaOpcion.setNombreCliente(nombre_cliente);
+                        respuestaPreguntaOpcion.setCodigoCliente(codigo_cliente);
+                        respuestaPreguntaOpcion.setSociedad(PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BUKRS",""));
+                        
+                        respuestaPreguntaOpcion.setRespuesta(opcion.getOpcionRespuesta().getTexto());
+                        respuestaPreguntaOpcion.setIdTipoPregunta(String.valueOf(viewHolder.getItemViewType()));
+                        respuestaPreguntaOpcion.setIdRespuesta(String.valueOf(opcion.getOpcionRespuesta().getId()));
+                        respuestaPreguntaOpcion.setIdTextoRespuesta(opcion.getOpcionRespuesta().getIdTexto());
+                        respuestaPreguntas.add(respuestaPreguntaOpcion);
+                    }
+
+
 
 
 
@@ -372,7 +400,9 @@ public class EncuestaActivity extends AppCompatActivity{
                     respuestaPregunta.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
                     respuestaPregunta.setTextoPregunta(pregunta.getText().toString());
                     respuestaPregunta.setRespuesta(respuesta.getText().toString());
-                    respuestaPregunta.setIdTipoPregunta(viewHolder.getItemViewType());
+                    respuestaPregunta.setIdRespuesta("0");
+                    respuestaPregunta.setIdTextoRespuesta(respuesta.getText().toString());
+                    respuestaPregunta.setIdTipoPregunta(String.valueOf(viewHolder.getItemViewType()));
                     respuestaPreguntas.add(respuestaPregunta);
                     break;
             }
@@ -380,19 +410,31 @@ public class EncuestaActivity extends AppCompatActivity{
         }
 
         ContentValues respuestaValue = new ContentValues();
+        if(!encuestaNueva){
+            mDb.delete("respuesta_pregunta", "GUID= ? AND codigo_cliente= ?", new String[]{myGUID.toString(),codigo_cliente});
+        }
         for (RespuestaPregunta respuestaPregunta : respuestaPreguntas){
             respuestaValue.put("GUID", respuestaPregunta.getGUID());
             respuestaValue.put("id_pregunta_encuesta", respuestaPregunta.getIdPregunta());
             respuestaValue.put("id_tipo_pregunta", respuestaPregunta.getIdTipoPregunta());
             respuestaValue.put("texto_pregunta", respuestaPregunta.getTextoPregunta());
             respuestaValue.put("respuesta", respuestaPregunta.getRespuesta());
+            respuestaValue.put("id_respuesta", respuestaPregunta.getIdRespuesta());
+            respuestaValue.put("id_texto_respuesta", respuestaPregunta.getIdTextoRespuesta());
             respuestaValue.put("fecha_ejecucion", respuestaPregunta.getFecha().toString());
             respuestaValue.put("texto_encuesta", respuestaPregunta.getEncuesta());
             respuestaValue.put("codigo_cliente", respuestaPregunta.getCodigoCliente());
             respuestaValue.put("nombre_cliente", respuestaPregunta.getNombreCliente());
             respuestaValue.put("bukrs", respuestaPregunta.getSociedad());
             try {
+//                if(encuestaNueva){
+//                    mDb.insert("respuesta_pregunta", null, respuestaValue);
+//                }else{
+//                    mDb.update("respuesta_pregunta", respuestaValue, "GUID= ? AND id_pregunta_encuesta= ? AND codigo_cliente= ?", new String[]{respuestaPregunta.getGUID(),String.valueOf(respuestaPregunta.getIdPregunta()),respuestaPregunta.getCodigoCliente()});
+//                }
                 mDb.insert("respuesta_pregunta", null, respuestaValue);
+
+
                 respuestaValue.clear();
             } catch (Exception e) {
                 Toasty.error(getApplicationContext(), "Error Insertando Respuesta Encuesta", Toasty.LENGTH_SHORT).show();
@@ -400,7 +442,7 @@ public class EncuestaActivity extends AppCompatActivity{
         }
         WeakReference<Context> weakRef = new WeakReference<Context>(EncuestaActivity.this);
         WeakReference<Activity> weakRefA = new WeakReference<Activity>(EncuestaActivity.this);
-        TransmisionEncuestaServidor f = new TransmisionEncuestaServidor(weakRef,weakRefA,UUID.toString());
+        TransmisionEncuestaServidor f = new TransmisionEncuestaServidor(weakRef,weakRefA,myGUID.toString());
         if (PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("tipo_conexion", "").equals("wifi")) {
             f.EnableWiFi();
         } else {
@@ -411,5 +453,7 @@ public class EncuestaActivity extends AppCompatActivity{
 
 
     }
+
+
 
 }

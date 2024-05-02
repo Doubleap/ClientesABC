@@ -251,6 +251,7 @@ public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
 //            if(update <= 0){
 //                Toasty.success(context.get(),"No se actualizo el estado de transmision de la lectura!",Toast.LENGTH_LONG).show();
 //            }
+
         }
         try {
             dialog.dismiss();
@@ -266,12 +267,10 @@ public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
             Intent intent = activity.get().getIntent();
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             activity.get().finish();
-            if (activity.get() instanceof BaseInstaladaActivity) {
-                activity.get().overridePendingTransition(0, 0);
-                startActivity(context.get(), intent, null);
-                activity.get().overridePendingTransition(0, 0);
-            }
         }
+
+
+
     }
 
     public void EnableWiFi(){

@@ -39,6 +39,36 @@ public class CheckBoxGroupView extends GridLayout {
         return checkeds;
     }
 
+    public void setCheckboxesChecked(List<?> checked){
+
+        List<OpcionCheckBox> checkeds = new ArrayList<>();
+        for (OpcionCheckBox c : checkboxes){
+            if(c.isChecked())
+                checkeds.add(c);
+        }
+
+    }
+
+    public void setCheckboxesCheckedById(List<Integer> ids){
+
+        List<OpcionCheckBox> checkeds = new ArrayList<>();
+        for (OpcionCheckBox c : checkboxes){
+            if(ids.contains(c.getOpcionRespuesta().getId()))
+                c.setChecked(true);
+        }
+
+    }
+
+    public void setCheckboxCheckedById(int itemId){
+
+        List<OpcionCheckBox> checkeds = new ArrayList<>();
+        for (OpcionCheckBox c : checkboxes){
+            if(c.getOpcionRespuesta().getId()==itemId)
+                c.setChecked(true);
+        }
+
+    }
+
     public List<String> getCheckedIds(){
 
         List<String> checkeds = new ArrayList<>();

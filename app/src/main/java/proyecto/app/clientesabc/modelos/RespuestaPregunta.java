@@ -19,8 +19,8 @@ public class RespuestaPregunta {
     @Column("texto_encuesta")
     private  String encuesta;
 
-    @Column("fecha_ejecucion")
-    private Date fecha;
+    @Column(value = "fecha_ejecucion",treatNullAsDefault = true)
+    private String fecha;
 
     @Column("codigo_cliente")
     private String codigoCliente;
@@ -32,7 +32,7 @@ public class RespuestaPregunta {
     private int idPregunta;
 
     @Column("id_tipo_pregunta")
-    private int idTipoPregunta;
+    private String idTipoPregunta;
 
     @Column("texto_pregunta")
     private String textoPregunta;
@@ -50,8 +50,7 @@ public class RespuestaPregunta {
     public RespuestaPregunta() {
     }
 
-
-    public RespuestaPregunta(int id, String GUID, String sociedad, String encuesta, Date fecha, String codigoCliente, String nombreCliente, int idPregunta, int idTipoPregunta, String textoPregunta, String idRespuesta, String idTextoRespuesta, String respuesta) {
+    public RespuestaPregunta(int id, String GUID, String sociedad, String encuesta, String fecha, String codigoCliente, String nombreCliente, int idPregunta, String idTipoPregunta, String textoPregunta, String idRespuesta, String idTextoRespuesta, String respuesta) {
         this.id = id;
         this.GUID = GUID;
         this.sociedad = sociedad;
@@ -99,11 +98,11 @@ public class RespuestaPregunta {
         this.encuesta = encuesta;
     }
 
-    public Date getFecha() {
+    public String getFecha() {
         return fecha;
     }
 
-    public void setFecha(Date fecha) {
+    public void setFecha(String fecha) {
         this.fecha = fecha;
     }
 
@@ -131,11 +130,11 @@ public class RespuestaPregunta {
         this.idPregunta = idPregunta;
     }
 
-    public int getIdTipoPregunta() {
+    public String getIdTipoPregunta() {
         return idTipoPregunta;
     }
 
-    public void setIdTipoPregunta(int idTipoPregunta) {
+    public void setIdTipoPregunta(String idTipoPregunta) {
         this.idTipoPregunta = idTipoPregunta;
     }
 

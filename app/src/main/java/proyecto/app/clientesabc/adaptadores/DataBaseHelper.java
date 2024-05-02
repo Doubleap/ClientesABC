@@ -49,6 +49,7 @@ import proyecto.app.clientesabc.modelos.Interlocutor;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 import proyecto.app.clientesabc.modelos.OpcionesRespuesta;
 import proyecto.app.clientesabc.modelos.PreguntasEncuesta;
+import proyecto.app.clientesabc.modelos.RespuestaPregunta;
 import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Range")
@@ -3587,12 +3588,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public long getValidacionEncuestaPendiente() {
+    public long getValidacionEncuestaPendiente(String codigo_cliente) {
         long cantidad = 0;
         String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
         String kkber = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_AREACREDITO","");
-//        String sql_encuesta = "select count(*) from respuesta_pregunta p where bukrs = '" + sociedad + "' AND kkber = '" + kkber + "'";
-        String sql_encuesta = "select count(*) from respuesta_pregunta p";
+        String sql_encuesta = "select count(*) from respuesta_pregunta p where codigo_cliente = '" + codigo_cliente + "'";
+//        String sql_encuesta = "select count(*) from respuesta_pregunta p";
 
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
@@ -3600,5 +3601,26 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return  cantidad;
+    }
+
+    public List<RespuestaPregunta> getRespuestasEncuestaCliente(String codigo_cliente){
+        List<RespuestaPregunta> respuestaPreguntas = new ArrayList<>();
+        String sql_encuesta = "SELECT *" +
+                "  FROM respuesta_pregunta \n"
+                +  "  WHERE codigo_cliente = '" + codigo_cliente + "'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        MicroOrm uOrm = new MicroOrm();
+        if (!(cursor.moveToFirst()) || cursor.getCount() ==0){
+            //cursor is empty
+        }else{
+            respuestaPreguntas = uOrm.listFromCursor(cursor, RespuestaPregunta.class);
+        }
+
+        cursor.close();
+
+
+
+
+        return  respuestaPreguntas;
     }
 }

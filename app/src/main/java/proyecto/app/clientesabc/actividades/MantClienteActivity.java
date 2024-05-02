@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -61,6 +62,7 @@ import com.honeywell.aidc.UnsupportedPropertyException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
@@ -70,7 +72,7 @@ import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
-
+import proyecto.app.clientesabc.modelos.RespuestaPregunta;
 
 
 public class MantClienteActivity extends AppCompatActivity {
@@ -198,6 +200,12 @@ public class MantClienteActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        RecyclerView rv = findViewById(R.id.user_list);
+        ArrayList<HashMap<String, String>> clientList = db.getClientes();
+        mAdapter = new MyAdapter(clientList);
+        rv.setLayoutManager(new LinearLayoutManager(this));
+        rv.setAdapter(mAdapter);
+        rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
         FloatingActionButton fab = findViewById(R.id.fabBtn);
         if (fab != null) {
             fab.setEnabled(true);
@@ -331,27 +339,31 @@ public class MantClienteActivity extends AppCompatActivity {
             }
 
             //ENCUESTA GEC
+            long encuestaCreada=0;
+            encuestaCreada = db.getValidacionEncuestaPendiente(codigoCliente);
             com.rey.material.widget.LinearLayout  encuesta_gec_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.encuesta_gec_layout);
             ImageView imagen_encuesta_gec = (ImageView)holder.listView.findViewById(R.id.imagen_encuesta_gec);
-            if(false){
-                base_instalada_layout.setVisibility(View.GONE);
+            if(encuestaCreada>0){
+                imagen_encuesta_gec.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.blue,null)));
             }else{
-                base_instalada_layout.setVisibility(View.VISIBLE);
-                imagen_encuesta_gec.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Bundle bc = new Bundle();
-                        bc.putString("codigo_cliente", codigoCliente);
-                        bc.putString("nombre_cliente", nombreCliente);
-                        bc.putString("canal_cliente", canalCliente);
-                        bc.putString("correo_cliente", correoCliente);
-                        bc.putString("tipo_encuesta","GVC");
-                        intent = new Intent(getApplicationContext(), EncuestaActivity.class);
-                        intent.putExtras(bc); //Pase el parametro el Intent
-                        startActivity(intent);
-                    }
-                });
+                imagen_encuesta_gec.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red,null)));
+//                imagen_encuesta_gec
+
             }
+            imagen_encuesta_gec.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Bundle bc = new Bundle();
+                    bc.putString("codigo_cliente", codigoCliente);
+                    bc.putString("nombre_cliente", nombreCliente);
+                    bc.putString("canal_cliente", canalCliente);
+                    bc.putString("correo_cliente", correoCliente);
+                    bc.putString("tipo_encuesta","GVC");
+                    intent = new Intent(getApplicationContext(), EncuestaActivity.class);
+                    intent.putExtras(bc); //Pase el parametro el Intent
+                    startActivity(intent);
+                }
+            });
             //ENCUESTA GEC
 
 
