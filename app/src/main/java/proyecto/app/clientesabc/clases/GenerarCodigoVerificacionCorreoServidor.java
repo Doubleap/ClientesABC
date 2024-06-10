@@ -3,27 +3,25 @@ package proyecto.app.clientesabc.clases;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.vicmikhailau.maskededittext.MaskedEditText;
@@ -38,8 +36,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -47,16 +43,13 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.ConfiguracionGeneralActivity;
-import proyecto.app.clientesabc.modelos.EquipoFrio;
-import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
-public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,String> {
+public class GenerarCodigoVerificacionCorreoServidor extends AsyncTask<Void,String,String> {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
     private String sociedad;
     private String cliente;
-    private String num_celular;
+    private String correo;
     private boolean xceptionFlag = false;
     private String messageFlag = "";
     private ServerSocket ss;
@@ -64,12 +57,12 @@ public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,Str
     ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
     ImageView boton;
-    public GenerarCodigoVerificacionServidor(WeakReference<Context> c, WeakReference<Activity> a, String sociedad, String cliente, String num_celular, ImageView btn){
+    public GenerarCodigoVerificacionCorreoServidor(WeakReference<Context> c, WeakReference<Activity> a, String sociedad, String cliente, String correo, ImageView btn){
         this.context = c;
         this.activity = a;
         this.sociedad = sociedad;
         this.cliente = cliente;
-        this.num_celular = num_celular;
+        this.correo = correo;
         this.boton = btn;
     }
 
@@ -103,14 +96,14 @@ public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,Str
                 dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
                 dos.flush();
 
-                dos.writeUTF("GenerarCodigoVerificacion");
+                dos.writeUTF("GenerarCodigoVerificacionCorreo");
                 dos.flush();
 
                 //Enviar Codigo de cliente
                 dos.writeUTF(String.format("%10s", String.valueOf(cliente)).replace(' ', '0'));
                 dos.flush();
-                //Enviar Numero de celular
-                dos.writeUTF(num_celular);
+                //Enviar correo electronico
+                dos.writeUTF(correo);
                 dos.flush();
 
                 dos.writeUTF("FIN");
@@ -227,23 +220,16 @@ public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,Str
             //activity.get().finish();
             Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
         }else {
-            try {
-                SmsManager smsManager = SmsManager.getDefault();
                 try {
-                    smsManager.sendTextMessage(num_celular, null, "Código de Verificación: " + mensajes, null, null);
-                    Toasty.success(context.get(), "Código Generado y Enviado", Toast.LENGTH_LONG).show();
+                    Toasty.success(context.get(), "Código enviado al correo "+correo+".", Toast.LENGTH_LONG).show();
                     boton.setBackgroundTintList(ColorStateList.valueOf(context.get().getResources().getColor(R.color.devuelto, null)));
                     boton.setOnClickListener((View.OnClickListener) view -> {
                         //Abrir dialogo para digitar el codigo recibido.
-                        displayDialogVerificarCodigo(cliente, num_celular);
+                        displayDialogVerificarCodigo(cliente, correo);
                     });
                 } catch (Exception e) {
-                    Toasty.error(context.get(), "Error al verificar el numero celular: " + e.getMessage()).show();
+                    Toasty.error(context.get(), "Error al verificar el correo: " + e.getMessage()).show();
                 }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
     public void EnableWiFi(){
@@ -255,8 +241,20 @@ public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,Str
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifimanager.setWifiEnabled(false);
     }
+    // Method to send an HTML email to a single recipient without attachment
+    public void sendEmailSingleRecipient(String recipient, String subject, String htmlBody) {
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+        emailIntent.setData(Uri.parse("mailto:")); // only email apps should handle this
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{recipient}); // Single recipient
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
 
-    public void displayDialogVerificarCodigo(final String codigoCliente, final String num_celular) {
+        // Adding HTML body
+        emailIntent.putExtra(Intent.EXTRA_TEXT, Html.fromHtml(htmlBody));
+        emailIntent.setType("text/html");
+
+        context.get().startActivity(emailIntent);
+    }
+    public void displayDialogVerificarCodigo(final String codigoCliente, final String correo) {
         final Dialog d=new Dialog(context.get());
         d.setContentView(R.layout.verificar_codigo_dialog_layout);
         //INITIALIZE VIEWS
@@ -271,16 +269,16 @@ public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,Str
             public void onClick(View v) {
                 String codigo_txt = codigo.getText().toString();
                 if(codigo_txt.isEmpty()){
-                    Toasty.warning(v.getContext(), "Debe digitar el código enviado por SMS al celular del cliente # "+num_celular, Toast.LENGTH_SHORT).show();
+                    Toasty.warning(v.getContext(), "Debe digitar el código enviado por correo a la direccion "+correo, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 try{
                     //Realizar el llamada el servicio de la aplicacion para validar el codigo digitado
                     if (PreferenceManager.getDefaultSharedPreferences(context.get()).getString("tipo_conexion","").equals("api")) {
-                        VerificarCodigoServidor verificador = new VerificarCodigoServidor(context, activity, sociedad, cliente, num_celular, codigo_txt, boton);
+                        VerificarCodigoCorreoServidor verificador = new VerificarCodigoCorreoServidor(context, activity, sociedad, cliente, correo, codigo_txt, boton);
                         verificador.execute();
                     } else {
-                        VerificarCodigoServidor verificador = new VerificarCodigoServidor(context, activity, sociedad, cliente, num_celular, codigo_txt, boton);
+                        VerificarCodigoCorreoServidor verificador = new VerificarCodigoCorreoServidor(context, activity, sociedad, cliente, correo, codigo_txt, boton);
                         verificador.execute();
                     }
 

@@ -41,7 +41,7 @@ public class VariablesGlobales extends Application {
     //private static String urlApi = "http://10.153.58.132/";//Servidor produccion para BD, pero ambiente calidad en VM uruguay(El ambiente de produccion es el appservice en azure), ocupa VPN
     //private static String urlApi = "http://10.153.152.69:90/MaestroClientes/"; //URL CAM CALIDAD
     private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API en el app service azure
-    private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.56.71/FAWM_HVKOF;instance=MSSQLSERVER;user=maestro_clientes;password=kofcrmcli$;";
+    private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.56.71/FAWM_HVKOF;instance=MSSQLSERVER;user=maestro_clientes;password=kofcrmcli$;";//Esta no se usa, tiene mas delay de ejecucion.
     private static String nombrePais = "Costa Rica";
     private static String sociedad = "F443";
     private static String orgvta = "0443";

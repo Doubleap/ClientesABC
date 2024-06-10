@@ -4,11 +4,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.ColorStateList;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,13 +48,15 @@ public class VerificarCodigoServidor extends AsyncTask<Void,String,String> {
     private Socket socket;
     ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
-    public VerificarCodigoServidor(WeakReference<Context> c, WeakReference<Activity> a, String sociedad, String cliente, String num_celular, String codigo){
+    ImageView boton;
+    public VerificarCodigoServidor(WeakReference<Context> c, WeakReference<Activity> a, String sociedad, String cliente, String num_celular, String codigo, ImageView btn){
         this.context = c;
         this.activity = a;
         this.sociedad = sociedad;
         this.cliente = cliente;
         this.num_celular = num_celular;
         this.codigo = codigo;
+        this.boton = btn;
     }
 
     @Override
@@ -95,7 +99,7 @@ public class VerificarCodigoServidor extends AsyncTask<Void,String,String> {
                 dos.writeUTF(num_celular);
                 dos.flush();
                 //Enviar codigo a verificar
-                dos.writeUTF(num_celular);
+                dos.writeUTF(codigo);
                 dos.flush();
 
                 dos.writeUTF("FIN");
@@ -103,7 +107,7 @@ public class VerificarCodigoServidor extends AsyncTask<Void,String,String> {
 
                 //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la consulta para modificacion
                 long s = dis.readLong();
-                if (s < 0) {
+                if (s <= 0) {
                     publishProgress("Error al generar código de verificación en el servidor...");
                     s = dis.readLong();
                     byte[] e = new byte[(int) s];
@@ -112,18 +116,6 @@ public class VerificarCodigoServidor extends AsyncTask<Void,String,String> {
                     xceptionFlag = true;
                     messageFlag = "Error: " + error;
                 } else {
-                /*ORDEN DE ESTRUCTURAS SAP RECIBIDAS
-                        String jsonCliente = 0;
-                        String jsonNotaEntrega = 1;
-                        String jsonFactura = 2;
-                        String jsonTelefonos = 3;
-                        String jsonFaxes = 4;
-                        String jsonContactos = 5;
-                        String jsonInterlocutores = 6;
-                        String jsonImpuestos = 7;
-                        String jsonBancos = 8;
-                        String jsonVisitas = 9;*/
-
                     //Toda la info de cliente
                     publishProgress("Iniciando descarga...");
                     byte[] r = new byte[(int) s];
@@ -138,9 +130,6 @@ public class VerificarCodigoServidor extends AsyncTask<Void,String,String> {
                     publishProgress("Procesando datos recibidos...");
 
                     jsonrespuesta = new String(r);
-                    //Gson gson = new Gson();
-                    ///estructurasSAP.add(gson.fromJson(jsoncliente, JsonArray.class));
-                    //publishProgress("Procesando datos cliente..");
 
                 }
             }else{
@@ -211,18 +200,19 @@ public class VerificarCodigoServidor extends AsyncTask<Void,String,String> {
         if(xceptionFlag){
             //activity.get().finish();
             Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
-        }
-        try {
-            SmsManager smsManager = SmsManager.getDefault();
+        }else {
             try {
-                smsManager.sendTextMessage(num_celular, null, "Código de Verificación: "+mensajes, null, null);
-                Toasty.success(context.get(),"Código Generado y Enviado",Toast.LENGTH_LONG).show();
-            } catch (Exception e) {
-                Toasty.error(context.get(),"Error al verificar el numero celular: "+e.getMessage()).show();
-            }
+                try {
+                    boton.setBackgroundTintList(ColorStateList.valueOf(context.get().getResources().getColor(R.color.aprobados, null)));
+                    Toasty.success(context.get(), "Numero de celular verificado!", Toast.LENGTH_LONG).show();
+                    boton.setOnClickListener(null);
+                } catch (Exception e) {
+                    Toasty.error(context.get(), "Error al verificar el numero celular: " + e.getMessage()).show();
+                }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
     public void EnableWiFi(){

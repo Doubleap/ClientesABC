@@ -187,13 +187,11 @@ public class ValidacionAnomaliaServidor extends AsyncTask<Void,String,ArrayList<
         } catch (final Exception e) {
             // Do nothing.
         }
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("transmitido","1");
-        long update = db.update("CensoEquipoFrio",values,"trim(kunnr_censo) = ? AND trim(num_placa) = ? AND fecha_lectura = ? AND transmitido = '0'",new String[]{equipoFrio.getKunnrCenso(),equipoFrio.getNumPlaca(),equipoFrio.getFechaLectura()});
-        if(update <= 0){
-            //Toasty.success(context.get(),"No se actualizo el estado de transmision de la lectura!",Toast.LENGTH_LONG).show();
+        if(xceptionFlag){
+            Toasty.error(context.get(),messageFlag,Toast.LENGTH_SHORT).show();
         }
+        else{}
+
         if(dialog.isShowing()) {
             dialog.hide();
         }

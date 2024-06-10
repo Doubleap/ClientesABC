@@ -2,6 +2,8 @@ package proyecto.app.clientesabc.clases;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,6 +14,8 @@ import android.os.Build;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import androidx.core.content.FileProvider;
+
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,10 +30,12 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -138,6 +144,25 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
                         //UNZIP informacion recibida
                         boolean unzip = FileHelper.unzip(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "ClientesABC", externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
                         final File file = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "ClientesABC.apk");
+
+                        try {
+                            //Save in Download Folder too
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                ContentValues contentValues = new ContentValues();
+                                contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                                contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "ClientesABC_" + context.get().getSharedPreferences("CONFIG_SOCIEDAD", Context.MODE_PRIVATE).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad()) + ".apk");
+                                contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.android.package-archive");
+                                contentValues.put(MediaStore.MediaColumns.SIZE, s);
+
+                                Uri uri = context.get().getContentResolver().insert(MediaStore.Files.getContentUri("external"), contentValues);
+                                OutputStream outputStream = context.get().getContentResolver().openOutputStream(uri);
+                                outputStream.write(Files.readAllBytes(file.toPath()));
+                                outputStream.flush();
+                                outputStream.close();
+                            }
+                        }catch(Exception e){
+                            Toasty.info(context.get(), "No se pudo guardar el APK en la carpeta de Downloads!").show();
+                        }
 
                         if (unzip && file != null) {
                             Date lastModDate = new Date(file.lastModified());

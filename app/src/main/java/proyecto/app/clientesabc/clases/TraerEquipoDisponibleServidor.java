@@ -186,7 +186,7 @@ public class TraerEquipoDisponibleServidor extends AsyncTask<Void,String,ArrayLi
             // Do nothing.
         }
         if(dialog.isShowing()) {
-            dialog.hide();
+            dialog.dismiss();
         }
         if(xceptionFlag){
             Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();

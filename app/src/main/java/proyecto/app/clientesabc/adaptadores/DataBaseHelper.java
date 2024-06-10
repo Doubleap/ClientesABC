@@ -268,56 +268,75 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> clientList = new ArrayList<>();
         String query = "";
-        switch(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")){
-            case "F443":
-                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
-                        ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada,v.puertas_por_instalar"+
-                        " FROM SAPDClientes " +
-                        " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
-                break;
-            case "F445":
-            case "F451":
-                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
-                        ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada,v.puertas_por_instalar"+
-                        " FROM SAPDClientes " +
-                        " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
+        String columnas_monitor = "";
+        try {
+            boolean usaMonitor =  UsaMonitorEquipoFrio();
+            if(usaMonitor){
+                columnas_monitor = ",v.puertas_por_instalar";
+            }
+            switch (PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "")) {
+                case "F443":
+                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
+                            ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
+                            " FROM SAPDClientes ";
+                            if(usaMonitor)
+                                query += " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
                     break;
-            case "1657":
-            case "1658":
-            case "F446":
-                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
-                        ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada"+
-                        " FROM SAPDClientes";
-                break;
-            case "1661":
-            case "Z001":
-                query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, STRAS as direccion, 'Estado' as estado, KLABC as klabc, stcd1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
-                        ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada"+
-                        " FROM SAPDClientes";
-                break;
+                case "F445":
+                case "F451":
+                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
+                            ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
+                            " FROM SAPDClientes ";
+                        if(usaMonitor)
+                            query += " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
+                    break;
+                case "1657":
+                case "1658":
+                case "F446":
+                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
+                            ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
+                            " FROM SAPDClientes";
+                    if(usaMonitor)
+                        query += " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
+                    break;
+                case "1661":
+                case "Z001":
+                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, STRAS as direccion, 'Estado' as estado, KLABC as klabc, stcd1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
+                            ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
+                            " FROM SAPDClientes";
+                    if(usaMonitor)
+                        query += " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
+                    break;
+            }
+
+            Cursor cursor = mDataBase.rawQuery(query, null);
+            while (cursor.moveToNext()) {
+                HashMap<String, String> user = new HashMap<>();
+                user.put("codigo", cursor.getString(0) != null ? cursor.getString(0) : "");
+                user.put("nombre", cursor.getString(1) != null ? cursor.getString(1) : "");
+                user.put("razonSocial", cursor.getString(2) != null ? cursor.getString(2) : "");
+                user.put("direccion", cursor.getString(3) != null ? cursor.getString(3) : "");
+                user.put("estado", cursor.getString(4) != null ? cursor.getString(4) : "");
+                user.put("klabc", cursor.getString(cursor.getColumnIndex("klabc")) != null ? cursor.getString(cursor.getColumnIndex("klabc")) : "");
+                user.put("idfiscal", cursor.getString(cursor.getColumnIndex("stcd3")) != null ? cursor.getString(cursor.getColumnIndex("stcd3")) : "");
+                user.put("ubicacion", cursor.getString(cursor.getColumnIndex("street")) != null ? cursor.getString(cursor.getColumnIndex("street")) : "");
+                user.put("direccion", cursor.getString(cursor.getColumnIndex("str_suppl1")) != null ? cursor.getString(cursor.getColumnIndex("str_suppl1")) : "");
+                user.put("correo", cursor.getString(cursor.getColumnIndex("smtp_addr")) != null ? cursor.getString(cursor.getColumnIndex("smtp_addr")) : "");
+                user.put("latitud", cursor.getString(cursor.getColumnIndex("latitud")) != null ? cursor.getString(cursor.getColumnIndex("latitud")) : "");
+                user.put("longitud", cursor.getString(cursor.getColumnIndex("longitud")) != null ? cursor.getString(cursor.getColumnIndex("longitud")) : "");
+                user.put("cant_base_instalada", cursor.getString(cursor.getColumnIndex("cant_base_instalada")) != null ? cursor.getString(cursor.getColumnIndex("cant_base_instalada")) : "");
+                if (cursor.getColumnIndex("puertas_por_instalar") != -1) {
+                    user.put("puertas_por_instalar", cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) != null ? cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) : "");
+                }
+                user.put("canal", cursor.getString(cursor.getColumnIndex("canal")) != null ? cursor.getString(cursor.getColumnIndex("canal")) : "");
+                clientList.add(user);
+            }
+            cursor.close();
+        }catch(Exception e){
+            if(UsaMonitorEquipoFrio())
+                Toasty.error(mContext,"Se encontraron problemas con módulo de Monitor de Equio Frio. Error: "+e.getMessage()).show();
         }
 
-        Cursor cursor = mDataBase.rawQuery(query,null);
-        while (cursor.moveToNext()){
-            HashMap<String,String> user = new HashMap<>();
-            user.put("codigo",cursor.getString(0) != null ? cursor.getString(0) : "");
-            user.put("nombre",cursor.getString(1) != null ? cursor.getString(1) : "");
-            user.put("razonSocial",cursor.getString(2) != null ? cursor.getString(2) : "");
-            user.put("direccion",cursor.getString(3) != null ? cursor.getString(3) : "");
-            user.put("estado",cursor.getString(4) != null ? cursor.getString(4) : "");
-            user.put("klabc",cursor.getString(cursor.getColumnIndex("klabc")) != null ? cursor.getString(cursor.getColumnIndex("klabc")) : "");
-            user.put("idfiscal",cursor.getString(cursor.getColumnIndex("stcd3")) != null ? cursor.getString(cursor.getColumnIndex("stcd3")) : "");
-            user.put("ubicacion",cursor.getString(cursor.getColumnIndex("street")) != null ? cursor.getString(cursor.getColumnIndex("street")) : "");
-            user.put("direccion",cursor.getString(cursor.getColumnIndex("str_suppl1")) != null ? cursor.getString(cursor.getColumnIndex("str_suppl1")) : "");
-            user.put("correo",cursor.getString(cursor.getColumnIndex("smtp_addr")) != null ? cursor.getString(cursor.getColumnIndex("smtp_addr")) : "");
-            user.put("latitud",cursor.getString(cursor.getColumnIndex("latitud")) != null ? cursor.getString(cursor.getColumnIndex("latitud")) : "");
-            user.put("longitud",cursor.getString(cursor.getColumnIndex("longitud")) != null ? cursor.getString(cursor.getColumnIndex("longitud")) : "");
-            user.put("cant_base_instalada",cursor.getString(cursor.getColumnIndex("cant_base_instalada")) != null ? cursor.getString(cursor.getColumnIndex("cant_base_instalada")) : "");
-            user.put("puertas_por_instalar",cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) != null ? cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) : "");
-            user.put("canal",cursor.getString(cursor.getColumnIndex("canal")) != null ? cursor.getString(cursor.getColumnIndex("canal")) : "");
-            clientList.add(user);
-        }
-        cursor.close();
         return  clientList;
     }
 
@@ -609,6 +628,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             }catch(Exception e){}
 
             try {
+                //CAMPOS NUEVOS PARA MODULO CENSO QUIPO FRIO
+                solicitud.put("W_CTE-VENTA_COMPROMETIDA", cursor.getString(cursor.getColumnIndex("W_CTE-VENTA_COMPROMETIDA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VENTA_COMPROMETIDA")) : "");
+                solicitud.put("W_CTE-NUM_PUERTAS_ACTUAL", cursor.getString(cursor.getColumnIndex("W_CTE-NUM_PUERTAS_ACTUAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NUM_PUERTAS_ACTUAL")) : "");
+                solicitud.put("W_CTE-NUM_PUERTAS_MODELO", cursor.getString(cursor.getColumnIndex("W_CTE-NUM_PUERTAS_MODELO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NUM_PUERTAS_MODELO")) : "");
+                solicitud.put("W_CTE-PUERTAS_SUGERIDAS", cursor.getString(cursor.getColumnIndex("W_CTE-PUERTAS_SUGERIDAS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PUERTAS_SUGERIDAS")) : "");
+                solicitud.put("W_CTE-PUERTAS_INSTALADAS", cursor.getString(cursor.getColumnIndex("W_CTE-PUERTAS_INSTALADAS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PUERTAS_INSTALADAS")) : "");
+                solicitud.put("W_CTE-PUERTAS_OBJETIVO", cursor.getString(cursor.getColumnIndex("W_CTE-PUERTAS_OBJETIVO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PUERTAS_OBJETIVO")) : "");
+            }catch(Exception e){}
+
+            try {
                 //CAMPOS NUEVOS PARA CREDITO SAP4HANA
                 solicitud.put("W_CTE-CREDIT_SGMNT", cursor.getString(cursor.getColumnIndex("W_CTE-CREDIT_SGMNT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CREDIT_SGMNT")) : "");
                 solicitud.put("W_CTE-CREDIT_GROUP", cursor.getString(cursor.getColumnIndex("W_CTE-CREDIT_GROUP")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CREDIT_GROUP")) : "");
@@ -840,6 +869,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 solicitud.put("W_CTE-CE_CONTACTO_ADICIONAL", cursor.getString(cursor.getColumnIndex("W_CTE-CE_CONTACTO_ADICIONAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CE_CONTACTO_ADICIONAL")) : "");
             } catch (Exception e) {
             }
+            try {
+                //CAMPOS NUEVOS PARA MODULO CENSO QUIPO FRIO
+                solicitud.put("W_CTE-VENTA_COMPROMETIDA", cursor.getString(cursor.getColumnIndex("W_CTE-VENTA_COMPROMETIDA")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-VENTA_COMPROMETIDA")) : "");
+                solicitud.put("W_CTE-NUM_PUERTAS_MODELO", cursor.getString(cursor.getColumnIndex("W_CTE-NUM_PUERTAS_MODELO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NUM_PUERTAS_MODELO")) : "");
+                solicitud.put("W_CTE-NUM_PUERTAS_ACTUAL", cursor.getString(cursor.getColumnIndex("W_CTE-NUM_PUERTAS_ACTUAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-NUM_PUERTAS_ACTUAL")) : "");
+                solicitud.put("W_CTE-PUERTAS_SUGERIDAS", cursor.getString(cursor.getColumnIndex("W_CTE-PUERTAS_SUGERIDAS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PUERTAS_SUGERIDAS")) : "");
+                solicitud.put("W_CTE-PUERTAS_INSTALADAS", cursor.getString(cursor.getColumnIndex("W_CTE-PUERTAS_INSTALADAS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PUERTAS_INSTALADAS")) : "");
+                solicitud.put("W_CTE-PUERTAS_OBJETIVO", cursor.getString(cursor.getColumnIndex("W_CTE-PUERTAS_OBJETIVO")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-PUERTAS_OBJETIVO")) : "");
+            }catch(Exception e){}
+
             try {
                 //CAMPOS NUEVOS PARA CREDITO SAP4HANA
                 solicitud.put("W_CTE-CREDIT_SGMNT", cursor.getString(cursor.getColumnIndex("W_CTE-CREDIT_SGMNT")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CREDIT_SGMNT")) : "");
@@ -1112,16 +1151,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             case "SolicitudActivity":
         }*/
         String query = "SELECT * FROM (" +
-                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo, c.comentario_auto " +
+                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion_hh, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo, c.comentario_auto " +
                 "FROM configuracion c " +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"') " +
-                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion_hh) " +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
                 " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 "UNION " +
-                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo " +
+                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion_hh, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo " +
                 "FROM configuracion c " +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(cc.panta) = ( " +
                 " Select trim(cc2.panta) FROM configCampos cc2 WHERE trim(c.campo) = trim(cc2.CAMPO) AND trim(cc2.bukrs) = '"+BUKRS+"' and trim(cc2.ktokd) = '"+KTOKD+"' AND trim(cc2.panta) != trim(c.panta) LIMIT 1 " +
@@ -1129,13 +1168,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " SELECT DISTINCT trim(c.campo) " +
                 " FROM configuracion c " +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"')\n" +
-                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion_hh) " +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
                 " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 " )) " +
-                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion_hh) " +
                 "                LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 "                LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
                 "                WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' " +
@@ -1149,7 +1188,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("campo",cursor.getString(cursor.getColumnIndex("campo")) != null ? cursor.getString(cursor.getColumnIndex("campo")): "");
             user.put("nombre",cursor.getString(cursor.getColumnIndex("nombre")) != null ? cursor.getString(cursor.getColumnIndex("nombre")): "");
             user.put("tipo_input",cursor.getString(cursor.getColumnIndex("tipo_input")) != null ? cursor.getString(cursor.getColumnIndex("tipo_input")): "");
-            user.put("id_seccion",cursor.getString(cursor.getColumnIndex("id_seccion")) != null ? cursor.getString(cursor.getColumnIndex("id_seccion")): "");
+            user.put("id_seccion",cursor.getString(cursor.getColumnIndex("id_seccion_hh")) != null ? cursor.getString(cursor.getColumnIndex("id_seccion_hh")): "");
             user.put("seccion",cursor.getString(cursor.getColumnIndex("seccion")) != null ? cursor.getString(cursor.getColumnIndex("seccion")): "");
             user.put("descr",cursor.getString(cursor.getColumnIndex("descr")) != null ? cursor.getString(cursor.getColumnIndex("descr")): "");
             user.put("tabla",cursor.getString(cursor.getColumnIndex("tabla")) != null ? cursor.getString(cursor.getColumnIndex("tabla")): "");
@@ -1199,16 +1238,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             whereVigencia = " AND c.fecini <= datetime('now') AND c.fecfin >= datetime('now')";
         }
         String query = "SELECT * FROM (" +
-                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo, c.comentario_auto " +
+                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion_hh, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo, c.comentario_auto " +
                 "FROM configuracion c " +
                 " LEFT OUTER JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"') " +
-                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion_hh) " +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
                 " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " + whereVigencia +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 "UNION " +
-                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo, c.comentario_auto " +
+                "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion_hh, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo, c.comentario_auto " +
                 "FROM configuracion c " +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(cc.panta) = ( " +
                 " Select trim(cc2.panta) FROM configCampos cc2 WHERE trim(c.campo) = trim(cc2.CAMPO) AND trim(cc2.bukrs) = '"+BUKRS+"' and trim(cc2.ktokd) = '"+KTOKD+"' AND trim(cc2.panta) != trim(c.panta) LIMIT 1 " +
@@ -1216,13 +1255,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 " SELECT DISTINCT trim(c.campo) " +
                 " FROM configuracion c " +
                 " LEFT JOIN configCampos cc ON (trim(c.campo) = trim(cc.CAMPO) AND trim(c.panta) = trim(cc.panta) AND cc.bukrs = '"+BUKRS+"' and cc.ktokd = '"+KTOKD+"')\n" +
-                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion_hh) " +
                 " LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 " LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
                 " WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' AND trim(c.bukrs) = '"+BUKRS+"' " + whereVigencia +
                 " AND trim(cc.campo) NOT IN ('W_CTE-DUPLICADO','W_CTE-NOTIFICANTES') " +
                 " )) " +
-                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion) " +
+                " LEFT JOIN Seccion s ON (s.id_seccion = c.id_seccion_hh) " +
                 "                LEFT JOIN cat_tooltips t ON (t.id_bukrs = cc.bukrs AND t.id_tooltip = c.tooltip) " +
                 "                LEFT JOIN TABLES_META_DATA m ON (trim(m.COLUMN_NAME) = trim(c.campo)) " +
                 "                WHERE id_formulario = "+id_formulario+" AND trim(c.panta) = '"+pestana+"' " +
@@ -1236,7 +1275,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             user.put("campo",cursor.getString(cursor.getColumnIndex("campo")) != null ? cursor.getString(cursor.getColumnIndex("campo")): "");
             user.put("nombre",cursor.getString(cursor.getColumnIndex("nombre")) != null ? cursor.getString(cursor.getColumnIndex("nombre")): "");
             user.put("tipo_input",cursor.getString(cursor.getColumnIndex("tipo_input")) != null ? cursor.getString(cursor.getColumnIndex("tipo_input")): "");
-            user.put("id_seccion",cursor.getString(cursor.getColumnIndex("id_seccion")) != null ? cursor.getString(cursor.getColumnIndex("id_seccion")): "");
+            user.put("id_seccion",cursor.getString(cursor.getColumnIndex("id_seccion_hh")) != null ? cursor.getString(cursor.getColumnIndex("id_seccion_hh")): "");
             user.put("seccion",cursor.getString(cursor.getColumnIndex("seccion")) != null ? cursor.getString(cursor.getColumnIndex("seccion")): "");
             user.put("descr",cursor.getString(cursor.getColumnIndex("descr")) != null ? cursor.getString(cursor.getColumnIndex("descr")): "");
             user.put("tabla",cursor.getString(cursor.getColumnIndex("tabla")) != null ? cursor.getString(cursor.getColumnIndex("tabla")): "");
@@ -1269,7 +1308,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         // Select All Query
         String selectQuery = "select DISTINCT p.orden, c.panta, p.desc_panta from configuracion c " +
                 " join Pantalla p ON (p.id_panta = c.panta) " +
-                " where id_formulario = "+id_formulario+" " +
+                " where id_formulario = "+id_formulario+" AND c.fecini <= datetime('now') AND c.fecfin >= datetime('now')" +
                 " order by p.orden, c.panta, p.desc_panta";
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
@@ -1380,13 +1419,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             //db.close();
             // returning lables
         }catch (Exception e){
-            e.getMessage();
-            e.printStackTrace();
             HashMap<String,String> seleccione = new HashMap<>();
             seleccione.put("id","");
             seleccione.put("descripcion","Seleccione...");
             listaCatalogo.add(seleccione);
-            Toasty.error(mContext,"No se pudo extraer los datos de Catalogo "+tabla+". "+e.getMessage());
+            //Toasty.error(mContext,"No se pudo extraer los datos de Catalogo "+tabla+". "+e.getMessage()).show();
         }
         return listaCatalogo;
     }
@@ -2316,6 +2353,26 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return  ef;
     }
 
+    public HashMap<String, String> getEquipoFrioDatosMonitor(String num_equipo){
+        HashMap<String, String> equipo = new HashMap<>();
+        String query = "SELECT * FROM eq_inventario WHERE num_equipo = ?";
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{num_equipo});
+        while (cursor.moveToNext()){
+            equipo.put("sociedad",cursor.getString(cursor.getColumnIndex("sociedad"))!=null?cursor.getString(cursor.getColumnIndex("sociedad")).trim():"");
+            equipo.put("num_equipo",cursor.getString(cursor.getColumnIndex("num_equipo"))!=null?cursor.getString(cursor.getColumnIndex("num_equipo")).trim():"");
+            equipo.put("modelo",cursor.getString(cursor.getColumnIndex("modelo"))!=null?cursor.getString(cursor.getColumnIndex("modelo")).trim():"");
+            equipo.put("num_serie",cursor.getString(cursor.getColumnIndex("num_serie"))!=null?cursor.getString(cursor.getColumnIndex("num_serie")).trim():"");
+            equipo.put("num_puertas",cursor.getString(cursor.getColumnIndex("num_puertas"))!=null?cursor.getString(cursor.getColumnIndex("num_puertas")).trim():"");
+            equipo.put("estado",cursor.getString(cursor.getColumnIndex("estado"))!=null?cursor.getString(cursor.getColumnIndex("estado")).trim():"");
+            equipo.put("centro_suministro",cursor.getString(cursor.getColumnIndex("centro_suministro"))!=null?cursor.getString(cursor.getColumnIndex("centro_suministro")).trim():"");
+            equipo.put("codigo_cliente",cursor.getString(cursor.getColumnIndex("codigo_cliente"))!=null?cursor.getString(cursor.getColumnIndex("codigo_cliente")).trim():"");
+            equipo.put("nombre_cliente",cursor.getString(cursor.getColumnIndex("nombre_cliente"))!=null?cursor.getString(cursor.getColumnIndex("nombre_cliente")).trim():"");
+            equipo.put("emplazamiento",cursor.getString(cursor.getColumnIndex("emplazamiento"))!=null?cursor.getString(cursor.getColumnIndex("emplazamiento")).trim():"");
+        }
+        cursor.close();
+        return  equipo;
+    }
+
     public EquipoFrio getEquipoFrioDatosCenso(String num_placa){
         //SQLiteDatabase db = this.getWritableDatabase();
         EquipoFrio ef = new EquipoFrio();
@@ -3007,6 +3064,22 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     }
 
+    public Integer ConfiguracionxSociedad(String parametro) {
+        Integer param = 0;
+        try {
+            String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
+            String query = "SELECT " + parametro + " FROM cat_bukrs WHERE id_bukrs = ?";
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{sociedad});
+            if (cursor.moveToNext()) {
+                param = cursor.getInt(0);
+            }
+            cursor.close();
+        } catch (Exception e) {
+            //Toasty.warning(mContext, "Error al traer configuraciones de sociedad" + e.getMessage()).show();
+        }
+        return param;
+    }
+
     public Integer MaximoAlertas(String bukrs){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> formList = new ArrayList<>();
@@ -3503,6 +3576,23 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return nombreImagen;
     }
+    public boolean AccesoEquipoFrioLibre() {
+        int valor = 1;
+        try {
+            Cursor cursor = mDataBase.rawQuery("select opcion_ef_libre FROM ConfigReestriccionRuta WHERE ruta = ? OR (ruta = '*' AND bukrs = ?)", new String[]{PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH",""),PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")});
+            if (cursor.moveToNext()) {
+                valor = cursor.getInt(cursor.getColumnIndex("opcion_ef_libre"));
+            }
+            cursor.close();
+        }catch (Exception e){
+            return true;
+        }
+        if(valor > 0)
+            return true;
+        else {
+            return false;
+        }
+    }
     public String getGrupoCredito() {
         String grupoCredito = "";
         String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
@@ -3518,39 +3608,88 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return  grupoCredito;
     }
 
+    public boolean UsaMonitorEquipoFrio()
+    {
+        boolean retorno = false;
+        try {
+            String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
+            String query = "select usa_monitor_ef FROM cat_bukrs WHERE id_bukrs = ? ";
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{sociedad});
+            if (cursor.moveToNext()) {
+                retorno = cursor.getString(cursor.getColumnIndex("usa_monitor_ef")).trim().equals("1") ? true : false;
+            }
+            cursor.close();
+        }catch(Exception e){
+            //Toasty.error(mContext,"Error determinando Uso de Monitor Equipo Frio: "+e.getMessage()).show();
+        }
+        return retorno;
+    }
+
     public ArrayList<HashMap<String, String>> getDatosVistaMonitorEquipoFrioDB(String id_cliente){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, String>> dataMonitor = new ArrayList<>();
         String query = "SELECT * FROM VistaMonitorEquipoFrio v WHERE v.codigo_cliente = ?";
-        Cursor cursor = mDataBase.rawQuery(query,new String[]{id_cliente});
+        try {
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{id_cliente});
 
-        while (cursor.moveToNext()){
-            HashMap<String, String> solicitud = new HashMap<>();
-            solicitud.put("estado", cursor.getString(cursor.getColumnIndex("estado")) != null ? cursor.getString(cursor.getColumnIndex("estado")) : "");
-            solicitud.put("prioridad", cursor.getString(cursor.getColumnIndex("prioridad")) != null ? cursor.getString(cursor.getColumnIndex("prioridad")) : "");
-            solicitud.put("desc_prioridad", cursor.getString(cursor.getColumnIndex("desc_prioridad")) != null ? cursor.getString(cursor.getColumnIndex("desc_prioridad")) : "");
-            solicitud.put("ruta", cursor.getString(cursor.getColumnIndex("ruta")) != null ? cursor.getString(cursor.getColumnIndex("ruta")) : "");
-            solicitud.put("codigo_cliente", cursor.getString(cursor.getColumnIndex("codigo_cliente")) != null ? cursor.getString(cursor.getColumnIndex("codigo_cliente")) : "");
-            solicitud.put("nombre_cliente", cursor.getString(cursor.getColumnIndex("nombre_cliente")) != null ? cursor.getString(cursor.getColumnIndex("nombre_cliente")) : "");
-            solicitud.put("gec", cursor.getString(cursor.getColumnIndex("gec")) != null ? cursor.getString(cursor.getColumnIndex("gec")) : "");
-            solicitud.put("desc_gec", cursor.getString(cursor.getColumnIndex("desc_gec")) != null ? cursor.getString(cursor.getColumnIndex("desc_gec")) : "");
-            solicitud.put("tipo_canal", cursor.getString(cursor.getColumnIndex("tipo_canal")) != null ? cursor.getString(cursor.getColumnIndex("tipo_canal")) : "");
-            solicitud.put("desc_tipo_canal", cursor.getString(cursor.getColumnIndex("desc_tipo_canal")) != null ? cursor.getString(cursor.getColumnIndex("desc_tipo_canal")) : "");
-            solicitud.put("venta_actual", cursor.getString(cursor.getColumnIndex("venta_actual")) != null ? cursor.getString(cursor.getColumnIndex("venta_actual")) : "");
-            solicitud.put("venta_comprometida", cursor.getString(cursor.getColumnIndex("venta_comprometida")) != null ? cursor.getString(cursor.getColumnIndex("venta_comprometida")) : "");
-            solicitud.put("venta_total", cursor.getString(cursor.getColumnIndex("venta_total")) != null ? cursor.getString(cursor.getColumnIndex("venta_total")) : "");
-            solicitud.put("puertas_sugeridas", cursor.getString(cursor.getColumnIndex("puertas_sugeridas")) != null ? cursor.getString(cursor.getColumnIndex("puertas_sugeridas")) : "");
-            solicitud.put("puertas_instaladas", cursor.getString(cursor.getColumnIndex("puertas_instaladas")) != null ? cursor.getString(cursor.getColumnIndex("puertas_instaladas")) : "");
-            solicitud.put("puertas_proceso", cursor.getString(cursor.getColumnIndex("puertas_proceso")) != null ? cursor.getString(cursor.getColumnIndex("puertas_proceso")) : "");
-            solicitud.put("puertas_por_instalar", cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) != null ? cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) : "");
-            solicitud.put("puertas_objetivo", cursor.getString(cursor.getColumnIndex("puertas_objetivo")) != null ? cursor.getString(cursor.getColumnIndex("puertas_objetivo")) : "");
-            solicitud.put("solicitud", cursor.getString(cursor.getColumnIndex("solicitud")) != null ? cursor.getString(cursor.getColumnIndex("solicitud")) : "");
-            solicitud.put("cajas_monitor_ef", cursor.getString(cursor.getColumnIndex("cajas_monitor_ef")) != null ? cursor.getString(cursor.getColumnIndex("cajas_monitor_ef")) : "");
-            solicitud.put("pais", cursor.getString(cursor.getColumnIndex("pais")) != null ? cursor.getString(cursor.getColumnIndex("pais")) : "");
+            while (cursor.moveToNext()) {
+                HashMap<String, String> solicitud = new HashMap<>();
+                solicitud.put("estado", cursor.getString(cursor.getColumnIndex("estado")) != null ? cursor.getString(cursor.getColumnIndex("estado")) : "");
+                solicitud.put("prioridad", cursor.getString(cursor.getColumnIndex("prioridad")) != null ? cursor.getString(cursor.getColumnIndex("prioridad")) : "");
+                solicitud.put("desc_prioridad", cursor.getString(cursor.getColumnIndex("desc_prioridad")) != null ? cursor.getString(cursor.getColumnIndex("desc_prioridad")) : "");
+                solicitud.put("ruta", cursor.getString(cursor.getColumnIndex("ruta")) != null ? cursor.getString(cursor.getColumnIndex("ruta")) : "");
+                solicitud.put("codigo_cliente", cursor.getString(cursor.getColumnIndex("codigo_cliente")) != null ? cursor.getString(cursor.getColumnIndex("codigo_cliente")) : "");
+                solicitud.put("nombre_cliente", cursor.getString(cursor.getColumnIndex("nombre_cliente")) != null ? cursor.getString(cursor.getColumnIndex("nombre_cliente")) : "");
+                solicitud.put("gec", cursor.getString(cursor.getColumnIndex("gec")) != null ? cursor.getString(cursor.getColumnIndex("gec")) : "");
+                solicitud.put("desc_gec", cursor.getString(cursor.getColumnIndex("desc_gec")) != null ? cursor.getString(cursor.getColumnIndex("desc_gec")) : "");
+                solicitud.put("tipo_canal", cursor.getString(cursor.getColumnIndex("tipo_canal")) != null ? cursor.getString(cursor.getColumnIndex("tipo_canal")) : "");
+                solicitud.put("desc_tipo_canal", cursor.getString(cursor.getColumnIndex("desc_tipo_canal")) != null ? cursor.getString(cursor.getColumnIndex("desc_tipo_canal")) : "");
+                solicitud.put("venta_actual", cursor.getString(cursor.getColumnIndex("venta_actual")) != null ? cursor.getString(cursor.getColumnIndex("venta_actual")) : "");
+                solicitud.put("venta_comprometida", cursor.getString(cursor.getColumnIndex("venta_comprometida")) != null ? cursor.getString(cursor.getColumnIndex("venta_comprometida")) : "");
+                solicitud.put("venta_total", cursor.getString(cursor.getColumnIndex("venta_total")) != null ? cursor.getString(cursor.getColumnIndex("venta_total")) : "");
+                solicitud.put("puertas_sugeridas", cursor.getString(cursor.getColumnIndex("puertas_sugeridas")) != null ? cursor.getString(cursor.getColumnIndex("puertas_sugeridas")) : "");
+                solicitud.put("puertas_instaladas", cursor.getString(cursor.getColumnIndex("puertas_instaladas")) != null ? cursor.getString(cursor.getColumnIndex("puertas_instaladas")) : "");
+                solicitud.put("puertas_proceso", cursor.getString(cursor.getColumnIndex("puertas_proceso")) != null ? cursor.getString(cursor.getColumnIndex("puertas_proceso")) : "");
+                solicitud.put("puertas_por_instalar", cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) != null ? cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) : "");
+                solicitud.put("puertas_objetivo", cursor.getString(cursor.getColumnIndex("puertas_objetivo")) != null ? cursor.getString(cursor.getColumnIndex("puertas_objetivo")) : "");
+                solicitud.put("solicitud", cursor.getString(cursor.getColumnIndex("solicitud")) != null ? cursor.getString(cursor.getColumnIndex("solicitud")) : "");
+                solicitud.put("cajas_monitor_ef", cursor.getString(cursor.getColumnIndex("cajas_monitor_ef")) != null ? cursor.getString(cursor.getColumnIndex("cajas_monitor_ef")) : "");
+                solicitud.put("pais", cursor.getString(cursor.getColumnIndex("pais")) != null ? cursor.getString(cursor.getColumnIndex("pais")) : "");
 
-            dataMonitor.add(solicitud);
+                solicitud.put("prioridad_volumen", cursor.getString(cursor.getColumnIndex("prioridad_volumen")) != null ? cursor.getString(cursor.getColumnIndex("prioridad_volumen")) : "");
+                solicitud.put("prioridad_cliente", cursor.getString(cursor.getColumnIndex("prioridad_cliente")) != null ? cursor.getString(cursor.getColumnIndex("prioridad_cliente")) : "");
+                solicitud.put("prioridad_por_objetivo", cursor.getString(cursor.getColumnIndex("prioridad_por_objetivo")) != null ? cursor.getString(cursor.getColumnIndex("prioridad_por_objetivo")) : "");
+                solicitud.put("prioridad_gec", cursor.getString(cursor.getColumnIndex("prioridad_gec")) != null ? cursor.getString(cursor.getColumnIndex("prioridad_gec")) : "");
+
+                dataMonitor.add(solicitud);
+            }
+            cursor.close();
+        }catch(Exception e){
+            if(UsaMonitorEquipoFrio())
+                Toasty.warning(mContext,"Error al obtener datos de la Vista de Monitor de Equipo Frio: "+e.getMessage()).show();
         }
-        cursor.close();
         return  dataMonitor;
+    }
+
+    public ArrayList<String> CalcularPrioridad(ArrayList<HashMap<String, String>> formList) {
+        int sumaPrioridades = Integer.parseInt(formList.get(0).get("prioridad_volumen"))+Integer.parseInt(formList.get(0).get("prioridad_cliente"))+Integer.parseInt(formList.get(0).get("prioridad_por_objetivo"))+Integer.parseInt(formList.get(0).get("prioridad_gec"));
+        ArrayList<String> retorno = new ArrayList<>();
+        try {
+            String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
+            String query = "select valor, valor2, valor3, p.PRIOKX as desc_prioridad FROM ConfigConstantes " +
+                    " LEFT JOIN cat_ef_prioridades AS p ON (p.PRIOK = ConfigConstantes.valor3)" +
+                    " WHERE bukrs = ? AND constante like '%rango_prioridad%'";
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{sociedad});
+            while (cursor.moveToNext()){
+                if(Integer.parseInt(cursor.getString(cursor.getColumnIndex("valor")).trim()) <= sumaPrioridades && Integer.parseInt(cursor.getString(cursor.getColumnIndex("valor2")).trim()) > sumaPrioridades) {
+                    retorno.add(cursor.getString(cursor.getColumnIndex("valor3")).trim());
+                    retorno.add(cursor.getString(cursor.getColumnIndex("desc_prioridad")).trim());
+                }
+            }
+            cursor.close();
+        }catch(Exception e){
+            Toasty.error(mContext,"Error determinando la prioridad sugerida: "+e.getMessage()).show();
+        }
+        return retorno;
     }
 }

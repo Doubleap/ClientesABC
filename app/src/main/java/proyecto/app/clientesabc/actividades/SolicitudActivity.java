@@ -33,6 +33,7 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -66,6 +67,7 @@ import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.cardview.widget.CardView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.widget.CompoundButtonCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -125,9 +127,12 @@ import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
 import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
 import proyecto.app.clientesabc.clases.CustomTimePickerDialog;
 import proyecto.app.clientesabc.clases.DialogHandler;
+import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionCorreoServidor;
+import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionServidor;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.Validaciones;
+import proyecto.app.clientesabc.clases.ValidarIdConInspektor;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
@@ -334,19 +339,31 @@ public class SolicitudActivity extends AppCompatActivity {
                                     if(tv.isFocused())
                                         tv.clearFocus();
                                 }
-                                if(valor.isEmpty()){
+                                if(valor.isEmpty() && !listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") && !listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG")){
                                     tv.setError("El campo "+tv.getTag()+" es obligatorio!");
                                     numErrores++;
                                     mensajeError += "- "+tv.getTag()+"\n";
                                 }
                                 if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") || listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG")){
-                                    if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") && !Validaciones.ValidarCoordenadaY(tv)){
-                                        numErrores++;
-                                        mensajeError += "- Formato Coordenada Y invalido\n";
+                                    if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT")){
+                                        if(tv.getText().toString().replace("0","").replace(".","").isEmpty()){
+                                            numErrores++;
+                                            mensajeError += "- El campo Coordenada Y no puede ser 0 cuando es obligatorio.\n";
+                                        }else
+                                        if(!Validaciones.ValidarCoordenadaY(tv)) {
+                                            numErrores++;
+                                            mensajeError += "- Formato Coordenada Y invalido\n";
+                                        }
                                     }
-                                    if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG") && !Validaciones.ValidarCoordenadaX(tv)){
-                                        numErrores++;
-                                        mensajeError += "- Formato Coordenada X invalido\n";
+                                    if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG")){
+                                        if(tv.getText().toString().replace("0","").replace(".","").isEmpty()){
+                                            numErrores++;
+                                            mensajeError += "- El campo Coordenada X no puede ser 0 cuando es obligatorio.\n";
+                                        }else
+                                        if(!Validaciones.ValidarCoordenadaX(tv)) {
+                                            numErrores++;
+                                            mensajeError += "- Formato Coordenada X invalido\n";
+                                        }
                                     }
                                 }
                             }catch(Exception e){
@@ -1307,6 +1324,20 @@ public class SolicitudActivity extends AppCompatActivity {
                                             public void onFocusChange(View v, boolean hasFocus) {
                                                 if (!hasFocus) {
                                                     ValidarCedula(v, opcion.getId());
+                                                    TextView texto = (TextView) v;
+                                                    if(!texto.getText().toString().trim().equals("")){
+                                                        if(db.ConfiguracionxSociedad("verificar_cedula_api").toString().equals("1")){
+                                                            WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
+                                                            WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+                                                            if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
+                                                                ValidarIdConInspektor inspektor = new ValidarIdConInspektor(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS",""), texto.getText().toString().trim(),texto);
+                                                                inspektor.execute();
+                                                            } else {
+                                                                ValidarIdConInspektor inspektor = new ValidarIdConInspektor(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS",""), texto.getText().toString().trim(),texto);
+                                                                inspektor.execute();
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         });
@@ -2132,6 +2163,187 @@ public class SolicitudActivity extends AppCompatActivity {
                                 fila.addView(btnAyudai);
                         }
 
+                        if(campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").toLowerCase().equals("verificarcelular") && modificable){
+                            lp.setMargins(0, 15, 0, 15);
+                            et.setLayoutParams(lp);
+                            btnAyuda = new ImageView(getContext());
+                            if(android.os.Build.VERSION.SDK_INT <= 27){
+                                btnlp = new TableRow.LayoutParams(75, 75);
+                                textolp.setMargins(0, 0, 75, 0);
+                                btnlp.setMargins(-75, 10, 75, 0);
+                            }
+                            if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
+                                textolp.setMargins(0, 0, 25, 0);
+                                btnlp.setMargins(-75, 20, 95, 0);
+                                lp.setMargins(0, 15, 75, 15);
+                                et.setLayoutParams(lp);
+                            }
+                            if(android.os.Build.VERSION.SDK_INT >= 30){
+                                btnlp = new TableRow.LayoutParams(75, 75);
+                                btnlp.setMargins(-75, 50, 0, 0);
+                                textolp.setMargins(0, 0, 0, 0);
+                                lp.setMargins(0, 15, 80, 15);
+                                et.setLayoutParams(lp);
+                            }
+                            label.setLayoutParams(textolp);
+                            btnAyuda.setBackground(getResources().getDrawable(R.drawable.icon_privacy,null));
+                            btnAyuda.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red,null)));
+                            // btnlp.setMargins(0,35,5,0);
+                            btnAyuda.setLayoutParams(btnlp);
+                            btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                            btnAyuda.setForegroundGravity(GRAVITY_CENTER);
+                            //TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                            ToolTipsManager mToolTipsManager = new ToolTipsManager();
+                            ToolTip.Builder builder = new ToolTip.Builder(getContext(), et, (RelativeLayout)_ll.getParent() ,  "Presione para verificar el número de celular", ToolTip.POSITION_ABOVE);
+                            builder.setAlign(ToolTip.ALIGN_LEFT);
+                            //builder.setBackgroundColor(getResources().getColor(R.color.gray,null));
+                            builder.setGravity(ToolTip.GRAVITY_LEFT);
+                            builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+                            int finalI2 = i;
+                            ImageView finalBtnAyuda = btnAyuda;
+                            btnAyuda.setOnClickListener((View.OnClickListener) view -> {
+                                String bukrs = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
+                                if(isValidPhoneNumber(et.getText().toString(),bukrs)){
+                                    WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
+                                    WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+                                    if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
+                                        GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda);
+                                        v.execute();
+                                    } else {
+                                        GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda);
+                                        v.execute();
+                                    }
+                                }else{
+                                    Toasty.warning(getContext(),"El numero '"+et.getText().toString()+"' no es válido.").show();
+                                }
+                            });
+                            btnAyuda.setOnLongClickListener((View.OnLongClickListener) view -> {
+                                mToolTipsManager.show(builder.build());
+                                return true;
+                            });
+                            ImageView finalBtnAyuda1 = btnAyuda;
+                            et.addTextChangedListener(new TextWatcher() {
+
+                                public void afterTextChanged(Editable s) {
+                                    //Restuarar icono de varificacion de numero celular
+                                    finalBtnAyuda1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.rechazado, null)));
+                                    finalBtnAyuda1.setOnClickListener((View.OnClickListener) view -> {
+                                        String bukrs = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
+                                        if(isValidPhoneNumber(et.getText().toString(),bukrs)){
+                                            WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
+                                            WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+                                            if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
+                                                GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda);
+                                                v.execute();
+                                            } else {
+                                                GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda);
+                                                v.execute();
+                                            }
+                                        }else{
+                                            Toasty.warning(getContext(),"El numero '"+et.getText().toString()+"' no es válido.").show();
+                                        }
+                                    });
+                                }
+
+                                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                                }
+
+                                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                }
+
+                            });
+                        }
+                        if(campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").toLowerCase().equals("verificarcorreo") && modificable){
+                            lp.setMargins(0, 15, 0, 15);
+                            et.setLayoutParams(lp);
+                            btnAyuda = new ImageView(getContext());
+                            if(android.os.Build.VERSION.SDK_INT <= 27){
+                                btnlp = new TableRow.LayoutParams(75, 75);
+                                textolp.setMargins(0, 0, 75, 0);
+                                btnlp.setMargins(-75, 10, 75, 0);
+                            }
+                            if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
+                                textolp.setMargins(0, 0, 25, 0);
+                                btnlp.setMargins(-75, 20, 95, 0);
+                                lp.setMargins(0, 15, 75, 15);
+                                et.setLayoutParams(lp);
+                            }
+                            if(android.os.Build.VERSION.SDK_INT >= 30){
+                                btnlp = new TableRow.LayoutParams(75, 75);
+                                btnlp.setMargins(-75, 50, 0, 0);
+                                textolp.setMargins(0, 0, 0, 0);
+                                lp.setMargins(0, 15, 80, 15);
+                                et.setLayoutParams(lp);
+                            }
+                            label.setLayoutParams(textolp);
+                            btnAyuda.setBackground(getResources().getDrawable(R.drawable.icon_privacy,null));
+                            btnAyuda.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red,null)));
+                            // btnlp.setMargins(0,35,5,0);
+                            btnAyuda.setLayoutParams(btnlp);
+                            btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                            btnAyuda.setForegroundGravity(GRAVITY_CENTER);
+                            //TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                            ToolTipsManager mToolTipsManager = new ToolTipsManager();
+                            ToolTip.Builder builder = new ToolTip.Builder(getContext(), et, (RelativeLayout)_ll.getParent() ,  "Presione para verificar el número de celular", ToolTip.POSITION_ABOVE);
+                            builder.setAlign(ToolTip.ALIGN_LEFT);
+                            //builder.setBackgroundColor(getResources().getColor(R.color.gray,null));
+                            builder.setGravity(ToolTip.GRAVITY_LEFT);
+                            builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+                            int finalI2 = i;
+                            ImageView finalBtnAyuda = btnAyuda;
+                            btnAyuda.setOnClickListener((View.OnClickListener) view -> {
+                                String bukrs = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
+                                if(Validaciones.isValidEmail(et.getText().toString())){
+                                    WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
+                                    WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+                                    if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
+                                        GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda);
+                                        v.execute();
+                                    } else {
+                                        GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda);
+                                        v.execute();
+                                    }
+                                }else{
+                                    Toasty.warning(getContext(),"El correo '"+et.getText().toString()+"' no es válido.").show();
+                                }
+                            });
+                            btnAyuda.setOnLongClickListener((View.OnLongClickListener) view -> {
+                                mToolTipsManager.show(builder.build());
+                                return true;
+                            });
+                            ImageView finalBtnAyuda1 = btnAyuda;
+                            et.addTextChangedListener(new TextWatcher() {
+                                public void afterTextChanged(Editable s) {
+                                    //Restuarar icono de varificacion de numero celular
+                                    finalBtnAyuda1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.rechazado, null)));
+                                    finalBtnAyuda1.setOnClickListener((View.OnClickListener) view -> {
+                                        String bukrs = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
+                                        if(Validaciones.isValidEmail(et.getText().toString())){
+                                            WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
+                                            WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+                                            if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
+                                                GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda);
+                                                v.execute();
+                                            } else {
+                                                GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda);
+                                                v.execute();
+                                            }
+                                        }else{
+                                            Toasty.warning(getContext(),"El correo '"+et.getText().toString()+"' no es válido.").show();
+                                        }
+                                    });
+                                }
+
+                                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                                }
+
+                                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                }
+
+                            });
+                        }
                         label.addView(et);
                         fila.addView(label);
                         if (btnAyuda != null)
@@ -2165,6 +2377,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             });
                             et.setText(et.getText().toString().replace(",", "."));
                         }
+
                         if (campos.get(i).get("campo").trim().equals("W_CTE-COMENTARIOS")) {
                             et.setSingleLine(false);
                             et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
@@ -2370,6 +2583,47 @@ public class SolicitudActivity extends AppCompatActivity {
                     mapeoCamposDinamicos.put("politica",checkbox);
                 }
             }
+        }
+
+        public final static boolean isValidPhoneNumber(String v, String bukrs) {
+            boolean retorno = false;
+            String codigoPais = "";
+            Pattern PHONE = Pattern.compile(                      // sdd = space, dot, or dash
+                    "(\\+[0-9]+[\\- \\.]*)?"        // +<digits><sdd>*
+                            + "(\\([0-9]+\\)[\\- \\.]*)?"   // (<digits>)<sdd>*
+                            + "([0-9][0-9\\- \\.]+[0-9])");
+            switch(bukrs){
+                case "F443":
+                    codigoPais = "506";
+                case "F445":
+                    codigoPais = "505";
+                case "F446":
+                    codigoPais = "52";
+                case "F451":
+                    codigoPais = "507";
+                case "1657":
+                    codigoPais = "52";
+                case "1658":
+                    codigoPais = "52";
+                case "1661":
+                    codigoPais = "598";
+                case "Z001":
+                    codigoPais = "598";
+                    break;
+                case "COLOMBIA":
+                    codigoPais = "57";
+                    break;
+                case "ARGENTINA":
+                    codigoPais = "54";
+                    break;
+                default:
+                    codigoPais = "506";
+                    return true;
+
+            }
+            String numero = (String)v;
+            boolean valido = !TextUtils.isEmpty(numero) && PHONE.matcher(numero).matches();
+            return valido;
         }
 
         private void ActualizarAprobadores() {

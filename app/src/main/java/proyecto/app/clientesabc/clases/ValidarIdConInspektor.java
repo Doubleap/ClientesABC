@@ -2,35 +2,30 @@ package proyecto.app.clientesabc.clases;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
+import android.content.res.ColorStateList;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.core.content.FileProvider;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -39,36 +34,39 @@ import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 
-public class ImagenServidor extends AsyncTask<Void,String,Bitmap> {
+public class ValidarIdConInspektor extends AsyncTask<Void,String,String> {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
-    private ImageView imagen;
-    private TextView tv_nombre;
-    private String nombre;
+    private String sociedad;
+    private String cliente;
+    private String num_celular;
+    private String codigo;
     private boolean xceptionFlag = false;
     private String messageFlag = "";
     private ServerSocket ss;
     private Socket socket;
-    private Bitmap adjunto;
-    private byte[] adjuntoArray;
+    ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
-    public ImagenServidor(WeakReference<Context> c, WeakReference<Activity> a, ImageView imagen, TextView tv_nombre){
+    TextView campo;
+    public ValidarIdConInspektor(WeakReference<Context> c, WeakReference<Activity> a, String sociedad, String cliente, TextView campo){
         this.context = c;
         this.activity = a;
-        this.imagen = imagen;
-        this.tv_nombre = tv_nombre;
+        this.sociedad = sociedad;
+        this.cliente = cliente;
+        this.campo = campo;
     }
+
     @Override
-    protected Bitmap doInBackground(Void... voids) {
+    protected String doInBackground(Void... voids) {
+        ArrayList<JsonArray> estructurasSAP = new ArrayList<>();
+        String jsonrespuesta = "";
         //Solo enviamos los datos necesarios para que la sincronizacion sepa que traer
         try {
             publishProgress("Estableciendo comunicación...");
             System.out.println("Estableciendo comunicación para enviar archivos...");
             String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
             if(mensaje.equals("")) {
-                socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", "").trim(), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "").trim()));
-                // Enviar archivo en socket
-                File myFile = new File(context.get().getDatabasePath("FAWM_ANDROID_2").getPath());
+                socket = new Socket(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Ip", ""), Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("Puerto", "")));
 
                 System.out.println("Creando Streams de datos...");
                 DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
@@ -88,29 +86,20 @@ public class ImagenServidor extends AsyncTask<Void,String,Bitmap> {
                 dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
                 dos.flush();
 
-                dos.writeUTF("Imagen");
+                dos.writeUTF("ValidarIdConInspektor");
                 dos.flush();
 
-                //Enviar ruta de folder donde se encuentra el adjunto con nombre del adjunto
-                //nombre = "F443\\2158\\2158.pdf";
-                nombre = tv_nombre.getText().toString();
-                dos.writeUTF(nombre);
+                //Enviar identificacion del cliente
+                dos.writeUTF(String.format("%10s", String.valueOf(cliente)).replace(' ', '0'));
                 dos.flush();
-
-            /*//Enviar PAIS para folder donde se encuentra el adjunto
-            dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_BUKRS",""));
-            dos.flush();
-            //Enviar numero de formulario donde se encuentra el pais
-            dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_BUKRS",""));
-            dos.flush();*/
 
                 dos.writeUTF("FIN");
                 dos.flush();
 
-                //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
+                //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la consulta para modificacion
                 long s = dis.readLong();
-                if (s < 0) {
-                    publishProgress("Error al obtener adjunto...");
+                if (s <= 0) {
+                    publishProgress("Error al generar código de verificación en el servidor...");
                     s = dis.readLong();
                     byte[] e = new byte[(int) s];
                     dis.readFully(e);
@@ -118,25 +107,28 @@ public class ImagenServidor extends AsyncTask<Void,String,Bitmap> {
                     xceptionFlag = true;
                     messageFlag = "Error: " + error;
                 } else {
-                    publishProgress("Recibiendo datos...");
+                    //Toda la info de cliente
+                    publishProgress("Iniciando descarga...");
                     byte[] r = new byte[(int) s];
-                    Thread.sleep(500);//No se por que ocupa para que no falle la extraccion de la imagen
-                    dis.readFully(r);
+                    int offset = 0;
+                    int bytesRead;
+                    while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
+                        offset += bytesRead;
+                        publishProgress("Descargando..." + String.format("%.02f", (100f / (s / 1024f)) * (offset / 1024f)) + "%");
+                    }
                     dos.writeUTF("END");
                     dos.flush();
                     publishProgress("Procesando datos recibidos...");
-                    if (nombre.toLowerCase().contains(".pdf")) {
-                        adjuntoArray = r;
-                    } else {
-                        adjunto = BitmapFactory.decodeByteArray(r, 0, r.length);
-                    }
+
+                    jsonrespuesta = new String(r);
+
                 }
             }else{
                 xceptionFlag = true;
                 messageFlag = mensaje;
             }
             publishProgress("Proceso Terminado...");
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             xceptionFlag = true;
             messageFlag = e.getMessage();
             e.printStackTrace();
@@ -154,8 +146,7 @@ public class ImagenServidor extends AsyncTask<Void,String,Bitmap> {
             messageFlag = e.getMessage();
             e.printStackTrace();
         }
-
-        return adjunto;
+        return jsonrespuesta;
     }
 
     @Override
@@ -172,9 +163,11 @@ public class ImagenServidor extends AsyncTask<Void,String,Bitmap> {
         builder.setView(R.layout.layout_loading_dialog);
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
-            public void onCancel(DialogInterface dialogInterface) {
+            public void onCancel(DialogInterface dialog) {
                 messageFlag = "Proceso cancelado por el usuario.";
                 cancel(true);
+                Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
+                activity.get().finish();
             }
         });
         dialog = builder.create();
@@ -183,61 +176,36 @@ public class ImagenServidor extends AsyncTask<Void,String,Bitmap> {
         }
     }
     @Override
-    protected void onPostExecute(Bitmap adjunto) {
-        super.onPostExecute(adjunto);
-        if (!xceptionFlag){
-            if(adjunto != null) {
-                imagen.setImageBitmap(Bitmap.createScaledBitmap(adjunto, adjunto.getWidth(), adjunto.getHeight(), true));
-            }else{
-                File tempPDF;
-                String ext="";
-                try {
-                    MimeTypeMap mime = MimeTypeMap.getSingleton();
-                    int index = nombre.lastIndexOf('.')+1;
-                    ext = nombre.substring(index).toLowerCase();
-                    String type = mime.getMimeTypeFromExtension(ext);
-                    File folder = new File(context.get().getExternalFilesDir(null), "Download");
-                    tempPDF = new File(folder, "TempMC."+ext);
-                    //tempPDF = File.createTempFile("temp", ".pdf", context.get().getExternalCacheDir());
-                    //RandomAccessFile raf = new RandomAccessFile(tempPDF, "r");
-                    tempPDF.deleteOnExit();
-
-                    FileOutputStream fos = new FileOutputStream(tempPDF);
-                    //FileOutputStream fos = context.get().openFileOutput(nombre, Context.MODE_WORLD_READABLE);
-                    fos.write(adjuntoArray);
-                    fos.close();
-
-                    Uri fileURI = FileProvider.getUriForFile(context.get(), BuildConfig.APPLICATION_ID + ".providers.FileProvider", tempPDF);
-
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setDataAndType(fileURI, type);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    intent.putExtra("Adjunto", fileURI);
-                    activity.get().startActivity(intent);
-                } catch (ActivityNotFoundException e) {
-                    Toasty.success(context.get(),"No existe aplicacion para ver este tipo de archivo("+ext+")!",Toasty.LENGTH_LONG).show();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            tv_nombre.setText(nombre);
-            //Toasty.success(context.get(),"Sincronizacion Exitosa!!",Toast.LENGTH_LONG).show();
-        }
-        else{
-            //Toasty.error(context.get(),"Sincronizacion Fallida. "+messageFlag,Toast.LENGTH_LONG).show();
-        }
+    protected void onPostExecute(String mensajes) {
+        super.onPostExecute(mensajes);
         try {
             dialog.dismiss();
-            if(dialog.isShowing()) {
-                dialog.hide();
-            }
         } catch (final IllegalArgumentException e) {
             // Do nothing.
         } catch (final Exception e) {
             // Do nothing.
+        }
+        if(dialog.isShowing()) {
+            dialog.hide();
+        }
+        if(xceptionFlag){
+            //activity.get().finish();
+            Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
+        }else {
+            try {
+                try {
+                    if(mensajes != "") {
+                        Toasty.error(context.get(), mensajes, Toast.LENGTH_LONG).show();
+                        campo.setError("ID con riesgo Inspektor");
+                    }else {
+                        campo.setError(null);
+                    }
+                } catch (Exception e) {
+                    Toasty.error(context.get(), "Error al mostrar mensaje de Inspektor: " + e.getMessage()).show();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
     public void EnableWiFi(){
@@ -249,4 +217,5 @@ public class ImagenServidor extends AsyncTask<Void,String,Bitmap> {
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifimanager.setWifiEnabled(false);
     }
+
 }

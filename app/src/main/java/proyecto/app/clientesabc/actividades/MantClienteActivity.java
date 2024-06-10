@@ -186,13 +186,6 @@ public class MantClienteActivity extends AppCompatActivity {
                         Toasty.info(getBaseContext(),"Opcion no encontrada!").show();
                 }
 
-                /*Bundle b = new Bundle();
-                //TODO seleccionar el tipo de solicitud por el UI
-                b.putString("tipoSolicitud", "1"); //id de solicitud
-
-                intent = new Intent(getBaseContext(),SolicitudActivity.class);
-                intent.putExtras(b); //Pase el parametro el Intent
-                startActivity(intent);*/
                 return false;
             }
         });
@@ -338,9 +331,9 @@ public class MantClienteActivity extends AppCompatActivity {
             com.rey.material.widget.LinearLayout  puertas_por_instalar_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.puertas_por_instalar_layout);
             ImageView imagen_puertas_por_instalar = (ImageView)holder.listView.findViewById(R.id.imagen_puertas_por_instalar);
             TextView label_cantidad_puertas_por_instalar = (TextView)holder.listView.findViewById(R.id.label_cantidad_puertas_por_instalar);
-            if(formListFiltered.get(holder.getAdapterPosition()).get("puertas_por_instalar") == null || formListFiltered.get(holder.getAdapterPosition()).get("puertas_por_instalar").equals("")){
+            if((formListFiltered.get(holder.getAdapterPosition()).get("puertas_por_instalar") == null || formListFiltered.get(holder.getAdapterPosition()).get("puertas_por_instalar").equals(""))){
                 puertas_por_instalar_layout.setVisibility(View.GONE);
-            }else{
+            }else if(db.UsaMonitorEquipoFrio()){
                 puertas_por_instalar_layout.setVisibility(View.VISIBLE);
                 Integer puertas = formListFiltered.get(position).get("puertas_por_instalar") != null ? Integer.parseInt(formListFiltered.get(position).get("puertas_por_instalar").toString()) : 0;
                 label_cantidad_puertas_por_instalar.setText(puertas.toString());
@@ -392,6 +385,9 @@ public class MantClienteActivity extends AppCompatActivity {
                         startActivity(intent);
                     }
                 });
+            }else{//no usa monitor
+                label_cantidad_puertas_por_instalar.setVisibility(View.GONE);
+                imagen_puertas_por_instalar.setVisibility(View.GONE);
             }
 
             /*TextView ubicacion = holder.listView.findViewById(R.id.ubicacion);
@@ -468,6 +464,9 @@ public class MantClienteActivity extends AppCompatActivity {
                     }
                     if(!db.ExistenIniciativas()){
                         MenuItem menuItem = (MenuItem)popup.getMenu().getItem(5).setVisible(false);
+                    }
+                    if(!db.AccesoEquipoFrioLibre()){
+                        MenuItem menuItem = (MenuItem)popup.getMenu().getItem(4).setVisible(false);
                     }
 
                     popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {

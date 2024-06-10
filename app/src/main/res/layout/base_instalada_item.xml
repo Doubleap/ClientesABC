@@ -191,7 +191,7 @@
                     android:layout_height="24dp"
                     android:layout_marginLeft="10dp"
                     android:background="@drawable/icon_delete"
-                    android:tooltipText="Generar Formulario de Anomalia con evidencia." />
+                    android:tooltipText="Eliminar lectura de equipo frio." />
 
 
             </com.rey.material.widget.LinearLayout>

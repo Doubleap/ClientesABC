@@ -366,24 +366,25 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     if (tv.isFocused())
                                         tv.clearFocus();
                                 }
-                                if (valor.isEmpty()) {
+                                if (valor.isEmpty() && !listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") && !listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG")) {
                                     tv.setError("El campo " + tv.getTag() + " es obligatorio!");
                                     numErrores++;
                                     mensajeError += "- " + tv.getTag() + "\n";
                                 }
                                 if (listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") || listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG")) {
-                                    if (valor.equals("0")) {
-                                        tv.setError("El campo " + tv.getTag() + " no puede ser 0!");
+                                    if (valor.replace("0","").replace(".","").isEmpty()) {
+                                        tv.setError("El campo " + tv.getTag() + " no puede ser 0 cuando es obligatorio!");
                                         numErrores++;
                                         mensajeError += "- " + tv.getTag() + "\n";
-                                    }
-                                    if (listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") && !Validaciones.ValidarCoordenadaY(tv)) {
-                                        numErrores++;
-                                        mensajeError += "- Formato Coordenada Y invalido\n";
-                                    }
-                                    if (listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG") && !Validaciones.ValidarCoordenadaX(tv)) {
-                                        numErrores++;
-                                        mensajeError += "- Formato Coordenada X invalido\n";
+                                    }else {
+                                        if (listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") && !Validaciones.ValidarCoordenadaY(tv)) {
+                                            numErrores++;
+                                            mensajeError += "- Formato Coordenada Y invalido\n";
+                                        }
+                                        if (listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG") && !Validaciones.ValidarCoordenadaX(tv)) {
+                                            numErrores++;
+                                            mensajeError += "- Formato Coordenada X invalido\n";
+                                        }
                                     }
                                 }
                             } catch (Exception e) {
@@ -2554,16 +2555,17 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         builder.setGravity(ToolTip.GRAVITY_LEFT);
                         builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
                         int finalI2 = i;
+                        ImageView finalBtnAyuda = btnAyuda;
                         btnAyuda.setOnClickListener((View.OnClickListener) view -> {
                             String bukrs = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
                             if(isValidPhoneNumber(et.getText().toString(),bukrs)){
                                 WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                 WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                 if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
-                                    GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, codigoCliente, et.getText().toString());
+                                    GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, codigoCliente, et.getText().toString(), finalBtnAyuda);
                                     v.execute();
                                 } else {
-                                    GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, codigoCliente, et.getText().toString());
+                                    GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, codigoCliente, et.getText().toString(), finalBtnAyuda);
                                     v.execute();
                                 }
                             }
@@ -7458,7 +7460,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         Pattern pattern;
         Matcher matcher;
         MaskedEditText et = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-STCD1"));
-
+        if (et == null)
+            et = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IN_CEDULA_RECIBE"));
         switch(bukrs) {
             case "F443"://Costa Rica
                 switch (tipoCedula) {

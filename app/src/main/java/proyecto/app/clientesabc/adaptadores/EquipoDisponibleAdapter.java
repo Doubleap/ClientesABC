@@ -217,25 +217,29 @@ public class EquipoDisponibleAdapter extends RecyclerView.Adapter<EquipoDisponib
                 } else {
                     ArrayList<HashMap<String, String>> filteredList = new ArrayList<>();
                     for (HashMap<String, String> row : mDataset) {
-                        /*if (row.getSernr() != null && row.getSernr().trim().contains(charString)  )
+                        if (row.get("modelo") != null && row.get("modelo").trim().toLowerCase().contains(charString.toLowerCase())  )
                             filteredList.add(row);
-                        else if (row.getEqunr() != null && row.getEqunr().trim().contains(charString))
+                        else if (row.get("estado") != null && row.get("estado").trim().toLowerCase().contains(charString.toLowerCase()))
                             filteredList.add(row);
-                        else if (row.getIbase() != null && row.getIbase().trim().contains(charString) ){
+                        else if (row.get("centro_suministro") != null && row.get("centro_suministro").trim().toLowerCase().contains(charString.toLowerCase()))
                             filteredList.add(row);
-                        }*/
+                        else if (row.get("emplazamiento") != null && row.get("emplazamiento").trim().toLowerCase().contains(charString.toLowerCase()))
+                            filteredList.add(row);
+                        else if (row.get("num_puertas") != null && row.get("num_puertas").trim().toLowerCase().concat(" puerta").contains(charString.toLowerCase()) ){
+                            filteredList.add(row);
+                        }
                     }
                     formListFiltered = filteredList;
                 }
 
-                FilterResults filterResults = new FilterResults();
+            FilterResults filterResults = new FilterResults();
                 filterResults.values = formListFiltered;
 
                 activity.runOnUiThread(new Runnable() {
                     public void run() {
                         Toolbar toolbar = (Toolbar) activity.findViewById(R.id.toolbar);
                         if(toolbar != null)
-                            toolbar.setTitle("Mis Solicitudes ("+formListFiltered.size()+" de "+mDataset.size()+")");
+                            toolbar.setTitle("Equipo Frio Disponible x Modelo ("+formListFiltered.size()+" de "+mDataset.size()+")");
                     }
                 });
                 return filterResults;
@@ -251,7 +255,7 @@ public class EquipoDisponibleAdapter extends RecyclerView.Adapter<EquipoDisponib
     }
     public static void mostrarImagenServidor(Context context, Activity activity, String nombreImagen) {
         final Dialog d = new Dialog(context, R.style.MyAlertDialogTheme);
-        d.setContentView(R.layout.adjunto_layout);
+        d.setContentView(R.layout.adjunto_layout_zoom);
         ImageView adjunto_img = d.findViewById(R.id.imagen);
         TextView adjunto_txt = d.findViewById(R.id.nombre);
         adjunto_txt.setText(nombreImagen);

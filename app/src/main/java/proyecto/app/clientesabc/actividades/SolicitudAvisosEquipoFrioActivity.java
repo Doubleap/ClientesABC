@@ -74,7 +74,9 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.zxing.common.StringUtils;
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 import com.vicmikhailau.maskededittext.MaskedEditText;
@@ -114,6 +116,8 @@ import proyecto.app.clientesabc.clases.TransmisionAPI;
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoServidor;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
 import proyecto.app.clientesabc.clases.Validaciones;
+import proyecto.app.clientesabc.clases.ValidarFlujoClienteAPI;
+import proyecto.app.clientesabc.clases.ValidarFlujoClienteServidor;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Comentario;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
@@ -199,13 +203,13 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         if(b != null) {
             tipoSolicitud = b.getString("tipoSolicitud");
             idSolicitud = b.getString("idSolicitud");
-            codigoCliente = b.getString("codigoCliente");
+            codigoCliente = String.format("%1$10s", b.getString("codigoCliente")).replace(' ', '0');
             codigoEquipoFrio = b.getString("codigoEquipoFrio");
             monitor = b.getString("monitor");
             numPuertas  = b.getString("numPuertas");
         }
         tituloMonitor = "";
-        if(monitor.equals("1"))
+        if(monitor != null && monitor.equals("1"))
             tituloMonitor = " (Monitor)";
 
 
@@ -234,6 +238,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             tipoSolicitud = solicitudSeleccionada.get(0).get("TIPFORM");
             GUID = solicitudSeleccionada.get(0).get("id_solicitud").trim();
             idForm = solicitudSeleccionada.get(0).get("IDFORM");
+            numPuertas = solicitudSeleccionada.get(0).get("W_CTE-NUM_PUERTAS_MODELO");
             setTitle(GUID);
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             getSupportActionBar().setSubtitle(descripcion +" - "+ solicitudSeleccionada.get(0).get("ESTADO").trim());
@@ -384,23 +389,30 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             WeakReference<Context> weakRefs1 = new WeakReference<Context>(this);
             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(this);
 
-            if (PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("tipo_conexion","").equals("api")) {
-                ConsultaClienteAPI c = new ConsultaClienteAPI(weakRefs1, weakRefAs1, codigoCliente);
-                if(PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion","").equals("wifi")){
-                    c.EnableWiFi();
-                }
-                c.execute();
-            } else {
-                ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoCliente);
-                if(PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion","").equals("wifi")){
-                    c.EnableWiFi();
-                }else{
-                    c.DisableWiFi();
-                }
-                c.execute();
-            }
 
-
+                if (PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("tipo_conexion", "").equals("api")) {
+                    if(!tipoSolicitud.equals("39")) {
+                        ValidarFlujoClienteAPI v = new ValidarFlujoClienteAPI(weakRefs1, weakRefAs1, codigoCliente, tipoSolicitud, codigoEquipoFrio);
+                        v.execute();
+                    }
+                    ConsultaClienteAPI c = new ConsultaClienteAPI(weakRefs1, weakRefAs1, codigoCliente);
+                    if (PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion", "").equals("wifi")) {
+                        c.EnableWiFi();
+                    }
+                    c.execute();
+                } else {
+                    if(!tipoSolicitud.equals("39")) {
+                        ValidarFlujoClienteServidor v = new ValidarFlujoClienteServidor(weakRefs1, weakRefAs1, codigoCliente, tipoSolicitud, codigoEquipoFrio);
+                        v.execute();
+                    }
+                    ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoCliente);
+                    if (PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion", "").equals("wifi")) {
+                        c.EnableWiFi();
+                    } else {
+                        c.DisableWiFi();
+                    }
+                    c.execute();
+                }
         }
 
         if(!modificable) {
@@ -757,30 +769,70 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     SpinnerImageAdapter dataAdapter2;
                     // Creando el adaptador(opciones) para el comboBox deseado
                     if(campos.get(i).get("campo").trim().contains("IM_DESCRIPT")) {
-                        WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
-                        WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
-                        TraerEquipoDisponibleServidor v = new TraerEquipoDisponibleServidor(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(requireContext()).getString("W_CTE_VWERK",""), tipoFormulario, numPuertas);
-                        v.execute();
-                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-                                if(opcion.getRel1() != null)
-                                    Toasty.info(getContext(),opcion.getRel1()+" puerta(s)").show();
-                                //Calcular lo que la falatria de cajas para comprar si instala mas puertas de lo sugerido
-                                Double puertas_seleccionadas = opcion.getRel1()!=null?Double.parseDouble(opcion.getRel1()):0.0;
-                                Double venta_comprometida = (puertas_seleccionadas*Double.parseDouble(datosMonitor.get(0).get("cajas_monitor_ef").replaceAll("[A-Z]",""))) - Double.parseDouble(datosMonitor.get(0).get("venta_actual").toString().replaceAll("[A-Z]",""));
-                                ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")).setText(String.format(Locale.US, "%.2f", venta_comprometida)+" "+getResources().getString(R.string.unidad_caja_monitor)+"");
+                        if (db.UsaMonitorEquipoFrio()) {
+                            WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
+                            WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
 
-                                if(position == 0)
-                                    ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
-                            }
+                            TraerEquipoDisponibleServidor v = new TraerEquipoDisponibleServidor(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(requireContext()).getString("W_CTE_VWERK", ""), tipoFormulario, numPuertas);
+                            v.execute();
 
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                                    if (opcion.getRel1() != null)
+                                        Toasty.info(getContext(), opcion.getRel1() + " puerta(s)").show();
+                                    //Calcular lo que la falatria de cajas para comprar si instala mas puertas de lo sugerido
+                                    Double puertas_seleccionadas = opcion.getRel1() != null ? Double.parseDouble(opcion.getRel1()) : 0.0;
+                                    Double venta_comprometida = 0.0;
+                                    Double numPuertasActual = 0.0;
+                                    Double numPuertas = 0.0;
+                                    if (datosMonitor.size() > 0) {
+                                        if(tipoFormulario.equals("39"))//INSTALACION
+                                            numPuertas = (puertas_seleccionadas+Double.parseDouble(datosMonitor.get(0).get("puertas_instaladas")));
+                                        else if(tipoFormulario.equals("41")) {//CAMBIO
+                                            if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NUM_PUERTAS_ACTUAL")) != null) {
+                                                numPuertasActual = Double.parseDouble(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NUM_PUERTAS_ACTUAL")).getText().toString());
+                                            }
+                                            numPuertas = (puertas_seleccionadas - (Double.parseDouble(datosMonitor.get(0).get("puertas_instaladas")) - numPuertasActual));
+                                        }
+                                        else if (tipoFormulario.equals("42"))//RETIRO
+                                            numPuertas = (Double.parseDouble(datosMonitor.get(0).get("puertas_instaladas"))-puertas_seleccionadas);
 
-                            }
-                        });
+                                        venta_comprometida = ((numPuertas) * Double.parseDouble(datosMonitor.get(0).get("cajas_monitor_ef").replaceAll("[A-Z]", ""))) - Double.parseDouble(datosMonitor.get(0).get("venta_actual").toString().replaceAll("[A-Z]", ""));
+                                        if (((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")) != null)
+                                            ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")).setText(String.format(Locale.US, "%.2f", venta_comprometida) + " " + getResources().getString(R.string.unidad_caja_monitor) + "");
+                                        if (((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NUM_PUERTAS_MODELO")) != null)
+                                            ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NUM_PUERTAS_MODELO")).setText(puertas_seleccionadas.toString());
+                                    }
+                                    if(venta_comprometida <= 0.0){
+                                        if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")) != null) {
+                                            ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")).setVisibility(View.GONE);
+                                            ((TextInputLayout) ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")).getParent().getParent()).setVisibility(View.GONE);
+                                        }
+                                    }else {
+                                        if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")) != null) {
+                                            ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")).setVisibility(View.VISIBLE);
+                                            ((TextInputLayout) ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")).getParent().getParent()).setVisibility(View.VISIBLE);
+                                        }
+                                    }
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }else{
+                            dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, listaopciones);
+                            // Drop down layout style - list view with radio button
+                            dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+                            // attaching data adapter to spinner
+                            combo.setAdapter(dataAdapter);
+                            combo.setSelection(selectedIndex);
+                        }
                     }else {
                         dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, listaopciones);
                         // Drop down layout style - list view with radio button
@@ -1855,6 +1907,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 insertValues.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_VKORG",""));
                 insertValues.put("[id_solicitud]", NextId);
                 insertValues.put("[tipform]", tipoSolicitud);
+                if (mDBHelper.UsaMonitorEquipoFrio())
+                    insertValues.put("[W_CTE-MONITOR]", monitor);
                 insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("userMC",""));
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
                 Date date = new Date();
@@ -1975,7 +2029,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             Toasty.success(getApplicationContext(), "Anomalía Creada", Toast.LENGTH_LONG).show();
                         }
                     }else {
-
+                        Toasty.success(getApplicationContext(), "Solicitud de Equipo Frio Creada", Toast.LENGTH_LONG).show();
                         //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
                         Intent sol = getIntent();
                         sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -1983,7 +2037,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         //Bundle par = new Bundle();
                         //par.putString("tipo_solicitud",tipoSolicitud);
                         //SolicitudActivity.this.startActivity(sol);
-                        Toasty.success(getApplicationContext(), "Solicitud de Equipo Frio Creada", Toast.LENGTH_LONG).show();
+
                     }
                 }
             } catch (Exception e) {
@@ -2034,23 +2088,61 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
     public static void ActualizarEquiposDisponibles(Context context, Activity activity, ArrayList<JsonArray> mensajes) {
         String mensaje="";
+        int selectedIndex = 0;
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
         listaopciones.add(new OpcionSpinner("","Modelo : Stock(Reservado)",false));
         if(mensajes.size() > 0 && mensajes.get(0)  != null && mensajes.get(0).size() > 0){
             for(int x = 0; x < mensajes.get(0).getAsJsonArray().size() ; x++){
                 JsonObject opcion = mensajes.get(0).getAsJsonArray().get(x).getAsJsonObject();
-                OpcionSpinner opcionSpinner = new OpcionSpinner(opcion.get("modelo").getAsString(),opcion.get("modelo").getAsString() +" : " +opcion.get("stock").getAsString() +" (" + opcion.get("reservado").getAsString()+") ");
+                OpcionSpinner opcionSpinner = new OpcionSpinner(opcion.get("modelo").getAsString(),opcion.get("modelo").getAsString() +" : " +opcion.get("stock").getAsString() +" (" + opcion.get("reservado").getAsString()+") "+opcion.get("num_puertas")+" Puertas");
                 if( (Integer.parseInt(opcion.get("stock").getAsString()) - Integer.parseInt(opcion.get("reservado").getAsString())) == 0)
                     opcionSpinner.setEnabled(false);
                 opcionSpinner.setRel1(opcion.get("num_puertas").getAsString());
+                if(solicitudSeleccionada.size() > 0 && opcion.get("modelo").getAsString().equals(solicitudSeleccionada.get(0).get("W_CTE-IM_DESCRIPT")))
+                    selectedIndex = (x+1);
                 listaopciones.add(opcionSpinner);
             }
             Spinner modelos = (Spinner)mapeoCamposDinamicos.get("W_CTE-IM_DESCRIPT");
+            //Se es retiro, muy probable no exista modelo disponible, si no existe se debe ingresar al combo de seleccion para que quede registrado en el formulario el numero de puertas del retiro
+            if((tipoSolicitud.equals("42")) && selectedIndex == 0){
+                HashMap<String, String> equipo = mDBHelper.getEquipoFrioDatosMonitor(codigoEquipoFrio);
+                String modelo = equipo.get("modelo");
+                if(modelo.equals("")) {
+                    EquipoFrio equipofrio = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
+                    modelo = equipofrio.getMatnr();
+                }
+                OpcionSpinner opcionSpinner = new OpcionSpinner(modelo,modelo+ " "+equipo.get("num_puertas")+" Puertas");
+                opcionSpinner.setRel1(equipo.get("num_puertas"));
+                listaopciones.add(opcionSpinner);
+                selectedIndex = listaopciones.size()-1;
+                modelos.setEnabled(false);
+            }
 
             ArrayAdapter dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
+
             // attaching data adapter to spinner
             modelos.setAdapter(dataAdapter);
-
+            modelos.setSelection(selectedIndex);
+        }else{
+            Spinner modelos = (Spinner)mapeoCamposDinamicos.get("W_CTE-IM_DESCRIPT");
+            //Se es retiro, muy probable no exista modelo disponible, si no existe se debe ingresar al combo de seleccion para que quede registrado en el formulario el numero de puertas del retiro
+            if(tipoSolicitud.equals("42") && selectedIndex == 0){
+                HashMap<String, String> equipo = mDBHelper.getEquipoFrioDatosMonitor(codigoEquipoFrio);
+                String modelo = equipo.get("modelo");
+                if(modelo.equals("")) {
+                    EquipoFrio equipofrio = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
+                    modelo = equipofrio.getMatnr();
+                }
+                OpcionSpinner opcionSpinner = new OpcionSpinner(modelo,modelo+ " "+equipo.get("num_puertas")+" Puertas");
+                opcionSpinner.setRel1(equipo.get("num_puertas"));
+                listaopciones.add(opcionSpinner);
+                selectedIndex = listaopciones.size()-1;
+                modelos.setEnabled(false);
+                ArrayAdapter dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
+                // attaching data adapter to spinner
+                modelos.setAdapter(dataAdapter);
+                modelos.setSelection(selectedIndex);
+            }
         }
     }
 
@@ -2060,7 +2152,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             activity.finish();
             return;
         }
-
         cliente = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Cliente");
         notaEntrega = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("NotaEntrega");
         factura = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Factura");;
@@ -2071,6 +2162,18 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         impuestos = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Impuestos");
         bancos = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Bancos");
         visitas = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Visitas");
+
+        if(mDBHelper.UsaMonitorEquipoFrio()) {
+            if(datosMonitor.size() > 0) {
+                cliente.get(0).getAsJsonObject().addProperty("W_CTE-PUERTAS_SUGERIDAS", datosMonitor.get(0).get("puertas_sugeridas"));
+                cliente.get(0).getAsJsonObject().addProperty("W_CTE-PUERTAS_INSTALADAS", datosMonitor.get(0).get("puertas_instaladas"));
+                cliente.get(0).getAsJsonObject().addProperty("W_CTE-PUERTAS_OBJETIVO", datosMonitor.get(0).get("puertas_objetivo"));
+                cliente.get(0).getAsJsonObject().addProperty("W_CTE-NUM_PUERTAS_MODELO", datosMonitor.get(0).get("puertas_por_instalar"));
+                cliente.get(0).getAsJsonObject().addProperty("W_CTE-IM_PRIORITY", datosMonitor.get(0).get("prioridad"));
+            }else{
+                Toasty.warning(context,"Cliente no tiene datos en el monitor de EF.",Toasty.LENGTH_SHORT).show();
+            }
+        }
 
         if(codigoEquipoFrio != null) {
             EquipoFrio equipo = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
@@ -2095,6 +2198,11 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             MaskedEditText tvp = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_PARTNER"));
             if (tvp != null)
                 tvp.setText(codigoCliente);
+            MaskedEditText puertas_actual = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NUM_PUERTAS_ACTUAL"));
+            if (puertas_actual != null) {
+                HashMap<String, String> ef = mDBHelper.getEquipoFrioDatosMonitor(codigoEquipoFrio);
+                puertas_actual.setText(ef.get("num_puertas"));
+            }
 
             //Valores Enca si estan presentes
             MaskedEditText tve = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_EQUIPMENT"));

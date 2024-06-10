@@ -103,7 +103,8 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="right"
                         android:background="@drawable/icon_refrigerator"
-                        android:tooltipText="Cantidad Bases Instalada del cliente" />
+                        android:tooltipText="Cantidad Bases Instalada del cliente"
+                        android:visibility="visible"/>
 
                     <FrameLayout
                         android:layout_width="12dp"

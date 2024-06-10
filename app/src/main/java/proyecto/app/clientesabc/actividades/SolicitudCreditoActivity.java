@@ -462,7 +462,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             numErrores++;
                             mensajeError += "- El cliente debe firmar la verificación apc!\n";
                         }
-                        if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-KLIMK")) != null && ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-KLIMK")).getText().toString().replace("0","").replace(".","").isEmpty()){
+                        if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-KLIMK")) != null && ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-KLIMK")).getText().toString().replace("0","").replace(".","").isEmpty() && !getSupportActionBar().getSubtitle().toString().toLowerCase().contains("bloqueo")){
                             numErrores++;
                             mensajeError += "- Límite de créditos debe ser mayor a 0.00!\n";
                         }
@@ -933,7 +933,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion, listaCamposObligatorios, campos.get(i));
+                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion, listaCamposObligatorios, campos.get(i),idSolicitud);
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
@@ -941,7 +941,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
+                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),idSolicitud);
                         }
                     }
                     if(solicitudSeleccionada.size() > 0){
@@ -1529,7 +1529,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i));
+                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i),idSolicitud);
 
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
@@ -1538,7 +1538,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
+                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),idSolicitud);
                         }
                     }
                 } else {
@@ -1920,7 +1920,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i));
+                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i),idSolicitud);
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
@@ -2218,12 +2218,27 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             name12 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME2")).getText().toString().trim();
                         }
                     }
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME3")) != null) {
+                        name34 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME3")).getText().toString().trim();
+                        if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
+                            name34 += " "+((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
+                        } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")) != null) {
+                            name34 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")).getText().toString().trim();
+                        }
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME3")) != null) {
+                        name34 = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME3")).getText().toString().trim();
+                        if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
+                            name34 += " "+((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
+                        } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")) != null) {
+                            name34 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")).getText().toString().trim();
+                        }
+                    }
 
-                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
+                    /*if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
                         name34 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
                     } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")) != null) {
                         name34 = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")).getText().toString().trim();
-                    }
+                    }*/
                     if (((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")) != null) {
                         cedula = ((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")).getText().toString();
                     } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-STCD1")) != null) {
@@ -2285,10 +2300,20 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                         }
                     }
 
-                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
-                        name34 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
-                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")) != null) {
-                        name34 = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")).getText().toString().trim();
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME3")) != null) {
+                        name34 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME3")).getText().toString().trim();
+                        if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
+                            name34 += " "+((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
+                        } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")) != null) {
+                            name34 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")).getText().toString().trim();
+                        }
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME3")) != null) {
+                        name34 = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME3")).getText().toString().trim();
+                        if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
+                            name34 += " "+((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
+                        } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")) != null) {
+                            name34 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")).getText().toString().trim();
+                        }
                     }
                     if (((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")) != null) {
                         cedula = ((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")).getText().toString();
@@ -2368,10 +2393,20 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     }
                 }
 
-                if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
-                    name34 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
-                } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")) != null) {
-                    name34 = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")).getText().toString().trim();
+                if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME3")) != null) {
+                    name34 = ((TextView) mapeoCamposDinamicos.get("W_CTE-NAME3")).getText().toString().trim();
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
+                        name34 += " "+((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")) != null) {
+                        name34 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")).getText().toString().trim();
+                    }
+                } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME3")) != null) {
+                    name34 = ((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME3")).getText().toString().trim();
+                    if (((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")) != null) {
+                        name34 += " "+((TextView) mapeoCamposDinamicos.get("W_CTE-NAME4")).getText().toString().trim();
+                    } else if (((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")) != null) {
+                        name34 += " "+((TextView) mapeoCamposDinamicosEnca.get("W_CTE-NAME4")).getText().toString().trim();
+                    }
                 }
                 if (((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")) != null) {
                     cedula = ((TextView) mapeoCamposDinamicos.get("W_CTE-STCD1")).getText().toString();
@@ -4725,15 +4760,17 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
                     //Caerle encima con los valores de la RFC de Credito
                     if(credito.size() > 0){
-                        tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaFinal.get(i).trim()));
-                        if(tv != null)
-                            tv.setText(credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString());
-                        tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaFinal.get(i).trim()));
-                        if(tv != null)
-                            tv.setText(credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString());
-                        tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaFinal.get(i).trim()));
-                        if(tv != null)
-                            tv.setText(credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString());
+                        if(!listaFinal.get(i).trim().contains("NAME3") && !listaFinal.get(i).trim().contains("NAME4")) {
+                            tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaFinal.get(i).trim()));
+                            if (tv != null)
+                                tv.setText(credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString());
+                            tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaFinal.get(i).trim()));
+                            if (tv != null)
+                                tv.setText(credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString());
+                            tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaFinal.get(i).trim()));
+                            if (tv != null)
+                                tv.setText(credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString());
+                        }
                         if(listaFinal.get(i).contains("DMBTR")){
                             Double mes = NumberFormat.getInstance(Locale.ENGLISH).parse(credito.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString().replace(",",".")).doubleValue();
                             valorsugerido += mes;
@@ -4961,7 +4998,152 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
 
         String tipo = "A";
         String clasi = "I";
-        //Cliente tiene credito pero es de contado y se quiere aperturar(Reactivar o Desbloquear) - llenar los campos neccesarios con los campos por defecto en tabla ValidaCreditos
+
+        if(subtitulo.toLowerCase().contains("bloqueo")) {
+            tipo = "B";
+            clasi = "I";
+            if(subtitulo.toLowerCase().contains("informal"))
+                clasi = "I";
+            if(subtitulo.toLowerCase().contains("formal d"))
+                clasi = "D";
+            if(subtitulo.toLowerCase().contains("formal abc"))
+                clasi = "ABC";
+
+            String cuentacont = "";
+            String claseriesgo = "";
+            String tipocobro = "";
+            String clasedocven = "";
+            String clasicxc = "";
+            String condpago = "";
+            String val_check_rule = "";
+            String val_limit_rule = "";
+            String val_credit_group = "";
+            ArrayList<HashMap<String, String>> datosNuevoCredito = mDBHelper.getValidaCreditos(tipo, clasi);
+
+            cuentacont = datosNuevoCredito.get(0).get("cuentacont").trim();
+            claseriesgo = datosNuevoCredito.get(0).get("claseriesgo").trim();
+            tipocobro = datosNuevoCredito.get(0).get("tipocobro").trim();
+            clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
+            clasicxc = datosNuevoCredito.get(0).get("clasicxc").trim();
+            condpago = datosNuevoCredito.get(0).get("condpago").trim();
+            if(datosNuevoCredito.get(0).get("check_rule") != null)
+                val_check_rule = datosNuevoCredito.get(0).get("check_rule").trim();
+            if(datosNuevoCredito.get(0).get("limit_rule") != null)
+                val_limit_rule = datosNuevoCredito.get(0).get("limit_rule").trim();
+            if(datosNuevoCredito.get(0).get("credit_group") != null)
+                val_credit_group = datosNuevoCredito.get(0).get("credit_group").trim();
+
+            Spinner zzauart = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-ZZAUART");
+            if (zzauart != null) {
+                zzauart.setSelection(VariablesGlobales.getIndex(zzauart, clasedocven));
+            }else{
+                zzauart = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZAUART");
+                if(zzauart != null) {
+                    zzauart.setSelection(VariablesGlobales.getIndex(zzauart, clasedocven));
+                }
+            }
+
+            //Casos de los paises que NO utilizan el PSON2 (Clasificacion CxC)
+            try {
+                Spinner pson2 = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
+                if (pson2 != null) {
+                    pson2.setSelection(VariablesGlobales.getIndex(pson2, clasicxc));
+                }else{
+                    pson2 = (Spinner) mapeoCamposDinamicos.get("W_CTE-PSON2");
+                    if (pson2 != null) {
+                        pson2.setSelection(VariablesGlobales.getIndex(pson2, clasicxc));
+                    }
+                }
+            }catch(Exception e){
+
+                MaskedEditText pson2 = (MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
+                if (pson2 != null) {
+                    pson2.setText(clasicxc);
+                }else{
+                    pson2 = (MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
+                    if (pson2 != null) {
+                        pson2.setText(clasicxc);
+                    }
+                }
+            }
+
+            Spinner zterm = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTERM");
+            if(zterm != null) {
+                zterm.setSelection(VariablesGlobales.getIndex(zterm, condpago));
+            }
+            zterm = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-ZTERM");
+            if(zterm != null) {
+                zterm.setSelection(VariablesGlobales.getIndex(zterm, condpago));
+            }
+
+            Spinner guzte = (Spinner)mapeoCamposDinamicos.get("W_CTE-GUZTE");
+            if(guzte != null) {
+                guzte.setSelection(VariablesGlobales.getIndex(guzte, condpago));
+            }
+            guzte = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-GUZTE");
+            if(guzte != null) {
+                guzte.setSelection(VariablesGlobales.getIndex(guzte, condpago));
+            }
+
+            Spinner ctlpc = (Spinner)mapeoCamposDinamicos.get("W_CTE-CTLPC");
+            if(ctlpc != null) {
+                ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, claseriesgo));
+            }
+
+            ctlpc = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CTLPC");
+            if(ctlpc != null) {
+                ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, claseriesgo));
+            }
+
+            Spinner kvgr2 = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-KVGR2");
+            if(kvgr2 != null) {
+                kvgr2.setSelection(VariablesGlobales.getIndex(kvgr2, tipocobro));
+            }
+            try {
+                Spinner akont = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-AKONT");
+                if (akont != null) {
+                    akont.setSelection(VariablesGlobales.getIndex(akont, cuentacont));
+                }
+            }catch(Exception e){
+                MaskedEditText akont = (MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-AKONT");
+                if (akont != null) {
+                    akont.setText(cuentacont);
+                }
+            }
+
+            MaskedEditText klimk = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-KLIMK");
+            if (klimk != null) {
+                klimk.setText("0.00");
+            }
+
+            //Campos SAp4Hana
+            Spinner check_rule = (Spinner)mapeoCamposDinamicos.get("W_CTE-CHECK_RULE");
+            if(check_rule != null) {
+                check_rule.setSelection(VariablesGlobales.getIndex(check_rule, val_check_rule));
+            }
+            check_rule = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CHECK_RULE");
+            if(check_rule != null) {
+                check_rule.setSelection(VariablesGlobales.getIndex(check_rule, val_check_rule));
+            }
+
+            Spinner limit_rule = (Spinner)mapeoCamposDinamicos.get("W_CTE-LIMIT_RULE");
+            if(limit_rule != null) {
+                limit_rule.setSelection(VariablesGlobales.getIndex(limit_rule, val_limit_rule));
+            }
+            limit_rule = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-LIMIT_RULE");
+            if(limit_rule != null) {
+                limit_rule.setSelection(VariablesGlobales.getIndex(limit_rule, val_limit_rule));
+            }
+
+            Spinner credit_group = (Spinner)mapeoCamposDinamicos.get("W_CTE-CREDIT_GROUP");
+            if(credit_group != null) {
+                credit_group.setSelection(VariablesGlobales.getIndex(credit_group, val_credit_group));
+            }
+            credit_group = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CREDIT_GROUP");
+            if(credit_group != null) {
+                credit_group.setSelection(VariablesGlobales.getIndex(credit_group, val_credit_group));
+            }
+        }
         if(subtitulo.toLowerCase().contains("modificacion")) {
             tipo = "M";
             clasi = "I";
@@ -4972,70 +5154,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             if(subtitulo.toLowerCase().contains("formal abc"))
                 clasi = "ABC";
 
-            /*ArrayList<HashMap<String, String>> datosNuevoCredito = mDBHelper.getValidaCreditos(tipo, clasi);
-
-            //Campos para modificacion de credito
-            Spinner zzauart = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-ZZAUART");
-            if(zzauart != null) {
-                if(cliente.get(0).getAsJsonObject().get("W_CTE-ZZAUART").getAsString().contains("28") || cliente.get(0).getAsJsonObject().get("W_CTE-ZZAUART").getAsString().contains("38")){
-                    zzauart.setSelection(VariablesGlobales.getIndex(zzauart, datosNuevoCredito.get(0).get("clasedocven").trim()));
-                }
-            }else{
-                zzauart = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZAUART");
-                if(zzauart != null) {
-                    if(cliente.get(0).getAsJsonObject().get("W_CTE-ZZAUART").getAsString().contains("28") || cliente.get(0).getAsJsonObject().get("W_CTE-ZZAUART").getAsString().contains("38")){
-                        zzauart.setSelection(VariablesGlobales.getIndex(zzauart, datosNuevoCredito.get(0).get("clasedocven").trim()));
-                    }
-                }
-            }
-            Spinner zterm = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTERM");
-            if(zterm != null) {
-                if(cliente.get(0).getAsJsonObject().get("W_CTE-ZTERM").getAsString().substring(2,4).equals("00")){
-                    zterm.setSelection(VariablesGlobales.getIndex(zterm, datosNuevoCredito.get(0).get("condpago").trim()));
-                }
-            }else{
-                zterm = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-ZTERM");
-                if(zterm != null) {
-                    if(cliente.get(0).getAsJsonObject().get("W_CTE-ZTERM").getAsString().substring(2,4).equals("00")){
-                        zterm.setSelection(VariablesGlobales.getIndex(zterm, datosNuevoCredito.get(0).get("condpago").trim()));
-                    }
-                }
-            }
-            Spinner ctlpc = (Spinner)mapeoCamposDinamicos.get("W_CTE-CTLPC");
-            if(ctlpc != null) {
-                ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, datosNuevoCredito.get(0).get("claseriesgo").trim()));
-            }
-            ctlpc = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CTLPC");
-            if(ctlpc != null) {
-                ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, datosNuevoCredito.get(0).get("claseriesgo").trim()));
-            }
-
-            Spinner check_rule = (Spinner)mapeoCamposDinamicos.get("W_CTE-CHECK_RULE");
-            if(check_rule != null) {
-                check_rule.setSelection(VariablesGlobales.getIndex(check_rule, datosNuevoCredito.get(0).get("check_rule").trim()));
-            }
-            check_rule = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CHECK_RULE");
-            if(check_rule != null) {
-                check_rule.setSelection(VariablesGlobales.getIndex(check_rule, datosNuevoCredito.get(0).get("check_rule").trim()));
-            }
-
-            Spinner limit_rule = (Spinner)mapeoCamposDinamicos.get("W_CTE-LIMIT_RULE");
-            if(limit_rule != null) {
-                limit_rule.setSelection(VariablesGlobales.getIndex(limit_rule, datosNuevoCredito.get(0).get("limit_rule").trim()));
-            }
-            limit_rule = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-LIMIT_RULE");
-            if(limit_rule != null) {
-                limit_rule.setSelection(VariablesGlobales.getIndex(limit_rule, datosNuevoCredito.get(0).get("limit_rule").trim()));
-            }
-            Spinner credit_group = (Spinner)mapeoCamposDinamicos.get("W_CTE-CREDIT_GROUP");
-            if(credit_group != null) {
-                credit_group.setSelection(VariablesGlobales.getIndex(credit_group, datosNuevoCredito.get(0).get("credit_group").trim()));
-            }
-            credit_group = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CREDIT_GROUP");
-            if(credit_group != null) {
-                credit_group.setSelection(VariablesGlobales.getIndex(credit_group, datosNuevoCredito.get(0).get("credit_group").trim()));
-            }
-*/
             try {
                 Spinner pson2 = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
                 if (pson2 != null) {

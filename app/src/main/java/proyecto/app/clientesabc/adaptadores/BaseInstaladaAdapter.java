@@ -178,13 +178,26 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
         comentario.setText("");
         Integer maximoAlertas = db.MaximoAlertas(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BUKRS",""));
         textViewHead.setText(formListFiltered.get(position).getIbase());
-        placa.setText(formListFiltered.get(position).getSerge());
+        if(formListFiltered.get(position).getSerge() != null)
+            placa.setText(formListFiltered.get(position).getSerge());
+        else {
+            placa.setText(formListFiltered.get(position).getNumPlaca());
+        }
         codigo.setText(formListFiltered.get(position).getSernr());
         nombre.setText(formListFiltered.get(position).getEqunr());
         modelo.setText(formListFiltered.get(position).getEqktx());
         if(formListFiltered.get(position).getFechaLectura() != null)
             ultima_fecha.setText(formListFiltered.get(position).getFechaLectura().trim());
-        comentario.setText(formListFiltered.get(position).getComentario());
+
+        if(formListFiltered.get(position).getSerge() == null) {
+            if(formListFiltered.get(position).getComentario() != null)
+                comentario.setText(formListFiltered.get(position).getComentario() + "\nEquipo Verificado ya no se encuentra en la base instalada del cliente.");
+            else
+                comentario.setText("Equipo Verificado ya no se encuentra en la base instalada de este cliente.");
+        }else {
+            comentario.setText(formListFiltered.get(position).getComentario());
+        }
+
 
         Drawable background = estado.getBackground();
         //Drawable background_circulo = estado_circulo.getBackground();
@@ -231,8 +244,11 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                 cantidad_alertas.setVisibility(GONE);
                 anomalia.setVisibility(GONE);
                 censado.setVisibility(View.VISIBLE);
-                menu_bottom.setVisibility(View.GONE);
 
+                if(formListFiltered.get(position).getSerge() == null) {
+                    menu_bottom.setVisibility(View.VISIBLE);
+                    eliminar.setVisibility(View.VISIBLE);
+                }
             }
             if (formListFiltered.get(position).getEstado().trim().equals("Anomalia") || formListFiltered.get(position).getEstado().trim().equals("Anomalía")) {
                 color = R.color.rechazado;

@@ -128,6 +128,8 @@
     <style name="MyAlertDialogTheme" parent="Base.Theme.AppCompat.Light.Dialog.Alert">
         <item name="windowFixedWidthMajor">90%</item>
         <item name="windowFixedWidthMinor">90%</item>
+        <item name="windowFixedHeightMajor">80%</item>
+        <item name="windowFixedHeightMinor">80%</item>
         <item name="android:windowAnimationStyle">@style/DialogAnimation</item>
     </style>
     <style name="MyAlertDialogThemeAttachment" parent="Base.Theme.AppCompat.Light.Dialog.Alert">

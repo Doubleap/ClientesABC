@@ -32,6 +32,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -39,6 +40,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -80,6 +82,8 @@ import com.honeywell.aidc.ScannerNotClaimedException;
 import com.honeywell.aidc.ScannerUnavailableException;
 import com.honeywell.aidc.UnsupportedPropertyException;
 import com.theartofdev.edmodo.cropper.CropImage;
+import com.tomergoldst.tooltips.ToolTip;
+import com.tomergoldst.tooltips.ToolTipsManager;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.io.File;
@@ -141,20 +145,27 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
     private AppCompatTextView puertas_objetivo;
     private AppCompatTextView puertas_por_instalar;
     private AppCompatTextView venta_necesaria;
+    private AppCompatTextView venta_total;
     private TextView etiqueta_venta_necesaria;
+    private TextView label_gauge_final;
     private AppCompatEditText txt_num_puertas;
     private BottomNavigationView bottomNavigation;
 
     private HalfGauge halfGauge;
 
     public void calcularVenta() {
-        Double venta_comprometida = 0.0;
-        venta_comprometida = (Double.parseDouble(txt_num_puertas.getText().toString().replaceAll("[A-Z]",""))*Double.parseDouble(formList.get(0).get("cajas_monitor_ef").replaceAll("[A-Z]",""))) - Double.parseDouble(venta_actual.getText().toString().replaceAll("[A-Z]",""));
-        venta_necesaria.setText(String.format(Locale.US, "%.2f", venta_comprometida)+" "+getResources().getString(R.string.unidad_caja_monitor)+"");
-        if(venta_comprometida >= 0){
-            etiqueta_venta_necesaria.setText("Faltante");
-        }else{
-            etiqueta_venta_necesaria.setText("Sobrante");
+        try {
+            Double venta_comprometida = 0.0;
+            venta_comprometida = (Double.parseDouble(txt_num_puertas.getText().toString().replaceAll("[A-Z]", "")) * Double.parseDouble(formList.get(0).get("cajas_monitor_ef").replaceAll("[A-Z]", ""))) - Double.parseDouble(venta_actual.getText().toString().replaceAll("[A-Z]", ""));
+            venta_necesaria.setText(String.format(Locale.US, "%.2f", venta_comprometida) + " " + getResources().getString(R.string.unidad_caja_monitor) + "");
+            venta_total.setText(String.format(Locale.US, "%.2f", venta_comprometida + Double.parseDouble(venta_actual.getText().toString().replaceAll("[A-Z]", ""))) + " " + getResources().getString(R.string.unidad_caja_monitor) + "");
+            if (venta_comprometida >= 0) {
+                etiqueta_venta_necesaria.setText("Diferencia");
+            } else {
+                etiqueta_venta_necesaria.setText("Sobrante");
+            }
+        }catch(Exception e){
+            Toasty.warning(getBaseContext(),"Error al calcular la venta necesaria, valide el # de puertas digitado").show();
         }
     }
     @Override
@@ -162,7 +173,7 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.detalle);
         Bundle b = getIntent().getExtras();
-        if(b != null) {
+        if (b != null) {
             codigo_cliente = b.getString("codigo_cliente");
             nombre_cliente = b.getString("nombre_cliente");
             canal_cliente = b.getString("canal_cliente");
@@ -176,20 +187,20 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
         formList = db.getDatosVistaMonitorEquipoFrioDB(codigo_cliente);
         setContentView(R.layout.activity_monitor_equipo_frio);
 
-        Drawable d = getResources().getDrawable(R.drawable.header_curved_cc5,null);
+        Drawable d = getResources().getDrawable(R.drawable.header_curved_cc5, null);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle(codigo_cliente +" - "+nombre_cliente);
+        toolbar.setTitle(codigo_cliente + " - " + nombre_cliente);
         toolbar.setSubtitle("Monitor Equipo Frio");
-        toolbar.setTitleTextAppearance(this,R.style.Toolbar_TitleText);
-        toolbar.setSubtitleTextColor(getResources().getColor(R.color.colorTextView,null));
+        toolbar.setTitleTextAppearance(this, R.style.Toolbar_TitleText);
+        toolbar.setSubtitleTextColor(getResources().getColor(R.color.colorTextView, null));
         toolbar.setBackground(d);
         if (Build.VERSION.SDK_INT >= 28) {
-            toolbar.setOutlineAmbientShadowColor(getResources().getColor(R.color.aprobados,null));
+            toolbar.setOutlineAmbientShadowColor(getResources().getColor(R.color.aprobados, null));
         }
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 
-        /*Llenar los campos del layout con la lista de datos sacado ed la vista con el dbHelper*/
+        /*Llenar los campos del layout con la lista de datos sacado de la vista con el dbHelper*/
         pais = findViewById(R.id.pais);
         estado = findViewById(R.id.estado);
         prioridad = findViewById(R.id.prioridad);
@@ -202,15 +213,29 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
         puertas_por_instalar = findViewById(R.id.puertas_por_instalar);
         txt_num_puertas = findViewById(R.id.txt_num_puertas);
         venta_necesaria = findViewById(R.id.venta_necesaria);
+        venta_total = findViewById(R.id.venta_total);
         etiqueta_venta_necesaria = findViewById(R.id.etiqueta_venta_necesaria);
+        label_gauge_final = findViewById(R.id.label_gauge_final);
         halfGauge = findViewById(R.id.halfGauge);
 
         pais.setText(formList.get(0).get("pais").toString());
         estado.setText(formList.get(0).get("estado").toString());
-        prioridad.setText(formList.get(0).get("prioridad").toString() +" - "+formList.get(0).get("desc_prioridad").toString());
-        gec.setText(formList.get(0).get("desc_gec").toString() +" ("+formList.get(0).get("cajas_monitor_ef").toString()+" "+getResources().getString(R.string.unidad_caja_monitor)+")");
+
+        prioridad.setText(formList.get(0).get("prioridad") + " - " + formList.get(0).get("desc_prioridad"));
+        ToolTipsManager mToolTipsManager = new ToolTipsManager();
+        int suma = Integer.parseInt(formList.get(0).get("prioridad_volumen")) + Integer.parseInt(formList.get(0).get("prioridad_cliente")) + Integer.parseInt(formList.get(0).get("prioridad_por_objetivo")) + Integer.parseInt(formList.get(0).get("prioridad_gec"));
+        ToolTip.Builder builder = new ToolTip.Builder(this, prioridad, (ViewGroup) findViewById(R.id.frameLayout), "Volumen: " + formList.get(0).get("prioridad_volumen") + "\nCliente: " + formList.get(0).get("prioridad_cliente") + "\nObjetivo: " + formList.get(0).get("prioridad_por_objetivo") + "\nGEC: " + formList.get(0).get("prioridad_gec") + "\nCalificación Final: " + String.valueOf(suma) + "%", ToolTip.POSITION_BELOW);
+        builder.setAlign(ToolTip.ALIGN_LEFT);
+        builder.setGravity(ToolTip.GRAVITY_LEFT);
+        //builder.setOffsetX(-150);
+        builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+        prioridad.setOnLongClickListener(view -> {
+            mToolTipsManager.show(builder.build());
+            return true;
+        });
+        gec.setText(formList.get(0).get("desc_gec").toString() + " (" + formList.get(0).get("cajas_monitor_ef").toString() + " " + getResources().getString(R.string.unidad_caja_monitor) + ")");
         tipo_canal.setText(formList.get(0).get("desc_tipo_canal").toString());
-        venta_actual.setText(formList.get(0).get("venta_actual").toString()+" "+getResources().getString(R.string.unidad_caja_monitor)+"");
+        venta_actual.setText(formList.get(0).get("venta_actual").toString() + " " + getResources().getString(R.string.unidad_caja_monitor) + "");
         txt_num_puertas.setText(formList.get(0).get("puertas_objetivo").toString());
 
         txt_num_puertas.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -235,33 +260,36 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
         range2.setColor(Color.parseColor("#ce0000"));
         range2.setFrom(Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString()));
 
-        if(Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString()) > Double.parseDouble(formList.get(0).get("puertas_objetivo").toString())){
+        if (Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString()) > Double.parseDouble(formList.get(0).get("puertas_objetivo").toString())) {
             range.setColor(Color.parseColor("#cbfc28"));
             range2.setColor(Color.parseColor("#00b20b"));
             range.setTo(Double.parseDouble(formList.get(0).get("puertas_objetivo").toString()));
             range2.setFrom(Double.parseDouble(formList.get(0).get("puertas_objetivo").toString()));
             range2.setTo(Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString()));
             halfGauge.setMaxValue(Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString()));
+            label_gauge_final.setText("sugeridas");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 halfGauge.setTooltipText("Ventas permiten ligar mas equipos que el objetivo.");
             }
         }
 
-        if(Double.parseDouble(formList.get(0).get("puertas_objetivo").toString()) > Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString())){
+        if (Double.parseDouble(formList.get(0).get("puertas_objetivo").toString()) > Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString())) {
             range.setTo(Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString()));
             range2.setFrom(Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString()));
             range2.setTo(Double.parseDouble(formList.get(0).get("puertas_objetivo").toString()));
             halfGauge.setMaxValue(Double.parseDouble(formList.get(0).get("puertas_objetivo").toString()));
+            label_gauge_final.setText("objetivo");
             range.setColor(Color.parseColor("#00b20b"));
             range2.setColor(Color.parseColor("#fc361c"));
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 halfGauge.setTooltipText("Cliente no tiene las ventas suficientes para llegar a su objetivo.");
             }
         }
-        if(Double.parseDouble(formList.get(0).get("puertas_objetivo").toString()) == Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString())){
+        if (Double.parseDouble(formList.get(0).get("puertas_objetivo").toString()) == Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString())) {
             range.setTo(Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString()));
             range2.setFrom(Double.parseDouble(formList.get(0).get("puertas_sugeridas").toString()));
             range2.setTo(Double.parseDouble(formList.get(0).get("puertas_objetivo").toString()));
+            label_gauge_final.setText("objetivo");
             halfGauge.setMaxValue(Double.parseDouble(formList.get(0).get("puertas_objetivo").toString()));
             range.setColor(Color.parseColor("#00b20b"));
             range2.setColor(Color.parseColor("#fc361c"));
@@ -281,7 +309,7 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
         bottomNavigation = findViewById(R.id.bottom_navigation_monitor_equipo_frio);
         bottomNavigation.getMenu().getItem(0).setTitle(formList.get(0).get("solicitud").charAt(0) + formList.get(0).get("solicitud").substring(1).toLowerCase());
         if (Integer.parseInt(formList.get(0).get("puertas_instaladas")) == 0)
-            bottomNavigation.getMenu().getItem(0).setTitle(bottomNavigation.getMenu().getItem(0).getTitle().toString().replace("/ cambio",""));
+            bottomNavigation.getMenu().getItem(0).setTitle(bottomNavigation.getMenu().getItem(0).getTitle().toString().replace("/ cambio", ""));
         //Setear Eventos de Elementos del bottom navigation
         bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -289,7 +317,7 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
                 Intent intent;
                 switch (item.getItemId()) {
                     case R.id.action_solicitud:
-                        showDialogFormulariosModificacion(codigo_cliente,Integer.parseInt(formList.get(0).get("puertas_por_instalar")),Integer.parseInt(formList.get(0).get("puertas_instaladas")));
+                        showDialogFormulariosModificacion(codigo_cliente, Integer.parseInt(formList.get(0).get("puertas_por_instalar")), Integer.parseInt(formList.get(0).get("puertas_instaladas")));
                         return true;
                     case R.id.action_base_instalada:
                         Bundle bc = new Bundle();
@@ -297,7 +325,7 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
                         bc.putString("nombre_cliente", nombre_cliente);
                         bc.putString("canal_cliente", canal_cliente);
                         bc.putString("correo_cliente", correo_cliente);
-                        intent = new Intent(getApplicationContext(),BaseInstaladaActivity.class);
+                        intent = new Intent(getApplicationContext(), BaseInstaladaActivity.class);
                         intent.putExtras(bc); //Pase el parametro el Intent
                         startActivity(intent);
                         return true;
@@ -307,7 +335,7 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
                         bc.putString("nombre_cliente", nombre_cliente);
                         bc.putString("canal_cliente", canal_cliente);
                         bc.putString("correo_cliente", correo_cliente);
-                        intent = new Intent(getApplicationContext(),EquipoDisponibleActivity.class);
+                        intent = new Intent(getApplicationContext(), EquipoDisponibleActivity.class);
                         intent.putExtras(bc); //Pase el parametro el Intent
                         startActivity(intent);
                         return true;
@@ -618,9 +646,26 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
                     b.putString("tipoSolicitud", tipoSolicitud);
                     b.putString("codigoCliente", codigoCliente);
                     b.putString("codigoEquipoFrio", codigoEquipoFrio);
-                    //TODO realizaar la mate para saber realmente cuantas puertas puede instalar o desinstalar segun el equipo seleccionado ()
-                    b.putString("monitor", "0");
-                    b.putString("numPuertas", "0");
+                    //TODO realizar la mate para saber realmente cuantas puertas puede instalar o desinstalar segun el equipo seleccionado ()
+                    b.putString("monitor", "1");
+                    //Si es un cambio (41)
+                    if(tipoSolicitud.equals("41") && Integer.parseInt(puertas_por_instalar.getText().toString()) < 0) {
+                        HashMap<String, String> equipo = db.getEquipoFrioDatosMonitor(codigoEquipoFrio);
+                        Integer num_puertas_permitidas = Integer.parseInt(puertas_por_instalar.getText().toString()) + Integer.parseInt(equipo.get("num_puertas").toString());
+                        b.putString("numPuertas", num_puertas_permitidas.toString());
+                    }
+                    if(tipoSolicitud.equals("41") && Integer.parseInt(puertas_por_instalar.getText().toString()) > 0) {
+                        HashMap<String, String> equipo = db.getEquipoFrioDatosMonitor(codigoEquipoFrio);
+                        Integer num_puertas_permitidas = Integer.parseInt(puertas_por_instalar.getText().toString()) + Integer.parseInt(equipo.get("num_puertas").toString());
+                        b.putString("numPuertas", num_puertas_permitidas.toString());
+                    }
+                    //Si es un retiro solamente
+                    if(tipoSolicitud.equals("42")) {
+                        HashMap<String, String> equipo = db.getEquipoFrioDatosMonitor(codigoEquipoFrio);
+                        //Integer num_puertas_permitidas = Integer.parseInt(puertas_por_instalar.getText().toString()) + Integer.parseInt(equipo.get("num_puertas").toString());
+                        b.putString("numPuertas", "0");
+                    }
+
                     Intent intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
                     intent.putExtras(b); //Pase el parametro el Intent
                     startActivity(intent);
@@ -631,7 +676,6 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
         });
 
         //Para campos de seleccion de equipo frio del cliente para mantenimiento, cierre, retiro o cambio
-
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
         for (int j = 0; j < opciones.size(); j++){
             listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
@@ -652,5 +696,4 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
             window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         }
     }
-
 }
