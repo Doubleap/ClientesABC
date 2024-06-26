@@ -1,75 +1,36 @@
 package proyecto.app.clientesabc.adaptadores;
 
-import static android.view.View.GONE;
-
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
-import androidx.core.widget.CompoundButtonCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.vicmikhailau.maskededittext.MaskedEditText;
-
 import java.lang.ref.WeakReference;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 
-import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.LocacionGPSActivity;
-import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.clases.AdjuntoAPI;
-import proyecto.app.clientesabc.clases.AdjuntoServidor;
-import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.ImagenServidor;
-import proyecto.app.clientesabc.clases.SearchableSpinner;
-import proyecto.app.clientesabc.clases.TransmisionLecturaCensoAPI;
-import proyecto.app.clientesabc.clases.TransmisionLecturaCensoServidor;
-import proyecto.app.clientesabc.modelos.Adjuntos;
-import proyecto.app.clientesabc.modelos.EquipoFrio;
-import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 public class EquipoDisponibleAdapter extends RecyclerView.Adapter<EquipoDisponibleAdapter.MyViewHolder> implements Filterable {
     private ArrayList<HashMap<String, String>> mDataset;
@@ -125,7 +86,7 @@ public class EquipoDisponibleAdapter extends RecyclerView.Adapter<EquipoDisponib
 
         ImageView ver_detalle = holder.listView.findViewById(R.id.ver_detalle);
 
-        CardView card_view = (CardView) holder.listView.findViewById(R.id.card_view);
+        CardView card_view = (CardView) holder.listView.findViewById(R.id.encuesta);
 
         modelo.setText("");
         disponibilidad.setText("");

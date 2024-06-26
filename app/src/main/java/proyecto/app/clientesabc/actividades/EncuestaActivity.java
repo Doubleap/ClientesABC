@@ -12,6 +12,8 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -51,6 +53,11 @@ public class EncuestaActivity extends AppCompatActivity{
     String codigo_cliente;
     String nombre_cliente;
     String tipo_encuesta;
+    String idEncuesta;
+    String nombre_encuesta;
+    String GecNuevo;
+    String GecActual;
+    boolean esGVC;
     List<PreguntasEncuesta> preguntas;
     List<RespuestaPregunta> respuestaPreguntas = new ArrayList<>();
     RecyclerView rv;
@@ -63,20 +70,33 @@ public class EncuestaActivity extends AppCompatActivity{
         if(b != null) {
             codigo_cliente = b.getString("codigo_cliente");
             nombre_cliente = b.getString("nombre_cliente");
-            tipo_encuesta = b.getString("tipo_encuesta");
+            idEncuesta = b.getString("idEncuesta");
+            nombre_encuesta = b.getString("nombre_encuesta");
+            GecNuevo = b.getString("GecNuevo");
+            GecActual = b.getString("GecActual");
+            esGVC = b.getBoolean("esGVC");
         }
         db = new DataBaseHelper(this);
         db = new DataBaseHelper(this);
         mDb = db.getWritableDatabase();
-        preguntas = db.getPreguntasEncuesta();
-        respuestaPreguntas = db.getRespuestasEncuestaCliente(codigo_cliente);
-
-        if(!respuestaPreguntas.isEmpty()){
-            encuestaNueva=false;
-        }
+        preguntas = db.getPreguntasEncuesta(idEncuesta);
+        respuestaPreguntas = db.getRespuestasEncuestaCliente(codigo_cliente,idEncuesta);
 
         setContentView(R.layout.encuesta_gec_layout);
-        //setContentView(R.layout.activity_base_instalada);
+
+        TextView GecNuevoTv = findViewById(R.id.texto_gec_nuevo2);
+        TextView GecActualTv = findViewById(R.id.texto_gec_actual2);
+        ImageView flecha = findViewById(R.id.arrowGec2);
+        LinearLayout GecLayout = findViewById(R.id.GecLayout);
+        if(!respuestaPreguntas.isEmpty()){
+            encuestaNueva=false;
+            GecLayout.setVisibility(View.VISIBLE);
+            GecNuevoTv.setText(GecNuevo);
+            GecActualTv.setText(GecActual);
+
+        }
+
+
         rv = findViewById(R.id.recycler_view);
 
         mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente,respuestaPreguntas);
@@ -90,7 +110,10 @@ public class EncuestaActivity extends AppCompatActivity{
 
         TextView cliente =  findViewById(R.id.cliente);
         TextView title =  findViewById(R.id.title);
+
         cliente.setText(codigo_cliente +" - "+nombre_cliente);
+
+
         Button saveBtn = findViewById(R.id.saveBtn);
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -112,7 +135,7 @@ public class EncuestaActivity extends AppCompatActivity{
     protected  void onResume(){
         super.onResume();
 
-        preguntas = db.getPreguntasEncuesta();
+        preguntas = db.getPreguntasEncuesta(idEncuesta);
         RecyclerView rv = findViewById(R.id.recycler_view);
 
         mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente,respuestaPreguntas);
@@ -308,7 +331,8 @@ public class EncuestaActivity extends AppCompatActivity{
 
             RespuestaPregunta respuestaPregunta = new RespuestaPregunta();
             respuestaPregunta.setGUID(myGUID.toString());
-            respuestaPregunta.setEncuesta(tipo_encuesta);
+            respuestaPregunta.setIdEncuesta(idEncuesta);
+            respuestaPregunta.setEncuesta(nombre_encuesta);
             respuestaPregunta.setFecha((new java.sql.Date(Calendar.getInstance().getTimeInMillis())).toString());
             respuestaPregunta.setNombreCliente(nombre_cliente);
             respuestaPregunta.setCodigoCliente(codigo_cliente);
@@ -422,6 +446,7 @@ public class EncuestaActivity extends AppCompatActivity{
             respuestaValue.put("id_respuesta", respuestaPregunta.getIdRespuesta());
             respuestaValue.put("id_texto_respuesta", respuestaPregunta.getIdTextoRespuesta());
             respuestaValue.put("fecha_ejecucion", respuestaPregunta.getFecha().toString());
+            respuestaValue.put("id_encuesta", respuestaPregunta.getIdEncuesta());
             respuestaValue.put("texto_encuesta", respuestaPregunta.getEncuesta());
             respuestaValue.put("codigo_cliente", respuestaPregunta.getCodigoCliente());
             respuestaValue.put("nombre_cliente", respuestaPregunta.getNombreCliente());
@@ -449,6 +474,8 @@ public class EncuestaActivity extends AppCompatActivity{
             f.DisableWiFi();
         }
         f.execute();
+
+
 
 
 

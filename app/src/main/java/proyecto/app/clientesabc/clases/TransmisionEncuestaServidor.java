@@ -52,12 +52,21 @@ public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
     private String hostName,canonicalHostname;
     private String givenName;
     private DataBaseHelper mDBHelper;
+    private boolean pendientes = false;
     AlertDialog dialog;
 
     public TransmisionEncuestaServidor(WeakReference<Context> context, WeakReference<Activity> act, String GUID){
         this.context = context;
         this.activity = act;
         this.GUID = GUID;
+        mDBHelper = new DataBaseHelper(this.context.get());
+    }
+
+    public TransmisionEncuestaServidor(WeakReference<Context> context, WeakReference<Activity> act, String GUID, boolean pendientes){
+        this.context = context;
+        this.activity = act;
+        this.GUID = GUID;
+        this.pendientes = pendientes;
         mDBHelper = new DataBaseHelper(this.context.get());
     }
 
@@ -94,7 +103,12 @@ public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
 
                     //Tabla de respuesta_pregunta
                     String sqlCreate = "";
-                    sqlCreate = "CREATE TABLE respuesta_pregunta AS SELECT * FROM fromDB.respuesta_pregunta WHERE GUID = '"+GUID+"'";
+                    if(pendientes){
+                        sqlCreate = "CREATE TABLE respuesta_pregunta AS SELECT * FROM fromDB.respuesta_pregunta WHERE estado = 'pendiente'";
+                    }else{
+                        sqlCreate = "CREATE TABLE respuesta_pregunta AS SELECT * FROM fromDB.respuesta_pregunta WHERE GUID = '"+GUID+"'";
+                    }
+
                     mDataBase.execSQL(sqlCreate);
 
                     publishProgress("Empaquetando datos...");
@@ -240,17 +254,32 @@ public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
         super.onPostExecute(aVoid);
         if(xceptionFlag){
             Toasty.error(context.get(),errorFlag,Toast.LENGTH_LONG).show();
+            Toasty.warning(context.get(),"Encuesta no se envio!",Toast.LENGTH_LONG).show();
+            //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put("estado","pendiente");
+            long update = db.update("respuesta_pregunta",values,"GUID = ?",new String[]{GUID});
+            if(update <= 0){
+                Toasty.success(context.get(),"No se actualizo el estado de la encuesta!",Toast.LENGTH_LONG).show();
+            }
         }
         else{
-//            Toasty.success(context.get(),"Transmisión exitosa de "+equipoFrio.getEstado()+"!",Toast.LENGTH_LONG).show();
-//            //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
-//            SQLiteDatabase db = mDBHelper.getWritableDatabase();
-//            ContentValues values = new ContentValues();
-//            values.put("transmitido","1");
-//            long update = db.update("CensoEquipoFrio",values,"trim(kunnr_censo) = ? AND trim(num_placa) = ? AND fecha_lectura = ? AND transmitido = '0'",new String[]{equipoFrio.getKunnrCenso(),equipoFrio.getSerge(),equipoFrio.getFechaLectura()});
-//            if(update <= 0){
-//                Toasty.success(context.get(),"No se actualizo el estado de transmision de la lectura!",Toast.LENGTH_LONG).show();
-//            }
+            Toasty.success(context.get(),"Encuesta exitosa!",Toast.LENGTH_LONG).show();
+            //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put("estado","enviado");
+            long update = 0;
+            if(pendientes){
+                update = db.update("respuesta_pregunta",values,"estado = ?",new String[]{"pendiente"});
+            }else{
+                update = db.update("respuesta_pregunta",values,"GUID = ?",new String[]{GUID});
+            }
+
+            if(update <= 0){
+                Toasty.success(context.get(),"No se actualizo el estado de la encuesta!",Toast.LENGTH_LONG).show();
+            }
 
         }
         try {
@@ -263,11 +292,16 @@ public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
         if(dialog.isShowing())
             dialog.hide();
         //activity.get().recreate();
-        if(!activity.get().isFinishing()) {
-            Intent intent = activity.get().getIntent();
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            activity.get().finish();
+        if(!pendientes){
+            if(!activity.get().isFinishing()) {
+                Intent intent = activity.get().getIntent();
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                activity.get().finish();
+            }
+        }else{
+            activity.get().recreate();
         }
+
 
 
 

@@ -1,9 +1,11 @@
 package proyecto.app.clientesabc.actividades;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -31,6 +33,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.preference.PreferenceManager;
+import android.text.InputType;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -41,16 +44,20 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.textfield.TextInputEditText;
 import com.honeywell.aidc.AidcManager;
 import com.honeywell.aidc.BarcodeFailureEvent;
 import com.honeywell.aidc.BarcodeReadEvent;
@@ -60,6 +67,7 @@ import com.honeywell.aidc.ScannerNotClaimedException;
 import com.honeywell.aidc.ScannerUnavailableException;
 import com.honeywell.aidc.UnsupportedPropertyException;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,6 +78,8 @@ import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
+import proyecto.app.clientesabc.clases.TransmisionEncuestaServidor;
+import proyecto.app.clientesabc.modelos.EncuestaCabecera;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 import proyecto.app.clientesabc.modelos.RespuestaPregunta;
@@ -85,6 +95,7 @@ public class MantClienteActivity extends AppCompatActivity {
     private MovableFloatingActionButton fab;
     private FloatingActionButton fab1;
     private FloatingActionButton fab2;
+    List<EncuestaCabecera> encuestaCabeceras;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -134,6 +145,7 @@ public class MantClienteActivity extends AppCompatActivity {
 
         toggle.syncState();
 
+
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -166,6 +178,22 @@ public class MantClienteActivity extends AppCompatActivity {
                     case R.id.solicitudes:
                         intent = new Intent(getBaseContext(),SolicitudesActivity.class);
                         startActivity(intent);
+                        break;
+                    case R.id.enviar_encuestas_pendientes:
+                        if(db.getValidacionEncuestaPendiente()){
+                            WeakReference<Context> weakRef = new WeakReference<Context>(MantClienteActivity.this);
+                            WeakReference<Activity> weakRefA = new WeakReference<Activity>(MantClienteActivity.this);
+                            TransmisionEncuestaServidor f = new TransmisionEncuestaServidor(weakRef,weakRefA,"",true);
+                            if (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("tipo_conexion", "").equals("wifi")) {
+                                f.EnableWiFi();
+                            } else {
+                                f.DisableWiFi();
+                            }
+                            f.execute();
+                        }else{
+                            Toasty.info(getBaseContext(),"No hay encuestas pendientes.").show();
+                        }
+
                         break;
                     case R.id.coordenadas:
                         intent = new Intent(getBaseContext(),LocacionGPSActivity.class);
@@ -210,6 +238,8 @@ public class MantClienteActivity extends AppCompatActivity {
         if (fab != null) {
             fab.setEnabled(true);
         }
+        actualizarEncuestaDialog();
+
     }
 
     @Override
@@ -340,16 +370,46 @@ public class MantClienteActivity extends AppCompatActivity {
 
             //ENCUESTA GEC
             long encuestaCreada=0;
-            encuestaCreada = db.getValidacionEncuestaPendiente(codigoCliente);
+
+            encuestaCabeceras = db.getEncuestasCabecera("");
+            int pendientes =0;
+            boolean pendienteTransferir = false;
+            for(EncuestaCabecera encuestaCabecera : encuestaCabeceras){
+                if(!db.getValidacionEncuestaClientePendiente(String.valueOf(encuestaCabecera.getId()),codigoCliente)){
+                    pendientes++;
+                }
+                String GUIDactual = db.getGUIDEncuestaActualCliente(String.valueOf(encuestaCabecera.getId()),codigoCliente);
+                if(GUIDactual.length()>0){
+                    String estado= db.getEstadoRespuestaEnviada(GUIDactual);
+                    if (estado!=null && estado.equals("pendiente")){
+                        pendienteTransferir=true;
+                    }
+                }
+            }
             com.rey.material.widget.LinearLayout  encuesta_gec_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.encuesta_gec_layout);
             ImageView imagen_encuesta_gec = (ImageView)holder.listView.findViewById(R.id.imagen_encuesta_gec);
-            if(encuestaCreada>0){
-                imagen_encuesta_gec.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.blue,null)));
+            TextView label_cantidad_encuestas_pendientes= (TextView) holder.listView.findViewById(R.id.label_cantidad_encuestas_pendientes);
+            if(pendientes>0){
+                imagen_encuesta_gec.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.black,null)));
+                label_cantidad_encuestas_pendientes.setText(String.valueOf(pendientes));
+                label_cantidad_encuestas_pendientes.setVisibility(View.VISIBLE);
+                FloatingActionButton cantidad_encuestas_pendientes= (FloatingActionButton) holder.listView.findViewById(R.id.cantidad_encuestas_pendientes);
+                cantidad_encuestas_pendientes.setVisibility(View.VISIBLE);
             }else{
-                imagen_encuesta_gec.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red,null)));
-//                imagen_encuesta_gec
-
+                imagen_encuesta_gec.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.aprobados,null)));
+                label_cantidad_encuestas_pendientes.setVisibility(View.GONE);
+                FloatingActionButton cantidad_encuestas_pendientes= (FloatingActionButton) holder.listView.findViewById(R.id.cantidad_encuestas_pendientes);
+                cantidad_encuestas_pendientes.setVisibility(View.GONE);
             }
+            if(pendienteTransferir){
+                ImageView warningPendientes= holder.listView.findViewById(R.id.warningPendientes);
+                warningPendientes.setVisibility(View.VISIBLE);
+                imagen_encuesta_gec.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.colorBackground,null)));
+            }else{
+                ImageView warningPendientes= holder.listView.findViewById(R.id.warningPendientes);
+                warningPendientes.setVisibility(View.INVISIBLE);
+            }
+
             imagen_encuesta_gec.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -359,9 +419,12 @@ public class MantClienteActivity extends AppCompatActivity {
                     bc.putString("canal_cliente", canalCliente);
                     bc.putString("correo_cliente", correoCliente);
                     bc.putString("tipo_encuesta","GVC");
-                    intent = new Intent(getApplicationContext(), EncuestaActivity.class);
-                    intent.putExtras(bc); //Pase el parametro el Intent
-                    startActivity(intent);
+                    EncuestaCabeceraDialog listDialog = new EncuestaCabeceraDialog(
+                            getBaseContext(),MantClienteActivity.this, encuestaCabeceras);
+                    // Show the dialog
+
+                    listDialog.setArguments(bc);
+                    listDialog.show(getSupportFragmentManager(),"EncuestaCabeceraDialog");
                 }
             });
             //ENCUESTA GEC
@@ -926,4 +989,18 @@ public class MantClienteActivity extends AppCompatActivity {
         }
     }
 
+    public void actualizarEncuestaDialog() {
+        EncuestaCabeceraDialog fragment = new EncuestaCabeceraDialog();
+        fragment = (EncuestaCabeceraDialog) getSupportFragmentManager().findFragmentByTag("EncuestaCabeceraDialog");
+        if(fragment != null){
+            // ok, we got the fragment instance, but should we manipulate its view?
+            fragment.dismiss();
+            for (EncuestaCabecera encuestaCabecera:  encuestaCabeceras) {
+                if(encuestaCabecera.isGvc()){
+
+                }
+            }
+            fragment.show(getSupportFragmentManager(),"EncuestaCabeceraDialog");
+        }
+    }
 }

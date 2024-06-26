@@ -6,7 +6,7 @@
     android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/card_view"
+        android:id="@+id/encuesta"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
@@ -64,7 +64,7 @@
                 android:visibility="visible" />
 
             <TextView
-                android:id="@+id/num_equipo"
+                android:id="@+id/nombre_encuesta"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/num_serie"
@@ -76,18 +76,18 @@
                 android:id="@+id/base_instalada"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignBaseline="@+id/num_equipo"
+                android:layout_alignBaseline="@+id/nombre_encuesta"
                 android:layout_marginLeft="15dp"
-                android:layout_toRightOf="@id/num_equipo"
+                android:layout_toRightOf="@id/nombre_encuesta"
                 android:text="Base Instalada"
                 android:textAppearance="?android:textAppearanceSmall" />
 
 
             <TextView
-                android:id="@+id/text_ultima_fecha"
+                android:id="@+id/descripcion_encuesta"
                 android:layout_width="362dp"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/num_equipo"
+                android:layout_below="@id/nombre_encuesta"
                 android:layout_marginLeft="10dp"
                 android:text="Fecha de Escaneo"
                 android:textAppearance="?android:textAppearanceSmallPopupMenu"
@@ -110,7 +110,7 @@
                 android:id="@+id/estado_escaneo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/text_ultima_fecha"
+                android:layout_below="@id/descripcion_encuesta"
                 android:layout_marginLeft="10dp"
                 android:text="Estado Escaneo"
                 android:textAppearance="?android:textAppearanceSmall" />
@@ -140,7 +140,7 @@
                     android:visibility="gone"
                     />
                 <ImageView
-                    android:id="@+id/alerta"
+                    android:id="@+id/estadoIcon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"

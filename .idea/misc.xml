@@ -4,22 +4,30 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/activity_base_instalada.xml" value="0.3109375" />
+        <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/activity_mant_clientes.xml" value="0.25" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/app_bar_main.xml" value="0.18541666666666667" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/banco_dialog_layout.xml" value="0.3109375" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/base_instalada_item.xml" value="0.3109375" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/detalle.xml" value="0.2604166666666667" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/empty_table_layout.xml" value="0.3109375" />
+        <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/encuesta_cabecera_dialog_layout.xml" value="0.33" />
+        <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/encuesta_cabecera_item.xml" value="0.5489583333333333" />
+        <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/encuesta_canales_dialog_layout.xml" value="0.7218710493046776" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/encuesta_gec_dialog_layout.xml" value="0.3109375" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/encuesta_gec_item.xml" value="0.25" />
-        <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/encuesta_gec_layout.xml" value="0.3109375" />
+        <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/encuesta_gec_layout.xml" value="0.5" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/encuesta_multiple_item.xml" value="0.3109375" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/encuesta_numerico_item.xml" value="0.33" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/encuesta_seleccion_item.xml" value="0.33" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/encuesta_texto_item.xml" value="0.3109375" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/equipo_disponible_item.xml" value="0.3109375" />
-        <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/mant_clientes_item.xml" value="0.5" />
+        <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/main_menu_drawer.xml" value="0.55" />
+        <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/mant_clientes_item.xml" value="2.369047619047619" />
+        <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/message_dialog_layout.xml" value="0.33" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/simple_spinner_item.xml" value="0.3109375" />
         <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/layout/spinner_item.xml" value="0.3109375" />
+        <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/menu/main_drawer.xml" value="0.55" />
+        <entry key="..\:/AndroidStudioProjects/ClientesABC/app/src/main/res/menu/main_menu.xml" value="0.55" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_iniciative.xml" value="0.2845" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_location.xml" value="0.186" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_refrigerator.xml" value="0.2155" />

@@ -15,6 +15,7 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email completions."</string>
     <string name="solicitud">Solicitud Inclusion</string>
     <string name="comunicacion">Comunicacion</string>
+    <string name="enviar_encuestas_pendientes">Transmitir encuestas</string>
     <string name="title_activity_comunicacion">Actualización de Datos</string>
     <string name="title_activity_firma_cr">CONSENTIMIENTO INFORMADO PARA EL TRATAMIENTO DE DATOS PERSONALES</string>
     <string name="title_activity_firma_ni">AVISO INFORMATIVO</string>

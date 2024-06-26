@@ -19,6 +19,9 @@ public class RespuestaPregunta {
     @Column("texto_encuesta")
     private  String encuesta;
 
+    @Column("id_encuesta")
+    private  String idEncuesta;
+
     @Column(value = "fecha_ejecucion",treatNullAsDefault = true)
     private String fecha;
 
@@ -45,6 +48,9 @@ public class RespuestaPregunta {
 
     @Column("respuesta")
     private String respuesta;
+
+    @Column("estado")
+    private String estado;
 
 
     public RespuestaPregunta() {
@@ -168,5 +174,21 @@ public class RespuestaPregunta {
 
     public void setRespuesta(String respuesta) {
         this.respuesta = respuesta;
+    }
+
+    public String getIdEncuesta() {
+        return idEncuesta;
+    }
+
+    public void setIdEncuesta(String idEncuesta) {
+        this.idEncuesta = idEncuesta;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }

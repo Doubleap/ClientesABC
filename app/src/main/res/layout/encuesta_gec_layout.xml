@@ -39,6 +39,42 @@
             android:text="Cliente"
             android:textColor="@color/white"
             android:textSize="14sp" />
+
+        <LinearLayout
+            android:id="@+id/GecLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:visibility="invisible">
+
+            <TextView
+                android:id="@+id/texto_gec_actual2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/nombre_encuesta"
+                android:text="ValorGEC"
+                android:textColor="@color/white" />
+
+            <ImageView
+                android:id="@+id/arrowGec2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/texto_gec_actual"
+                android:tint="@color/white"
+                app:srcCompat="@drawable/arrow_right"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/texto_gec_nuevo2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/arrowGec"
+                android:text="ValorGEC"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
     </LinearLayout>
 
     <ScrollView
@@ -49,7 +85,7 @@
         android:layout_height="match_parent">
 
         <LinearLayout
-            android:id="@+id/linearPreguntas"
+            android:id="@+id/encuestas"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
