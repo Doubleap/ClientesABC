@@ -33,6 +33,7 @@ import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
 import proyecto.app.clientesabc.actividades.LoginActivity;
 import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
 import proyecto.app.clientesabc.clases.KeyPairBoolData;
@@ -304,6 +305,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, STRAS as direccion, 'Estado' as estado, KLABC as klabc, stcd1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
                             ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
                             " FROM SAPDClientes";
+                    if(usaMonitor)
+                        query += " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
+                    break;
+                case "F428":
+                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
+                            ", 0 as cant_base_instalada" + columnas_monitor +
+                            " FROM SAPDClientes ";
                     if(usaMonitor)
                         query += " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
                     break;
@@ -1366,6 +1374,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(tabla.equals("cat_ztsdvto_00185")) {
             filtros.append(" AND (id_kvgr5 IN(SELECT id FROM cat_ztsdvto_00185_x WHERE(vpore = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA","")+"')))");
         }
+        if(tabla.contains("zesdvt_01044")){
+            filtros.append("");
+        }
         //TODO si entran formales D y ABC al app se debe cambiar esta manera de filtrar
         if(tabla.equals("cat_knvv")){
             if(!PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001"))
@@ -1451,6 +1462,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     " FROM " + tabla +" a INNER JOIN" +
                     " EX_T_RUTAS_VP AS b ON (trim(a.zone1) = trim(b.zroute_rep) OR trim(a.zone1) = trim(b.zroute_pr)) WHERE trim(zone1) != '' ";
         }
+        if(tabla.equals("SAPDCAT_Ruta_Relacion")){
+            selectQuery = "SELECT DISTINCT zroute as id, zroute as descripcion  FROM " + tabla +" WHERE 1=1 ";
+        }
         if(tabla.equals("EX_T_RUTAS_VP")){
             selectQuery = "SELECT DISTINCT zroute_pr as id, zroute_pr as ruta " +
                     " FROM " + tabla +" WHERE 1=1 ";
@@ -1497,7 +1511,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 do {
                     HashMap<String,String> lista = new HashMap<>();
                     lista.put("id",cursor.getString(0).trim());//1era columna del query
-                    lista.put("descripcion",cursor.getString(0).trim() + " - " + cursor.getString(1).trim());//1era y 2da columna del query
+                    if(tabla.equals("cat_dominios")){//Hacer variable para generico que solo salga la descripcion y no el codigo o id
+                        lista.put("descripcion",cursor.getString(1).trim());//1era y 2da columna del query
+                    }else{
+                        lista.put("descripcion",cursor.getString(0).trim() + " - " + cursor.getString(1).trim());//1era y 2da columna del query
+                    }
+
                     listaCatalogo.add(lista);
                 } while (cursor.moveToNext());
             }
@@ -2510,6 +2529,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             case "UY":
                 grupoCuentasDefault = "UYDE";
                 break;
+            case "CO":
+                grupoCuentasDefault = "CODE";
+                break;
         }
         String query = "SELECT * FROM cat_funcint WHERE ktokd = '"+grupoCuentasDefault+"'";
         Cursor cursor = mDataBase.rawQuery(query,null);
@@ -2583,7 +2605,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         //Caso exclusivo para tipos de visita autoventa, donde la preventa y el reparto son lo mismo.
-        if(tiporuta.contains("ZAT")){
+        if(tiporuta.contains("ZAT") || tiporuta.contains("ZAH") || tiporuta.contains("ZAI") || tiporuta.contains("ZAN") || tiporuta.contains("ZAP")){
             retorno = false;
         }
         return retorno;
@@ -2673,6 +2695,25 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return distritos;
     }
 
+    public ArrayList<HashMap<String, String>> Municipios(String pais, String departamento)
+    {
+        String adicional = "";
+        switch (pais) {
+            case "CO":
+                adicional = " AND (zdemunicipio <> '')";
+                break;
+        }
+        ArrayList<HashMap<String, String>> municipios = getDatosCatalogo("cat_zesdvt_01044",3,3,null, "regio = '"+departamento+"'"+adicional);
+        return municipios;
+    }
+
+    public ArrayList<HashMap<String, String>> Barrios(String departamento, String municipio)
+    {
+        String adicional = " AND (zdebarrio <> '')";
+        ArrayList<HashMap<String, String>> barrios = getDatosCatalogo("cat_zesdvt_01044",4,4,null, "regio = '"+departamento+"' AND zdemunicipio = '"+municipio+"'"+adicional);
+        return barrios;
+    }
+
     //Campo W_CTE-ZGPOCANAL, con Etiqueta 'Canal'
     public ArrayList<HashMap<String, String>> Canales(String grupo_canal)
     {
@@ -2704,10 +2745,40 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     //ENCUESTA CANALES
+    public ArrayList<HashMap<String, String>> getSubgrupoSegunGrupo(String grupo_isscom){
+        ArrayList<HashMap<String, String>> subgruposList = new ArrayList<>();
+
+        String sql_subgrupos = "select DISTINCT s.zid_subgrupo,s.text  from cat_preguntas_isscom p " +
+                "INNER JOIN cat_subgrupo_isscom s ON (s.zid_subgrupo = p.zid_subgrupo) " +
+                "where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
+        Cursor cursor = mDataBase.rawQuery(sql_subgrupos,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("zid_subgrupo",cursor.getString(0).trim());
+            user.put("text",cursor.getString(1).trim());
+            subgruposList.add(user);
+        }
+        cursor.close();
+        return  subgruposList;
+    }
     public ArrayList<HashMap<String, String>> getPreguntasSegunGrupo(String grupo_isscom){
         ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
 
         String sql_encuesta = "select DISTINCT zid_quest,text  from cat_preguntas_isscom p where trim(p.zid_grupo) = '" + grupo_isscom + "' and bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("zid_quest",cursor.getString(0).trim());
+            user.put("text",cursor.getString(1).trim());
+            preguntasList.add(user);
+        }
+        cursor.close();
+        return  preguntasList;
+    }
+    public ArrayList<HashMap<String, String>> getPreguntasSegunSubGrupo(String grupo_isscom, String subgrupo_isscom){
+        ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
+
+        String sql_encuesta = "select DISTINCT zid_quest,text  from cat_preguntas_isscom p where trim(p.zid_grupo) = '" + grupo_isscom + "' and trim(p.zid_subgrupo) = '" + subgrupo_isscom + "' and bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -2724,6 +2795,22 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("F446") || PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("1658"))
             filtroPais = " AND spras = 'G'";
         String sql_encuesta = "select DISTINCT zid_resp,text from cat_respuestas_isscom p where trim(zid_grupo) = '"+grupo_isscom.trim()+"' and trim(zid_quest) = '"+pregunta.trim()+"'"+filtroPais;
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("zid_resp",cursor.getString(0).trim());
+            user.put("text",cursor.getString(1).trim());
+            respuestasList.add(user);
+        }
+        cursor.close();
+        return  respuestasList;
+    }
+    public ArrayList<HashMap<String, String>> getOpcionesPreguntaSubGrupo(String grupo_isscom,String subgrupo_isscom, String pregunta){
+        ArrayList<HashMap<String, String>> respuestasList = new ArrayList<>();
+        String filtroPais = " AND spras = 'C'";
+        if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("F446") || PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("1657") || PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").equals("1658"))
+            filtroPais = " AND spras = 'G'";
+        String sql_encuesta = "select DISTINCT zid_resp,text from cat_respuestas_isscom p where trim(zid_grupo) = '"+grupo_isscom.trim()+"' AND trim(zid_subgrupo) = '"+subgrupo_isscom.trim()+"' and trim(zid_quest) = '"+pregunta.trim()+"'"+filtroPais;
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
@@ -2762,6 +2849,54 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             registro_canales.put("W_CTE-ZTPOCANAL",cursor.getString(3).trim());
             registro_canales.put("W_CTE-ZGPOCANAL",cursor.getString(4).trim());
             registro_canales.put("W_CTE-PSON3",cursor.getString(5).trim());
+        }
+        cursor.close();
+        return registro_canales;
+    }
+    public HashMap<String,String> getValoresSegunEncuestaRealizadaColombia(String... valores) {
+        HashMap<String,String> registro_canales = new HashMap<>();
+        String tablaOrigen = "cat_ztsdvto_00186";
+        String flitroSubGrupo = "";
+        if(valores[1] != null && valores[1] != "")
+            flitroSubGrupo = " AND trim(zid_subgrupo) = '" + valores[1].trim() + "'";
+
+        StringBuilder sql_encuesta = new StringBuilder("select zid_result from "+tablaOrigen+" p where trim(zid_grupo) = '" + valores[0].trim() + "'"+flitroSubGrupo);
+        for(int x = 2; x < valores.length;x++){
+            if(valores[x] != null)
+                sql_encuesta.append(" AND zid_quest").append((x-1)).append(" = '").append(valores[x].trim()).append("'");
+        }
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta.toString(),null);
+        String idValores;
+        cursor.moveToNext();
+        idValores = cursor.getString(0).trim();
+
+        sql_encuesta = new StringBuilder("select zzent3,zzent4,zzcanal,ztpocanal,zgpocanal,pson3,unneg,subunneg  from cat_ztsdvto_00187 p where vkorg = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","") + "' AND trim(zid_result) = '" + idValores.trim() + "'");
+        cursor = mDataBase.rawQuery(sql_encuesta.toString(),null);
+        while (cursor.moveToNext()){
+            //registro_canales.put("W_CTE-ZZENT3",cursor.getString(0).trim());
+            //registro_canales.put("W_CTE-ZZENT4",cursor.getString(1).trim());
+            registro_canales.put("W_CTE-ZZCANAL",cursor.getString(cursor.getColumnIndex("zzcanal")).trim());
+            registro_canales.put("W_CTE-ZTPOCANAL",cursor.getString(cursor.getColumnIndex("ztpocanal")).trim());
+            registro_canales.put("W_CTE-ZGPOCANAL",cursor.getString(cursor.getColumnIndex("zgpocanal")).trim());
+            //registro_canales.put("W_CTE-PSON3",cursor.getString(5).trim());
+            registro_canales.put("W_CTE-ZZUNNEG",cursor.getString(cursor.getColumnIndex("unneg")).trim());
+            registro_canales.put("W_CTE-ZZSUBUNNEG",cursor.getString(cursor.getColumnIndex("subunneg")).trim());
+
+            //Validar aqui? la ocasion de cosumo dependiendo del tipo de canal y el GEC dependiendo del canal
+            // Si no se encuentran en las tablas respectivas se debe ejecutar una encuesta adicional para asignar.
+
+            sql_encuesta = new StringBuilder("SELECT id_oc_consumo FROM cat_loc_oc_consumo_tpocanal p where bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "' AND trim(id_tpocanal) = '" + cursor.getString(cursor.getColumnIndex("ztpocanal")).trim() + "'");
+            cursor = mDataBase.rawQuery(sql_encuesta.toString(),null);
+            while (cursor.moveToNext()) {
+                registro_canales.put("W_CTE-ZZOCCONS",cursor.getString(cursor.getColumnIndex("id_oc_consumo")).trim());
+            }
+
+
+            sql_encuesta = new StringBuilder("SELECT zgec FROM cat_zesdvt_00615 p where vkorg = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_VKORG","") + "' AND trim(zzcanal) = '" + registro_canales.get("W_CTE-ZZCANAL") + "'");
+            cursor = mDataBase.rawQuery(sql_encuesta.toString(),null);
+            while (cursor.moveToNext()) {
+                registro_canales.put("W_CTE-KLABC",cursor.getString(cursor.getColumnIndex("zgec")).trim());
+            }
         }
         cursor.close();
         return registro_canales;
@@ -2848,11 +2983,42 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return  preguntasList;
     }
 
+    public ArrayList<HashMap<String, String>> getOpcionesXPreguntaGec(String zid_quest){
+        ArrayList<HashMap<String, String>> respuestasList = new ArrayList<>();
+        String sql_encuesta = "select  zid_resp, text, bukrs  from cat_respuestas_gec p where zid_quest = '"+zid_quest+"' AND bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("zid_resp",cursor.getString(0).trim());
+            user.put("text",cursor.getString(1).trim());
+            respuestasList.add(user);
+        }
+        cursor.close();
+        return  respuestasList;
+    }
+
     public String getGecSegunEncuestaRealizada(Integer monto_total) {
         String gec = "";
 
         String sql_encuesta = "select klabc  from cat_rangos_gec p where bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' AND min <=  "+monto_total+" AND max >="+monto_total+"";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            gec = cursor.getString(0).trim();
+        }
+        cursor.close();
+        return gec;
+    }
+
+    public String getGecSegunEncuestaRealizadaColombia(String... respuestas) {
+        String gec = "";
+
+        StringBuilder sql_encuesta = new StringBuilder("select klabc from cat_resultado_gec p where bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"'");
+
+        for(int x = 0; x < respuestas.length;x++){
+            if(respuestas[x] != null)
+                sql_encuesta.append(" AND zid_quest").append((x+1)).append(" = '").append(respuestas[x].trim()).append("'");
+        }
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta.toString(),null);
         while (cursor.moveToNext()){
             gec = cursor.getString(0).trim();
         }
@@ -2874,6 +3040,66 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return  respuestasEncuestaGec;
+    }
+
+    //ENCUESTA OCASION CONSUMO COLOMBIA
+    public ArrayList<HashMap<String, String>> getPreguntasOcasionConsumo(){
+        ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
+        String sql_encuesta = "select zid_quest,text,text2  from cat_preguntas_occons p where bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("zid_quest",cursor.getString(0).trim());
+            user.put("text",cursor.getString(1).trim());
+            user.put("text2",cursor.getString(2).trim());
+            preguntasList.add(user);
+        }
+        cursor.close();
+        return  preguntasList;
+    }
+    public ArrayList<HashMap<String, String>> getOpcionesXPreguntaOcasionConsumo(String zid_quest){
+        ArrayList<HashMap<String, String>> respuestasList = new ArrayList<>();
+        String sql_encuesta = "select  zid_resp, text, bukrs  from cat_respuestas_occons p where zid_quest = '"+zid_quest+"' AND bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> user = new HashMap<>();
+            user.put("zid_resp",cursor.getString(0).trim());
+            user.put("text",cursor.getString(1).trim());
+            respuestasList.add(user);
+        }
+        cursor.close();
+        return  respuestasList;
+    }
+    public String getOcasionConsumoSegunEncuestaRealizada(String... respuestas) {
+        String occons = "";
+
+        StringBuilder sql_encuesta = new StringBuilder("select occons from cat_resultado_occons p where bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"'");
+
+        for(int x = 0; x < respuestas.length;x++){
+            if(respuestas[x] != null)
+                sql_encuesta.append(" AND zid_quest").append((x+1)).append(" = '").append(respuestas[x].trim()).append("'");
+        }
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta.toString(),null);
+        while (cursor.moveToNext()){
+            occons = cursor.getString(0).trim();
+        }
+        cursor.close();
+        return occons;
+    }
+    public ArrayList<HashMap<String, String>> getEncuestaOcasionConsumo(String nextSolicitudId) {
+        ArrayList<HashMap<String, String>> respuestasEncuestaOcasionConsumo = new ArrayList<>();
+        String sql_encuesta = "select zid_quest, respuesta_obtenida from encuesta_occons_solicitud p where id_solicitud = '" + nextSolicitudId + "'";
+        //String sql_encuesta2 = "select zid_quest, monto from encuesta_gec_solicitud p";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        //Cursor cursor2 = mDataBase.rawQuery(sql_encuesta2,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> resp = new HashMap<>();
+            resp.put("zid_quest",cursor.getString(0).trim());
+            resp.put("respuesta_obtenida",cursor.getString(1).trim());
+            respuestasEncuestaOcasionConsumo.add(resp);
+        }
+        cursor.close();
+        return  respuestasEncuestaOcasionConsumo;
     }
 
     public ArrayList<HashMap<String, String>> getConfigExcepciones(String tiposolicitud) {
@@ -3691,5 +3917,42 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             Toasty.error(mContext,"Error determinando la prioridad sugerida: "+e.getMessage()).show();
         }
         return retorno;
+    }
+
+    public ArrayList<HashMap<String, Object>> getListaCoordenadasHabilitador(){
+        //SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<HashMap<String, Object>> dataCoordenadas = new ArrayList<>();
+        String query = "SELECT * FROM cat_habilitador h WHERE bzirk = ?";
+        try {
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK", "")});
+
+            while (cursor.moveToNext()) {
+                HashMap<String, Object> solicitud = new HashMap<>();
+                solicitud.put("latitud", cursor.getString(cursor.getColumnIndex("latitud")) != null ? cursor.getDouble(cursor.getColumnIndex("latitud")) : 0.00);
+                solicitud.put("longitud", cursor.getString(cursor.getColumnIndex("longitud")) != null ? cursor.getDouble(cursor.getColumnIndex("longitud")) : 0.00);
+                solicitud.put("reparto", cursor.getString(cursor.getColumnIndex("reparto")) != null ? cursor.getString(cursor.getColumnIndex("reparto")) : "");
+                dataCoordenadas.add(solicitud);
+            }
+            cursor.close();
+        }catch(Exception e){
+                Toasty.warning(mContext,"Error al obtener datos de la lista de coordenadas del habilitador: "+e.getMessage()).show();
+        }
+        return  dataCoordenadas;
+    }
+
+    public boolean rutaEnPavent(String reparto){
+        boolean existe = false;
+        String query = "SELECT * FROM SAPDCAT_Ruta_Relacion p WHERE route = ? AND zroute = ?";
+        try {
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH",""),reparto});
+
+            while (cursor.moveToNext()) {
+                existe = true;
+            }
+            cursor.close();
+        }catch(Exception e){
+            Toasty.warning(mContext,"Error al obtener datos de PAVENT: "+e.getMessage()).show();
+        }
+        return  existe;
     }
 }

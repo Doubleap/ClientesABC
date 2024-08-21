@@ -164,7 +164,7 @@ public class Validaciones {
                 //rango de Coordenada X
                 num_min = -79.1;
                 num_max = -66.7;
-                coordenadaX = "^(([1-9][0-9]?)(\\.\\d{3,12}+)?)";
+                coordenadaX = "^[-](([1-9][0-9]?)(\\.\\d{3,12}+)?)";
                 pattern = Pattern.compile(coordenadaX);
                 matcher = pattern.matcher(texto.getText().toString().trim());
                 if (!matcher.matches()) {
@@ -191,6 +191,17 @@ public class Validaciones {
     }
     public final static boolean isValidEmail(String correo) {
         boolean valido = !TextUtils.isEmpty(correo) && android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches();
+        return valido;
+    }
+    public final static boolean isValidEmail(String correo, boolean muestraToasty, Context context) {
+        boolean valido = !TextUtils.isEmpty(correo) && android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches();
+        if(valido) {
+            if(muestraToasty)
+                Toasty.success(context, "Formato de correo valido!").show();
+        }else {
+            if(muestraToasty)
+                Toasty.error(context, "Formato de correo Invalido!").show();
+        }
         return valido;
     }
     public static void ComentariosAutomaticos(Context context,MaskedEditText comentariosAuto, View campo, View campoOld, String etiqueta){
@@ -427,10 +438,24 @@ public class Validaciones {
                 StringBuilder sb = new StringBuilder(end - start);
                 for (int i = start; i < end; i++) {
                     char c = source.charAt(i);
-                    if (isCharAllowed(c)) // put your condition here
-                        sb.append(c);
-                    else
-                        keepOriginal = false;
+                    if(VariablesGlobales.getSociedad().equals("F428") && c == ' '){
+                       if(dstart == 0 && dend == 0){
+                           keepOriginal = false;
+                       }
+                       if(dend > 1){
+                           char ant = dest.charAt(dend-1);
+                           if(ant == ' '){
+                               keepOriginal = false;
+                           }
+                       }else{
+                           sb.append(c);
+                       }
+                    }else {
+                        if (isCharAllowed(c)) // put your condition here
+                            sb.append(c);
+                        else
+                            keepOriginal = false;
+                    }
                 }
                 if (keepOriginal)
                     return null;
@@ -464,6 +489,11 @@ public class Validaciones {
                     case "Z001":
                         //[¡”#$%&/(),:]
                         ps = Pattern.compile("^[a-zA-Z 0-9.\\-@_]+$");
+                        ms = ps.matcher(String.valueOf(c));
+                        break;
+                    case "F428":
+                        //[¡”#$%&/(),:]
+                        ps = Pattern.compile("^[a-zA-Z 0-9.\\-@_ñÑ]+$");
                         ms = ps.matcher(String.valueOf(c));
                         break;
                 }

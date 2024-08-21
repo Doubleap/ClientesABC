@@ -647,7 +647,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudCreditoActivity.this);
         try {
-            ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
+            ManejadorAdjuntos manejadorAdjuntos = new ManejadorAdjuntos(mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos,  getApplicationContext(),weakRefA.get(),null);
+            manejadorAdjuntos.ActivityResult(requestCode, resultCode, data);
+            //ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -4307,9 +4309,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                                 if (tv != null) {
                                     valor = tv.getText().toString();
                                     insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
-                                    if (listaFinal.get(i).equals("W_CTE-NAME3")) {
+                                    /*if (listaFinal.get(i).equals("W_CTE-NAME3")) {
                                         insertValues.put("[W_CTE-NAME1]", valor);
-                                    }
+                                    }*/
                                     if (listaFinal.get(i).contains("DMBTR") || listaFinal.get(i).contains("LIMSUG")) {
                                         insertValuesOld.put("[" + listaFinal.get(i) + "]", valor.replace(",", ""));
                                     }
@@ -5154,6 +5156,115 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             if(subtitulo.toLowerCase().contains("formal abc"))
                 clasi = "ABC";
 
+            if(credito.get(0).getAsJsonObject().get("W_CTE-ZZAUART").getAsString().contains("28") || credito.get(0).getAsJsonObject().get("W_CTE-ZZAUART").getAsString().contains("38") ){//Si es de contado a la hora de modificar, se debe cambiar: ZZAUART, AKONT
+                String cuentacont = "";
+                String claseriesgo = "";
+                String tipocobro = "";
+                String clasedocven = "";
+                String clasicxc = "";
+                String condpago = "";
+                String val_check_rule = "";
+                String val_limit_rule = "";
+                String val_credit_group = "";
+                ArrayList<HashMap<String, String>> datosCreditoModificar = mDBHelper.getValidaCreditos(tipo, clasi);
+
+                cuentacont = datosCreditoModificar.get(0).get("cuentacont").trim();
+                claseriesgo = datosCreditoModificar.get(0).get("claseriesgo").trim();
+                tipocobro = datosCreditoModificar.get(0).get("tipocobro").trim();
+                clasedocven = datosCreditoModificar.get(0).get("clasedocven").trim();
+                clasicxc = datosCreditoModificar.get(0).get("clasicxc").trim();
+                condpago = datosCreditoModificar.get(0).get("condpago").trim();
+                if(datosCreditoModificar.get(0).get("check_rule") != null)
+                    val_check_rule = datosCreditoModificar.get(0).get("check_rule").trim();
+                if(datosCreditoModificar.get(0).get("limit_rule") != null)
+                    val_limit_rule = datosCreditoModificar.get(0).get("limit_rule").trim();
+                if(datosCreditoModificar.get(0).get("credit_group") != null)
+                    val_credit_group = datosCreditoModificar.get(0).get("credit_group").trim();
+
+                //Campos para aperturas de credito
+                Spinner zzauart = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-ZZAUART");
+                if (zzauart != null) {
+                    zzauart.setSelection(VariablesGlobales.getIndex(zzauart, clasedocven));
+                }else{
+                    zzauart = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZAUART");
+                    if(zzauart != null) {
+                        zzauart.setSelection(VariablesGlobales.getIndex(zzauart, clasedocven));
+                    }
+                }
+
+                Spinner zterm = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTERM");
+                if(zterm != null) {
+                    zterm.setSelection(VariablesGlobales.getIndex(zterm, condpago));
+                }
+                zterm = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-ZTERM");
+                if(zterm != null) {
+                    zterm.setSelection(VariablesGlobales.getIndex(zterm, condpago));
+                }
+
+                Spinner guzte = (Spinner)mapeoCamposDinamicos.get("W_CTE-GUZTE");
+                if(guzte != null) {
+                    guzte.setSelection(VariablesGlobales.getIndex(guzte, condpago));
+                }
+                guzte = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-GUZTE");
+                if(guzte != null) {
+                    guzte.setSelection(VariablesGlobales.getIndex(guzte, condpago));
+                }
+
+                Spinner ctlpc = (Spinner)mapeoCamposDinamicos.get("W_CTE-CTLPC");
+                if(ctlpc != null) {
+                    ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, claseriesgo));
+                }
+
+                ctlpc = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CTLPC");
+                if(ctlpc != null) {
+                    ctlpc.setSelection(VariablesGlobales.getIndex(ctlpc, claseriesgo));
+                }
+
+                Spinner kvgr2 = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-KVGR2");
+                if(kvgr2 != null) {
+                    kvgr2.setSelection(VariablesGlobales.getIndex(kvgr2, tipocobro));
+                }
+                try {
+                    Spinner akont = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-AKONT");
+                    if (akont != null) {
+                        akont.setSelection(VariablesGlobales.getIndex(akont, cuentacont));
+                    }
+                }catch(Exception e){
+                    MaskedEditText akont = (MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-AKONT");
+                    if (akont != null) {
+                        akont.setText(cuentacont);
+                    }
+                }
+
+                //Campos SAp4Hana
+                Spinner check_rule = (Spinner)mapeoCamposDinamicos.get("W_CTE-CHECK_RULE");
+                if(check_rule != null) {
+                    check_rule.setSelection(VariablesGlobales.getIndex(check_rule, val_check_rule));
+                }
+                check_rule = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CHECK_RULE");
+                if(check_rule != null) {
+                    check_rule.setSelection(VariablesGlobales.getIndex(check_rule, val_check_rule));
+                }
+
+                Spinner limit_rule = (Spinner)mapeoCamposDinamicos.get("W_CTE-LIMIT_RULE");
+                if(limit_rule != null) {
+                    limit_rule.setSelection(VariablesGlobales.getIndex(limit_rule, val_limit_rule));
+                }
+                limit_rule = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-LIMIT_RULE");
+                if(limit_rule != null) {
+                    limit_rule.setSelection(VariablesGlobales.getIndex(limit_rule, val_limit_rule));
+                }
+
+                Spinner credit_group = (Spinner)mapeoCamposDinamicos.get("W_CTE-CREDIT_GROUP");
+                if(credit_group != null) {
+                    credit_group.setSelection(VariablesGlobales.getIndex(credit_group, val_credit_group));
+                }
+                credit_group = (Spinner)mapeoCamposDinamicosEnca.get("W_CTE-CREDIT_GROUP");
+                if(credit_group != null) {
+                    credit_group.setSelection(VariablesGlobales.getIndex(credit_group, val_credit_group));
+                }
+            }
+
             try {
                 Spinner pson2 = (Spinner) mapeoCamposDinamicosEnca.get("W_CTE-PSON2");
                 if (pson2 != null) {
@@ -5229,6 +5340,12 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
                     clasicxc = creditoCadena.get(0).getAsJsonObject().get("W_CTE-PSON2").getAsString();
                     condpago = creditoCadena.get(0).getAsJsonObject().get("W_CTE-ZTERM").getAsString();
+                    if(datosNuevoCredito.get(0).get("check_rule") != null)
+                        val_check_rule = datosNuevoCredito.get(0).get("check_rule").trim();
+                    if(datosNuevoCredito.get(0).get("limit_rule") != null)
+                        val_limit_rule = datosNuevoCredito.get(0).get("limit_rule").trim();
+                    if(datosNuevoCredito.get(0).get("credit_group") != null)
+                        val_credit_group = datosNuevoCredito.get(0).get("credit_group").trim();
                 }else{
                     //Quitar y activar el error...!!!
                     cuentacont = datosNuevoCredito.get(0).get("cuentacont").trim();
@@ -5237,9 +5354,12 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     clasedocven = datosNuevoCredito.get(0).get("clasedocven").trim();
                     clasicxc = datosNuevoCredito.get(0).get("clasicxc").trim();
                     condpago = datosNuevoCredito.get(0).get("condpago").trim();
-                    val_check_rule = datosNuevoCredito.get(0).get("check_rule").trim();
-                    val_limit_rule = datosNuevoCredito.get(0).get("limit_rule").trim();
-                    val_credit_group = datosNuevoCredito.get(0).get("credit_group").trim();
+                    if(datosNuevoCredito.get(0).get("check_rule") != null)
+                        val_check_rule = datosNuevoCredito.get(0).get("check_rule").trim();
+                    if(datosNuevoCredito.get(0).get("limit_rule") != null)
+                        val_limit_rule = datosNuevoCredito.get(0).get("limit_rule").trim();
+                    if(datosNuevoCredito.get(0).get("credit_group") != null)
+                        val_credit_group = datosNuevoCredito.get(0).get("credit_group").trim();
                     /*errordesc += "Cadena Padre '"+cadenaCliente+"' no fue encontrada. No puede aperturar crédito!";
                     Toasty.error(context.getApplicationContext(),errordesc).show();
                     activity.finish();

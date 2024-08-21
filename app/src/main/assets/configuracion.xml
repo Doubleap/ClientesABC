@@ -63,6 +63,13 @@
         <land1>UY</land1>
         <cadenaRM>0000245000</cadenaRM>
         <ktokd>UYDD</ktokd>
+
+        <nombrePais>Colombia</nombrePais>
+        <sociedad>F428</sociedad>
+        <orgvta>0428</orgvta>
+        <land1>CO</land1>
+        <cadenaRM>0000220334</cadenaRM>
+        <ktokd>CODE</ktokd>
         -->
     </sistema>
     <login>
@@ -73,10 +80,10 @@
     </login>
     <conexiones>
         <conexion defecto="true">
-            <nombre>Produccion Gprs CR</nombre>
+            <nombre>Produccion Gprs AB_VO</nombre>
             <tipo_conexion>gprs</tipo_conexion>
-            <Ip>10.153.8.35</Ip>
-            <Puerto>3345</Puerto>
+            <Ip>10.153.56.71</Ip>
+            <Puerto>3348</Puerto>
         </conexion>
     <!--<conexion defecto="true">
             <nombre>Produccion Gprs CR</nombre>

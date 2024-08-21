@@ -25,6 +25,7 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -68,6 +69,8 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.canhub.cropper.CropImageContract;
+import com.canhub.cropper.CropImageContractOptions;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
@@ -186,6 +189,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     private static JsonArray impuestos;
     private static JsonArray bancos;
     private static JsonArray visitas;
+    private ActivityResultLauncher<CropImageContractOptions> cropImage;
     public static ManejadorAdjuntos manejadorAdjuntos;
 
     @SuppressLint("ResourceType")
@@ -440,7 +444,13 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         comentarios = new ArrayList<>();
         //notificantesSolicitud = new ArrayList<Adjuntos>();
         adjuntosSolicitud_old = new ArrayList<>();
-        manejadorAdjuntos = new ManejadorAdjuntos();
+        cropImage = this.registerForActivityResult(new CropImageContract(), result -> {
+            if (result.isSuccessful()) {
+                manejadorAdjuntos.setUri(result.getUriContent());
+                manejadorAdjuntos.AgregarAdjunto(result.getUriContent());
+            }
+        });
+        manejadorAdjuntos = new ManejadorAdjuntos(mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos,  getApplicationContext(),SolicitudAvisosEquipoFrioActivity.this,cropImage);
     }
 
     @Override
@@ -474,7 +484,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudAvisosEquipoFrioActivity.this);
         try {
-            ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
+            manejadorAdjuntos.setUri(mPhotoUri);
+            manejadorAdjuntos.ActivityResult(requestCode, resultCode, data);
+            //ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
         } catch (IOException e) {
             e.printStackTrace();
         }

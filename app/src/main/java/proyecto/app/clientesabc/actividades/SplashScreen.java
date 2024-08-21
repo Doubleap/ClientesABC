@@ -24,7 +24,7 @@ public class SplashScreen extends AppCompatActivity {
         setContentView(R.layout.activity_splash_screen);
         imageView = (ImageView)findViewById(R.id.imageView2);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-        int[] ids = new int[]{R.drawable.splash,R.drawable.splash_gt, R.drawable.splash_volcanes, R.drawable.splash_abasa, R.drawable.splash_uruguay};
+        int[] ids = new int[]{R.drawable.splash,R.drawable.splash_gt, R.drawable.splash_volcanes, R.drawable.splash_abasa, R.drawable.splash_uruguay, R.drawable.splash_colombia};
         //Random randomGenerator = new Random();
         //int r= randomGenerator.nextInt(ids.length);
         switch(PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad())){
@@ -46,6 +46,9 @@ public class SplashScreen extends AppCompatActivity {
             case "Z001":
                 this.imageView.setImageDrawable(getResources().getDrawable(ids[4],null));
                 break;
+            case "F428":
+                this.imageView.setImageDrawable(getResources().getDrawable(ids[5],null));
+                break;
             default:
                 break;
         }
@@ -57,7 +60,7 @@ public class SplashScreen extends AppCompatActivity {
                 try {
                     int waited = 0;
                     // Splash screen pause time
-                    while (waited < 3500) {
+                    while (waited < 3000) {
                         sleep(100);
                         waited += 100;
                     }

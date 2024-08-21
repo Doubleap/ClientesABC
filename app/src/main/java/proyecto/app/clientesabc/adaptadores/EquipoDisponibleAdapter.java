@@ -254,7 +254,7 @@ public class EquipoDisponibleAdapter extends RecyclerView.Adapter<EquipoDisponib
         };
     }
     public static void mostrarImagenServidor(Context context, Activity activity, String nombreImagen) {
-        final Dialog d = new Dialog(context, R.style.MyAlertDialogTheme);
+        final Dialog d = new Dialog(context, R.style.MyAlertDialogThemeAttachment);
         d.setContentView(R.layout.adjunto_layout_zoom);
         ImageView adjunto_img = d.findViewById(R.id.imagen);
         TextView adjunto_txt = d.findViewById(R.id.nombre);

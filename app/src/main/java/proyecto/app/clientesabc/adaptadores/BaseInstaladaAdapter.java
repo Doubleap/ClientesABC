@@ -242,7 +242,7 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                 eliminar.setVisibility(GONE);
                 alerta.setVisibility(GONE);
                 cantidad_alertas.setVisibility(GONE);
-                anomalia.setVisibility(GONE);
+                anomalia.setVisibility(View.VISIBLE);
                 censado.setVisibility(View.VISIBLE);
 
                 if(formListFiltered.get(position).getSerge() == null) {

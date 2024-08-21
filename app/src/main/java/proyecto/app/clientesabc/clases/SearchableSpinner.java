@@ -32,6 +32,7 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
     public static final int NO_ITEM_SELECTED = -1;
     private Context _context;
     private List _items;
+    private List _original_items;
     private SearchableListDialog _searchableListDialog;
 
     private boolean _isDirty;
@@ -69,6 +70,7 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
 
     private void init() {
         _items = new ArrayList();
+        _original_items = new ArrayList();
         _searchableListDialog = SearchableListDialog.newInstance(_items);
         _searchableListDialog.setOnSearchableItemClickListener(this);
         setOnTouchListener(this);
@@ -95,6 +97,7 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
                 _items.clear();
                 for (int i = 0; i < _arrayAdapter.getCount(); i++) {
                     _items.add(_arrayAdapter.getItem(i));
+                    _original_items.add(_arrayAdapter.getItem(i));
                 }
                 // Change end.
                 //if(v.isAdded()) {
@@ -135,12 +138,12 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
 
     @Override
     public void onSearchableItemClicked(Object item, int position) {
-        setSelection(_items.indexOf(item));
+        setSelection(_original_items.indexOf(item));
 
         if (!_isDirty) {
             _isDirty = true;
             setAdapter(_arrayAdapter);
-            setSelection(_items.indexOf(item));
+            setSelection(_original_items.indexOf(item));
         }
     }
 

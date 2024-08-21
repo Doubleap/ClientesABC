@@ -1,18 +1,33 @@
 package proyecto.app.clientesabc.adaptadores;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Typeface;
+import android.hardware.camera2.params.MultiResolutionStreamInfo;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.tomergoldst.tooltips.ToolTip;
+import com.tomergoldst.tooltips.ToolTipsManager;
+import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.util.ArrayList;
 
 import de.codecrafters.tableview.TableDataAdapter;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.actividades.SolicitudActivity;
+import proyecto.app.clientesabc.actividades.TCPActivity;
+import proyecto.app.clientesabc.clases.Haversine;
+import proyecto.app.clientesabc.clases.Validaciones;
 import proyecto.app.clientesabc.modelos.Visitas;
 
 public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
@@ -28,9 +43,21 @@ public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
     private int gravity = Gravity.CENTER;
+    ArrayList<Visitas> visitasArray;
+    Context context;
+    Activity activity;
+
 
     public VisitasTableAdapter(Context context, ArrayList<Visitas> data) {
         super(context, data);
+        visitasArray = data;
+        this.context = context;
+    }
+    public VisitasTableAdapter(Context context, Activity activity, ArrayList<Visitas> data) {
+        super(context, data);
+        visitasArray = data;
+        this.context = context;
+        this.activity = activity;
     }
 
     @Override
@@ -47,6 +74,47 @@ public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
             //final String textToShow = getItem(rowIndex)[columnIndex];
             Visitas visita = getRowData(rowIndex);
             final String textToShow = visita.getValueFromColumn(columnIndex+2);
+
+
+            if(columnIndex+1 == 3){
+                if(!visita.getRuta().equals(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH",""))
+                && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F428")) {
+                    LinearLayout celda = new LinearLayout(getContext());
+                    final ImageView accion_calcular = new ImageView(getContext());
+                    accion_calcular.setImageDrawable(getResources().getDrawable(R.drawable.icon_habilitador, null));
+                    accion_calcular.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            if(activity != null)
+                                activity.runOnUiThread(new SolicitudActivity.CalcularRepartoConHabilitador(context, activity));
+                        }
+                    });
+
+                    ToolTipsManager mToolTipsManager = new ToolTipsManager();
+                    final ToolTip.Builder builder = new ToolTip.Builder(getContext(), accion_calcular, parentView ,  "Calcula Ruta de Reparto VP según habilitador", ToolTip.POSITION_ABOVE);
+                    builder.setAlign(ToolTip.ALIGN_LEFT);
+
+                    builder.setGravity(ToolTip.GRAVITY_LEFT);
+                    builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+                    accion_calcular.setOnLongClickListener(view -> {
+                        mToolTipsManager.show(builder.build());
+                        return true;
+                    });
+
+
+                    if(getContext().getClass().getName().contains("ConsultaClienteTotalActivity"))
+                        textView.setTextColor(getResources().getColor(R.color.pendientes,null));
+                    textView.setText(textToShow);
+                    textView.setGravity(gravity);
+
+                    celda.setGravity(gravity);
+                    celda.addView(textView);
+                    celda.addView(accion_calcular);
+
+                    return celda;
+                }
+            }
+
             if(getContext().getClass().getName().contains("ConsultaClienteTotalActivity"))
                 textView.setTextColor(getResources().getColor(R.color.pendientes,null));
             textView.setText(textToShow);

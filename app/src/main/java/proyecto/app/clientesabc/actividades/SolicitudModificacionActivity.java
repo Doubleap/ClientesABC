@@ -26,6 +26,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -81,6 +82,8 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.canhub.cropper.CropImageContract;
+import com.canhub.cropper.CropImageContractOptions;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
@@ -128,7 +131,9 @@ import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
 import proyecto.app.clientesabc.clases.ConsultaClienteAPI;
 import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
+import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionCorreoServidor;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionServidor;
+import proyecto.app.clientesabc.clases.Haversine;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.clases.MultiOnItemSelectedListener;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
@@ -149,6 +154,7 @@ import proyecto.app.clientesabc.modelos.Visitas;
 import static android.view.View.INVISIBLE;
 import static android.view.View.TEXT_ALIGNMENT_CENTER;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static androidx.core.content.ContextCompat.startActivity;
 import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
 import static com.google.android.material.tabs.TabLayout.GRAVITY_FILL;
@@ -187,6 +193,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     static BottomNavigationView bottomNavigation;
 
     static Uri mPhotoUri;
+    static Spinner atCorreo = null;
+    static Spinner prefijo_direccion = null;
 
     @SuppressLint("StaticFieldLeak")
     private static de.codecrafters.tableview.TableView<Contacto> tb_contactos;
@@ -229,10 +237,11 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     private static JsonArray bancos;
     private static JsonArray visitas;
     private static JsonArray horarios;
-    public static ManejadorAdjuntos manejadorAdjuntos;
     private static String rutaRepartoNuevaOriginal;
     private static String centroSuministroNuevoOriginal;
     private static LinearLayout ll_visitas;
+    private ActivityResultLauncher<CropImageContractOptions> cropImage;
+    public static ManejadorAdjuntos manejadorAdjuntos;
 
     @SuppressLint("ResourceType")
     @Override
@@ -263,6 +272,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.botella_coca_header_der,null));
 
         cliente = null;
+        atCorreo = null;
         if(idSolicitud != null){
             setTitle("Solicitud");
             solicitudSeleccionada.clear();
@@ -366,6 +376,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     if (tv.isFocused())
                                         tv.clearFocus();
                                 }
+
                                 if (valor.isEmpty() && !listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") && !listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG")) {
                                     tv.setError("El campo " + tv.getTag() + " es obligatorio!");
                                     numErrores++;
@@ -384,6 +395,14 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         if (listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG") && !Validaciones.ValidarCoordenadaX(tv)) {
                                             numErrores++;
                                             mensajeError += "- Formato Coordenada X invalido\n";
+                                        }
+                                    }
+                                }
+                                if(mapeoCamposDinamicos.get("W_CTE-STREET") != null && prefijo_direccion != null && (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F428") )) {
+                                    if (listaCamposObligatorios.contains("W_CTE-STREET")) {
+                                        if(prefijo_direccion.getSelectedItem() == null || ((OpcionSpinner)prefijo_direccion.getSelectedItem()).getId().equals("") || ((OpcionSpinner)prefijo_direccion.getSelectedItem()).getId().equals("0")) {
+                                            numErrores++;
+                                            mensajeError += "- Debe seleccionar la nomenclatura dian para la direccion!\n";
                                         }
                                     }
                                 }
@@ -424,6 +443,25 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 if (!listaCamposObligatorios.contains("W_CTE-ZZCRMA_LONG") && !Validaciones.ValidarCoordenadaX(texto)) {
                                     numErrores++;
                                     mensajeError += "- Formato Coordenada X invalido\n";
+                                }
+                            }
+                        }
+
+                        if(mapeoCamposDinamicos.get("W_CTE-PSTLZ") != null && (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_SOCIEDAD","").equals("Z001"))){
+                            MaskedEditText texto = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-PSTLZ"));
+                            if(texto.getText().toString().length() != 5){
+                                if(!listaCamposObligatorios.contains("W_CTE-PSTLZ")){
+                                    numErrores++;
+                                    mensajeError += "- Codigo Postal debe ser de 5 digitos!\n";
+                                }
+                            }
+                        }
+
+                        if(mapeoCamposDinamicos.get("W_CTE-STREET") != null && prefijo_direccion != null && (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F428") )) {
+                            if (listaCamposObligatorios.contains("W_CTE-STREET")) {
+                                if(prefijo_direccion.getSelectedItem() == null || ((OpcionSpinner)prefijo_direccion.getSelectedItem()).getId().equals("") || ((OpcionSpinner)prefijo_direccion.getSelectedItem()).getId().equals("0")) {
+                                    numErrores++;
+                                    mensajeError += "- Debe seleccionar la nomenclatura dian para la direccion!\n";
                                 }
                             }
                         }
@@ -688,7 +726,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         bancosSolicitud_old = new ArrayList<>();
         visitasSolicitud_old = new ArrayList<>();
         adjuntosSolicitud_old = new ArrayList<>();
-        manejadorAdjuntos = new ManejadorAdjuntos();
+        cropImage = this.registerForActivityResult(new CropImageContract(), result -> {
+            if (result.isSuccessful()) {
+                manejadorAdjuntos.setUri(result.getUriContent());
+                manejadorAdjuntos.AgregarAdjunto(result.getUriContent());
+            }
+        });
+        manejadorAdjuntos = new ManejadorAdjuntos(mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos,  getApplicationContext(),SolicitudModificacionActivity.this,cropImage);
     }
     @Override
     public void onBackPressed() {
@@ -884,7 +928,22 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     checkbox.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            displayDialogEncuestaCanales(getContext());
+                            final String sociedad = PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS","");
+                            switch(sociedad){
+                                case "F443":
+                                case "F445":
+                                case "F451":
+                                case "F446":
+                                case "1657":
+                                case "1658":
+                                case "1661":
+                                case "Z001":
+                                    displayDialogEncuestaCanales(getContext());
+                                    break;
+                                case "F428":
+                                    displayDialogEncuestaCanalesColombia(getContext());
+                                    break;
+                            }
                             if(((CheckBox) v).isChecked())
                                 ((CheckBox) v).setChecked(false);
                             else
@@ -934,7 +993,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     checkbox.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            displayDialogEncuestaGec(getContext());
+                            if(VariablesGlobales.getSociedad().equals("F428"))
+                                displayDialogEncuestaGecColombia(getContext());
+                            else
+                                displayDialogEncuestaGec(getContext());
                             if(((CheckBox) v).isChecked())
                                 ((CheckBox) v).setChecked(false);
                             else
@@ -960,6 +1022,54 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                         mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
                     }
+                } else if (campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("encuesta_consumo")) {
+                    //Encuesta gec, se genera un checkbox que indicara si se ha realizado la encuesta de canales completa
+                    //Tipo CHECKBOX
+                    final CheckBox checkbox = new CheckBox(getContext());
+                    checkbox.setText(campos.get(i).get("descr"));
+                    if (campos.get(i).get("sup").trim().length() > 0) {
+                        checkbox.setVisibility(View.GONE);
+                    }
+                    if (campos.get(i).get("vis").trim().length() > 0) {
+                        checkbox.setEnabled(false);
+                        //checkbox.setVisibility(View.GONE);
+                    }
+                        /*if (campos.get(i).get("dfaul").replace(" ","").trim().length() > 0) {
+                            checkbox.setChecked(true);
+                        }*/
+                    if (solicitudSeleccionada.size() > 0) {
+                        checkbox.setChecked(true);
+                    }
+                    LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                    checkbox.setLayoutParams(clp);
+                    checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null, getResources().getDrawable(R.drawable.icon_survey, null), null);
+                    ll.addView(checkbox);
+                    checkbox.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            displayDialogEncuestaOcasionConsumo(getContext());
+                            if (((CheckBox) v).isChecked())
+                                ((CheckBox) v).setChecked(false);
+                            else
+                                ((CheckBox) v).setChecked(true);
+                        }
+                    });
+
+                    ColorStateList colorStateList = new ColorStateList(
+                            new int[][]{
+                                    new int[]{-android.R.attr.state_checked}, // unchecked
+                                    new int[]{android.R.attr.state_checked}, // checked
+                            },
+                            new int[]{
+                                    Color.parseColor("#110000"),
+                                    Color.parseColor("#00aa00"),
+                            }
+                    );
+
+                    CompoundButtonCompat.setButtonTintList(checkbox, colorStateList);
+
+                    listaCamposDinamicos.add(campos.get(i).get("campo").trim());
+                    mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
                 }else
                 if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("checkbox")) {
                     //Tipo CHECKBOX
@@ -1418,10 +1528,18 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             if(bzirk_sel != null)
                                                 filtroxPais += " AND bzirk = '"+((OpcionSpinner)bzirk_sel.getSelectedItem()).getId().trim()+"'";
                                             break;
+                                        case "F428":
+                                            filtroxPais += " route = '"+PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_RUTAHH","")+"'";
+                                            break;
                                         default:
                                             filtroxPais = "";
                                     }
-                                    ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);
+                                    ArrayList<OpcionSpinner> rutas_reparto = null;
+                                    if(VariablesGlobales.getSociedad().equals("F428")){
+                                        rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("SAPDCAT_Ruta_Relacion",""+filtroxPais);
+                                    }else{
+                                        rutas_reparto  = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);
+                                    }
                                     // Creando el adaptador(opciones) para el comboBox deseado
                                     ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                     // Drop down layout style - list view with radio button
@@ -1626,6 +1744,36 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").equals("1")){
                                         Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
                                     }
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("Municipios")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    Municipios(parent);
+                                    if (parent.getSelectedView() != null && position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }
+                        if (campos.get(i).get("llamado1").trim().contains("Barrios")) {
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    Barrios(parent);
+                                    if (parent.getSelectedView() != null && position == 0 && ((TextView) parent.getSelectedView()) != null && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
                                 }
 
                                 @Override
@@ -1974,8 +2122,11 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
                         Button btnAyudai=null;
                         TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
-                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75);
-                        if(android.os.Build.VERSION.SDK_INT <= 27){
+                        int tamIcono = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 31, getResources().getDisplayMetrics());
+                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(tamIcono, tamIcono);
+                        int marginLeft = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 35, getResources().getDisplayMetrics());
+                        textolp2.setMargins(marginLeft,0,0,0);
+                        /*if(android.os.Build.VERSION.SDK_INT <= 27){
                             textolp2.setMargins(105,0,0,0);//!!!!!
                         }
                         if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
@@ -1983,7 +2134,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         }
                         if(android.os.Build.VERSION.SDK_INT >= 30){
                             textolp2.setMargins(125,0,0,0);//!!!!!
-                        }
+                        }*/
 
                         //combo.setLayoutParams(textolp2);
                         //combo_old.setLayoutParams(textolp2);
@@ -1991,7 +2142,12 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         //label_old.setLayoutParams(textolp2);
                         btnAyudai = new Button(getContext());
                         btnAyudai.setBackground(getResources().getDrawable(R.drawable.icon_ver_viejo,null));
-                        if(android.os.Build.VERSION.SDK_INT <= 27){
+
+                        int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4.5f, getResources().getDisplayMetrics());
+                        int marginEnds = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1.0f, getResources().getDisplayMetrics());
+                        btnlp2.setMargins(marginEnds, marginTop, marginEnds, 0);
+
+                        /*if(android.os.Build.VERSION.SDK_INT <= 27){
                             btnlp2.setMargins(0, 0, 0, 0);
                         }
                         if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
@@ -1999,7 +2155,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         }
                         if(android.os.Build.VERSION.SDK_INT >= 30){
                             btnlp2.setMargins(5, 25, 5, 0);
-                        }
+                        }*/
                         btnAyudai.setLayoutParams(btnlp2);
                         btnAyudai.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                         btnAyudai.setForegroundGravity(GRAVITY_CENTER);
@@ -2166,10 +2322,19 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             if(bzirk_sel != null)
                                                 filtroxPais += " AND bzirk = '"+((OpcionSpinner)bzirk_sel.getSelectedItem()).getId().trim()+"'";
                                             break;
+                                        case "F428":
+                                            filtroxPais += " route = '"+PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_RUTAHH","")+"'";
+                                            break;
                                         default:
                                             filtroxPais = "";
                                     }
-                                    ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);// Creando el adaptador(opciones) para el comboBox deseado
+                                    ArrayList<OpcionSpinner> rutas_reparto = null;
+                                    if(VariablesGlobales.getSociedad().equals("F428")){
+                                        rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("SAPDCAT_Ruta_Relacion",""+filtroxPais);
+                                    }else{
+                                        rutas_reparto  = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);
+                                    }
+
                                     ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                     // Drop down layout style - list view with radio button
                                     dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
@@ -2253,10 +2418,18 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             if(bzirk_sel != null)
                                                 filtroxPais += " AND bzirk = '"+((OpcionSpinner)bzirk_sel.getSelectedItem()).getId().trim()+"'";
                                             break;
+                                        case "F428":
+                                            filtroxPais += " route = '"+PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_RUTAHH","")+"'";
+                                            break;
                                         default:
                                             filtroxPais = "";
                                     }
-                                    ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);// Creando el adaptador(opciones) para el comboBox deseado
+                                    ArrayList<OpcionSpinner> rutas_reparto = null;
+                                    if(VariablesGlobales.getSociedad().equals("F428")){
+                                        rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("SAPDCAT_Ruta_Relacion",""+filtroxPais);
+                                    }else{
+                                        rutas_reparto  = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);
+                                    }
                                     ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item, rutas_reparto);
                                     // Drop down layout style - list view with radio button
                                     dataAdapterRuta.setDropDownViewResource(R.layout.spinner_item);
@@ -2476,29 +2649,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     et.setAllCaps(true);
 
                     TableRow.LayoutParams textolp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
-                    TableRow.LayoutParams btnlp = new TableRow.LayoutParams(75, 75);
+                    int tamIcono = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 31, getResources().getDisplayMetrics());
+                    TableRow.LayoutParams btnlp = new TableRow.LayoutParams(tamIcono, tamIcono);
                     if(campos.get(i).get("tooltip") != null && campos.get(i).get("tooltip") != ""){
-                        lp.setMargins(0, 15, 0, 15);
-                        et.setLayoutParams(lp);
                         btnAyuda = new ImageView(getContext());
-                        if(android.os.Build.VERSION.SDK_INT <= 27){
-                            btnlp = new TableRow.LayoutParams(75, 75);
-                            textolp.setMargins(0, 0, 75, 0);
-                            btnlp.setMargins(-75, 10, 75, 0);
-                        }
-                        if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
-                            textolp.setMargins(0, 0, 25, 0);
-                            btnlp.setMargins(-75, 20, 95, 0);
-                            lp.setMargins(0, 15, 75, 15);
-                            et.setLayoutParams(lp);
-                        }
-                        if(android.os.Build.VERSION.SDK_INT >= 30){
-                            btnlp = new TableRow.LayoutParams(75, 75);
-                            btnlp.setMargins(-75, 25, 0, 0);
-                            textolp.setMargins(0, 0, 0, 0);
-                            lp.setMargins(0, 15, 80, 15);
-                            et.setLayoutParams(lp);
-                        }
+                        int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 7, getResources().getDisplayMetrics());
+                        textolp.setMargins(0, 0, 20, 0);
+                        btnlp.setMargins(0, marginTop, tamIcono, 0);
                         label.setLayoutParams(textolp);
                         btnAyuda.setBackground(getResources().getDrawable(R.drawable.icon_ayuda,null));
 
@@ -2519,31 +2676,111 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         });
                     }
 
-                    if(campos.get(i).get("campo") != null && campos.get(i).get("campo").toLowerCase().equals("w_cte-tel_number2") && modificable){
-                        lp.setMargins(0, 15, 0, 15);
-                        et.setLayoutParams(lp);
-                        btnAyuda = new ImageView(getContext());
-                        if(android.os.Build.VERSION.SDK_INT <= 27){
-                            btnlp = new TableRow.LayoutParams(75, 75);
-                            textolp.setMargins(0, 0, 75, 0);
-                            btnlp.setMargins(-75, 10, 75, 0);
+                    final TextInputLayout label_old = new TextInputLayout(requireContext());
+                    label_old.setVisibility(View.GONE);
+                    label_old.setHint(campos.get(i).get("descr")+" Actual");
+                    label_old.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
+                    label_old.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
+                    final MaskedEditText et_old = new MaskedEditText(getContext(),null);
+                    et_old.setVisibility(View.GONE);
+                    et_old.setEnabled(false);
+
+                    //Crear campo para valor viejo exclusivo.
+                    if((campos.get(i).get("modificacion").trim().equals("2")  || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
+                        //textbox de valor viejo
+                        TableRow.LayoutParams lp_old = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f);
+                        lp_old.setMargins(0, 15, 0, 15);
+                        et_old.setLayoutParams(lp_old);
+                        et_old.setPadding(15, 5, 15, 5);
+                        et_old.setBackground(getResources().getDrawable(R.drawable.textbackground_old,null));
+                        //if(cliente != null && cliente.get(campos.get(i).get("campo")) != null)
+                        //et_old.setText(cliente.get(campos.get(i).get("campo").trim()).getAsString());
+
+                        Button btnAyudai=null;
+                        //int tamIcono = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 31, getResources().getDisplayMetrics());
+                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(tamIcono, tamIcono);
+                        btnAyudai = new Button(getContext());
+                        btnAyudai.setBackground(getResources().getDrawable(R.drawable.icon_ver_viejo,null));
+
+                        int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6, getResources().getDisplayMetrics());
+                        int marginEnds = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0.5f, getResources().getDisplayMetrics());
+                        btnlp2.setMargins(0, marginTop, marginEnds, 0);
+                        /*if(android.os.Build.VERSION.SDK_INT <= 27){
+                            btnlp2.setMargins(0, 10, 3, 0);
                         }
                         if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
-                            textolp.setMargins(0, 0, 25, 0);
-                            btnlp.setMargins(-75, 20, 95, 0);
-                            lp.setMargins(0, 15, 75, 15);
-                            et.setLayoutParams(lp);
+                            btnlp2.setMargins(0, 15, 5, 0);
                         }
                         if(android.os.Build.VERSION.SDK_INT >= 30){
-                            btnlp = new TableRow.LayoutParams(75, 75);
-                            btnlp.setMargins(-75, 25, 0, 0);
-                            textolp.setMargins(0, 0, 0, 0);
-                            lp.setMargins(0, 15, 80, 15);
-                            et.setLayoutParams(lp);
+                            btnlp2.setMargins(0, 25, 5, 0);
+                        }*/
+
+
+
+                        btnAyudai.setLayoutParams(btnlp2);
+                        btnAyudai.setForegroundGravity(GRAVITY_CENTER);
+                        btnlp2.gravity = Gravity.CENTER;
+                        final ImageView botonTooltip = btnAyuda;
+                        btnAyudai.setOnTouchListener(new View.OnTouchListener()
+                        {
+                            @Override
+                            public boolean onTouch(View v, MotionEvent event)
+                            {
+                                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                                    label.setVisibility(View.GONE);
+                                    et.setVisibility(View.GONE);
+                                    label_old.setVisibility(View.VISIBLE);
+                                    et_old.setVisibility(View.VISIBLE);
+                                    if(botonTooltip != null)
+                                        botonTooltip.setVisibility(View.GONE);
+                                    return true;
+                                }else if (event.getAction() == MotionEvent.ACTION_UP){
+                                    label.setVisibility(View.VISIBLE);
+                                    et.setVisibility(View.VISIBLE);
+                                    label_old.setVisibility(View.GONE);
+                                    et_old.setVisibility(View.GONE);
+                                    if(botonTooltip != null)
+                                        botonTooltip.setVisibility(View.VISIBLE);
+                                    return true;
+                                }else if (event.getAction() == MotionEvent.ACTION_CANCEL){
+                                    label.setVisibility(View.VISIBLE);
+                                    et.setVisibility(View.VISIBLE);
+                                    label_old.setVisibility(View.GONE);
+                                    et_old.setVisibility(View.GONE);
+                                    if(botonTooltip != null)
+                                        botonTooltip.setVisibility(View.VISIBLE);
+                                    return true;
+                                }
+
+                                // TODO Auto-generated method stub
+                                return false;
+                            }
+                        });
+
+                        if(btnAyudai != null)
+                            fila.addView(btnAyudai);
+
+                        mapeoCamposDinamicosOld.put(campos.get(i).get("campo").trim(),et_old);
+                        //Le cae encima al valor default por el de la solicitud seleccionada del valor viejo
+                        if(solicitudSeleccionadaOld.size() > 0){
+                            et_old.setText(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim());
+                            if(!modificable){
+                                et.setEnabled(false);
+                                et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled,null));
+                            }
+
                         }
+                    }
+
+                    if(campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").toLowerCase().equals("verificarcelular") && modificable){
+                        btnAyuda = new ImageView(getContext());
                         label.setLayoutParams(textolp);
-                        btnAyuda.setBackground(getResources().getDrawable(R.drawable.icon_privacy,null));
-                       // btnlp.setMargins(0,35,5,0);
+                        btnAyuda.setBackground(getResources().getDrawable(R.drawable.verifiy_phone,null));
+                        btnAyuda.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red,null)));
+                        // btnlp.setMargins(0,35,5,0);
+                        int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, getResources().getDisplayMetrics());
+                        int marginEnd = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 25, getResources().getDisplayMetrics());
+                        btnlp.setMargins(0,marginTop,marginEnd,0);
                         btnAyuda.setLayoutParams(btnlp);
                         btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                         btnAyuda.setForegroundGravity(GRAVITY_CENTER);
@@ -2562,18 +2799,239 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                 WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                 if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
-                                    GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, codigoCliente, et.getText().toString(), finalBtnAyuda);
+                                    GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda);
                                     v.execute();
                                 } else {
-                                    GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, codigoCliente, et.getText().toString(), finalBtnAyuda);
+                                    GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda);
                                     v.execute();
                                 }
+                            }else{
+                                Toasty.warning(getContext(),"El numero '"+et.getText().toString()+"' no es válido.").show();
                             }
                         });
                         btnAyuda.setOnLongClickListener((View.OnLongClickListener) view -> {
                             mToolTipsManager.show(builder.build());
                             return true;
                         });
+                        ImageView finalBtnAyuda1 = btnAyuda;
+                        et.addTextChangedListener(new TextWatcher() {
+
+                            public void afterTextChanged(Editable s) {
+                                //Restuarar icono de varificacion de numero celular
+                                finalBtnAyuda1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red, null)));
+                                finalBtnAyuda1.setOnClickListener((View.OnClickListener) view -> {
+                                    String bukrs = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
+                                    if(isValidPhoneNumber(et.getText().toString(),bukrs)){
+                                        WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
+                                        WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+                                        if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
+                                            GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda);
+                                            v.execute();
+                                        } else {
+                                            GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda);
+                                            v.execute();
+                                        }
+                                    }else{
+                                        Toasty.warning(getContext(),"El numero '"+et.getText().toString()+"' no es válido.").show();
+                                    }
+                                });
+                            }
+
+                            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                            }
+
+                            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                            }
+
+                        });
+                    }
+
+                    TableRow.LayoutParams lp_at = null;
+                    if (campos.get(i).get("campo").trim().equals("W_CTE-SMTP_ADDR") && VariablesGlobales.getSociedad().equals("F428")) {
+                        //Para COLOMBIA se debe agregar un select para seleccinar el despues del arroba
+                        atCorreo = new SearchableSpinner(getContext());
+                        int marginLeft = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 75, getResources().getDisplayMetrics());
+                        ArrayList<OpcionSpinner> opciones = db.getDatosCatalogoParaSpinner("cat_dominios");
+                        TableRow.LayoutParams textolp_at = new TableRow.LayoutParams(MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5.0f);
+                        textolp_at.setMargins(0, 0, marginLeft, 0);
+                        et.setLayoutParams(textolp_at);
+
+                        lp_at = new TableRow.LayoutParams(marginLeft, WRAP_CONTENT,5.0f);
+                        lp_at.setMargins(-marginLeft, -7, 0, 0);
+
+                        atCorreo.setLayoutParams(lp_at);
+                        // Creando el adaptador(opciones) para el comboBox deseado
+                        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item_mini, opciones);
+                        // Drop down layout style - list view with radio button
+                        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+                        // attaching data adapter to spinner
+                        Drawable dat = getResources().getDrawable(R.drawable.spinner_background_cont, null);
+                        atCorreo.setBackground(dat);
+                        atCorreo.setAdapter(dataAdapter);
+                        if(solicitudSeleccionada.size() >0) {
+                            String correo_original = solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim();
+                            String[] partes_correo = correo_original.split("@");
+                            if (atCorreo != null) {
+                                //Armar el valor del correo segun la escogencia de dominio
+                                int index_at = partes_correo.length > 1 ? VariablesGlobales.getIndex(atCorreo,"@" + partes_correo[1]):-1;
+                                if (index_at != -1) {//Significa que si existe
+                                    et.setText(partes_correo[0]);
+                                    atCorreo.setSelection(index_at);
+                                } else {
+                                    atCorreo.setSelection(VariablesGlobales.getIndex(atCorreo, "Otros"));
+                                }
+                            }
+                        }
+                    }
+                    if(campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").toLowerCase().equals("verificarcorreo") && modificable) {
+                        btnAyuda = new ImageView(getContext());
+                        int marginRight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 125, getResources().getDisplayMetrics());
+                        int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, getResources().getDisplayMetrics());
+                        int marginEnd = 0;
+                        if(atCorreo != null){
+                            int marginLeft = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 125, getResources().getDisplayMetrics());
+                            marginEnd = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 25, getResources().getDisplayMetrics());
+                            TableRow.LayoutParams textolp_at = new TableRow.LayoutParams(MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5.0f);
+                            textolp_at.setMargins(0, 0, marginLeft, 0);
+                            et.setLayoutParams(textolp_at);
+
+                            lp_at = new TableRow.LayoutParams(marginLeft-marginEnd, WRAP_CONTENT,5.0f);
+                            int top_at = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3.5f, getResources().getDisplayMetrics());
+                            lp_at.setMargins(-marginLeft, -top_at, marginRight, 0);
+
+                            btnlp.setMargins(-marginRight, marginTop, 0, 0);
+                            atCorreo.setLayoutParams(lp_at);
+                        }else{
+                            int marginLeft = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, getResources().getDisplayMetrics());
+                            TableRow.LayoutParams textolp_at = new TableRow.LayoutParams(MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,9.0f);
+                            marginEnd = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 25, getResources().getDisplayMetrics());
+                            textolp_at.setMargins(0, 0, marginLeft, 0);
+                            btnlp.setMargins(0,marginTop,marginEnd,0);
+                        }
+
+                        label.setLayoutParams(textolp);
+                        btnAyuda.setBackground(getResources().getDrawable(R.drawable.verify_mail, null));
+                        btnAyuda.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red, null)));
+                        // btnlp.setMargins(0,35,5,0);
+                        btnAyuda.setLayoutParams(btnlp);
+                        btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                        btnAyuda.setForegroundGravity(GRAVITY_CENTER);
+                        //TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                        ToolTipsManager mToolTipsManager = new ToolTipsManager();
+                        ToolTip.Builder builder = new ToolTip.Builder(getContext(), et, (RelativeLayout) _ll.getParent(), "Presione para verificar el número de celular", ToolTip.POSITION_ABOVE);
+                        builder.setAlign(ToolTip.ALIGN_LEFT);
+                        //builder.setBackgroundColor(getResources().getColor(R.color.gray,null));
+                        builder.setGravity(ToolTip.GRAVITY_LEFT);
+                        builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+                        int finalI2 = i;
+                        ImageView finalBtnAyuda = btnAyuda;
+                        Spinner finalAtCorreo1 = atCorreo;
+                        btnAyuda.setOnClickListener((View.OnClickListener) view -> {
+                            String bukrs = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
+                            String correo_armado = et.getText().toString();
+                            if(finalAtCorreo1 != null){
+                                //Armar el valor del correo segun la escogencia de dominio
+                                if(!((OpcionSpinner) finalAtCorreo1.getSelectedItem()).getId().toString().equals("Otros")){
+                                    correo_armado = ((TextView)et).getText().toString()+((OpcionSpinner)finalAtCorreo1.getSelectedItem()).getId().toString();
+                                }
+                            }
+                            if (Validaciones.isValidEmail(correo_armado)) {
+                                WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
+                                WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+                                if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion", "").equals("api")) {
+                                    GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
+                                    v.execute();
+                                } else {
+                                    GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
+                                    v.execute();
+                                }
+                            } else {
+                                Toasty.warning(getContext(), "El correo '" + correo_armado + "' no es válido.").show();
+                            }
+                        });
+                        btnAyuda.setOnLongClickListener((View.OnLongClickListener) view -> {
+                            mToolTipsManager.show(builder.build());
+                            return true;
+                        });
+                        ImageView finalBtnAyuda1 = btnAyuda;
+                        et.addTextChangedListener(new TextWatcher() {
+                            public void afterTextChanged(Editable s) {
+                                //Restuarar icono de varificacion de numero celular
+                                finalBtnAyuda1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.rechazado, null)));
+                                finalBtnAyuda1.setOnClickListener((View.OnClickListener) view -> {
+                                    String bukrs = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
+                                    String correo_armado = et.getText().toString();
+                                    if(finalAtCorreo1 != null){
+                                        //Armar el valor del correo segun la escogencia de dominio
+                                        if(!((OpcionSpinner) finalAtCorreo1.getSelectedItem()).getId().toString().equals("")){
+                                            correo_armado = ((TextView)et).getText().toString()+((OpcionSpinner)finalAtCorreo1.getSelectedItem()).getId().toString();
+                                        }
+                                    }
+                                    if (Validaciones.isValidEmail(correo_armado)) {
+                                        WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
+                                        WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+                                        if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion", "").equals("api")) {
+                                            GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
+                                            v.execute();
+                                        } else {
+                                            GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
+                                            v.execute();
+                                        }
+                                    } else {
+                                        Toasty.warning(getContext(), "El correo '" + correo_armado + "' no es válido.").show();
+                                    }
+                                });
+                            }
+
+                            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                            }
+
+                            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                            }
+
+                        });
+                    }
+                    if (campos.get(i).get("campo").trim().equals("W_CTE-STREET") && VariablesGlobales.getSociedad().equals("F428")) {
+                        prefijo_direccion = new SearchableSpinner(getContext());
+                        //Button btnAyudai = null;
+                        //TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 5f);
+                        //TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75);
+                        int marginLeft = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 125, getResources().getDisplayMetrics());
+                        int marginEnd = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0, getResources().getDisplayMetrics());
+
+                        int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12.7f, getResources().getDisplayMetrics());
+                        TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5.0f);
+                        textolp2.setMargins(0, 0, -marginLeft, 0);
+                        et.setLayoutParams(textolp2);
+
+                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(marginLeft-marginEnd, WRAP_CONTENT,5.0f);
+                        textolp2.setMargins(0, 0, 0, 0);
+                        label.setLayoutParams(textolp2);
+                        btnlp2.setMargins(0, marginTop, 0, 0);
+                        prefijo_direccion.setLayoutParams(btnlp2);
+                        prefijo_direccion.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+                        prefijo_direccion.setForegroundGravity(GRAVITY_CENTER);
+
+                        ArrayList<OpcionSpinner> opciones = db.getDatosCatalogoParaSpinner("cat_direcciones_dian");
+
+                        prefijo_direccion.setLayoutParams(btnlp2);
+                        // Creando el adaptador(opciones) para el comboBox deseado
+                        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, opciones);
+                        // Drop down layout style - list view with radio button
+                        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+                        // attaching data adapter to spinner
+                        Drawable dat = getResources().getDrawable(R.drawable.spinner_background_pre, null);
+                        prefijo_direccion.setBackground(dat);
+                        prefijo_direccion.setAdapter(dataAdapter);
+
+                        if (prefijo_direccion != null) {
+                            fila.addView(prefijo_direccion);
+                            TableRow.LayoutParams filalp = new TableRow.LayoutParams(MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,10.0f);
+                            filalp.setMargins(0,-marginTop,0,0);
+                            fila.setLayoutParams(filalp);
+                        }
                     }
 
                     if(campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").toLowerCase().contains("scan") && modificable){
@@ -2614,6 +3072,18 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                         }else{
                             et.setText(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim());
+                            String correo_original = solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim();
+                            String[] partes_correo = correo_original.split("@");
+                            if (atCorreo != null && campos.get(i).get("campo").trim().equals("W_CTE-SMTP_ADDR")) {
+                                //Armar el valor del correo segun la escogencia de dominio
+                                int index_at = VariablesGlobales.getIndex(atCorreo,"@" + partes_correo[1]);
+                                if (index_at != -1) {//Significa que si existe
+                                    et.setText(partes_correo[0]);
+                                    atCorreo.setSelection(index_at);
+                                } else {
+                                    atCorreo.setSelection(VariablesGlobales.getIndex(atCorreo, "Otros"));
+                                }
+                            }
                         }
                         if (!modificable) {
                             et.setEnabled(false);
@@ -2650,107 +3120,18 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         mapeoCamposDinamicosEnca.put(campos.get(i).get("campo").trim(),et);
                     }
 
-                    final TextInputLayout label_old = new TextInputLayout(requireContext());
-                    label_old.setVisibility(View.GONE);
-                    label_old.setHint(campos.get(i).get("descr")+" Actual");
-                    label_old.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
-                    label_old.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
-                    final MaskedEditText et_old = new MaskedEditText(getContext(),null);
-                    et_old.setVisibility(View.GONE);
-                    et_old.setEnabled(false);
-
-                    //Crear campo para valor viejo exclusivo.
-                    if((campos.get(i).get("modificacion").trim().equals("2")  || campos.get(i).get("modificacion").trim().equals("11") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
-                        //textbox de valor viejo
-                        TableRow.LayoutParams lp_old = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f);
-                        lp_old.setMargins(0, 15, 0, 15);
-                        et_old.setLayoutParams(lp_old);
-                        et_old.setPadding(15, 5, 15, 5);
-                        et_old.setBackground(getResources().getDrawable(R.drawable.textbackground_old,null));
-                        //if(cliente != null && cliente.get(campos.get(i).get("campo")) != null)
-                            //et_old.setText(cliente.get(campos.get(i).get("campo").trim()).getAsString());
-
-                        Button btnAyudai=null;
-                        TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75);
-                        btnAyudai = new Button(getContext());
-                        btnAyudai.setBackground(getResources().getDrawable(R.drawable.icon_ver_viejo,null));
-
-                        if(android.os.Build.VERSION.SDK_INT <= 27){
-                            btnlp2.setMargins(0, 10, 3, 0);
-                        }
-                        if(android.os.Build.VERSION.SDK_INT == 28 || android.os.Build.VERSION.SDK_INT == 29){
-                            btnlp2.setMargins(0, 15, 5, 0);
-                        }
-                        if(android.os.Build.VERSION.SDK_INT >= 30){
-                            btnlp2.setMargins(0, 25, 5, 0);
-                        }
-
-
-
-                            btnAyudai.setLayoutParams(btnlp2);
-                            btnAyudai.setForegroundGravity(GRAVITY_CENTER);
-                            btnlp2.gravity = Gravity.CENTER;
-                        final ImageView botonTooltip = btnAyuda;
-                        btnAyudai.setOnTouchListener(new View.OnTouchListener()
-                            {
-                                @Override
-                                public boolean onTouch(View v, MotionEvent event)
-                                {
-                                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                                        label.setVisibility(View.GONE);
-                                        et.setVisibility(View.GONE);
-                                        label_old.setVisibility(View.VISIBLE);
-                                        et_old.setVisibility(View.VISIBLE);
-                                        if(botonTooltip != null)
-                                            botonTooltip.setVisibility(View.GONE);
-                                        return true;
-                                    }else if (event.getAction() == MotionEvent.ACTION_UP){
-                                        label.setVisibility(View.VISIBLE);
-                                        et.setVisibility(View.VISIBLE);
-                                        label_old.setVisibility(View.GONE);
-                                        et_old.setVisibility(View.GONE);
-                                        if(botonTooltip != null)
-                                            botonTooltip.setVisibility(View.VISIBLE);
-                                        return true;
-                                    }else if (event.getAction() == MotionEvent.ACTION_CANCEL){
-                                        label.setVisibility(View.VISIBLE);
-                                        et.setVisibility(View.VISIBLE);
-                                        label_old.setVisibility(View.GONE);
-                                        et_old.setVisibility(View.GONE);
-                                        if(botonTooltip != null)
-                                            botonTooltip.setVisibility(View.VISIBLE);
-                                        return true;
-                                    }
-
-                                    // TODO Auto-generated method stub
-                                    return false;
-                                }
-                            });
-
-                        if(btnAyudai != null)
-                            fila.addView(btnAyudai);
-
-                        mapeoCamposDinamicosOld.put(campos.get(i).get("campo").trim(),et_old);
-                        //Le cae encima al valor default por el de la solicitud seleccionada del valor viejo
-                        if(solicitudSeleccionadaOld.size() > 0){
-                            et_old.setText(solicitudSeleccionadaOld.get(0).get(campos.get(i).get("campo").trim()).trim());
-                            if(!modificable){
-                                et.setEnabled(false);
-                                et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled,null));
-                            }
-
-                        }
-                    }
-
                     label.addView(et);
                     fila.addView(label);
                     if(et_old != null) {
                         label_old.addView(et_old);
                         fila.addView(label_old);
                     }
-                    if(btnAyuda != null)
+                    if(atCorreo != null && atCorreo.getParent() == null)
+                        fila.addView(atCorreo);
+                    if (btnAyuda != null)
                         fila.addView(btnAyuda);
                     ll.addView(fila);
+
 
 
                     if(campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LAT") || campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LONG")){
@@ -2767,7 +3148,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 final int DRAWABLE_BOTTOM = 3;
 
                                 if(event.getAction() == MotionEvent.ACTION_UP) {
-                                    if(event.getRawX() <= ((et.getLeft()+75) + et.getCompoundDrawables()[DRAWABLE_LEFT].getBounds().width())*2) {
+                                    if(event.getRawX() <= ((et.getLeft()) + et.getCompoundDrawables()[DRAWABLE_LEFT].getBounds().width())*2) {
                                         Toasty.info(getContext(),"Refrescando ubicacion..").show();
                                         LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
                                         autoPineo.startLocationUpdates();
@@ -2852,9 +3233,17 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             @Override
                             public void onFocusChange(View v, boolean hasFocus) {
                                 if (!hasFocus) {
-                                    correoValidado = isValidEmail(v);
-                                    if(VariablesGlobales.ComentariosAutomaticos()  && campos.get(finalI).get("comentario_auto").trim().equals("1")){
-                                        Validaciones.ComentariosAutomaticos(getContext(),((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")),mapeoCamposDinamicos.get(campos.get(finalI).get("campo").trim()),mapeoCamposDinamicosOld.get(campos.get(finalI).get("campo").trim()),campos.get(finalI).get("descr").trim());
+                                    if(atCorreo == null){
+                                        correoValidado = Validaciones.isValidEmail(v);
+                                    }else{
+                                        //Armar el valor del correo segun la escogencia de dominio
+                                        if(((OpcionSpinner)atCorreo.getSelectedItem()).getId().toString().equals("Otros"))
+                                            correoValidado = Validaciones.isValidEmail(v);
+                                        else if(!((OpcionSpinner)atCorreo.getSelectedItem()).getId().toString().equals("")){
+                                            String correo_armado = ((TextView)v).getText().toString()+((OpcionSpinner)atCorreo.getSelectedItem()).getId().toString();
+                                            correoValidado = Validaciones.isValidEmail(correo_armado,true,getContext());
+                                        }
+
                                     }
                                 }
                             }
@@ -3669,6 +4058,21 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
                                         int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZJV");
                                         int indiceMixta = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZRM");
+//COLOMBIA
+                                        int indiceZCS = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZCS");
+                                        int indiceZCM = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZCM");
+                                        int indiceZDI = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDI");
+                                        int indiceZEJ = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZEJ");
+                                        int indiceZES = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZES");
+                                        int indiceZGE = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZGE");
+                                        int indiceZIN = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZIN");
+                                        int indiceZOP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZOP");
+                                        int indiceZPK = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPK");
+                                        int indiceZSP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZSP");
+                                        int indiceZWB = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZWB");
+                                        int indiceZWE = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZWE");
+                                        int indiceZWJ = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZWJ");
+                                        int indiceZWP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZWP");
 
                                         final int finalIndicePreventa = indicePreventa;
                                         final int finalIndiceTeleventa = indiceTeleventa;
@@ -4757,6 +5161,335 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         }
     }
 
+    public static void displayDialogEncuestaCanalesColombia(final Context context) {
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
+        d.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                //Toasty.info(context,"Dialogo Dismissed!").show();
+            }
+        });
+        d.setContentView(R.layout.encuesta_canales_dialog_layout);
+
+        //INITIALIZE VIEWS
+        final TextView title = d.findViewById(R.id.title);
+        final Spinner grupoIsscomSpinner = d.findViewById(R.id.grupoIsscomSpinner);
+
+        grupoIsscomSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @SuppressLint("ResourceType")
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                LinearLayout layout = d.findViewById(R.id.layoutDinamico);
+                layout.removeAllViews();
+
+                RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                params1.setMargins(10,10,10,10);
+
+                ArrayList<HashMap<String, String>> respuestas = mDBHelper.getRespuestasEncuesta(GUID);
+
+                ArrayList<HashMap<String, String>> subgrupo = mDBHelper.getSubgrupoSegunGrupo(opcion.getId());
+                if(subgrupo.size() > 0){//Si existe subgrupo, se debe pintar primero el subgrupo para saber que preguntas se pintaran al seleccionar el subgrupo
+                    Spinner spinner_subgrupo = new Spinner(d.getContext());
+                    spinner_subgrupo.setId(1000);
+                    int selected = 0;
+                    ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
+                    misOpciones.add(new OpcionSpinner("","Seleccione..."));
+                    TextView label_pregunta = new TextView(d.getContext());
+                    label_pregunta.setText(String.format(d.getContext().getResources().getString(R.string.label_pregunta), "Grupo Isscom", "Sub Grupo Isscom"));
+                    //label_pregunta.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark,null));
+                    layout.addView(label_pregunta,params1);
+                    for (int i = 0; i < subgrupo.size(); i++){
+                        OpcionSpinner op = new OpcionSpinner(subgrupo.get(i).get("zid_subgrupo"), subgrupo.get(i).get("zid_subgrupo")+" - "+subgrupo.get(i).get("text"));
+                        if (respuestas.size() > 0 && respuestas.get(0) != null && subgrupo.get(i).get("zid_subgrupo").equals(respuestas.get(0).get("col" + (i + 1)))
+                                && (respuestas.get(0).get("zid_subgrupo")).equals(String.valueOf(position))) {
+                            op.setSelected(i);
+                            selected = i;
+                        }
+                        misOpciones.add(op);
+                    }
+                    ArrayAdapter<OpcionSpinner> dataAdapterP = new ArrayAdapter<>(context, R.layout.simple_spinner_item, misOpciones);
+                    dataAdapterP.setDropDownViewResource(R.layout.spinner_item);
+                    // attaching data adapter to spinner
+                    Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
+                    spinner_subgrupo.setBackground(spinner_back);
+                    spinner_subgrupo.setAdapter(dataAdapterP);
+                    layout.addView(spinner_subgrupo,params1);
+
+                    spinner_subgrupo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                            final OpcionSpinner subgrupo = (OpcionSpinner) parent.getSelectedItem();
+                            ArrayList<HashMap<String, String>> preguntas = mDBHelper.getPreguntasSegunSubGrupo(opcion.getId(),subgrupo.getId());
+
+                            for (int j = 0; j < preguntas.size(); j++){
+                                int selected = 0;
+                                Spinner pregunta = new Spinner(d.getContext());
+                                ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
+
+                                TextView label_pregunta = new TextView(d.getContext());
+                                label_pregunta.setText(String.format(d.getContext().getResources().getString(R.string.label_pregunta), preguntas.get(j).get("zid_quest"), preguntas.get(j).get("text")));
+                                //label_pregunta.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark,null));
+                                layout.addView(label_pregunta,params1);
+                                ArrayList<HashMap<String, String>> opcionesxpregunta = mDBHelper.getOpcionesPreguntaSubGrupo(opcion.getId(),subgrupo.getId(),preguntas.get(j).get("zid_quest"));
+                                for (int i = 0; i < opcionesxpregunta.size(); i++) {
+                                    OpcionSpinner op = new OpcionSpinner(opcionesxpregunta.get(i).get("zid_resp"), opcionesxpregunta.get(i).get("zid_resp")+" - "+opcionesxpregunta.get(i).get("text"));
+                                    if (respuestas.size() > 0 && respuestas.get(0) != null && opcionesxpregunta.get(i).get("zid_resp").equals(respuestas.get(0).get("col" + (j + 1)))
+                                            && (respuestas.get(0).get("id_grupo")).equals(String.valueOf(position))) {
+                                        op.setSelected(i);
+                                        selected = i;
+                                    }
+                                    misOpciones.add(op);
+                                }
+
+                                ArrayAdapter<OpcionSpinner> dataAdapterP = new ArrayAdapter<>(context, R.layout.simple_spinner_item, misOpciones);
+                                dataAdapterP.setDropDownViewResource(R.layout.spinner_item);
+                                // attaching data adapter to spinner
+                                Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
+                                pregunta.setBackground(spinner_back);
+                                pregunta.setAdapter(dataAdapterP);
+
+                                pregunta.setId(j+1);
+                                pregunta.setSelection(selected);
+                                layout.addView(pregunta,params1);
+                            }
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {
+
+                        }
+                    });
+                }else {//No tiene subgrupo, mostrar las preguntas normalmente
+
+                    ArrayList<HashMap<String, String>> preguntas = mDBHelper.getPreguntasSegunGrupo(opcion.getId());
+
+                    for (int j = 0; j < preguntas.size(); j++) {
+                        int selected = 0;
+                        Spinner pregunta = new Spinner(d.getContext());
+                        ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
+
+                        TextView label_pregunta = new TextView(d.getContext());
+                        label_pregunta.setText(String.format(d.getContext().getResources().getString(R.string.label_pregunta), preguntas.get(j).get("zid_quest"), preguntas.get(j).get("text")));
+                        //label_pregunta.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark,null));
+                        layout.addView(label_pregunta, params1);
+                        ArrayList<HashMap<String, String>> opcionesxpregunta = mDBHelper.getOpcionesPreguntaGrupo(opcion.getId(), preguntas.get(j).get("zid_quest"));
+                        for (int i = 0; i < opcionesxpregunta.size(); i++) {
+                            OpcionSpinner op = new OpcionSpinner(opcionesxpregunta.get(i).get("zid_resp"), opcionesxpregunta.get(i).get("zid_resp") + " - " + opcionesxpregunta.get(i).get("text"));
+                            if (respuestas.size() > 0 && respuestas.get(0) != null && opcionesxpregunta.get(i).get("zid_resp").equals(respuestas.get(0).get("col" + (j + 1)))
+                                    && (respuestas.get(0).get("id_grupo")).equals(String.valueOf(position))) {
+                                op.setSelected(i);
+                                selected = i;
+                            }
+                            misOpciones.add(op);
+                        }
+
+                        ArrayAdapter<OpcionSpinner> dataAdapterP = new ArrayAdapter<>(context, R.layout.simple_spinner_item, misOpciones);
+                        dataAdapterP.setDropDownViewResource(R.layout.spinner_item);
+                        // attaching data adapter to spinner
+                        Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
+                        pregunta.setBackground(spinner_back);
+                        pregunta.setAdapter(dataAdapterP);
+
+                        pregunta.setId(j + 1);
+                        pregunta.setSelection(selected);
+                        layout.addView(pregunta, params1);
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Toasty.warning(context,"Seleccione el Grupo Isscom para generar la encuesta.").show();
+            }
+        });
+
+        Button saveBtn= d.findViewById(R.id.saveBtn);
+        //SAVE
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("ResourceType")
+            @Override
+            public void onClick(View v) {
+                try {
+                    //Si existe una encuesta realizada se borrara y se guardara la nueva generada (Solo 1 encuesta x cliente permitida)
+                    int del = mDb.delete(VariablesGlobales.getTablaEncuestaSolicitud(), "id_solicitud = ?", new String[]{GUID});
+                    //Guardar la encuesta generada en la Base de datos
+                    ContentValues encuestaValues = new ContentValues();
+
+                    encuestaValues.put("id_solicitud", GUID);
+                    Spinner s = d.findViewById(R.id.grupoIsscomSpinner);
+                    String valorg = ((OpcionSpinner) s.getSelectedItem()).getId();
+                    encuestaValues.put("id_Grupo", valorg);
+                    Spinner subs = d.findViewById(1000);
+                    String valorsubg = "";
+                    if(subs != null) {
+                        valorsubg = ((OpcionSpinner) subs.getSelectedItem()).getId();
+                        encuestaValues.put("id_Subgrupo", valorsubg);
+                    }
+
+                    s = d.findViewById(1);
+                    String valor1 = s != null ? ((OpcionSpinner) s.getSelectedItem()).getId() : null;
+                    encuestaValues.put("col1", valor1);
+                    s = d.findViewById(2);
+                    String valor2 = s != null ? ((OpcionSpinner) s.getSelectedItem()).getId() : null;
+                    encuestaValues.put("col2", valor2);
+                    s = d.findViewById(3);
+                    String valor3 = s != null ? ((OpcionSpinner) s.getSelectedItem()).getId() : null;
+                    encuestaValues.put("col3", valor3);
+                    s = d.findViewById(4);
+                    String valor4 = s != null ? ((OpcionSpinner) s.getSelectedItem()).getId() : null;
+                    encuestaValues.put("col4", valor4);
+                    s = d.findViewById(5);
+                    String valor5 = s != null ? ((OpcionSpinner) s.getSelectedItem()).getId() : null;
+                    encuestaValues.put("col5", valor5);
+                    s = d.findViewById(6);
+                    String valor6 = s != null ? ((OpcionSpinner) s.getSelectedItem()).getId() : null;
+                    encuestaValues.put("col6", valor6);
+                    s = d.findViewById(7);
+                    String valor7 = s != null ? ((OpcionSpinner) s.getSelectedItem()).getId() : null;
+                    encuestaValues.put("col7", valor7);
+                    s = d.findViewById(8);
+                    String valor8 = s != null ? ((OpcionSpinner) s.getSelectedItem()).getId() : null;
+                    encuestaValues.put("col8", valor8);
+                    s = d.findViewById(9);
+                    String valor9 = s != null ? ((OpcionSpinner) s.getSelectedItem()).getId() : null;
+                    encuestaValues.put("col9", valor9);
+                    s = d.findViewById(10);
+                    String valor10 = s != null ? ((OpcionSpinner) s.getSelectedItem()).getId() : null;
+                    encuestaValues.put("col10", valor10);
+                    HashMap<String, String> valor_canales = mDBHelper.getValoresSegunEncuestaRealizadaColombia(valorg, valorsubg, valor1, valor2, valor3, valor4, valor5, valor6, valor7, valor8, valor9, valor10);
+
+                    if(valor_canales.size() == 0) {
+                        Toasty.error(v.getContext(), "No se pudo obtener los valores del resultado de esta encuesta!", Toasty.LENGTH_SHORT).show();
+                        return;
+                    }
+
+
+                    //Asignar valores de canales segun respuesta obtenida
+                    //Spinner zzent3Spinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZENT3");
+                    //zzent3Spinner.setSelection(VariablesGlobales.getIndex(zzent3Spinner,valor_canales.get("W_CTE-ZZENT3").trim()));
+
+                    //Spinner zzent4Spinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZENT4");
+                    //zzent4Spinner.setSelection(VariablesGlobales.getIndex(zzent4Spinner,valor_canales.get("W_CTE-ZZENT4").trim()));
+
+                    Spinner zzcanalSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZCANAL");
+                    if(zzcanalSpinner != null)
+                        zzcanalSpinner.setSelection(VariablesGlobales.getIndex(zzcanalSpinner,valor_canales.get("W_CTE-ZZCANAL").trim()));
+
+                    Spinner ztpocanalSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZTPOCANAL");
+                    if(ztpocanalSpinner != null)
+                        ztpocanalSpinner.setSelection(VariablesGlobales.getIndex(ztpocanalSpinner,valor_canales.get("W_CTE-ZTPOCANAL").trim()));
+
+                    Spinner zgpocanalSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZGPOCANAL");
+                    if(zgpocanalSpinner != null)
+                        zgpocanalSpinner.setSelection(VariablesGlobales.getIndex(zgpocanalSpinner,valor_canales.get("W_CTE-ZGPOCANAL").trim()));
+
+                    //Spinner pson3Spinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-PSON3");
+                    //pson3Spinner.setSelection(VariablesGlobales.getIndex(pson3Spinner,valor_canales.get("W_CTE-PSON3").trim()));
+
+                    Spinner unnegSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZUNNEG");
+                    if(unnegSpinner != null)
+                        unnegSpinner.setSelection(VariablesGlobales.getIndex(unnegSpinner,valor_canales.get("W_CTE-ZZUNNEG").trim()));
+
+                    Spinner subunnegSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZSUBUNNEG");
+                    if(subunnegSpinner != null)
+                        subunnegSpinner.setSelection(VariablesGlobales.getIndex(subunnegSpinner,valor_canales.get("W_CTE-ZZSUBUNNEG").trim()));
+
+                    //Validar
+                    Spinner occonsSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZOCCONS");
+                    if(occonsSpinner != null) {
+                        String valor = valor_canales.get("W_CTE-ZZOCCONS");
+                        if (valor != null) {
+                            occonsSpinner.setSelection(VariablesGlobales.getIndex(occonsSpinner, valor.trim()));
+                            CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_CONSUMO");
+                            ejecutada.setChecked(true);
+                            ejecutada.setEnabled(false);
+                        }else{
+                            //Abrir encuesta ocasion consumo o activar/habilitar check de encuesta ocasion de consumo
+                            CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_CONSUMO");
+                            ejecutada.setChecked(false);
+                            ejecutada.setEnabled(true);
+                            //Y mensaje que debe hacerlo
+                            Toasty.warning(d.getContext(), "Debe ejecutar la encuesta de Ocasion de Consumo", Toasty.LENGTH_SHORT).show();
+                        }
+
+                    }
+
+                    Spinner gecSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
+                    if(gecSpinner != null) {
+                        String valor = valor_canales.get("W_CTE-KLABC");
+                        if( valor != null) {
+                            gecSpinner.setSelection(VariablesGlobales.getIndex(gecSpinner, valor.trim()));
+                            CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
+                            ejecutada.setChecked(true);
+                            ejecutada.setEnabled(false);
+                        }else{
+                            //activar/habilitar check de encuesta ocasion de consumo
+                            CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
+                            ejecutada.setChecked(false);
+                            ejecutada.setEnabled(true);
+                            //Y mensaje que debe hacerlo
+                            Toasty.warning(d.getContext(), "Debe ejecutar la encuesta de GEC", Toasty.LENGTH_SHORT).show();
+                        }
+                    }
+                    try {
+                        mDb.insert(VariablesGlobales.getTablaEncuestaSolicitud(), null, encuestaValues);
+                    } catch (Exception e) {
+                        Toasty.error(d.getContext(), "Error Insertando Encuesta Canales", Toasty.LENGTH_SHORT).show();
+                    }
+
+                    //Calcular Nivel Socioeconomico Planchado Segun el valor de su canal Pais
+                    if (PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_VKORG","").equals("0443")) {
+                        String NSEPCalculado = mDBHelper.AlgoritmoNSEP(valor_canales.get("W_CTE-ZZENT4").trim());
+                        Spinner nsepSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-KATR4");
+                        if(NSEPCalculado.trim().length() > 0)
+                            nsepSpinner.setSelection(VariablesGlobales.getIndex(nsepSpinner,NSEPCalculado.trim()));
+                    }
+
+                    Toasty.success(d.getContext(), "Encuesta Canales ejecutada correctamente!", Toasty.LENGTH_SHORT).show();
+                    d.dismiss();
+                    CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA");
+                    ejecutada.setChecked(true);
+                } catch (Exception e) {
+                    Toasty.error(v.getContext(), "No se pudo salvar la encuesta. "+e.getMessage(), Toasty.LENGTH_SHORT).show();
+                }
+            }
+        });
+        if(!modificable){
+            saveBtn.setEnabled(false);
+            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.boton_transparente));
+        }else{
+            saveBtn.setBackgroundColor(context.getResources().getColor(R.color.colorPrimary));
+        }
+
+        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_grupo_isscom");
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < opciones.size(); j++){
+            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+        }
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
+        grupoIsscomSpinner.setBackground(spinner_back);
+        grupoIsscomSpinner.setAdapter(dataAdapter);
+        ArrayList<HashMap<String, String>> respuestas = mDBHelper.getRespuestasEncuesta(GUID);
+        if(respuestas.size() > 0){
+            grupoIsscomSpinner.setSelection(VariablesGlobales.getIndex(grupoIsscomSpinner,respuestas.get(0).get("id_grupo").trim()));
+        }
+
+        //SHOW DIALOG
+        d.show();
+        Window window = d.getWindow();
+        if (window != null) {
+            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
     public static void displayDialogEncuestaGec(final Context context) {
         final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -4840,6 +5573,279 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     ejecutada.setChecked(true);
                 } catch(Exception e) {
                     Toasty.error(v.getContext(), "No se pudo salvar la encuesta gec. "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        if(!modificable){
+            saveBtn.setEnabled(false);
+        }
+
+        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_grupo_isscom");
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < opciones.size(); j++){
+            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+        }
+
+        //SHOW DIALOG
+        d.show();
+        Window window = d.getWindow();
+        if (window != null) {
+            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
+    public static void displayDialogEncuestaGecColombia(final Context context) {
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
+        d.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                //Toasty.info(context,"Dialogo Dismissed!").show();
+            }
+        });
+        d.setContentView(R.layout.encuesta_gec_dialog_layout);
+
+        //INITIALIZE VIEWS
+        final TextView title = d.findViewById(R.id.title);
+        LinearLayout layout = d.findViewById(R.id.layoutDinamico);
+        layout.removeAllViews();
+
+        RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        params1.setMargins(10,10,10,10);
+        final ArrayList<HashMap<String, String>> preguntas = mDBHelper.getPreguntasGec();
+        final ArrayList<HashMap<String, String>> respuestas = mDBHelper.getEncuestaGec(GUID);
+        //final ArrayList<HashMap<String, String>> opciones_x_pregunta = mDBHelper.getRespuestasGec();
+
+        for (int j = 0; j < preguntas.size(); j++){
+            final ArrayList<HashMap<String, String>> opcionesxpregunta = mDBHelper.getOpcionesXPreguntaGec(preguntas.get(j).get("zid_quest"));
+            if(opcionesxpregunta.size() == 0) {
+                TextInputEditText monto = new TextInputEditText(d.getContext());
+                monto.setInputType(InputType.TYPE_CLASS_NUMBER);
+                ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
+
+                TextView label_pregunta = new TextView(d.getContext());
+                label_pregunta.setText(String.format(d.getContext().getResources().getString(R.string.label_pregunta), preguntas.get(j).get("zid_quest"), preguntas.get(j).get("text")));
+                //label_pregunta.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark,null));
+                layout.addView(label_pregunta, params1);
+
+                //revisar si ya se ha realizado una encuesta para la solicitud, para poder mostrar las respuestas existentes.
+                if (respuestas.size() > 0) {
+                    if (monto != null)
+                        monto.setText(respuestas.get(j).get("monto"));
+                }
+                monto.setId(j + 1);
+                layout.addView(monto, params1);
+            }else{
+                int selected = 0;
+                Spinner pregunta = new Spinner(d.getContext());
+                ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
+
+                TextView label_pregunta = new TextView(d.getContext());
+                label_pregunta.setText(String.format(d.getContext().getResources().getString(R.string.label_pregunta), preguntas.get(j).get("zid_quest"), preguntas.get(j).get("text")));
+                //label_pregunta.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark,null));
+                layout.addView(label_pregunta, params1);
+                for (int i = 0; i < opcionesxpregunta.size(); i++) {
+                    OpcionSpinner op = new OpcionSpinner(opcionesxpregunta.get(i).get("zid_resp"), opcionesxpregunta.get(i).get("zid_resp") + " - " + opcionesxpregunta.get(i).get("text"));
+                    if (respuestas.size() > 0 && respuestas.get(0) != null && opcionesxpregunta.get(i).get("zid_resp").equals(respuestas.get(j).get("monto"))) {
+                        op.setSelected(i);
+                        selected = i;
+                    }
+                    misOpciones.add(op);
+                }
+
+                ArrayAdapter<OpcionSpinner> dataAdapterP = new ArrayAdapter<>(context, R.layout.simple_spinner_item, misOpciones);
+                dataAdapterP.setDropDownViewResource(R.layout.spinner_item);
+                // attaching data adapter to spinner
+                Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
+                pregunta.setBackground(spinner_back);
+                pregunta.setAdapter(dataAdapterP);
+
+                pregunta.setId(j + 1);
+                pregunta.setSelection(selected);
+                layout.addView(pregunta, params1);
+            }
+        }
+
+        Button saveBtn= d.findViewById(R.id.saveBtn);
+        //SAVE
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("ResourceType")
+            @Override
+            public void onClick(View v) {
+                try{
+                    //Si existe una encuesta realizada se borrara y se guardara la nueva generada (Solo 1 encuesta x cliente permitida)
+                    //Guardar la encuesta generada en la Base de datos
+                    int del = mDb.delete(VariablesGlobales.getTablaEncuestaGecSolicitud(), "id_solicitud = ?", new String[]{GUID});
+                    ContentValues encuestaValues = new ContentValues();
+                    String[] idValores = new String[preguntas.size()];
+                    for (int j = 0; j < preguntas.size(); j++){
+                        Spinner monto = d.findViewById(j + 1);
+                        encuestaValues.clear();
+                        //encuestaValues.put("id_encuesta_gec", GUID);
+                        encuestaValues.put("id_solicitud", GUID);
+                        encuestaValues.put("zid_grupo", (j+1));
+                        encuestaValues.put("zid_quest", (j+1));
+                        encuestaValues.put("monto", ((OpcionSpinner)monto.getSelectedItem()).getId());
+                        idValores[j] = ((OpcionSpinner)monto.getSelectedItem()).getId();
+                        if(((OpcionSpinner)monto.getSelectedItem()).getId().trim().equals("")){
+                            Toasty.error(v.getContext(), "Por favor llene todos los campos de la encuesta.", Toasty.LENGTH_SHORT).show();
+                            return;
+                        }
+                        try {
+                            mDb.insert(VariablesGlobales.getTablaEncuestaGecSolicitud(), null, encuestaValues);
+                        } catch (Exception e) {
+                            Toasty.error(v.getContext(), "Error Insertando Encuesta Canales (Registro #"+j+")", Toasty.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    String valor_gec = mDBHelper.getGecSegunEncuestaRealizadaColombia(idValores);
+                    //Asignar los valores de los canales segun las respuestas obtenidas
+                    Spinner gecSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-KLABC");
+                    gecSpinner.setSelection(VariablesGlobales.getIndex(gecSpinner,valor_gec));
+
+                    Toasty.success(v.getContext(), "Encuesta GEC ejecutada correctamente!", Toasty.LENGTH_SHORT).show();
+                    d.dismiss();
+                    CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
+                    ejecutada.setChecked(true);
+                } catch(Exception e) {
+                    Toasty.error(v.getContext(), "No se pudo salvar la encuesta gec. "+e.getMessage(), Toasty.LENGTH_SHORT).show();
+                }
+            }
+        });
+        if(!modificable){
+            saveBtn.setEnabled(false);
+        }
+
+        ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_grupo_isscom");
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < opciones.size(); j++){
+            listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+        }
+
+        //SHOW DIALOG
+        d.show();
+        Window window = d.getWindow();
+        if (window != null) {
+            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
+    public static void displayDialogEncuestaOcasionConsumo(final Context context) {
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
+        d.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                //Toasty.info(context,"Dialogo Dismissed!").show();
+            }
+        });
+        d.setContentView(R.layout.encuesta_gec_dialog_layout);
+
+        //INITIALIZE VIEWS
+        final TextView title = d.findViewById(R.id.title);
+        title.setText("Encuesta Ocasión de Consumo");
+        LinearLayout layout = d.findViewById(R.id.layoutDinamico);
+        layout.removeAllViews();
+
+        RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        params1.setMargins(10,10,10,10);
+        final ArrayList<HashMap<String, String>> preguntas = mDBHelper.getPreguntasOcasionConsumo();
+        final ArrayList<HashMap<String, String>> respuestas = mDBHelper.getEncuestaOcasionConsumo(GUID);
+
+        for (int j = 0; j < preguntas.size(); j++){
+            final ArrayList<HashMap<String, String>> opcionesxpregunta = mDBHelper.getOpcionesXPreguntaOcasionConsumo(preguntas.get(j).get("zid_quest"));
+            if(opcionesxpregunta.size() == 0) {
+                TextInputEditText monto = new TextInputEditText(d.getContext());
+                monto.setInputType(InputType.TYPE_CLASS_NUMBER);
+                ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
+
+                TextView label_pregunta = new TextView(d.getContext());
+                label_pregunta.setText(String.format(d.getContext().getResources().getString(R.string.label_pregunta), preguntas.get(j).get("zid_quest"), preguntas.get(j).get("text")));
+                layout.addView(label_pregunta, params1);
+
+                //revisar si ya se ha realizado una encuesta para la solicitud, para poder mostrar las respuestas existentes.
+                if (respuestas.size() > 0) {
+                    if (monto != null)
+                        monto.setText(respuestas.get(j).get("monto"));
+                }
+                monto.setId(j + 1);
+                layout.addView(monto, params1);
+            }else{
+                int selected = 0;
+                Spinner pregunta = new Spinner(d.getContext());
+                ArrayList<OpcionSpinner> misOpciones = new ArrayList<>();
+
+                TextView label_pregunta = new TextView(d.getContext());
+                label_pregunta.setText(String.format(d.getContext().getResources().getString(R.string.label_pregunta), preguntas.get(j).get("zid_quest"), preguntas.get(j).get("text")));
+                //label_pregunta.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark,null));
+                layout.addView(label_pregunta, params1);
+                for (int i = 0; i < opcionesxpregunta.size(); i++) {
+                    OpcionSpinner op = new OpcionSpinner(opcionesxpregunta.get(i).get("zid_resp"), opcionesxpregunta.get(i).get("zid_resp") + " - " + opcionesxpregunta.get(i).get("text"));
+                    if (respuestas.size() > 0 && respuestas.get(0) != null && opcionesxpregunta.get(i).get("zid_resp").equals(respuestas.get(j).get("respuesta_obtenida"))) {
+                        op.setSelected(i);
+                        selected = i;
+                    }
+                    misOpciones.add(op);
+                }
+
+                ArrayAdapter<OpcionSpinner> dataAdapterP = new ArrayAdapter<>(context, R.layout.simple_spinner_item, misOpciones);
+                dataAdapterP.setDropDownViewResource(R.layout.spinner_item);
+                // attaching data adapter to spinner
+                Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
+                pregunta.setBackground(spinner_back);
+                pregunta.setAdapter(dataAdapterP);
+
+                pregunta.setId(j + 1);
+                pregunta.setSelection(selected);
+                layout.addView(pregunta, params1);
+            }
+        }
+
+        Button saveBtn= d.findViewById(R.id.saveBtn);
+        //SAVE
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("ResourceType")
+            @Override
+            public void onClick(View v) {
+                try{
+                    //Si existe una encuesta realizada se borrara y se guardara la nueva generada (Solo 1 encuesta x cliente permitida)
+                    //Guardar la encuesta generada en la Base de datos
+                    int del = mDb.delete(VariablesGlobales.getTablaEncuestaOcasionConsumoSolicitud(), "id_solicitud = ?", new String[]{GUID});
+                    ContentValues encuestaValues = new ContentValues();
+                    String[] idValores = new String[preguntas.size()];
+                    for (int j = 0; j < preguntas.size(); j++){
+                        Spinner respuesta = d.findViewById(j + 1);
+                        encuestaValues.clear();
+
+                        encuestaValues.put("id_solicitud", GUID);
+                        encuestaValues.put("zid_grupo", (j+1));
+                        encuestaValues.put("zid_quest", (j+1));
+                        encuestaValues.put("respuesta_obtenida", ((OpcionSpinner)respuesta.getSelectedItem()).getId());
+                        idValores[j] = ((OpcionSpinner)respuesta.getSelectedItem()).getId();
+                        if(((OpcionSpinner)respuesta.getSelectedItem()).getId().trim().equals("")){
+                            Toasty.error(v.getContext(), "Por favor llene todos los campos de la encuesta de ocasion de consumo.", Toasty.LENGTH_SHORT).show();
+                            return;
+                        }
+                        try {
+                            mDb.insert(VariablesGlobales.getTablaEncuestaOcasionConsumoSolicitud(), null, encuestaValues);
+                        } catch (Exception e) {
+                            Toasty.error(v.getContext(), "Error Insertando Encuesta Ocasion Consumo (Registro #"+j+")", Toasty.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    String valor_occons = mDBHelper.getOcasionConsumoSegunEncuestaRealizada(idValores);
+                    //Asignar los valores de los canales segun las respuestas obtenidas
+                    Spinner occonsSpinner = (Spinner)mapeoCamposDinamicos.get("W_CTE-ZZOCCONS");
+                    occonsSpinner.setSelection(VariablesGlobales.getIndex(occonsSpinner,valor_occons));
+
+                    Toasty.success(v.getContext(), "Encuesta OCASION DE CONSUMO ejecutada correctamente!", Toasty.LENGTH_SHORT).show();
+                    d.dismiss();
+                    CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_CONSUMO");
+                    ejecutada.setChecked(true);
+                } catch(Exception e) {
+                    Toasty.error(v.getContext(), "No se pudo salvar la encuesta de ocasion de consumo. "+e.getMessage(), Toasty.LENGTH_SHORT).show();
                 }
             }
         });
@@ -5022,10 +6028,18 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 if(bzirk_sel != null)
                     filtroxPais += " AND bzirk = '"+((OpcionSpinner)bzirk_sel.getSelectedItem()).getId().trim()+"'";
                 break;
+            case "F428":
+                filtroxPais += " route = '"+PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("W_CTE_RUTAHH","")+"'";
+                break;
             default:
                 filtroxPais = "";
         }
-        ArrayList<OpcionSpinner> rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);
+        ArrayList<OpcionSpinner> rutas_reparto = null;
+        if(VariablesGlobales.getSociedad().equals("F428")){
+            rutas_reparto = mDBHelper.getDatosCatalogoParaSpinner("SAPDCAT_Ruta_Relacion",""+filtroxPais);
+        }else{
+            rutas_reparto  = mDBHelper.getDatosCatalogoParaSpinner("cat_tzont","vwerks='"+valor_centro_suministro+"'"+filtroxPais);
+        }
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapterRuta = new ArrayAdapter<>(Objects.requireNonNull(context), R.layout.simple_spinner_item, rutas_reparto);
         // Drop down layout style - list view with radio button
@@ -5406,6 +6420,49 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         }
     }
 
+    public static class CalcularRepartoConHabilitador implements Runnable {
+        private Context context;
+        private Activity activity;
+        public CalcularRepartoConHabilitador(Context context, Activity activity) {
+            this.context = context;
+            this.activity = activity;
+        }
+        public void run() {
+            //Si es colombia y las coordenadas existen llamar al habilitador
+            if(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BUKRS", "").equals("F428")//CAMBIAR COLOMBIA
+                    && Validaciones.ValidarCoordenadaX(mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG")) && Validaciones.ValidarCoordenadaY(mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"))){
+                double latitud = Double.parseDouble(((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT")).getText().toString());
+                double longitud = Double.parseDouble(((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG")).getText().toString());
+                String reparto = Haversine.ClosestCoordinateRoute(latitud, longitud, mDBHelper);
+                if(!reparto.equals("")) {//Si encontró alguna ruta de reparto, asignar a los VP
+                    String vptyp = "";
+                    int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
+                    if (indiceReparto != -1) {
+                        visitasSolicitud.get(indiceReparto).setRuta(reparto);
+                        vptyp = visitasSolicitud.get(indiceReparto).getVptyp();
+                    }
+                    int indiceRepartoAutoventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDA");
+                    if (indiceRepartoAutoventa != -1) {
+                        visitasSolicitud.get(indiceRepartoAutoventa).setRuta(reparto);
+                        vptyp = visitasSolicitud.get(indiceRepartoAutoventa).getVptyp();
+                    }
+                    //Deberia llenar el LZONE si encuentra algo aca? creo que si
+
+                    Spinner lzone = ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE"));
+                    if(lzone != null && !vptyp.equals("ZCM") && !vptyp.equals("ZDM") && !vptyp.equals("ZDP")) {
+                        ((Spinner) mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner) mapeoCamposDinamicos.get("W_CTE-LZONE")), reparto));
+                    }
+                }
+                tb_visitas.setDataAdapter(new VisitasTableAdapter(context,activity, visitasSolicitud));
+                if (tb_visitas.getLayoutParams() != null) {
+                    tb_visitas.getLayoutParams().height = 50;
+                    tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView ) * visitasSolicitud.size());
+                }
+                Toasty.info(context,"Ruta de Reparto calculada automaticamente según aproximidad de coordenadas!").show();
+            }
+        }
+    }
+
     public class GuardarFormulario implements Runnable {
         private Context context;
         public GuardarFormulario(Context context) {
@@ -5423,10 +6480,27 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     try {
                         MaskedEditText tv;
                         String valor;
+
                         if(!listaFinal.get(i).equals("W_CTE-ENCUESTA") && !listaFinal.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                             if(listaCamposDinamicos.contains(listaFinal.get(i).trim())) {
                                 tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaFinal.get(i)));
                                 valor = tv.getText().toString();
+                                if(listaFinal.get(i).equals("W_CTE-SMTP_ADDR")){
+                                    if(atCorreo != null){
+                                        //Armar el valor del correo segun la escogencia de dominio
+                                        if(!((OpcionSpinner) atCorreo.getSelectedItem()).getId().toString().equals("Otros")){
+                                            valor = tv.getText().toString()+((OpcionSpinner)atCorreo.getSelectedItem()).getId().toString();
+                                        }
+                                    }
+                                }
+                                if(listaCamposDinamicos.get(i).equals("W_CTE-STREET") && VariablesGlobales.getSociedad().equals("F428")){
+                                    if(prefijo_direccion != null){
+                                        //Armar el valor de la direccion
+                                        if(!((OpcionSpinner) prefijo_direccion.getSelectedItem()).getId().equals("0") && !((OpcionSpinner) prefijo_direccion.getSelectedItem()).getId().equals("")){
+                                            valor = ((OpcionSpinner)prefijo_direccion.getSelectedItem()).getId().toString()+" "+tv.getText().toString();
+                                        }
+                                    }
+                                }
                                 insertValues.put("[" + listaFinal.get(i) + "]", valor);
                                 tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaFinal.get(i)));
                                 if (tv != null) {
@@ -6046,8 +7120,23 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         tv.setText(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString());
                     }
                     if(listaFinal.get(i).equals("W_CTE-SMTP_ADDR")){
-                        correoValidado = isValidEmail(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString());
+                        correoValidado = Validaciones.isValidEmail(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString());
+                        if(VariablesGlobales.getSociedad().equals("F428")){//COLOMBIA
+                            String correo_original = cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString();
+                            String[] partes_correo = correo_original.split("@");
+                            if (atCorreo != null) {
+                                //Armar el valor del correo segun la escogencia de dominio
+                                int index_at = VariablesGlobales.getIndex(atCorreo,"@" + partes_correo[1]);
+                                if (index_at != -1) {//Significa que si existe
+                                    tv.setText(partes_correo[0]);
+                                    atCorreo.setSelection(index_at);
+                                } else {
+                                    atCorreo.setSelection(VariablesGlobales.getIndex(atCorreo, "Otros"));
+                                }
+                            }
+                        }
                     }
+
                     if(listaFinal.get(i).equals("W_CTE-STCD1") && ((MaskedEditText) mapeoCamposDinamicos.get(listaFinal.get(i).trim())) != null){
                         ValidarCedula(cliente.get(0).getAsJsonObject().get(listaFinal.get(i).trim()).getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-KATR3").getAsString(),cliente.get(0).getAsJsonObject().get("W_CTE-BUKRS").getAsString(),true);
                     }
@@ -6688,6 +7777,68 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         }
     }
 
+    private static void Municipios(AdapterView<?> parent) {
+        Spinner pais = (Spinner) mapeoCamposDinamicos.get("W_CTE-LAND1");
+        final OpcionSpinner opcionpais = (OpcionSpinner) pais.getSelectedItem();
+        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+        ArrayList<HashMap<String, String>> municipios = mDBHelper.Municipios(opcionpais.getId(), opcion.getId());
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < municipios.size(); j++) {
+            listaopciones.add(new OpcionSpinner(municipios.get(j).get("id"), municipios.get(j).get("descripcion")));
+            if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-ORT01").trim().equals(municipios.get(j).get("id"))) {
+                selectedIndex = j;
+            }
+        }
+        SearchableSpinner combo = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-ORT01");
+
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        combo.setBackground(d);
+        combo.setAdapter(dataAdapter);
+        TextView view = null;
+        //view = ((TextView) combo.getAdapter().getView(0,null,null));
+        combo.setSelection(selectedIndex);
+
+        if (selectedIndex == 0 && view != null && listaCamposObligatorios.contains("W_CTE-ORT01"))
+            view.setError("El campo es obligatorio!");
+        //DireccionCorta(parent.getContext());
+        if (!modificable) {
+            combo.setEnabled(false);
+            combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+        }
+
+        //en caso que exista el campo para colombia replicar opciones e el de facturacion
+        SearchableSpinner munfac = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-CITY1");
+        if (munfac != null) {
+            // Creando el adaptador(opciones) para el comboBox deseado
+            ArrayAdapter<OpcionSpinner> dataAdapter2 = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+            // Drop down layout style - list view with radio button
+            dataAdapter2.setDropDownViewResource(R.layout.spinner_item);
+            // attaching data adapter to spinner
+            Drawable d2 = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+            munfac.setBackground(d2);
+            munfac.setAdapter(dataAdapter2);
+            TextView view2 = null;
+            //view = ((TextView) munfac.getAdapter().getView(0,null,null));
+            munfac.setSelection(selectedIndex);
+
+            if (selectedIndex == 0 && view2 != null && listaCamposObligatorios.contains("W_CTE-CITY1"))
+                view.setError("El campo es obligatorio!");
+            //DireccionCorta(parent.getContext());
+            if (!modificable) {
+                munfac.setEnabled(false);
+                munfac.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+            }
+        }
+
+    }
+
     private static void Distritos(AdapterView<?> parent){
         Spinner provincia = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
         final OpcionSpinner opcionprovincia = (OpcionSpinner) provincia.getSelectedItem();
@@ -6718,6 +7869,43 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             combo.setSelection(VariablesGlobales.getIndex(combo,cliente.get(0).getAsJsonObject().get("W_CTE-STR_SUPPL3").getAsString().trim()));
         if(selectedIndex == 0 && ((TextView) combo.getSelectedView()) != null)
             ((TextView) combo.getSelectedView()).setError("El campo es obligatorio!");
+        DireccionCorta(parent.getContext());
+        if(!modificable){
+            combo.setEnabled(false);
+            combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+        }
+    }
+
+    private static void Barrios(AdapterView<?> parent){
+        Spinner provincia = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
+        final OpcionSpinner opcionprovincia = (OpcionSpinner) provincia.getSelectedItem();
+        final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+        ArrayList<HashMap<String, String>> distritos = mDBHelper.Barrios(opcionprovincia.getId(),opcion.getId());
+
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        int selectedIndex = 0;
+        for (int j = 0; j < distritos.size(); j++){
+            listaopciones.add(new OpcionSpinner(distritos.get(j).get("id"), distritos.get(j).get("descripcion")));
+            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-STR_SUPPL3").trim().equals(distritos.get(j).get("id"))){
+                selectedIndex = j;
+            }
+        }
+        Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-STR_SUPPL3");
+
+        // Creando el adaptador(opciones) para el comboBox deseado
+        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+        // attaching data adapter to spinner
+        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+        combo.setBackground(d);
+        combo.setAdapter(dataAdapter);
+        TextView view = null;
+        //view = ((TextView) combo.getAdapter().getView(0,null,null));
+        combo.setSelection(selectedIndex);
+
+        if(selectedIndex == 0 && view != null && listaCamposObligatorios.contains("W_CTE-STR_SUPPL3"))
+            view.setError("El campo es obligatorio!");
         DireccionCorta(parent.getContext());
         if(!modificable){
             combo.setEnabled(false);
@@ -6842,16 +8030,24 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             case "F445":
             case "F451":
                 MaskedEditText home = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-HOME_CITY");
-
                 MaskedEditText dir = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-STREET");
                 MaskedEditText dirF = (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-LOCATION");
+
                 Spinner prov = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
                 Spinner cant = (Spinner)mapeoCamposDinamicos.get("W_CTE-CITY1");
                 Spinner dist = (Spinner)mapeoCamposDinamicos.get("W_CTE-STR_SUPPL3");
-                OpcionSpinner p = (OpcionSpinner)prov.getSelectedItem();
-                OpcionSpinner c = (OpcionSpinner)cant.getSelectedItem();
-                OpcionSpinner d = (OpcionSpinner)dist.getSelectedItem();
-                if(d != null && !d.getId().isEmpty())
+
+                OpcionSpinner p = null;
+                OpcionSpinner c = null;
+                OpcionSpinner d = null;
+                if(prov != null)
+                    p = (OpcionSpinner)prov.getSelectedItem();
+                if(cant != null)
+                    c = (OpcionSpinner)cant.getSelectedItem();
+                if(dist != null)
+                    d = (OpcionSpinner)dist.getSelectedItem();
+
+                if(d != null && !d.getId().isEmpty() && home != null)
                     home.setText(d.getName().trim().split("-")[1]);
 
                 StringBuilder dircorta = new StringBuilder();
@@ -6869,12 +8065,15 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             dircorta.append(d.getName().trim().split("-")[1]);
                     }
                     dir.setText(dircorta.toString().toUpperCase(Locale.getDefault()));
-                    dirF.setText(dircorta.toString().toUpperCase(Locale.getDefault()));
+                    if (dirF != null)
+                        dirF.setText(dircorta.toString().toUpperCase(Locale.getDefault()));
                 }
                 break;
             case "F446":
             case "1657":
             case "1658":
+                break;
+            case "F428":
                 break;
         }
     }
@@ -7298,6 +8497,28 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         cedulaValidada = true;
                         break;
                 }
+            case "F428"://Colombia
+                if (texto.getText().toString().trim().length() < 4) {
+                    cedulaValidada = false;
+                    texto.setError("Formato Regimen " + tipoCedula + " invalido!");
+                    return true;
+                }
+                /*if (texto.getText().toString().trim().length() < 14) {
+                    String padded = "00000000000000".substring(texto.getText().toString().trim().length()) + texto.getText().toString().trim();
+                    texto.setText(padded);
+                }*/
+                cedula = "[0-9A-Z-]{4,18}";
+                pattern = Pattern.compile(cedula);
+                matcher = pattern.matcher(texto.getText());
+                if (!matcher.matches()) {
+                    Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                    cedulaValidada = false;
+                    texto.setError("Formato Regimen " + tipoCedula + " invalido!");
+                    return true;
+                }
+                cedulaValidada = true;
+                Toasty.success(texto.getContext(), "Formato Regimen " + tipoCedula + " valido!", Toasty.LENGTH_SHORT).show();
+                break;
         }
         return true;
     }
@@ -7744,6 +8965,28 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         cedulaValidada = true;
                         break;
                 }
+            case "F428"://Colombia
+                if (texto.toString().trim().length() < 4) {
+                    cedulaValidada = false;
+                    //texto.setError("Formato Regimen " + tipoCedula + " invalido!");
+                    return true;
+                }
+                /*if (texto.getText().toString().trim().length() < 14) {
+                    String padded = "00000000000000".substring(texto.getText().toString().trim().length()) + texto.getText().toString().trim();
+                    texto.setText(padded);
+                }*/
+                cedula = "[0-9A-Z-]{4,18}";
+                pattern = Pattern.compile(cedula);
+                matcher = pattern.matcher(texto);
+                if (!matcher.matches()) {
+                    Toasty.warning(et.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
+                    cedulaValidada = false;
+                    //texto.setError("Formato Regimen " + tipoCedula + " invalido!");
+                    return true;
+                }
+                cedulaValidada = true;
+                Toasty.success(et.getContext(), "Formato Regimen " + tipoCedula + " valido!", Toasty.LENGTH_SHORT).show();
+                break;
         }
         return true;
     }
@@ -7998,23 +9241,6 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         }
     }
 
-    public final static boolean isValidEmail(View v) {
-        TextView correo = (TextView)v;
-        boolean valido = !TextUtils.isEmpty(correo.getText()) && android.util.Patterns.EMAIL_ADDRESS.matcher(correo.getText()).matches();
-        if(!listaCamposObligatorios.contains("W_CTE-SMTP_ADDR") && correo.getText().toString().trim().length() == 0){
-            valido = true;
-        }
-        if(valido)
-            Toasty.success(correo.getContext(),"Formato de correo valido!").show();
-        else
-            Toasty.error(correo.getContext(),"Formato de correo Invalido!").show();
-        return valido;
-    }
-    public final static boolean isValidEmail(String v) {
-        String correo = (String)v;
-        boolean valido = !TextUtils.isEmpty(correo) && android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches();
-        return valido;
-    }
     public final static boolean isValidPhoneNumber(String v, String bukrs) {
         boolean retorno = false;
         String codigoPais = "";
@@ -8036,7 +9262,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             case "Z001":
                 codigoPais = "598";
                 break;
-            case "COLOMBIA":
+            case "F428":
                 codigoPais = "57";
                 break;
             case "ARGENTINA":
@@ -8101,7 +9327,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         }else {
             WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudModificacionActivity.this);
             try {
-                ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(), weakRefA.get(), mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos);
+                manejadorAdjuntos.setUri(mPhotoUri);
+                manejadorAdjuntos.ActivityResult(requestCode, resultCode, data);
+                //ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(), weakRefA.get(), mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos);
             } catch (IOException e) {
                 e.printStackTrace();
             }

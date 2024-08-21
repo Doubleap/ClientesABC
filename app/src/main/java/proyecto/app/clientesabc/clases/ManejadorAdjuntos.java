@@ -28,12 +28,16 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ComponentActivity;
 import androidx.core.content.FileProvider;
 
-import com.theartofdev.edmodo.cropper.CropImage;
-import com.theartofdev.edmodo.cropper.CropImageView;
+import com.canhub.cropper.CropImage;
+import com.canhub.cropper.CropImageContract;
+import com.canhub.cropper.CropImageContractOptions;
+import com.canhub.cropper.CropImageOptions;
+import com.canhub.cropper.CropImageView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -76,9 +80,12 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
     private String GUID;
     private de.codecrafters.tableview.TableView<Adjuntos> tb_adjuntos;
     private Map<String, View> mapeoCamposDinamicos;
+    private static ActivityResultLauncher<CropImageContractOptions> cropImage;
+    Context context;
+    Activity activity;
 
     public ManejadorAdjuntos(){};
-    public ManejadorAdjuntos(Uri mPhotoUri, DataBaseHelper mDBHelper, ArrayList<Adjuntos> adjuntosSolicitud, boolean modificable, boolean firma, String GUID, de.codecrafters.tableview.TableView<Adjuntos> tb_adjuntos, Map<String, View> mapeoCamposDinamicos){
+    public ManejadorAdjuntos(Uri mPhotoUri, DataBaseHelper mDBHelper, ArrayList<Adjuntos> adjuntosSolicitud, boolean modificable, boolean firma, String GUID, de.codecrafters.tableview.TableView<Adjuntos> tb_adjuntos, Map<String, View> mapeoCamposDinamicos, Context context, Activity activity, ActivityResultLauncher<CropImageContractOptions> cropImage){
         this.mPhotoUri = mPhotoUri;
         this.mDBHelper = mDBHelper;
         this.adjuntosSolicitud = adjuntosSolicitud;
@@ -87,8 +94,15 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
         this.GUID = GUID;
         this.tb_adjuntos = tb_adjuntos;
         this.mapeoCamposDinamicos = mapeoCamposDinamicos;
+        this.context = context;
+        this.activity = activity;
+        this.cropImage = cropImage;
     }
 
+
+    public void setUri(Uri uri){
+        this.mPhotoUri = uri;
+    }
     public static void MostrarGaleriaAdjuntosHorizontal(HorizontalScrollView hsv, final Context context, final Activity activity, ArrayList<Adjuntos> adjuntosSolicitud, boolean modificable, boolean firma, de.codecrafters.tableview.TableView<Adjuntos> tb_adjuntos, Map<String, View> mapeoCamposDinamicos) {
         hsv.removeAllViews();
         hsv.setBackground(context.getResources().getDrawable(R.drawable.squared_textbackground,null));
@@ -520,7 +534,8 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
         }
     }
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
-    public static void ActivityResult(int requestCode, int resultCode, Intent data, Context context, Activity activity, Uri mPhotoUri, DataBaseHelper mDBHelper, ArrayList<Adjuntos> adjuntosSolicitud, boolean modificable, boolean firma, String GUID, TableView<Adjuntos> tb_adjuntos, Map<String, View> mapeoCamposDinamicos) throws IOException {
+
+    public void ActivityResult(int requestCode, int resultCode, Intent data) throws IOException {
         switch (requestCode) {
             //Captura de imagen por medio de la camara del dispositivo, aqui se realiza el crop
             case 1:
@@ -566,37 +581,17 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         int imageWidth = options.outWidth;
                         /*CROP*/
                         try {
-                            /*// call the standard crop action intent (the user device may not
-                            // support it)
-                            Intent cropIntent = new Intent("com.android.camera.action.CROP");
-                            // indicate image type and Uri
-                            cropIntent.setDataAndType(mPhotoUri, "image/*");
-                            // set crop properties
-                            cropIntent.putExtra("crop", true);
-                            // indicate aspect of desired crop
-                            cropIntent.putExtra("aspectX", 1);
-                            cropIntent.putExtra("aspectY", 1.33);
-                            // indicate output X and Y
-                            //cropIntent.putExtra("outputX", imageWidth);
-                            //cropIntent.putExtra("outputY", imageHeight);
-                            // retrieve data on return
-                            cropIntent.putExtra("return-data", true);
-                            //cropIntent.putExtra("return-eliminar", true);
 
-                            // Comienza la actividad de CROP, la imagen recortada se devuelve en activity.onActivityResult
-                            activity.startActivityForResult(cropIntent, 210);*/
 
-                            // start cropping activity for pre-acquired image saved on the device
-                            //CropImage.activity(mPhotoUri).start(activity);
 
-                            //ActivityResultLauncher<Uri> takePicture = (ActivityResultLauncher<Uri>) registerForActivityResult(new ActivityResultContracts.TakePicture(), ActivityResult( requestCode, resultCode, data, context, activity, mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos));
+                            CropImageOptions cropImageOptions = new CropImageOptions();
+                            cropImageOptions.imageSourceIncludeGallery = false;
+                            cropImageOptions.imageSourceIncludeCamera = true;
 
-                            //ActivityResultLauncher<CropImageContractOptions> cropImage = registerForActivityResult(new CropImageContract(), presenter::onCropImageResult);
-
-                            //CropImage.ActivityBuilder builder = new CropImage.ActivityBuilder(mPhotoUri);
-                            //Intent intent = builder.getIntent(context);
-                            Intent intent = CropImage.activity(mPhotoUri).getIntent(context);
-                            activity.startActivityForResult(intent, 210);
+                            CropImageContractOptions cropImageContractOptions = new CropImageContractOptions(mPhotoUri, cropImageOptions);
+                            cropImage.launch(cropImageContractOptions);
+                            //Intent intent = CropImage.activity(mPhotoUri).getIntent(context);
+                            //activity.startActivityForResult(intent, 210);
                         }
                         // respond to users whose devices do not support the crop action
                         catch (ActivityNotFoundException anfe) {
@@ -643,9 +638,9 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                 break;
             case 3:
                 //if (resultCode == RESULT_OK) {
-                    Uri uriD = (Uri)data.getExtras().get("Adjunto");
-                    File fileD = new File(uriD.getPath());
-                    boolean deleted = fileD.delete();
+                Uri uriD = (Uri)data.getExtras().get("Adjunto");
+                File fileD = new File(uriD.getPath());
+                boolean deleted = fileD.delete();
                 //}
                 break;
             case 100://resultado firma de aceptaciones
@@ -886,35 +881,35 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                 Uri uri = null;
                 Uri uriCopia = null;
                 if (resultCode == RESULT_OK) {
-                        if (data != null) {
-                            CropImage.ActivityResult result = CropImage.getActivityResult(data);
-                            uri = result.getUri();
-                            uriCopia = result.getOriginalUri();
-                            /*Copiar el archivo a un Uri que si puedo utilizar*/
-                            InputStream is = null;
-                            try {
-                                is = context.getContentResolver().openInputStream(uri);
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            }
-                            OutputStream os = context.getContentResolver().openOutputStream(uriCopia);
-                            byte[] b = new byte[4096];
-                            int read = 0;
-                            while ((read = is.read(b)) != -1) {
-                                os.write(b, 0, read);
-                            }
-                            os.flush();
-                            os.close();
-                            is.close();
-                            uri = uriCopia;
+                    if (data != null) {
+                        //CropImage.ActivityResult result = CropImage.getActivityResult(data);
+                        //uri = result.getUri();
+                        //uriCopia = result.getOriginalUri();
+                        /*Copiar el archivo a un Uri que si puedo utilizar*/
+                        InputStream is = null;
+                        try {
+                            is = context.getContentResolver().openInputStream(uri);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
                         }
+                        OutputStream os = context.getContentResolver().openOutputStream(uriCopia);
+                        byte[] b = new byte[4096];
+                        int read = 0;
+                        while ((read = is.read(b)) != -1) {
+                            os.write(b, 0, read);
+                        }
+                        os.flush();
+                        os.close();
+                        is.close();
+                        uri = uriCopia;
+                    }
 
-                        if (uri == null) {
-                            uri = data.getData();
-                        }
-                        if (uri == null) {
-                            uri = mPhotoUri;
-                        }
+                    if (uri == null) {
+                        uri = data.getData();
+                    }
+                    if (uri == null) {
+                        uri = mPhotoUri;
+                    }
                     InputStream iStream = null;
                     try {
                         iStream = context.getContentResolver().openInputStream(uri);
@@ -978,8 +973,512 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                     }
                 }
                 break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + requestCode);
+            //default:
+                //throw new IllegalStateException("Unexpected value: " + requestCode);
+        }
+    }
+
+    public void ActivityResult(int requestCode, int resultCode, Intent data, Context context, Activity activity, Uri mPhotoUri, DataBaseHelper mDBHelper, ArrayList<Adjuntos> adjuntosSolicitud, boolean modificable, boolean firma, String GUID, TableView<Adjuntos> tb_adjuntos, Map<String, View> mapeoCamposDinamicos, ActivityResultLauncher<CropImageContractOptions> cropImage) throws IOException {
+        switch (requestCode) {
+            //Captura de imagen por medio de la camara del dispositivo, aqui se realiza el crop
+            case 1:
+                if (resultCode == RESULT_OK) {
+                    Uri uri = null;
+                    if (data != null)
+                        uri = data.getData();
+                    if (uri == null) {
+                        uri = mPhotoUri;
+                    }
+                    InputStream iStream = null;
+                    try {
+                        iStream = context.getContentResolver().openInputStream(uri);
+                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        ContentResolver cR = context.getContentResolver();
+                        String type = cR.getType(uri);
+                        String name = ManejadorAdjuntos.getFileName(cR, uri);
+                        byte[] inputData = ManejadorAdjuntos.getBytes(iStream);
+                        File file = null;
+                        try {
+                            file = new File(context.getExternalFilesDir(null).getAbsolutePath());
+                            if (!file.exists()) {
+                                file.createNewFile();
+                            }
+                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
+                            fos.write(inputData);
+                            fos.close();
+                        } catch (Exception e) {
+                            Log.e("thumbnail", e.getMessage());
+                        }
+                        File file2 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//" + name);
+
+
+                        BitmapFactory.Options options = new BitmapFactory.Options();
+                        options.inJustDecodeBounds = true;
+
+                        BitmapFactory.decodeFile(file2.getAbsolutePath(), options);
+                        int imageHeight = options.outHeight;
+                        int imageWidth = options.outWidth;
+                        /*CROP*/
+                        try {
+                            CropImageOptions cropImageOptions = new CropImageOptions();
+                            cropImageOptions.imageSourceIncludeGallery = false;
+                            cropImageOptions.imageSourceIncludeCamera = true;
+
+                            CropImageContractOptions cropImageContractOptions = new CropImageContractOptions(mPhotoUri, cropImageOptions);
+                            cropImage.launch(cropImageContractOptions);
+                            //Intent intent = CropImage.activity(mPhotoUri).getIntent(context);
+                            //activity.startActivityForResult(intent, 210);
+                        }
+                        // respond to users whose devices do not support the crop action
+                        catch (ActivityNotFoundException anfe) {
+                            Toast toast = Toast.makeText(context, "This device doesn't support the crop action!", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                        /*END CROP*/
+                    } catch (IOException e) {
+                        Toasty.error(context, "Error al asociar el documento a la solicitud").show();
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            case 2:
+                if (resultCode == RESULT_OK) {
+                    Uri uri = null;
+                    if (data != null)
+                        uri = data.getData();
+                    if (uri == null) {
+                        uri = mPhotoUri;
+                    }
+                    InputStream iStream = null;
+                    try {
+                        iStream = context.getContentResolver().openInputStream(uri);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        ContentResolver cR = context.getContentResolver();
+                        MimeTypeMap mime = MimeTypeMap.getSingleton();
+                        String type = cR.getType(uri);
+                        String name = ManejadorAdjuntos.getFileName(cR, uri);
+                        byte[] inputData = ManejadorAdjuntos.getBytes(iStream);
+                        mDBHelper = new DataBaseHelper(context);
+                        mDBHelper.addAdjuntoSolicitud(type, name, inputData);
+                        mDBHelper.close();
+                        Toasty.success(context, "Documento asociado correctamente.").show();
+                    } catch (IOException e) {
+                        Toasty.error(context, "Error al adjuntar el documento a la solicitud").show();
+                        e.printStackTrace();
+                    }
+
+                }
+                break;
+            case 3:
+                //if (resultCode == RESULT_OK) {
+                Uri uriD = (Uri)data.getExtras().get("Adjunto");
+                File fileD = new File(uriD.getPath());
+                boolean deleted = fileD.delete();
+                //}
+                break;
+            case 100://resultado firma de aceptaciones
+                if (resultCode == RESULT_OK) {
+                    Uri uri = null;
+                    if (data != null)
+                        uri = data.getData();
+                    if (uri == null) {
+                        uri = mPhotoUri;
+                    }
+                    InputStream iStream = null;
+                    try {
+                        iStream = context.getContentResolver().openInputStream(uri);
+                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    //Agregar al tableView del UI
+                    try {
+                        byte[] inputData = ManejadorAdjuntos.getBytes(iStream);
+                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, data.getType(), data.getExtras().getString("ImageName"), inputData);
+
+                        adjuntosSolicitud.add(nuevoAdjunto);
+                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(context, adjuntosSolicitud);
+                        stda.setPaddings(10, 5, 10, 5);
+                        stda.setTextSize(10);
+                        stda.setGravity(GRAVITY_CENTER);
+                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
+                        tb_adjuntos.setDataAdapter(stda);
+
+                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
+                        ManejadorAdjuntos.MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), activity,adjuntosSolicitud, modificable, firma, tb_adjuntos, mapeoCamposDinamicos);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    CheckBox politica = (CheckBox) mapeoCamposDinamicos.get("politica");
+                    if(politica != null) {
+                        politica.setChecked(true);
+                        if(activity instanceof SolicitudActivity)
+                            ((SolicitudActivity) activity).firma = true;
+                        if(activity instanceof SolicitudModificacionActivity)
+                            ((SolicitudModificacionActivity) activity).firma = true;
+                        if(activity instanceof SolicitudCreditoActivity)
+                            ((SolicitudCreditoActivity) activity).firma = true;
+                        if(activity instanceof SolicitudAvisosEquipoFrioActivity)
+                            ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
+                        politica.setEnabled(false);
+                    }
+
+                    CheckBox aceptacion_credito = (CheckBox) mapeoCamposDinamicos.get("aceptacion_credito");
+                    if(aceptacion_credito != null) {
+                        aceptacion_credito.setChecked(true);
+                        //TODO firma depende de 2 o mas firmas como hacer para validar
+                        if(activity instanceof SolicitudActivity)
+                            ((SolicitudActivity) activity).firma = true;
+                        if(activity instanceof SolicitudModificacionActivity)
+                            ((SolicitudModificacionActivity) activity).firma = true;
+                        if(activity instanceof SolicitudCreditoActivity)
+                            ((SolicitudCreditoActivity) activity).firma = true;
+                        if(activity instanceof SolicitudAvisosEquipoFrioActivity)
+                            ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
+                        aceptacion_credito.setEnabled(false);
+                    }
+                    CheckBox constancia = (CheckBox) mapeoCamposDinamicos.get("constancia");
+                    if(constancia != null) {
+                        constancia.setChecked(true);
+                        if(activity instanceof SolicitudActivity)
+                            ((SolicitudActivity) activity).firma = true;
+                        if(activity instanceof SolicitudModificacionActivity)
+                            ((SolicitudModificacionActivity) activity).firma = true;
+                        if(activity instanceof SolicitudCreditoActivity)
+                            ((SolicitudCreditoActivity) activity).firma = true;
+                        if(activity instanceof SolicitudAvisosEquipoFrioActivity)
+                            ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
+                        constancia.setEnabled(false);
+                    }
+                    CheckBox aceptacion_letra = (CheckBox) mapeoCamposDinamicos.get("aceptacion_letra");
+                    if(aceptacion_letra != null) {
+                        aceptacion_letra.setChecked(true);
+                        //TODO firma depende de 2 o mas firmas como hacer para validar
+                        if(activity instanceof SolicitudActivity)
+                            ((SolicitudActivity) activity).firma = true;
+                        if(activity instanceof SolicitudModificacionActivity)
+                            ((SolicitudModificacionActivity) activity).firma = true;
+                        if(activity instanceof SolicitudCreditoActivity)
+                            ((SolicitudCreditoActivity) activity).firma = true;
+                        if(activity instanceof SolicitudAvisosEquipoFrioActivity)
+                            ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
+                        aceptacion_letra.setEnabled(false);
+                    }
+                    CheckBox entregaTarjeta = (CheckBox) mapeoCamposDinamicos.get("entregaTarjeta");
+                    if(entregaTarjeta != null) {
+                        entregaTarjeta.setChecked(true);
+                        if(activity instanceof SolicitudActivity)
+                            ((SolicitudActivity) activity).firma = true;
+                        if(activity instanceof SolicitudModificacionActivity)
+                            ((SolicitudModificacionActivity) activity).firma = true;
+                        if(activity instanceof SolicitudCreditoActivity)
+                            ((SolicitudCreditoActivity) activity).firma = true;
+                        if(activity instanceof SolicitudAvisosEquipoFrioActivity)
+                            ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
+                        entregaTarjeta.setEnabled(false);
+                    }
+
+                    Toasty.success(context, "Documento asociado correctamente.").show();
+                }
+                break;
+            case 110://Aceptacion de firma numero 2, de contrato
+                if (resultCode == RESULT_OK) {
+                    Uri uri = null;
+                    if (data != null)
+                        uri = data.getData();
+                    if (uri == null) {
+                        uri = mPhotoUri;
+                    }
+                    InputStream iStream = null;
+                    try {
+                        iStream = context.getContentResolver().openInputStream(uri);
+                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    //Agregar al tableView del UI
+                    try {
+                        byte[] inputData = getBytes(iStream);
+                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, data.getType(), data.getExtras().getString("ImageName"), inputData);
+
+                        adjuntosSolicitud.add(nuevoAdjunto);
+                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(context, adjuntosSolicitud);
+                        stda.setPaddings(10, 5, 10, 5);
+                        stda.setTextSize(10);
+                        stda.setGravity(GRAVITY_CENTER);
+                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
+                        tb_adjuntos.setDataAdapter(stda);
+
+                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
+                        ManejadorAdjuntos.MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), activity, adjuntosSolicitud, modificable, firma, tb_adjuntos, mapeoCamposDinamicos);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    CheckBox aceptacion_contrato = (CheckBox) mapeoCamposDinamicos.get("aceptacion_contrato");
+                    if(aceptacion_contrato != null) {
+                        aceptacion_contrato.setChecked(true);
+                        if(activity instanceof SolicitudActivity)
+                            ((SolicitudActivity) activity).firma = true;
+                        if(activity instanceof SolicitudModificacionActivity)
+                            ((SolicitudModificacionActivity) activity).firma = true;
+                        if(activity instanceof SolicitudCreditoActivity)
+                            ((SolicitudCreditoActivity) activity).firma = true;
+                        if(activity instanceof SolicitudAvisosEquipoFrioActivity)
+                            ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
+                        aceptacion_contrato.setEnabled(false);
+                    }
+
+                    CheckBox aceptacion_apc = (CheckBox) mapeoCamposDinamicos.get("aceptacion_apc");
+                    if(aceptacion_apc != null) {
+                        aceptacion_apc.setChecked(true);
+                        //TODO firma depende de 2 o mas firmas como hacer para validar
+                        if(activity instanceof SolicitudActivity)
+                            ((SolicitudActivity) activity).firma = true;
+                        if(activity instanceof SolicitudModificacionActivity)
+                            ((SolicitudModificacionActivity) activity).firma = true;
+                        if(activity instanceof SolicitudCreditoActivity)
+                            ((SolicitudCreditoActivity) activity).firma = true;
+                        if(activity instanceof SolicitudAvisosEquipoFrioActivity)
+                            ((SolicitudAvisosEquipoFrioActivity) activity).firma = true;
+                        aceptacion_apc.setEnabled(false);
+                    }
+                    Toasty.success(context, "Documento asociado correctamente.").show();
+                }
+                break;
+            case 200://Resultado de archivo seleccionado, no borra archivo
+                if (resultCode == RESULT_OK) {
+                    Uri uri = null;
+                    if (data != null)
+                        uri = data.getData();
+                    if (uri == null) {
+                        uri = mPhotoUri;
+                    }
+                    InputStream iStream = null;
+                    try {
+                        iStream = context.getContentResolver().openInputStream(uri);
+                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                        Toasty.error(context, "Imagen seleccionada ya no existe en el dispositivo!").show();
+                        return;
+                    }
+                    try {
+                        ContentResolver cR = context.getContentResolver();
+                        String type = cR.getType(uri);
+                        String name = ManejadorAdjuntos.getFileName(cR, uri);
+                        byte[] inputData = ManejadorAdjuntos.getBytes(iStream);
+                        File file = null;
+                        try {
+                            file = new File(context.getExternalFilesDir(null).getAbsolutePath());
+                            if (!file.exists()) {
+                                file.createNewFile();
+                            }
+                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
+                            fos.write(inputData);
+                            fos.close();
+                        } catch (Exception e) {
+                            Log.e("thumbnail", e.getMessage());
+                        }
+                        File file2 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//" + name);
+                        file2 = FileHelper.saveBitmapToFile(file2);
+
+                        byte[] bytesArray = new byte[(int) file2.length()];
+
+                        FileInputStream fis = new FileInputStream(file2);
+                        fis.read(bytesArray); //read file into bytes[]
+                        fis.close();
+                        //Agregar al tableView del UI
+                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
+
+                        adjuntosSolicitud.add(nuevoAdjunto);
+                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(context, adjuntosSolicitud);
+                        stda.setPaddings(10, 5, 10, 5);
+                        stda.setTextSize(10);
+                        stda.setGravity(GRAVITY_CENTER);
+                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
+                        tb_adjuntos.setDataAdapter(stda);
+
+                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
+                        ManejadorAdjuntos.MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), activity, adjuntosSolicitud, modificable, firma, tb_adjuntos, mapeoCamposDinamicos);
+
+                        Toasty.success(context, "Documento asociado correctamente.").show();
+                    } catch (IOException e) {
+                        Toasty.error(context, "Error al asociar el documento a la solicitud").show();
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            case CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE:
+            case 210://Resultado de crop de camara, si borra archivo
+                Uri uri = null;
+                Uri uriCopia = null;
+                if (resultCode == RESULT_OK) {
+                    if (data != null) {
+                        //CropImage.ActivityResult result = CropImage.getActivityResult(data);
+                        //uri = result.getUri();
+                        //uriCopia = result.getOriginalUri();
+                        /*Copiar el archivo a un Uri que si puedo utilizar*/
+                        InputStream is = null;
+                        try {
+                            is = context.getContentResolver().openInputStream(uri);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        OutputStream os = context.getContentResolver().openOutputStream(uriCopia);
+                        byte[] b = new byte[4096];
+                        int read = 0;
+                        while ((read = is.read(b)) != -1) {
+                            os.write(b, 0, read);
+                        }
+                        os.flush();
+                        os.close();
+                        is.close();
+                        uri = uriCopia;
+                    }
+
+                    if (uri == null) {
+                        uri = data.getData();
+                    }
+                    if (uri == null) {
+                        uri = mPhotoUri;
+                    }
+                    InputStream iStream = null;
+                    try {
+                        iStream = context.getContentResolver().openInputStream(uri);
+                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                        Toasty.error(context, "Imagen seleccionada ya no existe en el dispositivo!").show();
+                        return;
+                    }
+                    try {
+                        ContentResolver cR = context.getContentResolver();
+                        String type = cR.getType(uri);
+                        String name = ManejadorAdjuntos.getFileName(cR, uri);
+                        byte[] inputData = ManejadorAdjuntos.getBytes(iStream);
+                        File file = null;
+                        try {
+                            file = new File(context.getExternalFilesDir(null).getAbsolutePath());
+                            if (!file.exists()) {
+                                file.createNewFile();
+                            }
+                            FileOutputStream fos = new FileOutputStream(file + "//" + name);
+                            fos.write(inputData);
+                            fos.close();
+                        } catch (Exception e) {
+                            Log.e("thumbnail", e.getMessage());
+                        }
+                        File file2 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//" + name);
+                        file2 = FileHelper.saveBitmapToFile(file2);
+
+                        byte[] bytesArray = new byte[(int) file2.length()];
+
+                        FileInputStream fis = new FileInputStream(file2);
+                        fis.read(bytesArray); //read file into bytes[]
+                        fis.close();
+                        file2.delete();
+                        file.delete();
+                        //Agregar al tableView del UI
+                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
+
+                        adjuntosSolicitud.add(nuevoAdjunto);
+                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(context, adjuntosSolicitud);
+                        stda.setPaddings(10, 5, 10, 5);
+                        stda.setTextSize(10);
+                        stda.setGravity(GRAVITY_CENTER);
+                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
+                        tb_adjuntos.setDataAdapter(stda);
+
+                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
+                        ManejadorAdjuntos.MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), activity, adjuntosSolicitud, modificable, firma, tb_adjuntos, mapeoCamposDinamicos);
+
+                        //Intento de borrar el archivo que se guarda automatico en Pictures
+                        //File file3 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//Pictures//" + name);
+
+                        File file3 = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)+"//"+ name);
+                        file3.delete();
+
+                        Toasty.success(context, "Documento asociado correctamente.").show();
+                    } catch (IOException e) {
+                        Toasty.error(context, "Error al asociar el documento a la solicitud").show();
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            //default:
+                //throw new IllegalStateException("Unexpected value: " + requestCode);
+        }
+    }
+
+    public void AgregarAdjunto(Uri uri){
+        InputStream iStream = null;
+        try {
+            iStream = context.getContentResolver().openInputStream(uri);
+            //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Toasty.error(context, "Imagen seleccionada ya no existe en el dispositivo!").show();
+            return;
+        }
+        try {
+            ContentResolver cR = context.getContentResolver();
+            String type = cR.getType(uri);
+            String name = ManejadorAdjuntos.getFileName(cR, uri);
+            byte[] inputData = ManejadorAdjuntos.getBytes(iStream);
+            File file = null;
+            try {
+                file = new File(context.getExternalFilesDir(null).getAbsolutePath());
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+                FileOutputStream fos = new FileOutputStream(file + "//" + name);
+                fos.write(inputData);
+                fos.close();
+            } catch (Exception e) {
+                Log.e("thumbnail", e.getMessage());
+            }
+            File file2 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//" + name);
+            file2 = FileHelper.saveBitmapToFile(file2);
+
+            byte[] bytesArray = new byte[(int) file2.length()];
+
+            FileInputStream fis = new FileInputStream(file2);
+            fis.read(bytesArray); //read file into bytes[]
+            fis.close();
+            file2.delete();
+            file.delete();
+            //Agregar al tableView del UI
+            Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
+
+            adjuntosSolicitud.add(nuevoAdjunto);
+            AdjuntoTableAdapter stda = new AdjuntoTableAdapter(context, adjuntosSolicitud);
+            stda.setPaddings(10, 5, 10, 5);
+            stda.setTextSize(10);
+            stda.setGravity(GRAVITY_CENTER);
+            //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
+            tb_adjuntos.setDataAdapter(stda);
+
+            HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
+            ManejadorAdjuntos.MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), ManejadorAdjuntos.this, adjuntosSolicitud, modificable, firma, tb_adjuntos, mapeoCamposDinamicos);
+
+            //Intento de borrar el archivo que se guarda automatico en Pictures
+            //File file3 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//Pictures//" + name);
+
+            File file3 = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)+"//"+ name);
+            file3.delete();
+
+            Toasty.success(context, "Documento asociado correctamente.").show();
+        } catch (IOException e) {
+            Toasty.error(context, "Error al asociar el documento a la solicitud").show();
+            e.printStackTrace();
         }
     }
 
@@ -1001,7 +1500,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
             assert returnCursor != null;
             int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
             returnCursor.moveToFirst();
-            name = returnCursor.getString(nameIndex);
+            name = returnCursor.getString(nameIndex).replace("cropped","Adjunto");
             returnCursor.close();
         }catch (Exception e){
             name = new File(uri.getPath()).getName();

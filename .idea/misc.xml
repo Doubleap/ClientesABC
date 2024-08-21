@@ -3,10 +3,12 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_equipo.xml" value="0.18" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_iniciative.xml" value="0.2845" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_location.xml" value="0.186" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_refrigerator.xml" value="0.2155" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_scan_code.xml" value="0.186" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/spinner_background_pre.xml" value="0.149" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable/PedidosContingencia_background.xml" value="0.213" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable/barcode_scanner-24px.xml" value="0.2155" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable/barcode_scanner.xml" value="0.15" />
@@ -15,12 +17,16 @@
         <entry key="..\:/ClientesABC/app/src/main/res/drawable/curved_background.xml" value="0.2155" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable/ic_barcode_off.xml" value="0.2155" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable/ic_barcode_scanner.xml" value="0.1965" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/spinner_background.xml" value="0.1995" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/spinner_background_cont.xml" value="0.1995" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/spinner_underlined.xml" value="0.1995" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable/textbackground_old.xml" value="0.195" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/acercade_dialog_layout.xml" value="0.18072916666666666" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_api_config.xml" value="0.17760416666666667" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_base_instalada.xml" value="0.20677083333333332" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_configuracion_general.xml" value="0.18541666666666667" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_equipo_disponible.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_firma.xml" value="0.2203125" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_firma_tarjeta.xml" value="0.33" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_login.xml" value="0.2557291666666667" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_mant_clientes.xml" value="0.20677083333333332" />
@@ -41,6 +47,9 @@
         <entry key="..\:/ClientesABC/app/src/main/res/layout/detalle.xml" value="0.17604166666666668" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/detalle_modelo_dialog_layout.xml" value="0.25" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/digitar_equipo_frio_dialog_layout.xml" value="0.18854166666666666" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/edit_conexion_layout.xml" value="0.2203125" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_canales_dialog_layout.xml" value="0.18333333333333332" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_gec_dialog_layout.xml" value="0.184375" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/equipo_disponible_item.xml" value="0.25" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/generar_alerta_dialog_layout.xml" value="0.18854166666666666" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/item_listview_multiple.xml" value="0.18541666666666667" />
@@ -52,6 +61,7 @@
         <entry key="..\:/ClientesABC/app/src/main/res/layout/searchable_list_dialog.xml" value="0.18541666666666667" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/seleccionar_equipo_frio_dialog_layout.xml" value="0.18854166666666666" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/simple_spinner_item.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/simple_spinner_item_mini.xml" value="0.67" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/solicitudes_item.xml" value="0.20677083333333332" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/spinner_item.xml" value="0.21603260869565216" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/spinner_with_image_item.xml" value="0.17916666666666667" />

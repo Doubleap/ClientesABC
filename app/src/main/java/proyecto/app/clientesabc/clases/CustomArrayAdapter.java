@@ -34,7 +34,11 @@ public class CustomArrayAdapter extends ArrayAdapter<OpcionSpinner> implements F
     }
     @Override
     public int getCount() {
-        return formListFiltered.size();
+        try {
+            return formListFiltered.size();
+        }catch(Exception e){
+            return 0;
+        }
     }
 
     @Override
@@ -91,14 +95,14 @@ public class CustomArrayAdapter extends ArrayAdapter<OpcionSpinner> implements F
         return new Filter() {
             @Override
             protected FilterResults performFiltering(CharSequence charSequence) {
-                formListFiltered = null;
+                formListFiltered.clear();
                 if(charSequence != null)
                     filterString = charSequence.toString();
                 else
                     filterString = "";
 
                 if (filterString.isEmpty()) {
-                    formListFiltered = originalList;
+                    formListFiltered = (ArrayList<OpcionSpinner>) originalList.clone();
                 } else {
                     ArrayList<OpcionSpinner> filteredList = new ArrayList<>();
                     for (int x=0;x < originalList.size(); x++) {

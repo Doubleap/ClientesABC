@@ -105,6 +105,13 @@ public class VariablesGlobales extends Application {
     private static String land1 = "UY";
     private static String cadenaRM = "0000245000";
     private static String ktokd = "UYDD";
+
+    private static String nombrePais = "Colombia";
+    private static String sociedad = "F428";
+    private static String orgvta = "0428";
+    private static String land1 = "CO";
+    private static String cadenaRM = "0000220334";
+    private static String ktokd = "CODE";
     */
 
     private static String TABLA_BLOQUE_CONTACTO_HH = "grid_contacto_solicitud";
@@ -115,6 +122,7 @@ public class VariablesGlobales extends Application {
     private static String TABLA_ADJUNTOS_SOLICITUD = "adjuntos_solicitud";
     private static String TABLA_ENCUESTA_SOLICITUD = "encuesta_solicitud";
     private static String TABLA_ENCUESTA_GEC_SOLICITUD = "encuesta_gec_solicitud";
+    private static String TABLA_ENCUESTA_OCASION_CONSUMO_SOLICITUD = "encuesta_occons_solicitud";
 
     public static int ESCANEO_OCR = 2;
     public static int ESCANEO_TARJETA = 10;
@@ -147,6 +155,7 @@ public class VariablesGlobales extends Application {
     private static String TABLA_ENCUESTA_OLD_SOLICITUD = "encuesta_old_solicitud";
     private static String TABLA_ENCUESTA_OLD_GEC_SOLICITUD = "encuesta_gec_old_solicitud";
     private static String TABLA_HORARIOS_OLD_SOLICITUD = "grid_horarios_old_solicitud";
+    private static String TABLA_ENCUESTA_OLD_OCASION_CONSUMO_SOLICITUD = "encuesta_occons_old_solicitud";
 
     public static String getTablaEncuestaSolicitud() {
         return TABLA_ENCUESTA_SOLICITUD;
@@ -154,6 +163,9 @@ public class VariablesGlobales extends Application {
 
     public static String getTablaEncuestaGecSolicitud() {
         return TABLA_ENCUESTA_GEC_SOLICITUD;
+    }
+    public static String getTablaEncuestaOcasionConsumoSolicitud() {
+        return TABLA_ENCUESTA_OCASION_CONSUMO_SOLICITUD;
     }
 
     public static String getTABLA_BLOQUE_CONTACTO_HH() {
@@ -381,6 +393,13 @@ public class VariablesGlobales extends Application {
 
     public static void setTABLA_ENCUESTA_OLD_GEC_SOLICITUD(String tablaEncuestaOldGecSolicitud) {
         TABLA_ENCUESTA_OLD_GEC_SOLICITUD = tablaEncuestaOldGecSolicitud;
+    }
+    public static String getTABLA_ENCUESTA_OLD_OCASION_CONSUMO_SOLICITUD() {
+        return TABLA_ENCUESTA_OLD_OCASION_CONSUMO_SOLICITUD;
+    }
+
+    public static void setTABLA_ENCUESTA_OLD_OCASION_CONSUMO_SOLICITUD(String tablaEncuestaOldOcasionConsumoSolicitud) {
+        TABLA_ENCUESTA_OLD_OCASION_CONSUMO_SOLICITUD = tablaEncuestaOldOcasionConsumoSolicitud;
     }
 
     public static String getCadenaRM() {
