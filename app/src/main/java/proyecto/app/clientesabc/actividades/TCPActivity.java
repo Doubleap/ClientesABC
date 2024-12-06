@@ -516,6 +516,7 @@ public class TCPActivity extends AppCompatActivity
     private class ConexionClickListener implements TableDataClickListener<Conexion> {
         @Override
         public void onDataClicked(int rowIndex, Conexion seleccionado) {
+            PreferenceManager.getDefaultSharedPreferences(TCPActivity.this).edit().putString("Ip",seleccionado.getIp()).apply();
             String salida = seleccionado.getIp() + ":" + seleccionado.getPuerto()+" ha sido seleccionado.";
             tipo_conexion.setSelection(VariablesGlobales.getIndex(tipo_conexion, seleccionado.getTipo().toLowerCase()));
             ip_text.setText(seleccionado.getIp());

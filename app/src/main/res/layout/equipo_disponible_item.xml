@@ -31,8 +31,18 @@
                 android:id="@+id/modelo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
+                android:layout_alignBaseline="@+id/material"
+                android:layout_marginStart="10dp"
+                android:layout_toEndOf="@id/material"
                 android:text="Modelo"
+                android:textAppearance="?android:textAppearanceSmall" />
+
+            <TextView
+                android:id="@+id/material"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="Material"
                 android:textAppearance="?android:textAppearanceMedium" />
 
             <TextView
@@ -48,8 +58,8 @@
                 android:id="@+id/num_puertas"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignBaseline="@+id/modelo"
-                android:layout_marginStart="10dp"
+                android:layout_alignBaseline="@+id/material"
+                android:layout_marginStart="8dp"
                 android:layout_toEndOf="@id/modelo"
                 android:text="Puertas"
                 android:textAppearance="?android:textAppearanceSmall" />

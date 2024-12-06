@@ -115,6 +115,7 @@ public class EquipoDisponibleAdapter extends RecyclerView.Adapter<EquipoDisponib
     public void onBindViewHolder(@NonNull final EquipoDisponibleAdapter.MyViewHolder holder, final int position) {
         // - Obtener Elemento del data set en esta position
         // - Reemplazar aqui cualquier contenido dinamico dependiendo de algun valor de l dataset creado y o el contenido del dataset
+        TextView material = holder.listView.findViewById(R.id.material);
         TextView modelo = holder.listView.findViewById(R.id.modelo);
         TextView disponibilidad = holder.listView.findViewById(R.id.disponibilidad);
         TextView centro_suministro = holder.listView.findViewById(R.id.centro_suministro);
@@ -127,6 +128,7 @@ public class EquipoDisponibleAdapter extends RecyclerView.Adapter<EquipoDisponib
 
         CardView card_view = (CardView) holder.listView.findViewById(R.id.card_view);
 
+        material.setText("");
         modelo.setText("");
         disponibilidad.setText("");
         centro_suministro.setText("");
@@ -134,7 +136,14 @@ public class EquipoDisponibleAdapter extends RecyclerView.Adapter<EquipoDisponib
         estado_text.setText("");
         emplazamiento.setText("");
 
-        modelo.setText(formListFiltered.get(position).get("modelo"));
+        if(formListFiltered.get(position).get("material") != null) {
+            material.setText(formListFiltered.get(position).get("material").replaceFirst("^0+", ""));
+            modelo.setText(formListFiltered.get(position).get("modelo"));
+        }else {
+            material.setText(formListFiltered.get(position).get("modelo").replaceFirst("^0+", ""));
+            modelo.setText("");
+        }
+
         disponibilidad.setText("Stock: "+formListFiltered.get(position).get("stock") +" - Reservados: "+formListFiltered.get(position).get("reservado")+" - Disponible: "+(Integer.parseInt(formListFiltered.get(position).get("stock").toString()) - Integer.parseInt(formListFiltered.get(position).get("reservado").toString())));
         centro_suministro.setText(formListFiltered.get(position).get("centro_suministro") +" - "+formListFiltered.get(position).get("desc_centro_suministro"));
         num_puertas.setText(formListFiltered.get(position).get("num_puertas") +" Puerta(s)");
@@ -192,8 +201,9 @@ public class EquipoDisponibleAdapter extends RecyclerView.Adapter<EquipoDisponib
 
         ver_detalle.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {//Genera un registro en tabla CensoEquipoFrio con comentario obligatoria y alerta
-                String nombreImagen = db.getNombreImagenModelo(formListFiltered.get(position).get("modelo"));
+            public void onClick(View v) {
+                String material = formListFiltered.get(position).get("material") == null?formListFiltered.get(position).get("modelo"):formListFiltered.get(position).get("material");
+                String nombreImagen = db.getNombreImagenModelo(material,formListFiltered.get(position).get("modelo"));
                 mostrarImagenServidor(v.getContext(), activity, nombreImagen);
             }
         });

@@ -59,7 +59,7 @@
                 android:layout_marginLeft="10dp"
                 android:text="Razon Social"
                 android:textAppearance="?android:textAppearanceSmallPopupMenu"
-                android:textSize="12dp"/>
+                android:textSize="12dp" />
 
             <ImageView
                 android:id="@+id/textViewOptions"
@@ -116,10 +116,10 @@
 
                         <com.google.android.material.floatingactionbutton.FloatingActionButton
                             android:id="@+id/cantidad_alertas"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            app:backgroundTint="@color/infoColor"
-                            android:src="@android:color/transparent" />
+                            android:layout_width="15dp"
+                            android:layout_height="13dp"
+                            android:src="@android:color/transparent"
+                            app:backgroundTint="@color/infoColor" />
                         <TextView
                             android:id="@+id/label_cantidad_base_instalada"
                             android:layout_width="wrap_content"
@@ -148,7 +148,7 @@
                         android:layout_gravity="right"
                         android:scaleType="fitXY"
                         android:background="@drawable/fridge_full"
-                        android:tooltipText="Cantidad Bases Instalada del cliente" />
+                        android:tooltipText="Monitor de Equipo Frio" />
 
                     <FrameLayout
                         android:layout_width="12dp"

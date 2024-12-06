@@ -139,6 +139,8 @@ public class LoginActivity extends AppCompatActivity {
             femsa_logo.setImageDrawable(getResources().getDrawable(R.drawable.femsa_logo_gt,null));
         if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("CONFIG_LAND1","").equals("UY"))
             femsa_logo.setImageDrawable(getResources().getDrawable(R.drawable.femsa_logo_uy,null));
+        if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("CONFIG_LAND1","").equals("CO"))
+            femsa_logo.setImageDrawable(getResources().getDrawable(R.drawable.femsa_logo,null));
         ruta_datos = findViewById(R.id.ruta_datos);
         // Set up the login form.
         mUserView = findViewById(R.id.user);
@@ -576,7 +578,11 @@ public class LoginActivity extends AppCompatActivity {
         };
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(getResources().getString(R.string.titulo_login) +" "+ PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("CONFIG_PAIS",""));
-        this.registerReceiver(myReceiver, intentFilter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            this.registerReceiver(myReceiver, intentFilter, Context.RECEIVER_EXPORTED);
+        } else {
+            this.registerReceiver(myReceiver, intentFilter);
+        }
         SignInButton.setEnabled(true);
     }
     @Override

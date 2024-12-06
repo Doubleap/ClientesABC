@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
@@ -56,7 +57,7 @@ public class FirmaActivity extends AppCompatActivity {
     private View view;
     private signature mSignature;
     private Bitmap bitmap;
-
+    private ImageView femsa_logo;
     // Creating Separate Directory for saving Generated Images
     //String DIRECTORY = getExternalFilesDir(null).getPath() + "/Signature/";
     //String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
@@ -66,7 +67,13 @@ public class FirmaActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_firma);
-
+        femsa_logo = findViewById(R.id.femsa_logo);
+        if(PreferenceManager.getDefaultSharedPreferences(FirmaActivity.this).getString("CONFIG_LAND1","").equals("GT"))
+            femsa_logo.setImageDrawable(getResources().getDrawable(R.drawable.femsa_logo_gt,null));
+        if(PreferenceManager.getDefaultSharedPreferences(FirmaActivity.this).getString("CONFIG_LAND1","").equals("UY"))
+            femsa_logo.setImageDrawable(getResources().getDrawable(R.drawable.femsa_logo_uy,null));
+        if(PreferenceManager.getDefaultSharedPreferences(FirmaActivity.this).getString("CONFIG_LAND1","").equals("CO"))
+            femsa_logo.setImageDrawable(getResources().getDrawable(R.drawable.femsa_logo,null));
         String DIRECTORY = getExternalFilesDir(null).getPath() + "/Signature/";
         String pic_name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String StoredPath = DIRECTORY + "PoliticaPrivacidad_"+pic_name + ".jpg";

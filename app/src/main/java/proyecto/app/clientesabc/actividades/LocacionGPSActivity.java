@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 
+import com.google.android.gms.location.LocationServices;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.text.DecimalFormat;
@@ -42,6 +43,10 @@ public class LocacionGPSActivity {
 
     public LocacionGPSActivity(Context context, LocationListenerCallback callback) {
         locationManager = (LocationManager) context.getSystemService(context.LOCATION_SERVICE);
+        if (locationManager == null) {
+            Toasty.error(context, "Los servicios de ubicacion no estan disponibles en este dispositivo").show();
+            return;
+        }
         this.context = context;
         this.callback = callback;
         mAlertDialog = new AlertDialog.Builder(this.context).create();
@@ -73,16 +78,35 @@ public class LocacionGPSActivity {
             return;
         }
         try{
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, FASTEST_INTERVAL, 0, locationListener);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, FASTEST_INTERVAL, 0, locationListener);
-            locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, FASTEST_INTERVAL, 0, locationListener);
+            try {
+                if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, FASTEST_INTERVAL, 0, locationListener);
+                }
+                if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, FASTEST_INTERVAL, 0, locationListener);
+                }
+                if (locationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER)) {
+                    locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, FASTEST_INTERVAL, 0, locationListener);
+                }
+            } catch (SecurityException ex) {
+                Toasty.error(context, "Excepcion de seguridad: "+ex.getMessage()).show();
+            }
         } catch (java.lang.SecurityException ex) {
             Toasty.error(context, "Fallo en pedir la ubicacion").show();
         } catch (IllegalArgumentException ex) {
             Toasty.error(context, "Proveedor de ubicacion no existe").show();
         }
-
-        Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        try {
+            Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (lastKnownLocation == null) {
+                lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            }
+            if (lastKnownLocation == null) {
+                Toasty.warning(context, "Última ubicacíón no esta disponible").show();
+            }
+        }catch (Exception ex) {
+            Toasty.error(context, "Error en obtener ultima ubicación").show();
+        }
     }
     LocacionGPSActivity(Context c, Activity a, MaskedEditText lat, MaskedEditText longi){
         context = c;
@@ -149,9 +173,10 @@ public class LocacionGPSActivity {
     }
 
     private boolean checkLocation() {
-        if(!isLocationEnabled())
+        boolean isEnabled = isLocationEnabled();
+        if(!isEnabled)
             showAlert();
-        return isLocationEnabled();
+        return isEnabled;
     }
 
     private void showAlert() {
@@ -179,6 +204,10 @@ public class LocacionGPSActivity {
 
     private boolean isLocationEnabled() {
         locationManager = (LocationManager) context.getSystemService(context.LOCATION_SERVICE);
+        if (locationManager == null) {
+            Toasty.error(context, "Los servicios de ubicación no estan disponibles en este dispositivo").show();
+            return false;
+        }
         return locationManager != null && (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) || locationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER));
     }
 

@@ -1497,13 +1497,18 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
         String name = "";
         try {
             Cursor returnCursor = resolver.query(uri, null, null, null, null);
-            assert returnCursor != null;
-            int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-            returnCursor.moveToFirst();
-            name = returnCursor.getString(nameIndex).replace("cropped","Adjunto");
-            returnCursor.close();
+            if(returnCursor != null) {
+                int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                returnCursor.moveToFirst();
+                name = returnCursor.getString(nameIndex).replace("cropped", "Adjunto");
+                returnCursor.close();
+            }else{
+                name = new File(uri.getPath()).getName();
+                name = name.replace("cropped","Adjunto");
+            }
         }catch (Exception e){
             name = new File(uri.getPath()).getName();
+            name = name.replace("cropped","Adjunto");
         }
         return name;
     }

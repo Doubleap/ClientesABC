@@ -164,6 +164,8 @@ public class EquipoDisponibleActivity extends AppCompatActivity{
             for(int x = 0; x < mensajes.get(0).getAsJsonArray().size() ; x++){
                 JsonObject jsonOpcion = mensajes.get(0).getAsJsonArray().get(x).getAsJsonObject();
                 HashMap<String, String> opcion = new HashMap<>();
+                if(jsonOpcion.get("material") != null)
+                    opcion.put("material",jsonOpcion.get("material").getAsString());
                 opcion.put("modelo",jsonOpcion.get("modelo").getAsString());
                 opcion.put("stock",jsonOpcion.get("stock").getAsString());
                 opcion.put("reservado",jsonOpcion.get("reservado").getAsString());

@@ -95,6 +95,7 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
                 // Description: The items were only set initially, not reloading the data in the
                 // spinner every time it is loaded with items in the adapter.
                 _items.clear();
+                _original_items.clear();
                 for (int i = 0; i < _arrayAdapter.getCount(); i++) {
                     _items.add(_arrayAdapter.getItem(i));
                     _original_items.add(_arrayAdapter.getItem(i));

@@ -654,6 +654,15 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 solicitud.put("W_CTE-XBLOCKED", cursor.getString(cursor.getColumnIndex("W_CTE-XBLOCKED")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-XBLOCKED")) : "");
             }catch(Exception e){}
 
+            try {
+                //CAMPOS NUEVOS PARA COLOMBIA
+                solicitud.put("W_CTE-BEGRU", cursor.getString(cursor.getColumnIndex("W_CTE-BEGRU")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-BEGRU")) : "");
+                solicitud.put("W_CTE-STRAS", cursor.getString(cursor.getColumnIndex("W_CTE-STRAS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STRAS")) : "");
+                solicitud.put("W_CTE-SORT1", cursor.getString(cursor.getColumnIndex("W_CTE-SORT1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-SORT1")) : "");
+                solicitud.put("W_CTE-SORT2", cursor.getString(cursor.getColumnIndex("W_CTE-SORT2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-SORT2")) : "");
+                solicitud.put("W_CTE-STKZN", cursor.getString(cursor.getColumnIndex("W_CTE-STKZN")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STKZN")) : "");
+            }catch(Exception e){}
+
             formList.add(solicitud);
         }
 
@@ -894,6 +903,15 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 solicitud.put("W_CTE-CHECK_RULE", cursor.getString(cursor.getColumnIndex("W_CTE-CHECK_RULE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-CHECK_RULE")) : "");
                 solicitud.put("W_CTE-LIMIT_RULE", cursor.getString(cursor.getColumnIndex("W_CTE-LIMIT_RULE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-LIMIT_RULE")) : "");
                 solicitud.put("W_CTE-XBLOCKED", cursor.getString(cursor.getColumnIndex("W_CTE-XBLOCKED")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-XBLOCKED")) : "");
+            }catch(Exception e){}
+
+            try {
+                //CAMPOS NUEVOS PARA COLOMBIA
+                solicitud.put("W_CTE-BEGRU", cursor.getString(cursor.getColumnIndex("W_CTE-BEGRU")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-BEGRU")) : "");
+                solicitud.put("W_CTE-STRAS", cursor.getString(cursor.getColumnIndex("W_CTE-STRAS")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STRAS")) : "");
+                solicitud.put("W_CTE-SORT1", cursor.getString(cursor.getColumnIndex("W_CTE-SORT1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-SORT1")) : "");
+                solicitud.put("W_CTE-SORT2", cursor.getString(cursor.getColumnIndex("W_CTE-SORT2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-SORT2")) : "");
+                solicitud.put("W_CTE-STKZN", cursor.getString(cursor.getColumnIndex("W_CTE-STKZN")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STKZN")) : "");
             }catch(Exception e){}
 
             formList.add(solicitud);
@@ -1365,14 +1383,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     " EX_T_RUTAS_VP AS b ON (trim(a.zone1) = trim(b.zroute_rep) OR trim(a.zone1) = trim(b.zroute_pr)) WHERE trim(zone1) != '' ";
         }
         //Cadena = cat_zesdvt_00561, Keyaccount = cat_ztmdcmc_00038t
-        if(tabla.equals("cat_zesdvt_00561") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001")){
+        if(tabla.equals("cat_zesdvt_00561") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F428")){
             filtros.append(" AND trim(hkunnr) = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_CADENARM","")+"' AND zzkeyacc = 'CA002'");
         }
-        if(tabla.equals("cat_ztmdcmc_00038t") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001")){
+        if(tabla.equals("cat_ztmdcmc_00038t") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F428")){
             filtros.append(" AND trim(zkeyacc) = 'CA002'");
         }
         if(tabla.equals("cat_ztsdvto_00185")) {
-            filtros.append(" AND (id_kvgr5 IN(SELECT id FROM cat_ztsdvto_00185_x WHERE(vpore = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA","")+"')))");
+            if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F428")) {
+                if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA","").equals("ZGE"))
+                    filtros.append(" AND (id_kvgr5 IN(SELECT id FROM cat_ztsdvto_00185_x WHERE(vpore = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA", "") + "'))) AND (id_kvgr5 = 'C03' OR id_kvgr5 = 'D03')");
+                else
+                    filtros.append(" AND (id_kvgr5 IN(SELECT id FROM cat_ztsdvto_00185_x WHERE(vpore = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA", "") + "')))");
+            }else
+                filtros.append(" AND (id_kvgr5 IN(SELECT id FROM cat_ztsdvto_00185_x WHERE(vpore = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA","")+"')))");
         }
         if(tabla.contains("zesdvt_01044")){
             filtros.append("");
@@ -2380,6 +2404,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             equipo.put("sociedad",cursor.getString(cursor.getColumnIndex("sociedad"))!=null?cursor.getString(cursor.getColumnIndex("sociedad")).trim():"");
             equipo.put("num_equipo",cursor.getString(cursor.getColumnIndex("num_equipo"))!=null?cursor.getString(cursor.getColumnIndex("num_equipo")).trim():"");
             equipo.put("modelo",cursor.getString(cursor.getColumnIndex("modelo"))!=null?cursor.getString(cursor.getColumnIndex("modelo")).trim():"");
+            equipo.put("material",cursor.getString(cursor.getColumnIndex("material"))!=null?cursor.getString(cursor.getColumnIndex("material")).trim():"");
             equipo.put("num_serie",cursor.getString(cursor.getColumnIndex("num_serie"))!=null?cursor.getString(cursor.getColumnIndex("num_serie")).trim():"");
             equipo.put("num_puertas",cursor.getString(cursor.getColumnIndex("num_puertas"))!=null?cursor.getString(cursor.getColumnIndex("num_puertas")).trim():"");
             equipo.put("estado",cursor.getString(cursor.getColumnIndex("estado"))!=null?cursor.getString(cursor.getColumnIndex("estado")).trim():"");
@@ -2879,8 +2904,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             registro_canales.put("W_CTE-ZTPOCANAL",cursor.getString(cursor.getColumnIndex("ztpocanal")).trim());
             registro_canales.put("W_CTE-ZGPOCANAL",cursor.getString(cursor.getColumnIndex("zgpocanal")).trim());
             //registro_canales.put("W_CTE-PSON3",cursor.getString(5).trim());
-            registro_canales.put("W_CTE-ZZUNNEG",cursor.getString(cursor.getColumnIndex("unneg")).trim());
-            registro_canales.put("W_CTE-ZZSUBUNNEG",cursor.getString(cursor.getColumnIndex("subunneg")).trim());
+            registro_canales.put("W_CTE-ZZUNNEG",cursor.getString(cursor.getColumnIndex("unneg"))!=null?cursor.getString(cursor.getColumnIndex("unneg")).trim():"");
+            registro_canales.put("W_CTE-ZZSUBUNNEG",cursor.getString(cursor.getColumnIndex("subunneg"))!=null?cursor.getString(cursor.getColumnIndex("subunneg")).trim():"");
 
             //Validar aqui? la ocasion de cosumo dependiendo del tipo de canal y el GEC dependiendo del canal
             // Si no se encuentran en las tablas respectivas se debe ejecutar una encuesta adicional para asignar.
@@ -3790,14 +3815,21 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return id_solicitud;
     }
-    public String getNombreImagenModelo(String codigo_modelo)
+    public String getNombreImagenModelo(String codigo_material, String modelo)
     {
         String nombreImagen = "";
-        //Trae la el id_solicitud de la anomalia para poder visualizarla en la parte de base instalada y censos.
+        //Trae ell nombre de la imagen, segun el material en SAP
         String query = "SELECT nombreImagen FROM cat_loc_modelo_ef where codigoSAP = ?";
-        Cursor cursor = mDataBase.rawQuery(query, new String[]{codigo_modelo});
+        Cursor cursor = mDataBase.rawQuery(query, new String[]{codigo_material});
         if (cursor.moveToNext()){
             nombreImagen = cursor.getString(0);
+        }
+        if(nombreImagen.equals("")){
+            query = "SELECT nombreImagen FROM cat_loc_modelo_ef where codigo = ?";
+            cursor = mDataBase.rawQuery(query, new String[]{modelo});
+            if (cursor.moveToNext()){
+                nombreImagen = cursor.getString(0);
+            }
         }
         cursor.close();
         return nombreImagen;
@@ -3922,7 +3954,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, Object>> getListaCoordenadasHabilitador(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, Object>> dataCoordenadas = new ArrayList<>();
-        String query = "SELECT * FROM cat_habilitador h WHERE bzirk = ?";
+        String query = "SELECT * FROM cat_habilitador h WHERE BZIRK = ? OR BZIRK IS NULL OR BZIRK = ''";
         try {
             Cursor cursor = mDataBase.rawQuery(query, new String[]{PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK", "")});
 
@@ -3954,5 +3986,62 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             Toasty.warning(mContext,"Error al obtener datos de PAVENT: "+e.getMessage()).show();
         }
         return  existe;
+    }
+
+    public int CantidadVerificados(String codigoCliente) {
+        int cantidad = 0;
+        try {
+            String sql_encuesta = "select count(*) as cantidad  from CensoEquipoFrio where kunnr_censo = ? AND  trim(estado) = ? and activo = 1 AND num_placa IN (SELECT SERGE FROM SapDBaseInstalada WHERE kunnr = ?)";
+            Cursor cursor = mDataBase.rawQuery(sql_encuesta, new String[]{codigoCliente, "Verificado",codigoCliente});
+            while (cursor.moveToNext()) {
+                cantidad = cursor.getInt(0);
+            }
+            cursor.close();
+        }catch (SQLiteException e){
+
+        }
+        return cantidad;
+    }
+    public int CantidadHallazgos(String codigoCliente) {
+        int cantidad = 0;
+        try {
+            String sql_encuesta = "select count(*) as cantidad  from CensoEquipoFrio where kunnr_censo = ? AND  trim(estado) = ? and activo = 1";
+            Cursor cursor = mDataBase.rawQuery(sql_encuesta, new String[]{codigoCliente, "Hallazgo"});
+            while (cursor.moveToNext()) {
+                cantidad = cursor.getInt(0);
+            }
+            cursor.close();
+        }catch (SQLiteException e){
+
+        }
+        return cantidad;
+    }
+    public int CantidadAnomalias(String codigoCliente) {
+        int cantidad = 0;
+        try {
+            String sql_encuesta = "select count(*) as cantidad  from CensoEquipoFrio where kunnr_censo = ? AND  trim(estado) = ? and activo = 1";
+            Cursor cursor = mDataBase.rawQuery(sql_encuesta, new String[]{codigoCliente, "Anomalia"});
+            while (cursor.moveToNext()) {
+                cantidad = cursor.getInt(0);
+            }
+            cursor.close();
+        }catch (SQLiteException e){
+
+        }
+        return cantidad;
+    }
+    public int CantidadAlertas(String codigoCliente) {
+        int cantidad = 0;
+        try {
+            String sql_encuesta = "select count(*) as cantidad  from CensoEquipoFrio where kunnr_censo = ? AND  trim(estado) = ? and activo = 1";
+            Cursor cursor = mDataBase.rawQuery(sql_encuesta, new String[]{codigoCliente, "Alerta"});
+            while (cursor.moveToNext()) {
+                cantidad = cursor.getInt(0);
+            }
+            cursor.close();
+        }catch (SQLiteException e){
+
+        }
+        return cantidad;
     }
 }

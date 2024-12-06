@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -65,6 +66,8 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.canhub.cropper.CropImageContract;
+import com.canhub.cropper.CropImageContractOptions;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
@@ -213,6 +216,9 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
     private static String tipoCambio;
     private static String montoCredito = "";
     private static String plazoCredito = "";
+
+    private ActivityResultLauncher<CropImageContractOptions> cropImage;
+    public static ManejadorAdjuntos manejadorAdjuntos;
 
     @SuppressLint("ResourceType")
     @Override
@@ -583,6 +589,14 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         visitasSolicitud_old = new ArrayList<>();
         adjuntosSolicitud_old = new ArrayList<>();
 
+        cropImage = this.registerForActivityResult(new CropImageContract(), result -> {
+            if (result.isSuccessful()) {
+                manejadorAdjuntos.setUri(result.getUriContent());
+                manejadorAdjuntos.AgregarAdjunto(result.getUriContent());
+            }
+        });
+        manejadorAdjuntos = new ManejadorAdjuntos(mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos,  getApplicationContext(),SolicitudCreditoActivity.this,cropImage);
+
     }
 
     private String devolverTipoSolicitudSAP(String subtitulo) {
@@ -647,7 +661,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudCreditoActivity.this);
         try {
-            ManejadorAdjuntos manejadorAdjuntos = new ManejadorAdjuntos(mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos,  getApplicationContext(),weakRefA.get(),null);
+            manejadorAdjuntos.setUri(mPhotoUri);
             manejadorAdjuntos.ActivityResult(requestCode, resultCode, data);
             //ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
         } catch (IOException e) {

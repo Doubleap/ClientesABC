@@ -246,13 +246,25 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                 censado.setVisibility(View.VISIBLE);
 
                 if(formListFiltered.get(position).getSerge() == null) {
+                    anomalia.setVisibility(View.GONE);
                     menu_bottom.setVisibility(View.VISIBLE);
                     eliminar.setVisibility(View.VISIBLE);
+                    eliminar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            DialogHandler appdialog = new DialogHandler();
+                            appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaAdapter.DesactivarRegistroCenso(context,activity,formListFiltered.get(position)));
+                        }
+                    });
                 }
             }
             if (formListFiltered.get(position).getEstado().trim().equals("Anomalia") || formListFiltered.get(position).getEstado().trim().equals("Anomalía")) {
                 color = R.color.rechazado;
-                placa.setText(formListFiltered.get(position).getSerge());
+                if(formListFiltered.get(position).getSerge() != null)
+                    placa.setText(formListFiltered.get(position).getSerge());
+                else {
+                    placa.setText(formListFiltered.get(position).getNumPlaca());
+                }
                 alerta.setVisibility(GONE);
                 anomalia.setVisibility(GONE);
                 cantidad_alertas.setVisibility(GONE);
@@ -277,7 +289,11 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
 
             if (formListFiltered.get(position).getEstado().trim().equals("Alerta")) {
                 color = R.color.devuelto;
-                placa.setText(formListFiltered.get(position).getSerge());
+                if(formListFiltered.get(position).getSerge() != null)
+                    placa.setText(formListFiltered.get(position).getSerge());
+                else {
+                    placa.setText(formListFiltered.get(position).getNumPlaca());
+                }
                 eliminar.setVisibility(View.GONE);
                 //alerta.setVisibility(GONE);
                 //cantidad_alertas.setVisibility(GONE);
@@ -882,9 +898,11 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                 try {
                     // create command to read data
                     comm = conn.createStatement();
-                    String comando = "UPDATE CensoEquipoFrio SET activo = 0 WHERE num_placa = ? and estado = 'Hallazgo'";
+                    String comando = "UPDATE CensoEquipoFrio SET activo = 0 WHERE id = ?";
                     PreparedStatement stmt = conn.prepareStatement(comando);
-                    stmt.setString(1,equipoFrio.getNumPlaca());
+                    stmt.setString(1,equipoFrio.getId());
+                    //stmt.setString(2,equipoFrio.getEstado());
+                    //stmt.setString(3,equipoFrio.getId());
                     stmt.executeUpdate();
                 } catch (SQLException e) {
                     Toasty.error(context,e.getMessage()).show();
@@ -894,7 +912,7 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                 throwables.printStackTrace();
             }
 
-            long modifico = mDb.update("CensoEquipoFrio", updateValues, "num_placa = ? and estado = 'Hallazgo'",new String[]{equipoFrio.getNumPlaca()});
+            long modifico = mDb.update("CensoEquipoFrio", updateValues, "id = ?",new String[]{equipoFrio.getId()});
 
             if(modifico > 0){
                 Intent intent = activity.getIntent();

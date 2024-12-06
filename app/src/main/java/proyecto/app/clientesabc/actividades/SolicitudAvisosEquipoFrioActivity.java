@@ -344,7 +344,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                                     }
                                 }else{
                                     TextView error = (TextView)combo.getSelectedView();
-                                    error.setError("El campo es obligatorio!");
+                                    if(error != null) {
+                                        error.setError("El campo es obligatorio!");
+                                    }
                                     numErrores++;
                                     mensajeError += "- "+combo.getTag()+"\n";
                                 }
@@ -2106,7 +2108,16 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         if(mensajes.size() > 0 && mensajes.get(0)  != null && mensajes.get(0).size() > 0){
             for(int x = 0; x < mensajes.get(0).getAsJsonArray().size() ; x++){
                 JsonObject opcion = mensajes.get(0).getAsJsonArray().get(x).getAsJsonObject();
-                OpcionSpinner opcionSpinner = new OpcionSpinner(opcion.get("modelo").getAsString(),opcion.get("modelo").getAsString() +" : " +opcion.get("stock").getAsString() +" (" + opcion.get("reservado").getAsString()+") "+opcion.get("num_puertas")+" Puertas");
+                String material = "";
+                String modelo = "";
+                if(opcion.get("material") != null) {
+                    material = opcion.get("material").getAsString();
+                    modelo = "("+opcion.get("modelo").getAsString()+")";
+                }else{
+                    material = opcion.get("modelo").getAsString();
+                    modelo = "";
+                }
+                OpcionSpinner opcionSpinner = new OpcionSpinner(material.replaceFirst("^0+", ""),material.replaceFirst("^0+", "")+modelo+" : " +opcion.get("stock").getAsString() +"(" + opcion.get("reservado").getAsString()+") "+opcion.get("num_puertas")+" Puertas");
                 if( (Integer.parseInt(opcion.get("stock").getAsString()) - Integer.parseInt(opcion.get("reservado").getAsString())) == 0)
                     opcionSpinner.setEnabled(false);
                 opcionSpinner.setRel1(opcion.get("num_puertas").getAsString());
@@ -2118,16 +2129,27 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             //Se es retiro, muy probable no exista modelo disponible, si no existe se debe ingresar al combo de seleccion para que quede registrado en el formulario el numero de puertas del retiro
             if((tipoSolicitud.equals("42")) && selectedIndex == 0){
                 HashMap<String, String> equipo = mDBHelper.getEquipoFrioDatosMonitor(codigoEquipoFrio);
-                String modelo = equipo.get("modelo");
-                if(modelo.equals("")) {
+
+                String material = equipo.get("material");
+                if(material == null)
+                    material = equipo.get("modelo");
+                if(material == null || material.equals("")) {
                     EquipoFrio equipofrio = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
-                    modelo = equipofrio.getMatnr();
+                    material = equipofrio.getMatnr();
+
+                    OpcionSpinner opcionSpinner = new OpcionSpinner(material, material + " Puertas Desconocido");
+                    opcionSpinner.setRel1("0");
+                    listaopciones.add(opcionSpinner);
+                    selectedIndex = listaopciones.size() - 1;
+                    modelos.setEnabled(false);
+                }else {
+                    OpcionSpinner opcionSpinner = new OpcionSpinner(material, material + " " + equipo.get("num_puertas") + " Puertas");
+                    opcionSpinner.setRel1(equipo.get("num_puertas"));
+                    opcionSpinner.setRel2(equipo.get("modelo"));
+                    listaopciones.add(opcionSpinner);
+                    selectedIndex = listaopciones.size() - 1;
+                    modelos.setEnabled(false);
                 }
-                OpcionSpinner opcionSpinner = new OpcionSpinner(modelo,modelo+ " "+equipo.get("num_puertas")+" Puertas");
-                opcionSpinner.setRel1(equipo.get("num_puertas"));
-                listaopciones.add(opcionSpinner);
-                selectedIndex = listaopciones.size()-1;
-                modelos.setEnabled(false);
             }
 
             ArrayAdapter dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
@@ -2140,20 +2162,36 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             //Se es retiro, muy probable no exista modelo disponible, si no existe se debe ingresar al combo de seleccion para que quede registrado en el formulario el numero de puertas del retiro
             if(tipoSolicitud.equals("42") && selectedIndex == 0){
                 HashMap<String, String> equipo = mDBHelper.getEquipoFrioDatosMonitor(codigoEquipoFrio);
-                String modelo = equipo.get("modelo");
-                if(modelo.equals("")) {
+
+                String material = equipo.get("material");
+                if(material == null)
+                    material = equipo.get("modelo");
+                if(material == null || material.equals("")) {
                     EquipoFrio equipofrio = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
-                    modelo = equipofrio.getMatnr();
+                    material = equipofrio.getMatnr();
+
+                    OpcionSpinner opcionSpinner = new OpcionSpinner(material, material + " Puertas Desconocido");
+                    opcionSpinner.setRel1("0");
+                    listaopciones.add(opcionSpinner);
+                    selectedIndex = listaopciones.size() - 1;
+                    modelos.setEnabled(false);
+                    ArrayAdapter dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
+                    // attaching data adapter to spinner
+                    modelos.setAdapter(dataAdapter);
+                    modelos.setSelection(selectedIndex);
+                }else {
+                    OpcionSpinner opcionSpinner = new OpcionSpinner(material,material+ " "+equipo.get("num_puertas")+" Puertas");
+                    opcionSpinner.setRel1(equipo.get("num_puertas"));
+                    opcionSpinner.setRel2(equipo.get("modelo"));
+                    listaopciones.add(opcionSpinner);
+                    selectedIndex = listaopciones.size()-1;
+                    modelos.setEnabled(false);
+                    ArrayAdapter dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
+                    // attaching data adapter to spinner
+                    modelos.setAdapter(dataAdapter);
+                    modelos.setSelection(selectedIndex);
                 }
-                OpcionSpinner opcionSpinner = new OpcionSpinner(modelo,modelo+ " "+equipo.get("num_puertas")+" Puertas");
-                opcionSpinner.setRel1(equipo.get("num_puertas"));
-                listaopciones.add(opcionSpinner);
-                selectedIndex = listaopciones.size()-1;
-                modelos.setEnabled(false);
-                ArrayAdapter dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
-                // attaching data adapter to spinner
-                modelos.setAdapter(dataAdapter);
-                modelos.setSelection(selectedIndex);
+
             }
         }
     }

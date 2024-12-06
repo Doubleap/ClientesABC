@@ -2,6 +2,7 @@ package proyecto.app.clientesabc.adaptadores;
 
 import android.app.Activity;
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
 import android.hardware.camera2.params.MultiResolutionStreamInfo;
 import android.preference.PreferenceManager;
@@ -46,6 +47,7 @@ public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
     ArrayList<Visitas> visitasArray;
     Context context;
     Activity activity;
+    boolean modificable;
 
 
     public VisitasTableAdapter(Context context, ArrayList<Visitas> data) {
@@ -53,11 +55,12 @@ public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
         visitasArray = data;
         this.context = context;
     }
-    public VisitasTableAdapter(Context context, Activity activity, ArrayList<Visitas> data) {
+    public VisitasTableAdapter(Context context, Activity activity, ArrayList<Visitas> data, boolean modificable) {
         super(context, data);
         visitasArray = data;
         this.context = context;
         this.activity = activity;
+        this.modificable = modificable;
     }
 
     @Override
@@ -77,8 +80,10 @@ public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
 
 
             if(columnIndex+1 == 3){
-                if(!visita.getRuta().equals(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH",""))
-                && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F428")) {
+                DataBaseHelper mDBHelper = new DataBaseHelper(context);
+                SQLiteDatabase mDb = mDBHelper.getWritableDatabase();
+                if(mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BZIRK",""), visita.getVptyp())
+                && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F428") && modificable) {
                     LinearLayout celda = new LinearLayout(getContext());
                     final ImageView accion_calcular = new ImageView(getContext());
                     accion_calcular.setImageDrawable(getResources().getDrawable(R.drawable.icon_habilitador, null));

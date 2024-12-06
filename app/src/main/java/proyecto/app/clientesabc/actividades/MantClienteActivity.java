@@ -277,6 +277,54 @@ public class MantClienteActivity extends AppCompatActivity {
         // Reemplazar el contenido del View. Para ListView se llama solo, pero para RecyclerView hay que llamar al setLayoutManager
         @Override
         public void onBindViewHolder(@NonNull final MyViewHolder holder, int position) {
+            ColorStateList colorStateListOk = new ColorStateList(
+                    new int[][]{
+                            new int[]{}
+                    },
+                    new int[]{
+                            Color.parseColor(getApplicationContext().getResources().getString(R.color.sinFormularios))
+                    }
+            );
+            ColorStateList colorStateListAprobado = new ColorStateList(
+                    new int[][]{
+                            new int[]{}
+                    },
+                    new int[]{
+                            Color.parseColor(getApplicationContext().getResources().getString(R.color.aprobados))
+                    }
+            );
+            ColorStateList colorStateListRechazado = new ColorStateList(
+                    new int[][]{
+                            new int[]{}
+                    },
+                    new int[]{
+                            Color.parseColor(getApplicationContext().getResources().getString(R.color.rechazado))
+                    }
+            );
+            ColorStateList colorStateListHallazgo = new ColorStateList(
+                    new int[][]{
+                            new int[]{}
+                    },
+                    new int[]{
+                            Color.parseColor(getApplicationContext().getResources().getString(R.color.modificado))
+                    }
+            );
+            ColorStateList colorStateListAlerta = new ColorStateList(
+                    new int[][]{
+                            new int[]{}
+                    },
+                    new int[]{
+                            Color.parseColor(getApplicationContext().getResources().getString(R.color.devuelto))
+                    }
+            );
+            ColorStateList colorStateListDefault = new ColorStateList(
+                    new int[][]{
+                            new int[]{}
+                    },
+                    new int[]{
+                            Color.parseColor(getApplicationContext().getResources().getString(R.color.black))
+                    }
+            );
             // - Obtener Elemento del data set en esta position
             // - Reemplazar aqui cualquier contenido dinamico dependiendo de algun valor de l dataset creado y o el contenido del dataset
 
@@ -293,6 +341,12 @@ public class MantClienteActivity extends AppCompatActivity {
             final String nombreCliente = nombre.getText().toString().trim();
             final String canalCliente = formListFiltered.get(position).get("canal").trim();
             final String correoCliente = correo.getText().toString().trim();
+
+            int cantVerificados = db.CantidadVerificados(codigoCliente);
+            int cantHallazgos = db.CantidadHallazgos(codigoCliente);
+            int cantAnomalias = db.CantidadAnomalias(codigoCliente);
+            int cantAlertas = db.CantidadAlertas(codigoCliente);
+
             if(formListFiltered.get(holder.getAdapterPosition()).get("correo") == null || formListFiltered.get(position).get("correo").equals("")){
                 //correo.setVisibility(View.GONE);
             }else{
@@ -307,6 +361,7 @@ public class MantClienteActivity extends AppCompatActivity {
             }
             com.rey.material.widget.LinearLayout  base_instalada_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.base_instalada_layout);
             ImageView imagen_base_instalada = (ImageView)holder.listView.findViewById(R.id.imagen_base_instalada);
+            imagen_base_instalada.setBackgroundTintList(colorStateListDefault);
             TextView label_cantidad_base_instalada = (TextView)holder.listView.findViewById(R.id.label_cantidad_base_instalada);
             if(formListFiltered.get(holder.getAdapterPosition()).get("cant_base_instalada") == null || formListFiltered.get(holder.getAdapterPosition()).get("cant_base_instalada").equals("") || formListFiltered.get(holder.getAdapterPosition()).get("cant_base_instalada").equals("0")){
                 base_instalada_layout.setVisibility(View.GONE);
@@ -326,6 +381,32 @@ public class MantClienteActivity extends AppCompatActivity {
                         startActivity(intent);
                     }
                 });
+                FloatingActionButton cantidad_alertas = holder.listView.findViewById(R.id.cantidad_alertas);
+
+                if(Integer.parseInt(formListFiltered.get(position).get("cant_base_instalada")) == cantVerificados){
+                    cantidad_alertas.setBackgroundTintList(colorStateListAprobado);
+                    cantidad_alertas.setTooltipText("Todos los equipos han sido verificados");
+                }
+                if(Integer.parseInt(formListFiltered.get(position).get("cant_base_instalada")) > cantVerificados && cantVerificados == 0){
+                    cantidad_alertas.setBackgroundTintList(colorStateListRechazado);
+                    cantidad_alertas.setTooltipText("No se ha verificado ningun equipo");
+                }
+                if(Integer.parseInt(formListFiltered.get(position).get("cant_base_instalada")) > cantVerificados && cantVerificados > 0){
+                    cantidad_alertas.setBackgroundTintList(colorStateListOk);
+                    cantidad_alertas.setTooltipText("Falta al menos 1 equipo para verificar");
+                }
+                if(cantHallazgos > 0){
+                    imagen_base_instalada.setBackgroundTintList(colorStateListHallazgo);
+                    imagen_base_instalada.setTooltipText("Existe al menos 1 hallazgo en este cliente!");
+                }
+                if(cantAlertas > 0){
+                    imagen_base_instalada.setBackgroundTintList(colorStateListAlerta);
+                    imagen_base_instalada.setTooltipText("Existe al menos 1 alerta en este cliente!");
+                }
+                if(cantAnomalias > 0){
+                    imagen_base_instalada.setBackgroundTintList(colorStateListRechazado);
+                    imagen_base_instalada.setTooltipText("Existe al menos 1 anomalía en este cliente!");
+                }
             }
 
             com.rey.material.widget.LinearLayout  puertas_por_instalar_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.puertas_por_instalar_layout);
@@ -339,36 +420,16 @@ public class MantClienteActivity extends AppCompatActivity {
                 label_cantidad_puertas_por_instalar.setText(puertas.toString());
                 FloatingActionButton cantidad_puertas_por_instalar =  (FloatingActionButton)holder.listView.findViewById(R.id.cantidad_puertas_por_instalar);
 
-                ColorStateList colorStateListPendiente = new ColorStateList(
-                        new int[][]{
-                                new int[]{}
-                        },
-                        new int[]{
-                                Color.parseColor("#0000FF")
-                        }
-                );
-                ColorStateList colorStateListAprobado = new ColorStateList(
-                        new int[][]{
-                                new int[]{}
-                        },
-                        new int[]{
-                                Color.parseColor("#00FF00")
-                        }
-                );
-                ColorStateList colorStateListRechazado = new ColorStateList(
-                        new int[][]{
-                                new int[]{}
-                        },
-                        new int[]{
-                                Color.parseColor("#FF0000")
-                        }
-                );
+
                 if(puertas == 0){
-                    cantidad_puertas_por_instalar.setBackgroundTintList(colorStateListPendiente);
+                    cantidad_puertas_por_instalar.setBackgroundTintList(colorStateListOk);
+                    cantidad_puertas_por_instalar.setTooltipText("Base instalada igual al sugerido");
                 }else if(puertas > 0){
                     cantidad_puertas_por_instalar.setBackgroundTintList(colorStateListAprobado);
+                    cantidad_puertas_por_instalar.setTooltipText("Oportunidad para instalar equipo en el cliente");
                 }else if(puertas < 0){
                     cantidad_puertas_por_instalar.setBackgroundTintList(colorStateListRechazado);
+                    cantidad_puertas_por_instalar.setTooltipText("Oportunidad para retirar equipo no productivo en el cliente");
                 }
 
                 imagen_puertas_por_instalar.setOnClickListener(new View.OnClickListener() {

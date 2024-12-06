@@ -123,6 +123,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import de.codecrafters.tableview.TableDataAdapter;
 import de.codecrafters.tableview.listeners.TableDataClickListener;
 import de.codecrafters.tableview.listeners.TableDataLongClickListener;
 import de.codecrafters.tableview.model.TableColumnWeightModel;
@@ -233,6 +234,8 @@ public class SolicitudActivity extends AppCompatActivity {
     private BarcodeReader reader;
     private ActivityResultLauncher<CropImageContractOptions> cropImage;
     ManejadorAdjuntos manejadorAdjuntos;
+    public static String[] visitas_permitidas = {"ZPV","ZJV","ZTV","ZRM","ZAT","ZKV","ZDY","ZGE","ZCM","ZCS","ZDI","ZEJ","ZES","ZIN","ZOP","ZPK","ZSP","ZWB","ZWE","ZWJ","ZWP"};
+
 
     @SuppressLint("ResourceType")
     @Override
@@ -302,6 +305,8 @@ public class SolicitudActivity extends AppCompatActivity {
                 firma = true;
             }
         }
+        verificarCorreo = null;
+        verificarCelular = null;
         configExcepciones.clear();
         listaCamposDinamicos.clear();
         listaCamposBloque.clear();
@@ -400,6 +405,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                     error.setError("El campo es obligatorio!");
                                     numErrores++;
                                     mensajeError += "- "+combo.getTag()+"\n";
+                                }
+                            }
+                        }
+                        if(tb_contactos != null && PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F428")){
+                            TableDataAdapter<Contacto> adapter = tb_contactos.getDataAdapter();
+
+                            if (adapter != null) {
+                                int rowCount = adapter.getCount(); // Get the number of rows
+                                if(rowCount == 0){
+                                    mensajeError += "- Bloque Contactos Adicionales\n";
                                 }
                             }
                         }
@@ -595,11 +610,11 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         //Validaciones Colombia de verificacion de Celular y Correo Electronico
                         if(verificarCelular != null && verificarCelular.getBackgroundTintList().getColorForState(new int[] { android.R.attr.state_enabled},0) != getResources().getColor(R.color.aprobados,null)){
-                            //mensajeError += "- Falta verificar el número de celular\n";
+                            mensajeError += "- Falta verificar el número de celular\n";
                         }
-                        /*if(verificarCorreo != null && verificarCorreo.getBackgroundTintList().getColorForState(new int[] { android.R.attr.state_enabled},0) != getResources().getColor(R.color.aprobados,null)){
+                        if(verificarCorreo != null && verificarCorreo.getBackgroundTintList().getColorForState(new int[] { android.R.attr.state_enabled},0) != getResources().getColor(R.color.aprobados,null)){
                             mensajeError += "- Falta verificar el correo electrónico\n";
-                        }*/
+                        }
                         if(numErrores == 0) {
                             DialogHandler appdialog = new DialogHandler();
                             appdialog.Confirm(SolicitudActivity.this, "Confirmación Solicitud", "Esta seguro que desea guardar la solicitud?", "No", "Si", new GuardarFormulario(getBaseContext()));
@@ -1436,6 +1451,21 @@ public class SolicitudActivity extends AppCompatActivity {
                                             cedula.setMask("###########A");
                                         }
 
+                                        //Colombia - seteaar el check de persona fisica en caso de tipo de identificacion (13, 22, 41 y 42)
+                                        if (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_BUKRS","").equals("F428")) {
+                                            if((opcion.getId().equals("13") || opcion.getId().equals("22") || opcion.getId().equals("41") || opcion.getId().equals("42"))){
+                                                CheckBox persona_fisica = (CheckBox)mapeoCamposDinamicos.get("W_CTE-STKZN");
+                                                if(persona_fisica != null) {
+                                                    persona_fisica.setChecked(true);
+                                                }
+                                            }else{
+                                                CheckBox persona_fisica = (CheckBox)mapeoCamposDinamicos.get("W_CTE-STKZN");
+                                                if(persona_fisica != null) {
+                                                    persona_fisica.setChecked(false);
+                                                }
+                                            }
+                                        }
+
                                         cedula.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                                             @Override
                                             public void onFocusChange(View v, boolean hasFocus) {
@@ -1614,8 +1644,11 @@ public class SolicitudActivity extends AppCompatActivity {
                             //TODO aqui se debe cambiar si se quiere trabajar con diferentes tipos de 'PR'
                             if (solicitudSeleccionada.size() == 0) {
                                 combo.setSelection(VariablesGlobales.getIndex(combo, "PR"));
-                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZAT")){
-                                    combo.setSelection(VariablesGlobales.getIndex(combo, "GV"));
+                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").equals("ZAT")){
+                                    if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F428"))
+                                        combo.setSelection(VariablesGlobales.getIndex(combo, "C27"));
+                                    else
+                                        combo.setSelection(VariablesGlobales.getIndex(combo, "GV"));
                                 }
                                 if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZTV")){
                                     combo.setSelection(VariablesGlobales.getIndex(combo, "TA"));
@@ -1632,8 +1665,10 @@ public class SolicitudActivity extends AppCompatActivity {
                                 if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZCS")){
                                     combo.setSelection(VariablesGlobales.getIndex(combo, "C02"));
                                 }
-                                combo.setEnabled(false);
-                                combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                                if(!PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","F443").toString().equals("F428")) {
+                                    combo.setEnabled(false);
+                                    combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+                                }
                             }
                             combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
@@ -1648,7 +1683,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         }
                                         //getActivity().runOnUiThread(new SolicitudActivity.CalcularRepartoConHabilitador(getContext(), getActivity()));
 
-                                        tb_visitas.setDataAdapter(new VisitasTableAdapter(getContext(), getActivity(), visitasSolicitud));
+                                        tb_visitas.setDataAdapter(new VisitasTableAdapter(getContext(), getActivity(), visitasSolicitud,modificable));
                                         if (tb_visitas.getLayoutParams() != null) {
                                             tb_visitas.getLayoutParams().height = 50;
                                             tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView) * visitasSolicitud.size());
@@ -1659,7 +1694,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         Spinner modalidad_preventa = (Spinner)mapeoCamposDinamicos.get("W_CTE-KVGR5");
                                         visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG", ""), opcion.getId());
 
-                                        tb_visitas.setDataAdapter(new VisitasTableAdapter(getContext(), getActivity(), visitasSolicitud));
+                                        tb_visitas.setDataAdapter(new VisitasTableAdapter(getContext(), getActivity(), visitasSolicitud,modificable));
                                         if (tb_visitas.getLayoutParams() != null) {
                                             tb_visitas.getLayoutParams().height = 50;
                                             tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView ) * visitasSolicitud.size());
@@ -1942,7 +1977,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         TableRow.LayoutParams btnlp = new TableRow.LayoutParams(tamIcono, tamIcono);
 
                         TableRow filaLabel = null;
-                        if (campos.get(i).get("campo").trim().equals("W_CTE-LZONE") && VariablesGlobales.getSociedad().equals("F428")) {
+                        if (campos.get(i).get("campo").trim().equals("W_CTE-LZONE") && VariablesGlobales.getSociedad().equals("F428") && modificable) {
                             TableRow.LayoutParams textolp_h = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 5f);
                             int tamIcono_h = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 25, getResources().getDisplayMetrics());
                             TableRow.LayoutParams btnlp_h = new TableRow.LayoutParams(tamIcono_h, tamIcono_h);
@@ -2212,22 +2247,18 @@ public class SolicitudActivity extends AppCompatActivity {
                             }
                         }
                     } else {
-
                         //Tipo EditText normal textbox
                         TableRow fila = new TableRow(getContext());
                         fila.setOrientation(TableRow.HORIZONTAL);
                         fila.setWeightSum(10);
                         fila.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 10f));
-                        //fila.setGravity(GRAVITY_CENTER);
 
                         final TextInputLayout label = new TextInputLayout(Objects.requireNonNull(getContext()));
                         label.setHint(campos.get(i).get("descr"));
                         label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.colorTextView,null)));
-
                         label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
                         label.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
 
-                        //final TextInputEditText et = new TextInputEditText(getContext());
                         final MaskedEditText et = new MaskedEditText(getContext(), null);
                         InputFilter[] editFilters = et.getFilters();
                         InputFilter[] newFilters = null;
@@ -2422,11 +2453,14 @@ public class SolicitudActivity extends AppCompatActivity {
                                 fila.addView(btnAyudai);
                         }
 
-                        if(campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").toLowerCase().equals("verificarcelular") && modificable){
+                        if(campos.get(i).get("nombre") != null && campos.get(i).get("nombre").toLowerCase().equals("verificarcelular") && modificable){
                             verificarCelular = new ImageView(getContext());
                             label.setLayoutParams(textolp);
                             verificarCelular.setBackground(getResources().getDrawable(R.drawable.verifiy_phone,null));
-                            verificarCelular.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red,null)));
+                            if(solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia") || solicitudSeleccionada.get(0).get("ESTADO").equals("Incompleto") || solicitudSeleccionada.get(0).get("ESTADO").equals("Modificado"))
+                                verificarCelular.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.aprobados,null)));
+                            else
+                                verificarCelular.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red,null)));
                             // btnlp.setMargins(0,35,5,0);
                             int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, getResources().getDisplayMetrics());
                             int marginEnd = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, getResources().getDisplayMetrics());
@@ -2535,10 +2569,10 @@ public class SolicitudActivity extends AppCompatActivity {
                                 }
                             }
                         }
-                        if(campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").toLowerCase().equals("verificarcorreo") && modificable) {
+                        if(campos.get(i).get("nombre") != null && campos.get(i).get("nombre").toLowerCase().equals("verificarcorreo") && modificable) {
                             verificarCorreo = new ImageView(getContext());
                             int marginRight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 90, getResources().getDisplayMetrics());
-                            int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+                            int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, getResources().getDisplayMetrics());
                             int marginEnd = 0;
                             if(atCorreo != null){
                                 int marginLeft = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 90, getResources().getDisplayMetrics());
@@ -2549,11 +2583,20 @@ public class SolicitudActivity extends AppCompatActivity {
                                 et.setLayoutParams(textolp_at);
 
                                 lp_at = new TableRow.LayoutParams(marginLeft-marginEnd+marginFill, WRAP_CONTENT,3.0f);
-                                int top_at = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3.5f, getResources().getDisplayMetrics());
-                                lp_at.setMargins(-marginLeft-marginFill, -top_at, marginRight+marginEnd+tamIcono+marginFill, 0);
+                                int top_at = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4f, getResources().getDisplayMetrics());
+                                lp_at.setMargins(-marginLeft, -top_at, marginRight+marginFill, 0);
 
-                                btnlp.setMargins(-marginLeft, marginTop, 5, 0);
+                                btnlp.setMargins(-marginLeft-5, marginTop, 25, 0);
                                 atCorreo.setLayoutParams(lp_at);
+                                // Wait until the layout is drawn to get the height of the MaskedEditText
+                                et.post(() -> {
+                                    // Get the height of the MaskedEditText
+                                    int height = et.getHeight();
+
+                                    // Set the height of the Spinner programmatically
+                                    atCorreo.getLayoutParams().height = height;
+                                    atCorreo.requestLayout(); // Ensure the change takes effect
+                                });
                             }else{
                                 int marginLeft = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, getResources().getDisplayMetrics());
                                 TableRow.LayoutParams textolp_at = new TableRow.LayoutParams(MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,9.0f);
@@ -2564,7 +2607,11 @@ public class SolicitudActivity extends AppCompatActivity {
 
                             label.setLayoutParams(textolp);
                             verificarCorreo.setBackground(getResources().getDrawable(R.drawable.verify_mail, null));
-                            verificarCorreo.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red, null)));
+
+                            if(solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia") || solicitudSeleccionada.get(0).get("ESTADO").equals("Incompleto") || solicitudSeleccionada.get(0).get("ESTADO").equals("Modificado"))
+                                verificarCorreo.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.aprobados,null)));
+                            else
+                                verificarCorreo.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red,null)));
                             // btnlp.setMargins(0,35,5,0);
                             verificarCorreo.setLayoutParams(btnlp);
                             verificarCorreo.setTextAlignment(TEXT_ALIGNMENT_CENTER);
@@ -2609,14 +2656,14 @@ public class SolicitudActivity extends AppCompatActivity {
                             ImageView finalBtnAyuda1 = verificarCorreo;
                             et.addTextChangedListener(new TextWatcher() {
                                 public void afterTextChanged(Editable s) {
-                                    //Restuarar icono de varificacion de numero celular
+                                    //Restuarar icono de verificacion de correo
                                     finalBtnAyuda1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.rechazado, null)));
                                     finalBtnAyuda1.setOnClickListener((View.OnClickListener) view -> {
                                         String bukrs = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
                                         String correo_armado = et.getText().toString();
                                         if(finalAtCorreo1 != null){
                                             //Armar el valor del correo segun la escogencia de dominio
-                                            if(!((OpcionSpinner) finalAtCorreo1.getSelectedItem()).getId().toString().equals("")){
+                                            if(!((OpcionSpinner) finalAtCorreo1.getSelectedItem()).getId().toString().equals("Otros")){
                                                 correo_armado = ((TextView)et).getText().toString()+((OpcionSpinner)finalAtCorreo1.getSelectedItem()).getId().toString();
                                             }
                                         }
@@ -2634,6 +2681,16 @@ public class SolicitudActivity extends AppCompatActivity {
                                             Toasty.warning(getContext(), "El correo '" + correo_armado + "' no es válido.").show();
                                         }
                                     });
+                                    //Si pone el caracter arroba, automaticamente pone la opcion de OTROS
+                                    if (s.toString().contains("@")) {
+                                        // Programmatically select an option on the Spinner
+                                        atCorreo.setSelection(VariablesGlobales.getIndex(atCorreo,"Otros")); // Change index based on the desired option
+                                    }else{
+                                        if(((OpcionSpinner) atCorreo.getSelectedItem()).getId().toString().equals("Otros"))
+                                        {
+                                            atCorreo.setSelection(VariablesGlobales.getIndex(atCorreo,""));
+                                        }
+                                    }
                                 }
 
                                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -2653,7 +2710,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             int marginLeft = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 125, getResources().getDisplayMetrics());
                             int marginEnd = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0, getResources().getDisplayMetrics());
 
-                            int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 11.25f, getResources().getDisplayMetrics());
+                            int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 13.0f, getResources().getDisplayMetrics());
                             TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,5.0f);
                             textolp2.setMargins(0, 0, -marginLeft, 0);
                             et.setLayoutParams(textolp2);
@@ -2684,7 +2741,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 filalp.setMargins(0,-marginTop,0,0);
                                 fila.setLayoutParams(filalp);
                             }
-                            if(solicitudSeleccionada.size() >0) {
+                            if(solicitudSeleccionada.size() > 0) {
                                 String direccion_original = solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim();
                                 String[] partes_direccion = direccion_original.split(" ",2);
                                 if (prefijo_direccion != null) {
@@ -2696,7 +2753,14 @@ public class SolicitudActivity extends AppCompatActivity {
                                     }
                                 }
                             }
+                            et.post(() -> {
+                                // Get the height of the MaskedEditText
+                                int height = et.getHeight();
 
+                                // Set the height of the Spinner programmatically
+                                prefijo_direccion.getLayoutParams().height = height;
+                                prefijo_direccion.requestLayout(); // Ensure the change takes effect
+                            });
                         }
 
 
@@ -2986,7 +3050,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     codigoPais = "598";
                     break;
                 case "F428":
-                    codigoPais = "506";
+                    codigoPais = "57";
                     break;
                 case "ARG":
                     codigoPais = "54";
@@ -3333,7 +3397,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     //Adaptadores
                     if (visitasSolicitud != null) {
-                        VisitasTableAdapter stda = new VisitasTableAdapter(getContext(), getActivity(), visitasSolicitud);
+                        VisitasTableAdapter stda = new VisitasTableAdapter(getContext(), getActivity(), visitasSolicitud,modificable);
                         stda.setPaddings(10, 15, 10, 15);
                         stda.setTextSize(16);
                         stda.setGravity(GRAVITY_CENTER);
@@ -3389,49 +3453,20 @@ public class SolicitudActivity extends AppCompatActivity {
                     int totalvp_preventa = visitasSolicitud.size();
 
                     if(visitasSolicitud.size() == 0){
-                        totalvp_preventa = 10;
+                        totalvp_preventa = visitas_permitidas.length;
                     }
                     String tipoVisitaActual = tipoVisita;
 
                     for (int i = 0; i < totalvp_preventa; i++) {
                         if (visitasSolicitud.size() == 0) {
-                            if (i == 0) {
-                                tipoVisitaActual = "ZPV";
-                            }
-                            if (i == 1) {
-                                tipoVisitaActual = "ZJV";
-                            }
-                            if (i == 2) {
-                                tipoVisitaActual = "ZTV";
-                            }
-                            if (i == 3) {
-                                tipoVisitaActual = "ZRM";
-                            }
-                            if (i == 4) {
-                                tipoVisitaActual = "ZDY";
-                            }
-                            if (i == 5) {
-                                tipoVisitaActual = "ZAT";
-                            }
-                            if (i == 6) {
-                                tipoVisitaActual = "ZKV";
-                            }
-                            if (i == 7) {
-                                tipoVisitaActual = "ZGE";
-                            }
-                            if (i == 8) {
-                                tipoVisitaActual = "ZCM";
-                            }
-                            if (i == 9) {
-                                tipoVisitaActual = "ZCS";
-                            }
+                            tipoVisitaActual = visitas_permitidas[i];
                         } else {
                             tipoVisitaActual = visitasSolicitud.get(i).getVptyp().trim();
                             if (tipoVisitaActual.equals("ZDD") || tipoVisitaActual.equals("ZDA")) {
                                 continue;
                             }
                         }
-                        if (mDBHelper.ExisteTipoVisita(tipoVisitaActual) && mDBHelper.ExisteEnVisitPlanActual(modalidad, tipoVisitaActual)) {
+                        if (mDBHelper.ExisteEnVisitPlanActual(modalidad, tipoVisitaActual)) {
                             CardView seccion_visitas = new CardView(Objects.requireNonNull(getContext()));
                             mapeoVisitas.put(tipoVisitaActual, seccion_visitas);
 
@@ -3459,9 +3494,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             TableRow tr = new TableRow(getContext());
                             tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 6f));
                             tr.setPadding(0, 0, 0, 0);
-                            /*for (int x = 0; x <= 6; x++) {
-                                ((TextInputEditText)mapeoCamposDinamicos.get(tipoVisitaActual + "_" + diaLabel[x])).setNextFocusForwardId(((TextInputEditText)mapeoCamposDinamicos.get(tipoVisitaActual + "_" + diaLabel[x+1])).getId());
-                            }*/
+
                             TextInputEditText et_anterior = null;
                             for (int x = 0; x <= 6; x++) {
                                 TextInputLayout label = new TextInputLayout(getContext());
@@ -3527,440 +3560,405 @@ public class SolicitudActivity extends AppCompatActivity {
                                 Drawable d = getResources().getDrawable(R.drawable.textbackground_min_padding, null);
                                 et.setBackground(d);
                                 final int finalX = x;
+                                String finalModalidad = modalidad;
+                                final String[] originalValue = {""};
                                 et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                                     @Override
                                     public void onFocusChange(View v, boolean hasFocus) {
-                                        Spinner comboModalidad = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR5"));
-                                        String modalidad = "";
-                                        modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
+                                        if (hasFocus) {
+                                            // Save the original value when the EditText gains focus
+                                            originalValue[0] = et.getText().toString();
+                                        } else {
+                                            Spinner comboModalidad = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR5"));
+                                            String modalidad = "";
+                                            modalidad = ((OpcionSpinner) comboModalidad.getAdapter().getItem((int) comboModalidad.getSelectedItemId())).getId();
 
-                                        int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZPV");
-                                        int indiceTeleventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZTV");
-                                        int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZJV");
-                                        int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
-                                        int indiceAutoventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZAT");
-                                        int indiceMixta = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZRM");
-                                        //int indiceDummy = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDY");
-                                        //COLOMBIA
-                                        int indiceZGE = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZGE");
-                                        int indiceZCM = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZCM");
-                                        int indiceZCS = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZCS");
-                                        int indiceZDI = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDI");
-                                        int indiceZEJ = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZEJ");
-                                        int indiceZES = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZES");
-                                        int indiceZIN = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZIN");
-                                        int indiceZOP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZOP");
-                                        int indiceZPK = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPK");
-                                        int indiceZSP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZSP");
-                                        int indiceZWB = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZWB");
-                                        int indiceZWE = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZWE");
-                                        int indiceZWJ = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZWJ");
-                                        int indiceZWP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZWP");
+                                            int indicePreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZPV");
+                                            int indiceTeleventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZTV");
+                                            int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZJV");
+                                            int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
+                                            int indiceAutoventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZAT");
+                                            int indiceMixta = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZRM");
+                                            //int indiceDummy = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDY");
+                                            //COLOMBIA
+                                            int indiceZGE = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZGE");
+                                            int indiceZCM = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZCM");
+                                            int indiceZCS = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZCS");
+                                            int indiceZDI = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDI");
+                                            int indiceZEJ = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZEJ");
+                                            int indiceZES = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZES");
+                                            int indiceZIN = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZIN");
+                                            int indiceZOP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZOP");
+                                            int indiceZPK = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZPK");
+                                            int indiceZSP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZSP");
+                                            int indiceZWB = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZWB");
+                                            int indiceZWE = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZWE");
+                                            int indiceZWJ = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZWJ");
+                                            int indiceZWP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZWP");
 
-                                        final int finalIndicePreventa = indicePreventa;
-                                        final int finalIndiceEspecializada = indiceEspecializada;
-                                        final int finalIndiceTeleventa = indiceTeleventa;
-                                        final int finalIndiceReparto = indiceReparto;
-                                        final int finalIndiceMixta = indiceMixta;
-                                        final int finalIndiceAutoventa = indiceAutoventa;
-                                        final int finalIndiceZGE = indiceZGE;
-                                        final int finalIndiceZCM = indiceZCM;
-                                        final int finalIndiceZCS = indiceZCS;
-                                        final int finalIndiceZDI = indiceZDI;
-                                        final int finalIndiceZEJ = indiceZEJ;
-                                        final int finalIndiceZES = indiceZES;
-                                        final int finalIndiceZIN = indiceZIN;
-                                        final int finalIndiceZOP = indiceZOP;
-                                        final int finalIndiceZPK = indiceZPK;
-                                        final int finalIndiceZSP = indiceZSP;
-                                        final int finalIndiceZWB = indiceZWB;
-                                        final int finalIndiceZWE = indiceZWE;
-                                        final int finalIndiceZWJ = indiceZWJ;
-                                        final int finalIndiceZWP = indiceZWP;
-                                        //final int finalIndiceDummy = indiceDummy;
-                                        if (!hasFocus) {
-                                            int diaReparto = 0;
-                                            int diasParaReparto = 1;
-                                            Visitas visitaPreventa = null;
-                                            if (finalIndicePreventa != -1 && ((TextView) v).getTag().toString().contains("ZPV")) {
-                                                visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
-                                                if (visitaPreventa.getKvgr4() != null)
-                                                    diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
-                                                if ((finalX + diasParaReparto) > 5) {
-                                                    diaReparto = ((finalX + diasParaReparto) - 6);
-                                                } else {
-                                                    diaReparto = (finalX + diasParaReparto);
-                                                }
-                                            } else if (finalIndiceTeleventa != -1 && ((TextView) v).getTag().toString().contains("ZTV")) {
-                                                visitaPreventa = visitasSolicitud.get(finalIndiceTeleventa);
-                                                if (visitaPreventa.getKvgr4() != null)
-                                                    diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
-                                                if ((finalX + diasParaReparto) > 5) {
-                                                    diaReparto = ((finalX + diasParaReparto) - 6);
-                                                } else {
-                                                    diaReparto = (finalX + diasParaReparto);
-                                                }
-                                            } else if (finalIndiceEspecializada != -1 && ((TextView) v).getTag().toString().contains("ZJV")) {
-                                                visitaPreventa = visitasSolicitud.get(finalIndiceEspecializada);
-                                                if (visitaPreventa.getKvgr4() != null)
-                                                    diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
-                                                if ((finalX + diasParaReparto) > 5) {
-                                                    diaReparto = ((finalX + diasParaReparto) - 6);
-                                                } else {
-                                                    diaReparto = (finalX + diasParaReparto);
-                                                }
-                                            } else if (finalIndiceAutoventa != -1) {
-                                                visitaPreventa = visitasSolicitud.get(finalIndiceAutoventa);
-                                                if (visitaPreventa.getKvgr4() != null)
-                                                    diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
-                                                if ((finalX + diasParaReparto) > 5) {
-                                                    diaReparto = ((finalX + diasParaReparto) - 6);
-                                                } else {
-                                                    diaReparto = (finalX + diasParaReparto);
-                                                }
-                                                //COMIENZAN TIPO DE VISITA DE COLOMBIA
-                                            }else if (finalIndiceZGE != -1 && ((TextView) v).getTag().toString().contains("ZGE")) {
-                                                visitaPreventa = visitasSolicitud.get(finalIndiceZGE);
-                                                if (visitaPreventa.getKvgr4() != null)
-                                                    diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
-                                                if ((finalX + diasParaReparto) > 5) {
-                                                    diaReparto = ((finalX + diasParaReparto) - 6);
-                                                } else {
-                                                    diaReparto = (finalX + diasParaReparto);
-                                                }
-                                            }else if (finalIndiceZCM != -1 && ((TextView) v).getTag().toString().contains("ZCM")) {
-                                                visitaPreventa = visitasSolicitud.get(finalIndiceZCM);
-                                                if (visitaPreventa.getKvgr4() != null)
-                                                    diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
-                                                if ((finalX + diasParaReparto) > 5) {
-                                                    diaReparto = ((finalX + diasParaReparto) - 6);
-                                                } else {
-                                                    diaReparto = (finalX + diasParaReparto);
-                                                }
-                                            }else if (finalIndiceZCS != -1 && ((TextView) v).getTag().toString().contains("ZCS")) {
-                                                visitaPreventa = visitasSolicitud.get(finalIndiceZCS);
-                                                if (visitaPreventa.getKvgr4() != null)
-                                                    diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
-                                                if ((finalX + diasParaReparto) > 5) {
-                                                    diaReparto = ((finalX + diasParaReparto) - 6);
-                                                } else {
-                                                    diaReparto = (finalX + diasParaReparto);
-                                                }
-                                            }
+                                            final int finalIndicePreventa = indicePreventa;
+                                            final int finalIndiceEspecializada = indiceEspecializada;
+                                            final int finalIndiceTeleventa = indiceTeleventa;
+                                            final int finalIndiceReparto = indiceReparto;
+                                            final int finalIndiceMixta = indiceMixta;
+                                            final int finalIndiceAutoventa = indiceAutoventa;
+                                            final int finalIndiceZGE = indiceZGE;
+                                            final int finalIndiceZCM = indiceZCM;
+                                            final int finalIndiceZCS = indiceZCS;
+                                            final int finalIndiceZDI = indiceZDI;
+                                            final int finalIndiceZEJ = indiceZEJ;
+                                            final int finalIndiceZES = indiceZES;
+                                            final int finalIndiceZIN = indiceZIN;
+                                            final int finalIndiceZOP = indiceZOP;
+                                            final int finalIndiceZPK = indiceZPK;
+                                            final int finalIndiceZSP = indiceZSP;
+                                            final int finalIndiceZWB = indiceZWB;
+                                            final int finalIndiceZWE = indiceZWE;
+                                            final int finalIndiceZWJ = indiceZWJ;
+                                            final int finalIndiceZWP = indiceZWP;
+                                            //final int finalIndiceDummy = indiceDummy;
+                                            if (!hasFocus) {
+                                                int diaReparto = 0;
+                                                int diasParaReparto = 1;
+                                                Visitas visitaPreventa = null;
 
-                                            Visitas visitaMixta = null;
-                                            if (finalIndiceMixta != -1) {
-                                                visitaMixta = visitasSolicitud.get(finalIndiceMixta);
-                                                visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
-                                                if (visitaMixta.getKvgr4() != null)
-                                                    diasParaReparto = Integer.valueOf(visitaMixta.getKvgr4().replace("DA", ""));
-                                                if ((finalX + diasParaReparto) > 5) {
-                                                    diaReparto = ((finalX + diasParaReparto) - 6);
-                                                } else {
-                                                    diaReparto = (finalX + diasParaReparto);
-                                                }
-                                            }
-                                            Visitas visitaReparto = null;
-                                            if (!modalidad.equals("GV")) {
-                                                if(finalIndiceReparto != -1)
-                                                    visitaReparto = visitasSolicitud.get(finalIndiceReparto);
-                                            }
-                                            if (!((TextView) v).getText().toString().equals("") && Integer.valueOf(((TextView) v).getText().toString()) > 1339) {
-                                                switch (finalX) {
-                                                    case 0:
-                                                        visitaPreventa.setLun_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setLun_de(getResources().getString(R.string.max_secuencia));
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setLun_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaMixta.setLun_de(getResources().getString(R.string.max_secuencia));
+                                                for (int x = 0; x < visitas_permitidas.length; x++) {
+                                                    int indice = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, visitas_permitidas[x]);
+                                                    if (indice != -1 && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "").equals(visitas_permitidas[x])) {
+                                                        visitaPreventa = visitasSolicitud.get(indice);
+                                                        if (visitaPreventa.getKvgr4() != null)
+                                                            diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
+                                                        if ((finalX + diasParaReparto) > 5) {
+                                                            diaReparto = ((finalX + diasParaReparto) - 6);
+                                                        } else {
+                                                            diaReparto = (finalX + diasParaReparto);
                                                         }
-                                                        break;
-                                                    case 1:
-                                                        visitaPreventa.setMar_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setMar_de(getResources().getString(R.string.max_secuencia));
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setMar_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaMixta.setMar_de(getResources().getString(R.string.max_secuencia));
-                                                        }
-                                                        break;
-                                                    case 2:
-                                                        visitaPreventa.setMier_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setMier_de(getResources().getString(R.string.max_secuencia));
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setMier_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaMixta.setMier_de(getResources().getString(R.string.max_secuencia));
-                                                        }
-                                                        break;
-                                                    case 3:
-                                                        visitaPreventa.setJue_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setJue_de(getResources().getString(R.string.max_secuencia));
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setJue_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaMixta.setJue_de(getResources().getString(R.string.max_secuencia));
-                                                        }
-                                                        break;
-                                                    case 4:
-                                                        visitaPreventa.setVie_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setVie_de(getResources().getString(R.string.max_secuencia));
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setVie_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaMixta.setVie_de(getResources().getString(R.string.max_secuencia));
-                                                        }
-                                                        break;
-                                                    case 5:
-                                                        visitaPreventa.setSab_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setSab_de(getResources().getString(R.string.max_secuencia));
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setSab_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaMixta.setSab_de(getResources().getString(R.string.max_secuencia));
-                                                        }
-                                                        break;
-                                                    case 6:
-                                                        visitaPreventa.setDom_a(getResources().getString(R.string.max_secuencia));
-                                                        visitaPreventa.setDom_de(getResources().getString(R.string.max_secuencia));
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setDom_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaMixta.setDom_de(getResources().getString(R.string.max_secuencia));
-                                                        }
-                                                        break;
-                                                }
-                                                if (!modalidad.equals("GV") && visitaReparto != null) {
-                                                    switch (diaReparto) {
-                                                        case 0:
-                                                            visitaReparto.setLun_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setLun_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                        case 1:
-                                                            visitaReparto.setMar_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setMar_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                        case 2:
-                                                            visitaReparto.setMier_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setMier_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                        case 3:
-                                                            visitaReparto.setJue_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setJue_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                        case 4:
-                                                            visitaReparto.setVie_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setVie_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                        case 5:
-                                                            visitaReparto.setSab_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setSab_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
-                                                        case 6:
-                                                            visitaReparto.setDom_a(getResources().getString(R.string.max_secuencia));
-                                                            visitaReparto.setDom_de(getResources().getString(R.string.max_secuencia));
-                                                            break;
                                                     }
                                                 }
-                                                ((TextView) v).setText(getResources().getString(R.string.max_secuencia));
-                                                if (finalIndiceMixta != -1) {
-                                                    copiarDia(et, finalIndiceMixta, finalIndicePreventa);
-                                                }
-                                                Toasty.warning(v.getContext(), R.string.error_max_secuencia).show();
-                                            }
 
-                                            //Si el valor es vacio, borrar si existe el dia
-                                            if (((TextView) v).getText().toString().trim().replace("0", "").equals("")
-                                                    && !VariablesGlobales.AceptarVisitaCero()) {
-                                                if (((TextView) v).getText().toString().trim().length() > 0
+                                                Visitas visitaMixta = null;
+                                                if (finalIndiceMixta != -1) {
+                                                    visitaMixta = visitasSolicitud.get(finalIndiceMixta);
+                                                    visitaPreventa = visitasSolicitud.get(finalIndicePreventa);
+                                                    if (visitaMixta.getKvgr4() != null)
+                                                        diasParaReparto = Integer.valueOf(visitaMixta.getKvgr4().replace("DA", ""));
+                                                    if ((finalX + diasParaReparto) > 5) {
+                                                        diaReparto = ((finalX + diasParaReparto) - 6);
+                                                    } else {
+                                                        diaReparto = (finalX + diasParaReparto);
+                                                    }
+                                                }
+                                                Visitas visitaReparto = null;
+                                                if (!modalidad.equals("GV")) {
+                                                    if (finalIndiceReparto != -1)
+                                                        visitaReparto = visitasSolicitud.get(finalIndiceReparto);
+                                                }
+                                                if (!((TextView) v).getText().toString().equals("") && Integer.valueOf(((TextView) v).getText().toString()) > 1339) {
+                                                    switch (finalX) {
+                                                        case 0:
+                                                            visitaPreventa.setLun_a(getResources().getString(R.string.max_secuencia));
+                                                            visitaPreventa.setLun_de(getResources().getString(R.string.max_secuencia));
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setLun_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaMixta.setLun_de(getResources().getString(R.string.max_secuencia));
+                                                            }
+                                                            break;
+                                                        case 1:
+                                                            visitaPreventa.setMar_a(getResources().getString(R.string.max_secuencia));
+                                                            visitaPreventa.setMar_de(getResources().getString(R.string.max_secuencia));
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setMar_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaMixta.setMar_de(getResources().getString(R.string.max_secuencia));
+                                                            }
+                                                            break;
+                                                        case 2:
+                                                            visitaPreventa.setMier_a(getResources().getString(R.string.max_secuencia));
+                                                            visitaPreventa.setMier_de(getResources().getString(R.string.max_secuencia));
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setMier_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaMixta.setMier_de(getResources().getString(R.string.max_secuencia));
+                                                            }
+                                                            break;
+                                                        case 3:
+                                                            visitaPreventa.setJue_a(getResources().getString(R.string.max_secuencia));
+                                                            visitaPreventa.setJue_de(getResources().getString(R.string.max_secuencia));
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setJue_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaMixta.setJue_de(getResources().getString(R.string.max_secuencia));
+                                                            }
+                                                            break;
+                                                        case 4:
+                                                            visitaPreventa.setVie_a(getResources().getString(R.string.max_secuencia));
+                                                            visitaPreventa.setVie_de(getResources().getString(R.string.max_secuencia));
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setVie_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaMixta.setVie_de(getResources().getString(R.string.max_secuencia));
+                                                            }
+                                                            break;
+                                                        case 5:
+                                                            visitaPreventa.setSab_a(getResources().getString(R.string.max_secuencia));
+                                                            visitaPreventa.setSab_de(getResources().getString(R.string.max_secuencia));
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setSab_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaMixta.setSab_de(getResources().getString(R.string.max_secuencia));
+                                                            }
+                                                            break;
+                                                        case 6:
+                                                            visitaPreventa.setDom_a(getResources().getString(R.string.max_secuencia));
+                                                            visitaPreventa.setDom_de(getResources().getString(R.string.max_secuencia));
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setDom_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaMixta.setDom_de(getResources().getString(R.string.max_secuencia));
+                                                            }
+                                                            break;
+                                                    }
+                                                    if (!modalidad.equals("GV") && visitaReparto != null) {
+                                                        switch (diaReparto) {
+                                                            case 0:
+                                                                visitaReparto.setLun_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaReparto.setLun_de(getResources().getString(R.string.max_secuencia));
+                                                                break;
+                                                            case 1:
+                                                                visitaReparto.setMar_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaReparto.setMar_de(getResources().getString(R.string.max_secuencia));
+                                                                break;
+                                                            case 2:
+                                                                visitaReparto.setMier_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaReparto.setMier_de(getResources().getString(R.string.max_secuencia));
+                                                                break;
+                                                            case 3:
+                                                                visitaReparto.setJue_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaReparto.setJue_de(getResources().getString(R.string.max_secuencia));
+                                                                break;
+                                                            case 4:
+                                                                visitaReparto.setVie_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaReparto.setVie_de(getResources().getString(R.string.max_secuencia));
+                                                                break;
+                                                            case 5:
+                                                                visitaReparto.setSab_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaReparto.setSab_de(getResources().getString(R.string.max_secuencia));
+                                                                break;
+                                                            case 6:
+                                                                visitaReparto.setDom_a(getResources().getString(R.string.max_secuencia));
+                                                                visitaReparto.setDom_de(getResources().getString(R.string.max_secuencia));
+                                                                break;
+                                                        }
+                                                    }
+                                                    ((TextView) v).setText(getResources().getString(R.string.max_secuencia));
+                                                    if (finalIndiceMixta != -1) {
+                                                        copiarDia(et, finalIndiceMixta, finalIndicePreventa);
+                                                    }
+                                                    if ((finalIndiceZWB != -1 || finalIndiceZWE != -1)) {
+                                                        determinarDiasDigitales(et, finalIndiceZWB, finalIndiceZWE);
+                                                    }
+                                                    Toasty.warning(v.getContext(), R.string.error_max_secuencia).show();
+                                                }
+
+                                                //Si el valor es vacio, borrar si existe el dia
+                                                if (((TextView) v).getText().toString().trim().replace("0", "").equals("")
                                                         && !VariablesGlobales.AceptarVisitaCero()) {
-                                                    ((TextView) v).setText("");
-                                                    Toasty.warning(v.getContext(), "La Secuencia debe ser mayor a 0").show();
-                                                }
-                                                switch (finalX) {
-                                                    case 0:
-                                                        visitaPreventa.setLun_a("");
-                                                        visitaPreventa.setLun_de("");
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setLun_a("");
-                                                            visitaMixta.setLun_de("");
-                                                        }
-                                                        break;
-                                                    case 1:
-                                                        visitaPreventa.setMar_a("");
-                                                        visitaPreventa.setMar_de("");
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setMar_a("");
-                                                            visitaMixta.setMar_de("");
-                                                        }
-                                                        break;
-                                                    case 2:
-                                                        visitaPreventa.setMier_a("");
-                                                        visitaPreventa.setMier_de("");
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setMier_a("");
-                                                            visitaMixta.setMier_de("");
-                                                        }
-                                                        break;
-                                                    case 3:
-                                                        visitaPreventa.setJue_a("");
-                                                        visitaPreventa.setJue_de("");
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setJue_a("");
-                                                            visitaMixta.setJue_de("");
-                                                        }
-                                                        break;
-                                                    case 4:
-                                                        visitaPreventa.setVie_a("");
-                                                        visitaPreventa.setVie_de("");
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setVie_a("");
-                                                            visitaMixta.setVie_de("");
-                                                        }
-                                                        break;
-                                                    case 5:
-                                                        visitaPreventa.setSab_a("");
-                                                        visitaPreventa.setSab_de("");
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setSab_a("");
-                                                            visitaMixta.setSab_de("");
-                                                        }
-                                                        break;
-                                                    case 6:
-                                                        visitaPreventa.setDom_a("");
-                                                        visitaPreventa.setDom_de("");
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setDom_a("");
-                                                            visitaMixta.setDom_de("");
-                                                        }
-                                                        break;
-                                                }
-                                                if (!modalidad.equals("GV") && visitaReparto != null) {
-                                                    switch (diaReparto) {
+                                                    if (((TextView) v).getText().toString().trim().length() > 0
+                                                            && !VariablesGlobales.AceptarVisitaCero()) {
+                                                        ((TextView) v).setText("");
+                                                        Toasty.warning(v.getContext(), "La Secuencia debe ser mayor a 0").show();
+                                                    }
+                                                    switch (finalX) {
                                                         case 0:
-                                                            visitaReparto.setLun_a("");
-                                                            visitaReparto.setLun_de("");
+                                                            visitaPreventa.setLun_a("");
+                                                            visitaPreventa.setLun_de("");
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setLun_a("");
+                                                                visitaMixta.setLun_de("");
+                                                            }
                                                             break;
                                                         case 1:
-                                                            visitaReparto.setMar_a("");
-                                                            visitaReparto.setMar_de("");
+                                                            visitaPreventa.setMar_a("");
+                                                            visitaPreventa.setMar_de("");
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setMar_a("");
+                                                                visitaMixta.setMar_de("");
+                                                            }
                                                             break;
                                                         case 2:
-                                                            visitaReparto.setMier_a("");
-                                                            visitaReparto.setMier_de("");
+                                                            visitaPreventa.setMier_a("");
+                                                            visitaPreventa.setMier_de("");
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setMier_a("");
+                                                                visitaMixta.setMier_de("");
+                                                            }
                                                             break;
                                                         case 3:
-                                                            visitaReparto.setJue_a("");
-                                                            visitaReparto.setJue_de("");
+                                                            visitaPreventa.setJue_a("");
+                                                            visitaPreventa.setJue_de("");
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setJue_a("");
+                                                                visitaMixta.setJue_de("");
+                                                            }
                                                             break;
                                                         case 4:
-                                                            visitaReparto.setVie_a("");
-                                                            visitaReparto.setVie_de("");
+                                                            visitaPreventa.setVie_a("");
+                                                            visitaPreventa.setVie_de("");
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setVie_a("");
+                                                                visitaMixta.setVie_de("");
+                                                            }
                                                             break;
                                                         case 5:
-                                                            visitaReparto.setSab_a("");
-                                                            visitaReparto.setSab_de("");
+                                                            visitaPreventa.setSab_a("");
+                                                            visitaPreventa.setSab_de("");
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setSab_a("");
+                                                                visitaMixta.setSab_de("");
+                                                            }
                                                             break;
                                                         case 6:
-                                                            visitaReparto.setDom_a("");
-                                                            visitaReparto.setDom_de("");
+                                                            visitaPreventa.setDom_a("");
+                                                            visitaPreventa.setDom_de("");
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setDom_a("");
+                                                                visitaMixta.setDom_de("");
+                                                            }
                                                             break;
                                                     }
-                                                }
-                                                if (finalIndiceMixta != -1) {
-                                                    copiarDia(et, finalIndiceMixta, finalIndicePreventa);
-                                                }
-                                            } else {
-                                                String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView) v).getText().toString());
-                                                switch (finalX) {
-                                                    case 0:
-                                                        visitaPreventa.setLun_a(secuenciaSAP);
-                                                        visitaPreventa.setLun_de(secuenciaSAP);
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setLun_a(secuenciaSAP);
-                                                            visitaMixta.setLun_de(secuenciaSAP);
+                                                    if (!modalidad.equals("GV") && visitaReparto != null) {
+                                                        switch (diaReparto) {
+                                                            case 0:
+                                                                visitaReparto.setLun_a("");
+                                                                visitaReparto.setLun_de("");
+                                                                break;
+                                                            case 1:
+                                                                visitaReparto.setMar_a("");
+                                                                visitaReparto.setMar_de("");
+                                                                break;
+                                                            case 2:
+                                                                visitaReparto.setMier_a("");
+                                                                visitaReparto.setMier_de("");
+                                                                break;
+                                                            case 3:
+                                                                visitaReparto.setJue_a("");
+                                                                visitaReparto.setJue_de("");
+                                                                break;
+                                                            case 4:
+                                                                visitaReparto.setVie_a("");
+                                                                visitaReparto.setVie_de("");
+                                                                break;
+                                                            case 5:
+                                                                visitaReparto.setSab_a("");
+                                                                visitaReparto.setSab_de("");
+                                                                break;
+                                                            case 6:
+                                                                visitaReparto.setDom_a("");
+                                                                visitaReparto.setDom_de("");
+                                                                break;
                                                         }
-                                                        break;
-                                                    case 1:
-                                                        visitaPreventa.setMar_a(secuenciaSAP);
-                                                        visitaPreventa.setMar_de(secuenciaSAP);
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setMar_a(secuenciaSAP);
-                                                            visitaMixta.setMar_de(secuenciaSAP);
-                                                        }
-                                                        break;
-                                                    case 2:
-                                                        visitaPreventa.setMier_a(secuenciaSAP);
-                                                        visitaPreventa.setMier_de(secuenciaSAP);
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setMier_a(secuenciaSAP);
-                                                            visitaMixta.setMier_de(secuenciaSAP);
-                                                        }
-                                                        break;
-                                                    case 3:
-                                                        visitaPreventa.setJue_a(secuenciaSAP);
-                                                        visitaPreventa.setJue_de(secuenciaSAP);
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setJue_a(secuenciaSAP);
-                                                            visitaMixta.setJue_de(secuenciaSAP);
-                                                        }
-                                                        break;
-                                                    case 4:
-                                                        visitaPreventa.setVie_a(secuenciaSAP);
-                                                        visitaPreventa.setVie_de(secuenciaSAP);
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setVie_a(secuenciaSAP);
-                                                            visitaMixta.setVie_de(secuenciaSAP);
-                                                        }
-                                                        break;
-                                                    case 5:
-                                                        visitaPreventa.setSab_a(secuenciaSAP);
-                                                        visitaPreventa.setSab_de(secuenciaSAP);
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setSab_a(secuenciaSAP);
-                                                            visitaMixta.setSab_de(secuenciaSAP);
-                                                        }
-                                                        break;
-                                                    case 6:
-                                                        visitaPreventa.setDom_a(secuenciaSAP);
-                                                        visitaPreventa.setDom_de(secuenciaSAP);
-                                                        if (finalIndiceMixta != -1) {
-                                                            visitaMixta.setDom_a(secuenciaSAP);
-                                                            visitaMixta.setDom_de(secuenciaSAP);
-                                                        }
-                                                        break;
-                                                }
-                                                if (!modalidad.equals("GV") && visitaReparto != null) {
-                                                    switch (diaReparto) {
+                                                    }
+                                                    if (finalIndiceMixta != -1) {
+                                                        copiarDia(et, finalIndiceMixta, finalIndicePreventa);
+                                                    }
+                                                    if ((finalIndiceZWB != -1 || finalIndiceZWE != -1)) {
+                                                        determinarDiasDigitales(et, finalIndiceZWB, finalIndiceZWE);
+                                                    }
+                                                } else {
+                                                    String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView) v).getText().toString());
+                                                    switch (finalX) {
                                                         case 0:
-                                                            visitaReparto.setLun_a(secuenciaSAP);
-                                                            visitaReparto.setLun_de(secuenciaSAP);
+                                                            visitaPreventa.setLun_a(secuenciaSAP);
+                                                            visitaPreventa.setLun_de(secuenciaSAP);
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setLun_a(secuenciaSAP);
+                                                                visitaMixta.setLun_de(secuenciaSAP);
+                                                            }
                                                             break;
                                                         case 1:
-                                                            visitaReparto.setMar_a(secuenciaSAP);
-                                                            visitaReparto.setMar_de(secuenciaSAP);
+                                                            visitaPreventa.setMar_a(secuenciaSAP);
+                                                            visitaPreventa.setMar_de(secuenciaSAP);
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setMar_a(secuenciaSAP);
+                                                                visitaMixta.setMar_de(secuenciaSAP);
+                                                            }
                                                             break;
                                                         case 2:
-                                                            visitaReparto.setMier_a(secuenciaSAP);
-                                                            visitaReparto.setMier_de(secuenciaSAP);
+                                                            visitaPreventa.setMier_a(secuenciaSAP);
+                                                            visitaPreventa.setMier_de(secuenciaSAP);
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setMier_a(secuenciaSAP);
+                                                                visitaMixta.setMier_de(secuenciaSAP);
+                                                            }
                                                             break;
                                                         case 3:
-                                                            visitaReparto.setJue_a(secuenciaSAP);
-                                                            visitaReparto.setJue_de(secuenciaSAP);
+                                                            visitaPreventa.setJue_a(secuenciaSAP);
+                                                            visitaPreventa.setJue_de(secuenciaSAP);
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setJue_a(secuenciaSAP);
+                                                                visitaMixta.setJue_de(secuenciaSAP);
+                                                            }
                                                             break;
                                                         case 4:
-                                                            visitaReparto.setVie_a(secuenciaSAP);
-                                                            visitaReparto.setVie_de(secuenciaSAP);
+                                                            visitaPreventa.setVie_a(secuenciaSAP);
+                                                            visitaPreventa.setVie_de(secuenciaSAP);
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setVie_a(secuenciaSAP);
+                                                                visitaMixta.setVie_de(secuenciaSAP);
+                                                            }
                                                             break;
                                                         case 5:
-                                                            visitaReparto.setSab_a(secuenciaSAP);
-                                                            visitaReparto.setSab_de(secuenciaSAP);
+                                                            visitaPreventa.setSab_a(secuenciaSAP);
+                                                            visitaPreventa.setSab_de(secuenciaSAP);
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setSab_a(secuenciaSAP);
+                                                                visitaMixta.setSab_de(secuenciaSAP);
+                                                            }
                                                             break;
                                                         case 6:
-                                                            visitaReparto.setDom_a(secuenciaSAP);
-                                                            visitaReparto.setDom_de(secuenciaSAP);
+                                                            visitaPreventa.setDom_a(secuenciaSAP);
+                                                            visitaPreventa.setDom_de(secuenciaSAP);
+                                                            if (finalIndiceMixta != -1) {
+                                                                visitaMixta.setDom_a(secuenciaSAP);
+                                                                visitaMixta.setDom_de(secuenciaSAP);
+                                                            }
                                                             break;
                                                     }
+                                                    if (!modalidad.equals("GV") && visitaReparto != null) {
+                                                        switch (diaReparto) {
+                                                            case 0:
+                                                                visitaReparto.setLun_a(secuenciaSAP);
+                                                                visitaReparto.setLun_de(secuenciaSAP);
+                                                                break;
+                                                            case 1:
+                                                                visitaReparto.setMar_a(secuenciaSAP);
+                                                                visitaReparto.setMar_de(secuenciaSAP);
+                                                                break;
+                                                            case 2:
+                                                                visitaReparto.setMier_a(secuenciaSAP);
+                                                                visitaReparto.setMier_de(secuenciaSAP);
+                                                                break;
+                                                            case 3:
+                                                                visitaReparto.setJue_a(secuenciaSAP);
+                                                                visitaReparto.setJue_de(secuenciaSAP);
+                                                                break;
+                                                            case 4:
+                                                                visitaReparto.setVie_a(secuenciaSAP);
+                                                                visitaReparto.setVie_de(secuenciaSAP);
+                                                                break;
+                                                            case 5:
+                                                                visitaReparto.setSab_a(secuenciaSAP);
+                                                                visitaReparto.setSab_de(secuenciaSAP);
+                                                                break;
+                                                            case 6:
+                                                                visitaReparto.setDom_a(secuenciaSAP);
+                                                                visitaReparto.setDom_de(secuenciaSAP);
+                                                                break;
+                                                        }
+                                                    }
+                                                    if (finalIndiceMixta != -1) {
+                                                        copiarDia(et, finalIndiceMixta, finalIndicePreventa);
+                                                    }
+                                                    if ((finalIndiceZWB != -1 || finalIndiceZWE != -1)) {
+                                                        determinarDiasDigitales(et, finalIndiceZWB, finalIndiceZWE);
+                                                    }
                                                 }
-                                                if (finalIndiceMixta != -1) {
-                                                    copiarDia(et, finalIndiceMixta, finalIndicePreventa);
-                                                }
-                                            }
 
+                                            }
                                         }
                                     }
 
@@ -3981,6 +3979,136 @@ public class SolicitudActivity extends AppCompatActivity {
                                             if (finalIndPreventa > 0 && finalIndMixta > 0 && visitasSolicitud.size() > 0) {
                                                 String valor = visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(finalX);
                                                 visitasSolicitud.get(finalIndMixta).setValorDiaSegunIndice(finalX, valor);
+                                            }
+                                        }
+                                    }
+                                    private void determinarDiasDigitales(TextInputEditText et, int finalIndZWB, int finalIndZWE) {
+                                        int finalIndPreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA",""));
+                                        if(et.getTag().toString().contains(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","")) )
+                                            if (mDBHelper.ExisteEnVisitPlanActual(finalModalidad,"ZWB")) {
+                                                if(!et.getText().toString().equals("")) {
+                                                    int frecuencia = Integer.parseInt(et.getText().toString());
+                                                    if (frecuencia == 1) {
+                                                        TextInputEditText copiar = null;
+                                                        if (finalX == 0)//Preventa Lunes -> Digitales Miércoles
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_M");
+                                                        if (finalX == 1)//Preventa Martes -> Digitales Jueves
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_J");
+                                                        if (finalX == 2)//Preventa Miércoles -> Digitales Viernes
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_V");
+                                                        if (finalX == 3)//Preventa Jueves -> Digitales Sábado
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_S");
+                                                        if (copiar != null)
+                                                            copiar.setText("1");
+                                                        if (finalIndPreventa > 0 && finalIndZWB > 0 && visitasSolicitud.size() > 0) {
+                                                            visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(finalX + 2, "0001");
+                                                        }
+                                                    }
+                                                    if (frecuencia > 1) {//Mayor que 1, poner dia domingo en visita digital
+                                                        TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_D");
+                                                        if (copiar != null)
+                                                            copiar.setText("1");
+                                                        if (finalIndPreventa > 0 && finalIndZWB > 0 && visitasSolicitud.size() > 0) {
+                                                            visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(6, "0001");
+                                                        }
+                                                    }
+                                                }else if(originalValue[0].equals("1")){
+                                                    TextInputEditText copiar = null;
+                                                    if (finalX == 0)//Preventa Lunes -> Digitales Miércoles
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_M");
+                                                    if (finalX == 1)//Preventa Martes -> Digitales Jueves
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_J");
+                                                    if (finalX == 2)//Preventa Miércoles -> Digitales Viernes
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_V");
+                                                    if (finalX == 3)//Preventa Jueves -> Digitales Sábado
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_S");
+                                                    if (copiar != null)
+                                                        copiar.setText("");
+                                                    if (finalIndPreventa > 0 && finalIndZWB > 0 && visitasSolicitud.size() > 0) {
+                                                        visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(finalX + 2, "");
+                                                    }
+
+                                                }else if(!originalValue[0].equals("")){//Caso cuando es vacio, y le valor original es diferente 1
+                                                    //Si viene vacio, revisar si tiene algun otro dia en 2 o mas para desactivar el domingo?
+                                                    boolean activado = false;
+                                                    for(int i = 0;i <= 5;i++){
+                                                        if(finalIndPreventa > 0) {
+                                                            if (visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(i) != null && !visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(i).equals("") && !visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(i).equals("0001") && finalX != i) {
+                                                                activado = true;
+                                                            }
+                                                        }
+                                                    }
+                                                    if(!activado) {
+                                                        TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_D");
+                                                        if (copiar != null)
+                                                            copiar.setText("");
+                                                        if (finalIndPreventa > 0 && finalIndZWB > 0 && visitasSolicitud.size() > 0) {
+                                                            visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(6, "");
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        if (mDBHelper.ExisteEnVisitPlanActual(finalModalidad,"ZWE") && !et.getText().toString().equals("")) {
+                                            if(!et.getText().toString().equals("")) {
+                                                int frecuencia = Integer.parseInt(et.getText().toString());
+                                                if (frecuencia == 1) {
+                                                    TextInputEditText copiar = null;
+                                                    if (finalX == 0)//Preventa Lunes -> Digitales Miércoles
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_M");
+                                                    if (finalX == 1)//Preventa Martes -> Digitales Jueves
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_J");
+                                                    if (finalX == 2)//Preventa Miércoles -> Digitales Viernes
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_V");
+                                                    if (finalX == 3)//Preventa Jueves -> Digitales Sábado
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_S");
+                                                    if (copiar != null)
+                                                        copiar.setText("1");
+                                                    if (finalIndPreventa > 0 && finalIndZWE > 0 && visitasSolicitud.size() > 0) {
+                                                        visitasSolicitud.get(finalIndZWE).setValorDiaSegunIndice(finalX + 2, "0001");
+                                                    }
+                                                }
+                                                if (frecuencia > 1) {//Mayor que 1, poner dia domingo en visita digital
+                                                    TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_D");
+                                                    if (copiar != null)
+                                                        copiar.setText("1");
+                                                    if (finalIndPreventa > 0 && finalIndZWE > 0 && visitasSolicitud.size() > 0) {
+                                                        visitasSolicitud.get(finalIndZWE).setValorDiaSegunIndice(6, "0001");
+                                                    }
+                                                }
+                                            }else if(originalValue[0].equals("1")){
+                                                TextInputEditText copiar = null;
+                                                if (finalX == 0)//Preventa Lunes -> Digitales Miércoles
+                                                    copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_M");
+                                                if (finalX == 1)//Preventa Martes -> Digitales Jueves
+                                                    copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_J");
+                                                if (finalX == 2)//Preventa Miércoles -> Digitales Viernes
+                                                    copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_V");
+                                                if (finalX == 3)//Preventa Jueves -> Digitales Sábado
+                                                    copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_S");
+                                                if (copiar != null)
+                                                    copiar.setText("");
+                                                if (finalIndPreventa > 0 && finalIndZWB > 0 && visitasSolicitud.size() > 0) {
+                                                    visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(finalX + 2, "");
+                                                }
+
+                                            }else if(!originalValue[0].equals("")){//Caso cuando es vacio, y el valor original es diferente 1
+                                                //Si viene vacio, revisar si tiene algun otro dia en 2 o mas para desactivar el domingo?
+                                                boolean activado = false;
+                                                for(int i = 0;i <= 5;i++){
+                                                    if(finalIndPreventa > 0) {
+                                                        if (visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(i) != null && !visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(i).equals("") && !visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(i).equals("0001") && finalX != i) {
+                                                            activado = true;
+                                                        }
+                                                    }
+                                                }
+                                                if(!activado) {
+                                                    TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_D");
+                                                    if (copiar != null)
+                                                        copiar.setText("");
+                                                    if (finalIndPreventa > 0 && finalIndZWB > 0 && visitasSolicitud.size() > 0) {
+                                                        visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(6, "");
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -5141,12 +5269,20 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(gecSpinner != null) {
                         String valor = valor_canales.get("W_CTE-KLABC");
                         if( valor != null) {
-                            gecSpinner.setSelection(VariablesGlobales.getIndex(gecSpinner, valor.trim()));
-                            CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
-                            ejecutada.setChecked(true);
-                            ejecutada.setEnabled(false);
+                            if(valor.equals("52") || valor.equals("53")) {
+                                gecSpinner.setSelection(VariablesGlobales.getIndex(gecSpinner, valor.trim()));
+                                CheckBox ejecutada = (CheckBox) mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
+                                ejecutada.setChecked(true);
+                                ejecutada.setEnabled(false);
+                            }else{
+                                CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
+                                ejecutada.setChecked(false);
+                                ejecutada.setEnabled(true);
+                                //Y mensaje que debe hacerlo
+                                Toasty.warning(d.getContext(), "El valor GEC '"+valor+"' no es permitido para la creación del cliente.", Toasty.LENGTH_SHORT).show();
+                            }
                         }else{
-                            //activar/habilitar check de encuesta ocasion de consumo
+                            //activar/habilitar check de encuesta GEC
                             CheckBox ejecutada = (CheckBox)mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
                             ejecutada.setChecked(false);
                             ejecutada.setEnabled(true);
@@ -5831,7 +5967,8 @@ public class SolicitudActivity extends AppCompatActivity {
                         ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
                 }else{
                     if( mDBHelper.ExisteTipoVisita("ZRM") || mDBHelper.ExisteTipoVisita("ZDY") || !PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_TIPORUTA", "").equals(seleccionado.getVptyp())){
-                        seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
+                        if(((OpcionSpinner)ruta_reparto.getSelectedItem()) != null)
+                            seleccionado.setRuta(((OpcionSpinner)ruta_reparto.getSelectedItem()).getId().toString().trim());
                     }else{
                         seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH", ""));
                     }
@@ -5867,7 +6004,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 //RECALCULAR DIAS DE VISITA
                 RecalcularDiasDeReparto();
 
-                tb_visitas.setDataAdapter(new VisitasTableAdapter(v.getContext(),SolicitudActivity.this, visitasSolicitud));
+                tb_visitas.setDataAdapter(new VisitasTableAdapter(v.getContext(),SolicitudActivity.this, visitasSolicitud,modificable));
                 try {
                     d.dismiss();
                 }catch(Exception e){
@@ -6007,7 +6144,7 @@ public class SolicitudActivity extends AppCompatActivity {
         public boolean onDataLongClicked(int rowIndex, Visitas seleccionado) {
             String salida = seleccionado.getVptyp() + " " + seleccionado.getRuta();
             visitasSolicitud.remove(rowIndex);
-            tb_visitas.setDataAdapter(new VisitasTableAdapter(getBaseContext(), getParent(), visitasSolicitud));
+            tb_visitas.setDataAdapter(new VisitasTableAdapter(getBaseContext(), getParent(), visitasSolicitud,modificable));
             tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height-alturaFilaTableView;
             Toasty.info(getBaseContext(), salida, Toasty.LENGTH_SHORT).show();
             return true;
@@ -6026,7 +6163,7 @@ public class SolicitudActivity extends AppCompatActivity {
             OpcionSpinner opcion = (OpcionSpinner) modalidad_preventa.getSelectedItem();
             visitasSolicitud = mDBHelper.DeterminarPlanesdeVisita(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_VKORG", ""), opcion.getId());
 
-            tb_visitas.setDataAdapter(new VisitasTableAdapter(context,activity, visitasSolicitud));
+            tb_visitas.setDataAdapter(new VisitasTableAdapter(context,activity, visitasSolicitud,modificable));
             if (tb_visitas.getLayoutParams() != null) {
                 tb_visitas.getLayoutParams().height = 50;
                 tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView ) * visitasSolicitud.size());
@@ -6065,15 +6202,23 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(lzone != null && !vptyp.equals("ZCM") && !vptyp.equals("ZDM") && !vptyp.equals("ZDP")) {
                         ((Spinner) mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner) mapeoCamposDinamicos.get("W_CTE-LZONE")), reparto));
                     }
+                    tb_visitas.setDataAdapter(new VisitasTableAdapter(context,activity, visitasSolicitud,modificable));
+                    if (tb_visitas.getLayoutParams() != null) {
+                        tb_visitas.getLayoutParams().height = 50;
+                        tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView ) * visitasSolicitud.size());
+                    }
+                    Toasty.success(context,"Ruta de Reparto calculada automaticamente según aproximidad de coordenadas!").show();
+                }else{
+                    tb_visitas.setDataAdapter(new VisitasTableAdapter(context,activity, visitasSolicitud,modificable));
+                    if (tb_visitas.getLayoutParams() != null) {
+                        tb_visitas.getLayoutParams().height = 50;
+                        tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView ) * visitasSolicitud.size());
+                    }
+                    Toasty.warning(context,"Ruta de Reparto calculada automaticamente No encontrada en Pavent!").show();
                 }
-                tb_visitas.setDataAdapter(new VisitasTableAdapter(context,activity, visitasSolicitud));
-                if (tb_visitas.getLayoutParams() != null) {
-                    tb_visitas.getLayoutParams().height = 50;
-                    tb_visitas.getLayoutParams().height = tb_visitas.getLayoutParams().height + ((alturaFilaTableView ) * visitasSolicitud.size());
-                }
-                Toasty.success(context,"Ruta de Reparto calculada automaticamente según aproximidad de coordenadas!").show();
+
             }else{
-                Toasty.warning(context,"Faltan las coordenadas geográficas del cliente!").show();
+                Toasty.warning(context,"Faltan las coordenadas geográficas del cliente o son incorrectas!").show();
             }
         }
     }
@@ -6454,53 +6599,57 @@ public class SolicitudActivity extends AppCompatActivity {
         }
     }
     private static void Municipios(AdapterView<?> parent) {
+        ArrayList<HashMap<String, String>> municipios = new ArrayList<HashMap<String, String>>();
         Spinner pais = (Spinner) mapeoCamposDinamicos.get("W_CTE-LAND1");
-        final OpcionSpinner opcionpais = (OpcionSpinner) pais.getSelectedItem();
+        OpcionSpinner opcionpais = null;
+        if(pais != null)
+            opcionpais = (OpcionSpinner) pais.getSelectedItem();
         final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-        ArrayList<HashMap<String, String>> municipios = mDBHelper.Municipios(opcionpais.getId(), opcion.getId());
+        if(opcionpais != null && opcion != null)
+            municipios = mDBHelper.Municipios(opcionpais.getId(), opcion.getId());
 
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
         int selectedIndex = 0;
+        int selectedIndex2 = 0;
         for (int j = 0; j < municipios.size(); j++) {
             listaopciones.add(new OpcionSpinner(municipios.get(j).get("id"), municipios.get(j).get("descripcion")));
             if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-ORT01") != null) {
                 if (solicitudSeleccionada.get(0).get("W_CTE-ORT01").trim().equals(municipios.get(j).get("id"))) {
                     selectedIndex = j;
                 }
-            }else{
-                if (solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-CITY1").trim().equals(municipios.get(j).get("id"))) {
-                    selectedIndex = j;
+            }
+            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-CITY1") != null) {
+                if (solicitudSeleccionada.get(0).get("W_CTE-CITY1").trim().equals(municipios.get(j).get("id"))) {
+                    selectedIndex2 = j;
                 }
             }
         }
         SearchableSpinner combo = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-ORT01");
-        if(combo == null)
-            combo = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-CITY1");
 
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
-        combo.setAdapter(dataAdapter);
-        TextView view = null;
-        //view = ((TextView) combo.getAdapter().getView(0,null,null));
-        combo.setSelection(selectedIndex);
+        if(combo != null) {
+            // Creando el adaptador(opciones) para el comboBox deseado
+            ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+            // Drop down layout style - list view with radio button
+            dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+            // attaching data adapter to spinner
+            Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+            combo.setBackground(d);
+            combo.setAdapter(dataAdapter);
+            TextView view = null;
+            //view = ((TextView) combo.getAdapter().getView(0,null,null));
+            combo.setSelection(selectedIndex);
 
-        if (selectedIndex == 0 && view != null && (listaCamposObligatorios.contains("W_CTE-ORT01") || listaCamposObligatorios.contains("W_CTE-CITY1")))
-            view.setError("El campo es obligatorio!");
-        //DireccionCorta(parent.getContext());
-        if (!modificable) {
-            combo.setEnabled(false);
-            combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+            if (selectedIndex == 0 && view != null && (listaCamposObligatorios.contains("W_CTE-ORT01") || listaCamposObligatorios.contains("W_CTE-CITY1")))
+                view.setError("El campo es obligatorio!");
+            //DireccionCorta(parent.getContext());
+            if (!modificable) {
+                combo.setEnabled(false);
+                combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+            }
         }
 
-        //en caso que exista el campo para colombia replicar opciones e el de facturacion
-        SearchableSpinner munfac = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-CITY11");
-        if(munfac == null)
-            munfac = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-CITY1");
+        //en caso que exista el campo para colombia replicar opciones el de facturacion
+        SearchableSpinner munfac = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-CITY1");
         if (munfac != null) {
             // Creando el adaptador(opciones) para el comboBox deseado
             ArrayAdapter<OpcionSpinner> dataAdapter2 = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
@@ -6512,10 +6661,32 @@ public class SolicitudActivity extends AppCompatActivity {
             munfac.setAdapter(dataAdapter2);
             TextView view2 = null;
             //view = ((TextView) munfac.getAdapter().getView(0,null,null));
-            munfac.setSelection(selectedIndex);
+            munfac.setSelection(selectedIndex2);
 
             if (selectedIndex == 0 && view2 != null && (listaCamposObligatorios.contains("W_CTE-CITY1") || listaCamposObligatorios.contains("W_CTE-CITY11")))
-                view.setError("El campo es obligatorio!");
+                view2.setError("El campo es obligatorio!");
+            //DireccionCorta(parent.getContext());
+            if (!modificable) {
+                munfac.setEnabled(false);
+                munfac.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+            }
+        }
+        munfac = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-CITY11");
+        if (munfac != null) {
+            // Creando el adaptador(opciones) para el comboBox deseado
+            ArrayAdapter<OpcionSpinner> dataAdapter2 = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+            // Drop down layout style - list view with radio button
+            dataAdapter2.setDropDownViewResource(R.layout.spinner_item);
+            // attaching data adapter to spinner
+            Drawable d2 = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+            munfac.setBackground(d2);
+            munfac.setAdapter(dataAdapter2);
+            TextView view2 = null;
+            //view = ((TextView) munfac.getAdapter().getView(0,null,null));
+            munfac.setSelection(selectedIndex2);
+
+            if (selectedIndex == 0 && view2 != null && (listaCamposObligatorios.contains("W_CTE-CITY1") || listaCamposObligatorios.contains("W_CTE-CITY11")))
+                view2.setError("El campo es obligatorio!");
             //DireccionCorta(parent.getContext());
             if (!modificable) {
                 munfac.setEnabled(false);
@@ -6562,39 +6733,42 @@ public class SolicitudActivity extends AppCompatActivity {
     }
 
     private static void Barrios(AdapterView<?> parent){
+        ArrayList<HashMap<String, String>> barrios = new ArrayList<HashMap<String, String>>();
         Spinner provincia = (Spinner)mapeoCamposDinamicos.get("W_CTE-REGION");
         final OpcionSpinner opcionprovincia = (OpcionSpinner) provincia.getSelectedItem();
         final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
-        ArrayList<HashMap<String, String>> distritos = mDBHelper.Barrios(opcionprovincia.getId(),opcion.getId());
+        if(opcionprovincia != null && opcion != null)
+            barrios = mDBHelper.Barrios(opcionprovincia.getId(),opcion.getId());
 
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
         int selectedIndex = 0;
-        for (int j = 0; j < distritos.size(); j++){
-            listaopciones.add(new OpcionSpinner(distritos.get(j).get("id"), distritos.get(j).get("descripcion")));
-            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-STR_SUPPL3").trim().equals(distritos.get(j).get("id"))){
+        for (int j = 0; j < barrios.size(); j++){
+            listaopciones.add(new OpcionSpinner(barrios.get(j).get("id"), barrios.get(j).get("descripcion")));
+            if(solicitudSeleccionada.size() > 0 && solicitudSeleccionada.get(0).get("W_CTE-STR_SUPPL3").trim().equals(barrios.get(j).get("id"))){
                 selectedIndex = j;
             }
         }
         Spinner combo = (Spinner)mapeoCamposDinamicos.get("W_CTE-STR_SUPPL3");
+        if(combo != null) {
+            // Creando el adaptador(opciones) para el comboBox deseado
+            ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
+            // Drop down layout style - list view with radio button
+            dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+            // attaching data adapter to spinner
+            Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
+            combo.setBackground(d);
+            combo.setAdapter(dataAdapter);
+            TextView view = null;
+            //view = ((TextView) combo.getAdapter().getView(0,null,null));
+            combo.setSelection(selectedIndex);
 
-        // Creando el adaptador(opciones) para el comboBox deseado
-        ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(parent.getContext()), R.layout.simple_spinner_item, listaopciones);
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-        // attaching data adapter to spinner
-        Drawable d = parent.getResources().getDrawable(R.drawable.spinner_background, null);
-        combo.setBackground(d);
-        combo.setAdapter(dataAdapter);
-        TextView view = null;
-        //view = ((TextView) combo.getAdapter().getView(0,null,null));
-        combo.setSelection(selectedIndex);
-
-        if(selectedIndex == 0 && view != null && listaCamposObligatorios.contains("W_CTE-STR_SUPPL3"))
-            view.setError("El campo es obligatorio!");
-        DireccionCorta(parent.getContext());
-        if(!modificable){
-            combo.setEnabled(false);
-            combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+            if (selectedIndex == 0 && view != null && listaCamposObligatorios.contains("W_CTE-STR_SUPPL3"))
+                view.setError("El campo es obligatorio!");
+            DireccionCorta(parent.getContext());
+            if (!modificable) {
+                combo.setEnabled(false);
+                combo.setBackground(parent.getResources().getDrawable(R.drawable.spinner_background_disabled, null));
+            }
         }
     }
 
@@ -6741,8 +6915,15 @@ public class SolicitudActivity extends AppCompatActivity {
     private static void ReplicarValor(View v, String campo){
         TextView desde = (TextView)v;
         TextView hasta = (TextView)mapeoCamposDinamicos.get(campo);
-        if(hasta != null)
-            hasta.setText(desde.getText());
+        if(hasta != null) {
+            if(campo.equals("W_CTE-SORT1")) {
+                if(desde.getText().length() > 10)
+                    hasta.setText(desde.getText().toString().substring(0, 10));
+                else
+                    hasta.setText(desde.getText().toString());
+            }else
+                hasta.setText(desde.getText());
+        }
     }
     private static void ReplicarValorSpinner(View v, String campo,int selection){
         Spinner desde = (Spinner)v;

@@ -12,6 +12,7 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
+import android.os.StatFs;
 import android.preference.PreferenceManager;
 import androidx.core.content.FileProvider;
 
@@ -130,16 +131,19 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
                     publishProgress("Procesando datos recibidos...");
                     File tranFileDir;
                     File externalStorage = context.get().getExternalFilesDir(null);
+                    publishProgress("Se obtuvo direccion de almacenamiento externo...");
                     if (externalStorage != null) {
                         String externalStoragePath = externalStorage.getAbsolutePath();
+                        publishProgress("Se obtuvo direccion absoluta...");
                         tranFileDir = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
                         boolean ex = tranFileDir.mkdirs();
+                        publishProgress("Se crean los directorios...");
                         File transferFile = new File(tranFileDir, "ClientesABC");
                         OutputStream stream = new FileOutputStream(transferFile);
                         stream.write(r);
                         stream.flush();
                         stream.close();
-
+                        publishProgress("Se termina la transferencia...");
                         dos.close();
                         //UNZIP informacion recibida
                         boolean unzip = FileHelper.unzip(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "ClientesABC", externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "");
@@ -147,27 +151,28 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
 
                         try {
                             //Save in Download Folder too
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                ContentValues contentValues = new ContentValues();
-                                contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
-                                contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "ClientesABC_" + context.get().getSharedPreferences("CONFIG_SOCIEDAD", Context.MODE_PRIVATE).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad()) + ".apk");
-                                contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.android.package-archive");
-                                contentValues.put(MediaStore.MediaColumns.SIZE, s);
+                                publishProgress("Guardando en descargas...");
+                                File filep = new File(context.get().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),  "ClientesABC_" + context.get().getSharedPreferences("CONFIG_SOCIEDAD", Context.MODE_PRIVATE).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad()) + ".apk");
+                                try (OutputStream outputStream = new FileOutputStream(filep)) {
+                                    outputStream.write(Files.readAllBytes(file.toPath()));
+                                    Log.d("FileSave", "File saved to: " + filep.getAbsolutePath());
+                                } catch (Exception e) {
+                                    Log.e("FileSave", "Error saving file", e);
+                                }
+                                publishProgress("Guardado!");
 
-                                Uri uri = context.get().getContentResolver().insert(MediaStore.Files.getContentUri("external"), contentValues);
-                                OutputStream outputStream = context.get().getContentResolver().openOutputStream(uri);
-                                outputStream.write(Files.readAllBytes(file.toPath()));
-                                outputStream.flush();
-                                outputStream.close();
-                            }
                         }catch(Exception e){
-                            Toasty.info(context.get(), "No se pudo guardar el APK en la carpeta de Downloads!").show();
+                            xceptionFlag = true;
+                            messageFlag = "No se pudo guardar el APK en la carpeta de Downloads!" + e.getMessage();
                         }
 
                         if (unzip && file != null) {
+                            publishProgress("Validando Fechas.");
                             Date lastModDate = new Date(file.lastModified());
+                            publishProgress("Validando Fechas..");
                             //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                             Date buildDate = proyecto.app.clientesabc.BuildConfig.BuildDate;
+                            publishProgress("Validando Fechas...");
                             if (buildDate.after(lastModDate)) {
                                 activity.get().runOnUiThread(new Runnable() {
                                     public void run() {
