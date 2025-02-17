@@ -256,6 +256,11 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                         solicitudes_procesadas = new String(r, Charset.defaultCharset());
                     }
 
+                    if(solicitudes_procesadas.trim().isEmpty()){
+                        xceptionFlag = true;
+                        errorFlag = "No se pudo procesar ningun formulario. Por favor consulte el error con el administrador del sistema.";
+                    }
+
                     //O cerrarlo aqui estara bien?
                     dos.close();
                 }else{

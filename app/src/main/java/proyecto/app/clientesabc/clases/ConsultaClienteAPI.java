@@ -12,6 +12,8 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -55,9 +57,9 @@ public class ConsultaClienteAPI extends AsyncTask<Void,String,ArrayList<JsonArra
     private Socket socket;
     ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
-    public ConsultaClienteAPI(WeakReference<Context> c, WeakReference<Activity> a, String codigoCliente){
+    public ConsultaClienteAPI(WeakReference<Context> c, Activity a, String codigoCliente){
         this.context = c;
-        this.activity = a;
+        this.activity = new WeakReference<>(a);
         this.codigoCliente = codigoCliente;
     }
 
@@ -191,8 +193,13 @@ public class ConsultaClienteAPI extends AsyncTask<Void,String,ArrayList<JsonArra
             activity.get().finish();
 
         }
-        if(context.get().getClass().getSimpleName().equals("SolicitudModificacionActivity"))
-            SolicitudModificacionActivity.LlenarCampos(context.get(), activity.get(), estructuras);
+        Activity act = activity.get();
+        if (act instanceof SolicitudModificacionActivity) {
+            // Call method specific to SolicitudModificacionActivity
+            ((SolicitudModificacionActivity) act).LlenarCampos(context.get(), act, estructuras);
+        }
+        //if(context.get().getClass().getSimpleName().equals("SolicitudAvisosEquipoFrioActivity"))
+            //SolicitudModificacionActivity.LlenarCampos(context.get(), activity.get(), estructuras);
         else if(context.get().getClass().getSimpleName().equals("SolicitudAvisosEquipoFrioActivity"))
             SolicitudAvisosEquipoFrioActivity.LlenarCampos(context.get(), activity.get(), estructuras);
         else if(context.get().getClass().getSimpleName().equals("ConsultaClienteTotalActivity"))

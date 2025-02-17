@@ -3,11 +3,15 @@ package proyecto.app.clientesabc.clases;
 import static proyecto.app.clientesabc.R.drawable.botella_coca_header_der;
 
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -40,6 +44,12 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
     private SpinnerImageAdapter _baseAdapter;
     private String _strHintText;
     private boolean _isFromInit;
+    private String spinner_tag = "TAG";
+
+    private static final long MIN_CLICK_INTERVAL = 500; // 500ms delay
+    private long lastClickTime = 0;
+    private boolean isTouchDisabled = false;
+    private boolean isLoading = false; // Flag to block touches
 
     public SearchableSpinner(Context context) {
         super(context);
@@ -50,7 +60,23 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
     public SearchableSpinner(Context context, AttributeSet attrs) {
         super(context, attrs);
         this._context = context;
+        this.spinner_tag = attrs.getAttributeName(0);
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MultiSpinnerSearch);
+        final int N = a.getIndexCount();
+        for (int i = 0; i < N; ++i) {
+            int attr = a.getIndex(i);
+            if (attr == R.styleable.MultiSpinnerSearch_hintText) {
+                _strHintText = a.getString(attr);
+            }
+        }
+        a.recycle();
+        init();
+    }
+    public SearchableSpinner(Context context, String tagname) {
+        super(context, null);
+        this._context = context;
+        this.spinner_tag = tagname;
+        TypedArray a = context.obtainStyledAttributes(null, R.styleable.MultiSpinnerSearch);
         final int N = a.getIndexCount();
         for (int i = 0; i < N; ++i) {
             int attr = a.getIndex(i);
@@ -68,28 +94,40 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
         init();
     }
 
+    public void setLoading(boolean loading) {
+        this.isLoading = loading;
+    }
+
+    public SearchableSpinner getOnTouchListener(){
+        return this;
+    }
+
     private void init() {
         _items = new ArrayList();
         _original_items = new ArrayList();
-        _searchableListDialog = SearchableListDialog.newInstance(_items);
-        _searchableListDialog.setOnSearchableItemClickListener(this);
-        setOnTouchListener(this);
 
-        /*_arrayAdapter = (ArrayAdapter) getAdapter();
-        if (!TextUtils.isEmpty(_strHintText)) {
-            ArrayAdapter arrayAdapter = new ArrayAdapter(_context, android.R.layout
-                    .simple_list_item_1, new String[]{_strHintText});
-            _isFromInit = true;
-            setAdapter(arrayAdapter);
-        }*/
+        if(scanForActivity(_context).getFragmentManager().findFragmentByTag(spinner_tag) == null) {
+            Log.println(Log.ERROR,spinner_tag,"SearchableListDialog.NewInstance");
+            _searchableListDialog = SearchableListDialog.newInstance(_items);
+            _searchableListDialog.setOnSearchableItemClickListener(this);
+            setOnTouchListener(this);
+        }else
+            Log.println(Log.ERROR,"TAG","Seleccion de SearchableSpinner, ya existe uno abierto.");
+
     }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
-
             if (null != _arrayAdapter) {
+                if (isTouchDisabled) {
+                    return true; // Ignore touch
+                }
+                if (isLoading) {
+                    return true; // Block touch when loading
+                }
 
+                isTouchDisabled = true; // Disable further touches
                 // Refresh content #6
                 // Change Start
                 // Description: The items were only set initially, not reloading the data in the
@@ -102,13 +140,24 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
                 }
                 // Change end.
                 //if(v.isAdded()) {
-                    try {
-                        if(scanForActivity(_context).getFragmentManager().findFragmentByTag("TAG") == null)
-                            _searchableListDialog.show(scanForActivity(_context).getFragmentManager(), "TAG");
+                    try  {
+                        FragmentManager fragmentManager = scanForActivity(_context).getFragmentManager();
+                        if(fragmentManager.findFragmentByTag(spinner_tag) == null || !fragmentManager.findFragmentByTag(spinner_tag).isAdded()) {
+                            _searchableListDialog.show(fragmentManager, spinner_tag);
+                            Log.println(Log.ERROR,"TAG","Mostrando _searchableListDialog "+spinner_tag);
+                        }else {
+                            Log.println(Log.ERROR, "TAG", "Seleccion de SearchableSpinner muy rapida, ya existe uno abierto. "+spinner_tag);
+                            Fragment prev = fragmentManager.findFragmentByTag(spinner_tag);
+                            if (prev != null) {
+                                fragmentManager.beginTransaction().remove(prev).commit();
+                                Log.println(Log.ERROR, "TAG", "FragmentSearchableSpinner removido "+spinner_tag);
+                            }
+                        }
                     }catch (Exception e){
-                        Log.println(Log.ERROR,"TAG","Seleccion de SearchableSpinner muy rapida, recuperando del error.");
+                        Log.println(Log.ERROR,"TAG","Seleccion de SearchableSpinner muy rapida, recuperando del error. "+spinner_tag);
                     }
                 //}
+                new Handler(Looper.getMainLooper()).postDelayed(() -> isTouchDisabled = false, 500);
             }
         }
         return true;
@@ -118,6 +167,7 @@ public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchL
     public void setAdapter(SpinnerAdapter adapter) {
 
         try {
+            Log.w("SetAdapter",spinner_tag +" : "+ String.valueOf(adapter.getCount()));
             if (!_isFromInit) {
                 _arrayAdapter = (ArrayAdapter) adapter;
                 if (!TextUtils.isEmpty(_strHintText) && !_isDirty) {

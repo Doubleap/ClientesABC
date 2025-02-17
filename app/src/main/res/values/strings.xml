@@ -2,6 +2,9 @@
     <string name="app_name">ClientesABC CO</string>
     <string name="title_activity_login">Maestro Clientes Femsa</string>
 
+    <!-- PARAMETROS DE MENUS -->
+    <bool name="habilita_como_llegar">false</bool>
+    <bool name="habilita_base_instalada">false</bool>
     <!-- Strings related to login -->
     <string name="prompt_email">Usuario</string>
     <string name="prompt_password">Contrasena</string>
@@ -404,6 +407,7 @@ mismo día del alta como cliente previo a la recolección de los datos personale
     <string name="title_activity_firma_contrato_ni">CONTRATO DE LINEA DE CREDITO REVOLVENTE PARA LA COMPRAVENTA AL CREDITO DE PRODUCTOS GARANTIZADO CON PRENDA COMERCIAL</string>
     <string name="title_activity_firma_credito_pa">LETRA DE CAMBIO</string>
     <string name="title_activity_firma_politica_privacidad_ni">AUTORIZACIÓN PARA USO DE DATOS PERSONALES</string>
+
 
 
     <!-- CATALOGOS PARA ALGUNOS SPINNERS -->

@@ -36,11 +36,11 @@ public class VariablesGlobales extends Application {
     }
 
     //private static String urlApi = "https://kofcrazapl01.na.kof.ccf/MaestroClientes/";//Ambiente produccion CAM
-    //private static String urlApi = "http://kofcrofcdesa02:90/MaestroClientes/";//Ambiente calidad CAM
+    private static String urlApi = "https://kofcoazcli01.sa.kof.ccf/MaestroClientes/";//Ambiente produccion COL
     //private static String urlApi = "http://10.0.2.2:51123/";//Local host
     //private static String urlApi = "http://10.153.58.132/";//Servidor produccion para BD, pero ambiente calidad en VM uruguay(El ambiente de produccion es el appservice en azure), ocupa VPN
     //private static String urlApi = "http://10.153.152.69:90/MaestroClientes/"; //URL CAM CALIDAD
-    private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API en el app service azure
+    //private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API en el app service azure
     private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.56.71/FAWM_HVKOF;instance=MSSQLSERVER;user=maestro_clientes;password=kofcrmcli$;";//Se usa en beta para inactivar lectura de censo de equipo frio.
     private static String nombrePais = "Colombia";
     private static String sociedad = "F428";
@@ -192,12 +192,14 @@ public class VariablesGlobales extends Application {
     }
 
     //Get IndexOf by value ID on some Spinner
-    public static int getIndex(Spinner spinner, String valorId){
-        int pos=-1;
-        for (int i=0;i<spinner.getCount();i++){
-            if (((OpcionSpinner)spinner.getItemAtPosition(i)).getId().toLowerCase().equals(valorId.toLowerCase())){
-                pos = i;
-                break;
+    public static int getIndex(Spinner spinner, String valorId) {
+        int pos = -1;
+        if (spinner != null) {
+            for (int i = 0; i < spinner.getCount(); i++) {
+                if (((OpcionSpinner) spinner.getItemAtPosition(i)).getId().toLowerCase().equals(valorId.toLowerCase())) {
+                    pos = i;
+                    break;
+                }
             }
         }
         return pos;

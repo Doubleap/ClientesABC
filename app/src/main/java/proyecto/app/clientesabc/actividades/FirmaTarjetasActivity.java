@@ -332,7 +332,7 @@ public class FirmaTarjetasActivity extends AppCompatActivity {
                 Intent resultIntent = new Intent();
                 File file = new File(StoredPath);
 
-                file = FileHelper.saveBitmapToFile(file);
+                file = FileHelper.saveBitmapToFile(file,getBaseContext());
 
                 MimeTypeMap mime = MimeTypeMap.getSingleton();
                 int index = file.getName().lastIndexOf('.')+1;

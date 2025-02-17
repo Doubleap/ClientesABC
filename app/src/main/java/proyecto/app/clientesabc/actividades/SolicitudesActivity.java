@@ -111,7 +111,10 @@ public class SolicitudesActivity extends AppCompatActivity {
 
         Drawable d = getResources().getDrawable(R.drawable.header_curved_cc5,null);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("Mis Solicitudes ("+mAdapter.getItemCount()+")");
+        if(estado != null)
+            toolbar.setTitle("Mis Solicitudes "+estado.replace("Preventa","Call Center")+" ("+mAdapter.getItemCount()+")");
+        else
+            toolbar.setTitle("Mis Solicitudes ("+mAdapter.getItemCount()+")");
         /*if(estado != null && tipform != null)
             toolbar.setSubtitle("Filtro: "+estado+" / "+tipform);
         else if(estado != null)
@@ -145,7 +148,10 @@ public class SolicitudesActivity extends AppCompatActivity {
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
-        toolbar.setTitle("Mis Solicitudes ("+mAdapter.getItemCount()+")");
+        if(estado != null)
+            toolbar.setTitle("Mis Solicitudes "+estado.replace("Preventa","Call Center")+" ("+mAdapter.getItemCount()+")");
+        else
+            toolbar.setTitle("Mis Solicitudes ("+mAdapter.getItemCount()+")");
     }
 
     private void showDialogFilters(View view) {

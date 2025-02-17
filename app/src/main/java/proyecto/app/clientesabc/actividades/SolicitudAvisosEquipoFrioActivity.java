@@ -401,7 +401,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         ValidarFlujoClienteAPI v = new ValidarFlujoClienteAPI(weakRefs1, weakRefAs1, codigoCliente, tipoSolicitud, codigoEquipoFrio);
                         v.execute();
                     }
-                    ConsultaClienteAPI c = new ConsultaClienteAPI(weakRefs1, weakRefAs1, codigoCliente);
+                    ConsultaClienteAPI c = new ConsultaClienteAPI(weakRefs1, this, codigoCliente);
                     if (PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion", "").equals("wifi")) {
                         c.EnableWiFi();
                     }
@@ -709,7 +709,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     label.setPadding(0,0,0,0);
                     label.setLayoutParams(lpl);
 
-                    final SearchableSpinner combo = new SearchableSpinner(getContext(), null);
+                    final SearchableSpinner combo = new SearchableSpinner(getContext(), "TAG_"+campos.get(i).get("campo"));
                     combo.setTitle("Buscar");
                     combo.setPositiveButton("Cerrar");
                     combo.setTag(campos.get(i).get("descr"));
@@ -1699,11 +1699,14 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
                     tb_adjuntos.setLayoutParams(hlp);
 
-                    if(solicitudSeleccionada.size() > 0){
-                        if((idForm == null || idForm.equals("")) || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")|| solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Modificado"))
+                    if(solicitudSeleccionada.size() > 0) {
+                        if ((idForm == null || idForm.equals("")) || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia") || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Modificado")) {
                             adjuntosSolicitud = mDBHelper.getAdjuntosDB(idSolicitud);
-                        else
+                            manejadorAdjuntos.setAdjuntosSolicitud(adjuntosSolicitud);
+                        } else {
                             adjuntosSolicitud = mDBHelper.getAdjuntosServidor(idForm);
+                            manejadorAdjuntos.setAdjuntosSolicitud(adjuntosSolicitud);
+                        }
                     }
                     if(modificable) {
                         btnAddBloque.setOnClickListener(new View.OnClickListener() {
@@ -2104,25 +2107,35 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         String mensaje="";
         int selectedIndex = 0;
         ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-        listaopciones.add(new OpcionSpinner("","Modelo : Stock(Reservado)",false));
+        listaopciones.add(new OpcionSpinner("","Modelo : Stock(Reservado) # Puertas",false));
         if(mensajes.size() > 0 && mensajes.get(0)  != null && mensajes.get(0).size() > 0){
             for(int x = 0; x < mensajes.get(0).getAsJsonArray().size() ; x++){
                 JsonObject opcion = mensajes.get(0).getAsJsonArray().get(x).getAsJsonObject();
                 String material = "";
                 String modelo = "";
-                if(opcion.get("material") != null) {
-                    material = opcion.get("material").getAsString();
-                    modelo = "("+opcion.get("modelo").getAsString()+")";
+                if(!opcion.get("material").isJsonNull()) {
+                    material = " ("+opcion.get("material").getAsString()+")";
+                    modelo = opcion.get("modelo").getAsString();
                 }else{
-                    material = opcion.get("modelo").getAsString();
-                    modelo = "";
+                    material = " ";
+                    modelo = opcion.get("modelo").getAsString();
                 }
-                OpcionSpinner opcionSpinner = new OpcionSpinner(material.replaceFirst("^0+", ""),material.replaceFirst("^0+", "")+modelo+" : " +opcion.get("stock").getAsString() +"(" + opcion.get("reservado").getAsString()+") "+opcion.get("num_puertas")+" Puertas");
-                if( (Integer.parseInt(opcion.get("stock").getAsString()) - Integer.parseInt(opcion.get("reservado").getAsString())) == 0)
+                OpcionSpinner opcionSpinner = new OpcionSpinner(modelo.replaceFirst("^0+", ""),modelo+material.replaceFirst("^0+", "")+" : " +opcion.get("stock").getAsString() +"(" + opcion.get("reservado").getAsString()+") "+opcion.get("num_puertas")+" Puertas");
+                if( (Integer.parseInt(opcion.get("stock").getAsString()) - Integer.parseInt(opcion.get("reservado").getAsString())) == 0 || opcion.get("num_puertas").isJsonNull() ) {
                     opcionSpinner.setEnabled(false);
-                opcionSpinner.setRel1(opcion.get("num_puertas").getAsString());
+                    opcionSpinner.setRel1("0");
+                }
+                if(!opcion.get("num_puertas").isJsonNull())
+                    opcionSpinner.setRel1(opcion.get("num_puertas").getAsString());
                 if(solicitudSeleccionada.size() > 0 && opcion.get("modelo").getAsString().equals(solicitudSeleccionada.get(0).get("W_CTE-IM_DESCRIPT")))
                     selectedIndex = (x+1);
+                else if(solicitudSeleccionada.size() == 0 && codigoEquipoFrio != null){
+                    EquipoFrio equipofrio = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
+                    if(material.replaceFirst("^0+", "").equals(equipofrio.getMatnr())){
+                        selectedIndex = (x+1);
+                    }
+                }
+
                 listaopciones.add(opcionSpinner);
             }
             Spinner modelos = (Spinner)mapeoCamposDinamicos.get("W_CTE-IM_DESCRIPT");
@@ -2135,7 +2148,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     material = equipo.get("modelo");
                 if(material == null || material.equals("")) {
                     EquipoFrio equipofrio = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
-                    material = equipofrio.getMatnr();
+                    material = equipofrio.getEqktx();
+
 
                     OpcionSpinner opcionSpinner = new OpcionSpinner(material, material + " Puertas Desconocido");
                     opcionSpinner.setRel1("0");
@@ -2168,7 +2182,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     material = equipo.get("modelo");
                 if(material == null || material.equals("")) {
                     EquipoFrio equipofrio = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
-                    material = equipofrio.getMatnr();
+                    material = equipofrio.getEqktx();
 
                     OpcionSpinner opcionSpinner = new OpcionSpinner(material, material + " Puertas Desconocido");
                     opcionSpinner.setRel1("0");
@@ -2248,10 +2262,17 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             MaskedEditText tvp = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_PARTNER"));
             if (tvp != null)
                 tvp.setText(codigoCliente);
+
             MaskedEditText puertas_actual = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NUM_PUERTAS_ACTUAL"));
             if (puertas_actual != null) {
                 HashMap<String, String> ef = mDBHelper.getEquipoFrioDatosMonitor(codigoEquipoFrio);
                 puertas_actual.setText(ef.get("num_puertas"));
+            }
+            if(mDBHelper.UsaMonitorEquipoFrio()){
+                SearchableSpinner tvm = ((SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-IM_DESCRIPT"));
+                HashMap<String, String> ef = mDBHelper.getEquipoFrioDatosMonitor(codigoEquipoFrio);
+                if(ef.size() > 0)
+                    tvm.setSelection(VariablesGlobales.getIndex(tvm, ef.get("modelo")));
             }
 
             //Valores Enca si estan presentes

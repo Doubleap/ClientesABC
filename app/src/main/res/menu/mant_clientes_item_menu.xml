@@ -21,30 +21,28 @@
         android:id="@+id/credito"
         android:icon="@drawable/icon_credit"
         android:title="Solicitud de Crédito"
-        app:showAsAction="never|withText"
-        android:visible="false"/>
+        app:showAsAction="never|withText"/>
     <item
         android:id="@+id/equipofrio"
         android:icon="@drawable/icon_equipo"
         android:title="Solicitud de Equipo Frío"
-        app:showAsAction="never|withText"
-        android:visible="false"/>
+        app:showAsAction="never|withText"/>
     <item
         android:id="@+id/iniciativas"
         android:icon="@drawable/icon_iniciative"
         android:title="Iniciativas"
         app:showAsAction="never|withText"
-        android:visible="false"/>
+        android:visible="true"/>
     <item
         android:id="@+id/comollegar"
         android:icon="@drawable/icon_location"
         android:title="Como llegar"
         app:showAsAction="never|withText"
-        android:visible="false"/>
+        android:visible="@bool/habilita_como_llegar"/>
     <item
         android:id="@+id/baseinstalada"
         android:icon="@drawable/icon_refrigerator"
         android:title="Base Instalada"
         app:showAsAction="never|withText"
-        android:visible="false"/>
+        android:visible="@bool/habilita_base_instalada"/>
 </menu>

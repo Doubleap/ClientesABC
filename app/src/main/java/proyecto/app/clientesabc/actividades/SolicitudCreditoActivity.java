@@ -986,7 +986,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     label.setPadding(0,0,0,0);
                     label.setLayoutParams(lpl);
 
-                    final SearchableSpinner combo = new SearchableSpinner(getContext(), null);
+                    final SearchableSpinner combo = new SearchableSpinner(getContext(), "TAG_"+campos.get(i).get("campo"));
                     combo.setTag(campos.get(i).get("descr"));
                     TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
                     lp.setMargins(0, -10, 0, 25);
@@ -3105,10 +3105,13 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                     tb_adjuntos.setLayoutParams(hlp);
 
                     if(solicitudSeleccionada.size() > 0){
-                        if((idForm == null || idForm.equals("")) || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")|| solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Modificado"))
+                        if((idForm == null || idForm.equals("")) || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")|| solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Modificado")) {
                             adjuntosSolicitud = mDBHelper.getAdjuntosDB(idSolicitud);
-                        else
+                            manejadorAdjuntos.setAdjuntosSolicitud(adjuntosSolicitud);
+                        } else {
                             adjuntosSolicitud = mDBHelper.getAdjuntosServidor(idForm);
+                            manejadorAdjuntos.setAdjuntosSolicitud(adjuntosSolicitud);
+                        }
                     }
                     if(modificable) {
                         btnAddBloque.setOnClickListener(new View.OnClickListener() {

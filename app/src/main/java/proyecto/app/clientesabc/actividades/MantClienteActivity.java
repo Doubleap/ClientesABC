@@ -260,8 +260,8 @@ public class MantClienteActivity extends AppCompatActivity {
         }
 
         // Constructor de Adaptador HashMap
-        private MyAdapter(ArrayList<HashMap<String, String>> myDataset) {
-            mDataset = myDataset;
+        private MyAdapter(Object myDataset) {
+            mDataset = (ArrayList<HashMap<String, String>>) myDataset;
             formListFiltered = mDataset;
         }
 
@@ -520,14 +520,14 @@ public class MantClienteActivity extends AppCompatActivity {
                     //inflating menu from xml resource
                     popup.inflate(R.menu.mant_clientes_item_menu);
                     //adding click listener
-                    if(PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("CONFIG_SOCIEDAD","").equals("Z001")){
+                    if(!db.ExistenFormulariosCredito()){
+                        MenuItem menuItem = (MenuItem)popup.getMenu().getItem(3).setVisible(false);
+                    }
+                    if(!db.ExistenFormulariosEquipoFrio() || !db.AccesoEquipoFrioLibre()){
                         MenuItem menuItem = (MenuItem)popup.getMenu().getItem(4).setVisible(false);
                     }
                     if(!db.ExistenIniciativas()){
                         MenuItem menuItem = (MenuItem)popup.getMenu().getItem(5).setVisible(false);
-                    }
-                    if(!db.AccesoEquipoFrioLibre()){
-                        MenuItem menuItem = (MenuItem)popup.getMenu().getItem(4).setVisible(false);
                     }
 
                     popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {

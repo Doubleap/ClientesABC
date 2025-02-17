@@ -199,6 +199,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                                         mDataBase.execSQL(sqlInsert);
                                         sqlInsert = "DELETE FROM grid_interlocutor_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Modificado'))";
                                         mDataBase.execSQL(sqlInsert);
+
                                         try {
                                             //Insertar registros del BACK UP realizado antes de sincornizar de la HH para no perder nuevos , modificados o incompletos
                                             sqlInsert = "INSERT INTO FormHVKOF_solicitud SELECT * FROM fromDB.FormHVKOF_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
@@ -233,12 +234,25 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                                             sqlInsert = "INSERT INTO grid_interlocutor_old_solicitud SELECT * FROM fromDB.grid_interlocutor_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado','Incompleto'))";
                                             mDataBase.execSQL(sqlInsert);
 
-                                            //Insertar registros de Censos de Equipo Frio que aún no se hayan transmitido para no perder ninguna lectura, alerta o anomalia.
-                                            sqlInsert = "INSERT INTO CensoEquipoFrio "+
-                                            "SELECT DISTINCT * "+
-                                            "FROM fromDB.CensoEquipoFrio WHERE id NOT IN (Select id FROM CensoEquipoFrio)";
+                                            try {
+                                                //Insertar registros de Censos de Equipo Frio que aún no se hayan transmitido para no perder ninguna lectura, alerta o anomalia.
+                                                sqlInsert = "INSERT INTO CensoEquipoFrio " +
+                                                        "SELECT DISTINCT * " +
+                                                        "FROM fromDB.CensoEquipoFrio WHERE id NOT IN (Select id FROM CensoEquipoFrio)";
 
-                                            mDataBase.execSQL(sqlInsert);
+                                                mDataBase.execSQL(sqlInsert);
+                                            }catch (SQLiteException e) {
+                                                //xceptionFlag = true;
+                                                //messageFlag = "Bases de datos incompatibles. Intente de nuevo." + e.getMessage();
+                                                e.printStackTrace();
+                                            }
+                                            try {
+                                                //Borrar Presolicitudes que se aprobaron pero no hn sido transmitidas
+                                                sqlInsert = "UPDATE FormHVKOF_solicitud SET estado = 'Aprobado' WHERE idform IN (Select id_preformulario FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo')) ";
+                                                mDataBase.execSQL(sqlInsert);
+                                            }catch (SQLiteException e) {
+                                                e.printStackTrace();
+                                            }
 
                                         }catch (SQLiteException e) {
                                             xceptionFlag = true;
@@ -366,6 +380,9 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                     break;
                 case "Actualizacion":
                     notificacion.crearNotificacion(Integer.parseInt(clientList.get(x).get("id").toString()),clientList.get(x).get("titulo").trim(), clientList.get(x).get("mensaje").trim(), R.drawable.logo_mc, R.drawable.icon_update, R.color.pendientes);
+                    break;
+                case "Preventa":
+                    notificacion.crearNotificacion(Integer.parseInt(clientList.get(x).get("id").toString()),clientList.get(x).get("titulo").trim(), clientList.get(x).get("mensaje").trim(), R.drawable.logo_mc, R.drawable.icon_info_title, R.color.preventa);
                     break;
                 default:
                     notificacion.crearNotificacion(Integer.parseInt(clientList.get(x).get("id").toString()),clientList.get(x).get("titulo").trim(), clientList.get(x).get("mensaje").trim(), R.drawable.logo_mc, R.drawable.icon_about, R.color.nuevo);

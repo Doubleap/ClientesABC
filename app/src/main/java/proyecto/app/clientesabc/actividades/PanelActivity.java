@@ -61,6 +61,7 @@ public class PanelActivity extends AppCompatActivity {
     private TextView num_rechazados;
     private TextView num_incompletos;
     private TextView num_modificados;
+    private TextView num_callcenter;
     private TextView num_total;
     private FloatingActionButton resumen;
 
@@ -90,6 +91,7 @@ public class PanelActivity extends AppCompatActivity {
         num_rechazados = findViewById(R.id.num_rechazados);
         num_incompletos = findViewById(R.id.num_incompletos);
         num_modificados = findViewById(R.id.num_modificados);
+        num_callcenter = findViewById(R.id.num_callcenter);
         num_total = findViewById(R.id.num_total);
         resumen = findViewById(R.id.resumen);
         resumen.setOnClickListener(new View.OnClickListener() {
@@ -243,6 +245,11 @@ public class PanelActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        if(!mDBHelper.ExistenPresolicitudes()){
+            CardView callcenter = findViewById(R.id.card_gauge_callcenter);
+            callcenter.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -255,6 +262,7 @@ public class PanelActivity extends AppCompatActivity {
         num_rechazados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Rechazado")));
         num_incompletos.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Incompleto")));
         num_modificados.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Modificado")));
+        num_callcenter.setText(String.valueOf(mDBHelper.CantidadSolicitudes("Preventa")));
         num_total.setText(String.valueOf(mDBHelper.CantidadSolicitudesTotal()));
         BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation_panel);
         for(int x = 0; x < bottomNavigation.getMenu().size(); x++){
@@ -296,6 +304,9 @@ public class PanelActivity extends AppCompatActivity {
                                 break;
                             case 7:
                                 VerSolicitudes();
+                                break;
+                            case 8:
+                                VerSolicitudes("Preventa");
                                 break;
                         }
                     }

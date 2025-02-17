@@ -99,6 +99,9 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
         this.cropImage = cropImage;
     }
 
+    public void setAdjuntosSolicitud(ArrayList<Adjuntos> as){
+        this.adjuntosSolicitud = as;
+    }
 
     public void setUri(Uri uri){
         this.mPhotoUri = uri;
@@ -139,6 +142,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
             nombre.setText(nombre_adjunto);
 
             if(adjuntosSolicitud.get(x).getImage() != null) {
+
                 byte[] image = adjuntosSolicitud.get(x).getImage();
                 //_bitmap.compress(Bitmap.CompressFormat.PNG, 50, image);
                 BitmapFactory.Options o = new BitmapFactory.Options();
@@ -147,7 +151,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                     o.inSampleSize = 2;
                 if (image.length > 400000)
                     o.inSampleSize = 4;
-                if (image.length > 500000)
+                if (image.length > 800000)
                     o.inSampleSize = 8;
                 Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length, o);
                 //Si no es una imagen, poner in icono del tipo de documento adjunto
@@ -581,9 +585,6 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                         int imageWidth = options.outWidth;
                         /*CROP*/
                         try {
-
-
-
                             CropImageOptions cropImageOptions = new CropImageOptions();
                             cropImageOptions.imageSourceIncludeGallery = false;
                             cropImageOptions.imageSourceIncludeCamera = true;
@@ -848,7 +849,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                             Log.e("thumbnail", e.getMessage());
                         }
                         File file2 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//" + name);
-                        file2 = FileHelper.saveBitmapToFile(file2);
+                        file2 = FileHelper.saveBitmapToFile(file2,context);
 
                         byte[] bytesArray = new byte[(int) file2.length()];
 
@@ -937,7 +938,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                             Log.e("thumbnail", e.getMessage());
                         }
                         File file2 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//" + name);
-                        file2 = FileHelper.saveBitmapToFile(file2);
+                        file2 = FileHelper.saveBitmapToFile(file2,context);
 
                         byte[] bytesArray = new byte[(int) file2.length()];
 
@@ -1288,7 +1289,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                             Log.e("thumbnail", e.getMessage());
                         }
                         File file2 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//" + name);
-                        file2 = FileHelper.saveBitmapToFile(file2);
+                        file2 = FileHelper.saveBitmapToFile(file2,context);
 
                         byte[] bytesArray = new byte[(int) file2.length()];
 
@@ -1377,7 +1378,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                             Log.e("thumbnail", e.getMessage());
                         }
                         File file2 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//" + name);
-                        file2 = FileHelper.saveBitmapToFile(file2);
+                        file2 = FileHelper.saveBitmapToFile(file2,context);
 
                         byte[] bytesArray = new byte[(int) file2.length()];
 
@@ -1446,7 +1447,7 @@ public class ManejadorAdjuntos  extends AppCompatActivity {
                 Log.e("thumbnail", e.getMessage());
             }
             File file2 = new File(context.getExternalFilesDir(null).getAbsolutePath() + "//" + name);
-            file2 = FileHelper.saveBitmapToFile(file2);
+            file2 = FileHelper.saveBitmapToFile(file2,context);
 
             byte[] bytesArray = new byte[(int) file2.length()];
 

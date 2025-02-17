@@ -26,6 +26,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.text.InputFilter;
@@ -71,7 +72,9 @@ import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -533,16 +536,50 @@ public class LoginActivity extends AppCompatActivity {
         //DataBaseHelper db = new DataBaseHelper(getBaseContext());
         //db.RestaurarEstadosSolicitudesTransmitidas();
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.INTERNET,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.ACCESS_NETWORK_STATE}, 0);
-            //return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            List<String> permissionsToRequest = new ArrayList<>();
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) != PackageManager.PERMISSION_GRANTED)
+                permissionsToRequest.add(Manifest.permission.GET_ACCOUNTS);
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED)
+                permissionsToRequest.add(Manifest.permission.READ_CONTACTS);
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+                permissionsToRequest.add(Manifest.permission.CAMERA);
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION);
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                permissionsToRequest.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED)
+                permissionsToRequest.add(Manifest.permission.ACCESS_NETWORK_STATE);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Background location requires Android 10+
+                //if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                    //permissionsToRequest.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+            }
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+                permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+                permissionsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
+                permissionsToRequest.add(Manifest.permission.SEND_SMS);
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED)
+                permissionsToRequest.add(Manifest.permission.RECEIVE_SMS);
+
+            // Request permissions
+            if (!permissionsToRequest.isEmpty()) {
+                ActivityCompat.requestPermissions(this,
+                        permissionsToRequest.toArray(new String[0]),
+                        0);
+            }
         }
 
         //TODO seleccionar el tipo de solicitud por el UI

@@ -80,7 +80,8 @@ public class SearchableListDialog extends DialogFragment implements
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        if(getDialog() != null)
+            getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
@@ -112,8 +113,7 @@ public class SearchableListDialog extends DialogFragment implements
         alertDialog.setTitle(strTitle);
 
         final AlertDialog dialog = alertDialog.create();
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams
-                .SOFT_INPUT_STATE_HIDDEN);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         return dialog;
     }
 
@@ -180,7 +180,8 @@ public class SearchableListDialog extends DialogFragment implements
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 _searchableItem.onSearchableItemClicked(listAdapter.getItem(position), position);
-                getDialog().dismiss();
+                if(getDialog() != null && getDialog().isShowing())
+                    getDialog().dismiss();
             }
         });
     }

@@ -164,8 +164,10 @@ public class EquipoDisponibleActivity extends AppCompatActivity{
             for(int x = 0; x < mensajes.get(0).getAsJsonArray().size() ; x++){
                 JsonObject jsonOpcion = mensajes.get(0).getAsJsonArray().get(x).getAsJsonObject();
                 HashMap<String, String> opcion = new HashMap<>();
-                if(jsonOpcion.get("material") != null)
+                if(!jsonOpcion.get("material").isJsonNull())
                     opcion.put("material",jsonOpcion.get("material").getAsString());
+                else
+                    opcion.put("material","No encontrado");
                 opcion.put("modelo",jsonOpcion.get("modelo").getAsString());
                 opcion.put("stock",jsonOpcion.get("stock").getAsString());
                 opcion.put("reservado",jsonOpcion.get("reservado").getAsString());
@@ -173,7 +175,10 @@ public class EquipoDisponibleActivity extends AppCompatActivity{
                 opcion.put("desc_centro_suministro",jsonOpcion.get("desc_centro_suministro").getAsString());
                 opcion.put("estado",jsonOpcion.get("estado").getAsString());
                 opcion.put("emplazamiento",jsonOpcion.get("emplazamiento").getAsString());
-                opcion.put("num_puertas",jsonOpcion.get("num_puertas").getAsString());
+                if(!jsonOpcion.get("material").isJsonNull())
+                    opcion.put("num_puertas",jsonOpcion.get("num_puertas").getAsString());
+                else
+                    opcion.put("num_puertas","0");
                 listaopciones.add(opcion);
             }
 

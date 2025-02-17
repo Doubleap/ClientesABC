@@ -19,7 +19,10 @@ import androidx.core.app.ActivityCompat;
 import com.google.android.gms.location.LocationServices;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 
@@ -121,9 +124,10 @@ public class LocacionGPSActivity {
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
+                // Ensure decimal separator is always '.'
+                String latitud = String.format(Locale.US, "%.12f", location.getLatitude());
+                String longitud = String.format(Locale.US, "%.12f", location.getLongitude());
 
-                String latitud = String.valueOf(Double.parseDouble(new DecimalFormat("##.############").format(location.getLatitude())));
-                String longitud = String.valueOf(Double.parseDouble(new DecimalFormat("##.############").format(location.getLongitude())));
                 String msg = "Coordenadas Actualizadas: " + latitud + "," + longitud;
                 mLatitudeTextView.setText(latitud);
                 mLongitudeTextView.setText(longitud);

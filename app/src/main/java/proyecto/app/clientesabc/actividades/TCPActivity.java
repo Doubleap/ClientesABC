@@ -123,7 +123,7 @@ public class TCPActivity extends AppCompatActivity
         //OpcionSpinner opLocal = new OpcionSpinner("local","Local");
         listatipos.add(opWifi);
         listatipos.add(opGPRS);
-        //listatipos.add(opAPI);
+        listatipos.add(opAPI);
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(this, R.layout.simple_spinner_item, listatipos);
         // Drop down layout style - list view with radio button

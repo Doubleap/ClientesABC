@@ -647,7 +647,7 @@ public class ConsultaClienteTotalActivity extends AppCompatActivity {
                     label.setPadding(0,0,0,0);
                     label.setLayoutParams(lpl);
 
-                    final SearchableSpinner combo = new SearchableSpinner(getContext(), null);
+                    final SearchableSpinner combo = new SearchableSpinner(getContext(), "TAG_"+campos.get(i).get("campo"));
                     combo.setTitle("Buscar");
                     combo.setPositiveButton("Cerrar");
                     combo.setTag(campos.get(i).get("descr"));

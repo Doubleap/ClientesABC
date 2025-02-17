@@ -140,10 +140,10 @@
             <Puerto>3345</Puerto>
         </conexion-->
         <!--<conexion defecto="true">
-          <nombre>Calidad UY</nombre>
-          <tipo_conexion>wifi</tipo_conexion>
-          <Ip>10.153.50.68</Ip>
-          <Puerto>3345</Puerto>
-      </conexion>-->
+            <nombre>Produccion GPRS CO</nombre>
+            <tipo_conexion>gprs</tipo_conexion>
+            <Ip>10.153.54.136</Ip>
+            <Puerto>3346</Puerto>
+        </conexion>-->
   </conexiones>
 </configuracion>

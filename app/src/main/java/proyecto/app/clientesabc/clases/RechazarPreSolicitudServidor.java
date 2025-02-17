@@ -1,19 +1,32 @@
 package proyecto.app.clientesabc.clases;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.telephony.SmsManager;
 import android.util.Log;
+import android.view.View;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -25,6 +38,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -32,29 +46,40 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.ConsultaClienteTotalActivity;
-import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
+import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
+import proyecto.app.clientesabc.actividades.PanelActivity;
+import proyecto.app.clientesabc.actividades.SolicitudActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
+import proyecto.app.clientesabc.actividades.SolicitudesActivity;
+import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
-public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<JsonArray>> {
+public class RechazarPreSolicitudServidor extends AsyncTask<Void,String,String> {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
-    private String codigoCliente;
+    private String sociedad;
+    private String idform;
+    private String estado;
+    private String comentario;
     private boolean xceptionFlag = false;
     private String messageFlag = "";
     private ServerSocket ss;
     private Socket socket;
     ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
-    public ConsultaClienteServidor(WeakReference<Context> c, WeakReference<Activity> a, String codigoCliente){
+    ImageView boton;
+    public RechazarPreSolicitudServidor(WeakReference<Context> c, WeakReference<Activity> a, String sociedad, String idform, String estado, String comentario){
         this.context = c;
         this.activity = a;
-        this.codigoCliente = codigoCliente;
+        this.sociedad = sociedad;
+        this.idform = idform;
+        this.estado = estado;
+        this.comentario = comentario;
     }
 
     @Override
-    protected ArrayList<JsonArray> doInBackground(Void... voids) {
+    protected String doInBackground(Void... voids) {
         ArrayList<JsonArray> estructurasSAP = new ArrayList<>();
+        String jsonrespuesta = "";
         //Solo enviamos los datos necesarios para que la sincronizacion sepa que traer
         try {
             publishProgress("Estableciendo comunicación...");
@@ -81,10 +106,17 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                 dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
                 dos.flush();
 
-                dos.writeUTF("ConsultaCliente");
+                dos.writeUTF("RechazarPreSolicitud");
                 dos.flush();
 
-                dos.writeUTF(String.format("%10s", String.valueOf(codigoCliente)).replace(' ', '0'));
+                //Enviar Codigo de formulario
+                dos.writeUTF(idform);
+                dos.flush();
+                //Enviar Estado a actualizar
+                dos.writeUTF(estado);
+                dos.flush();
+                //Enviar Numero de celular
+                dos.writeUTF(comentario);
                 dos.flush();
 
                 dos.writeUTF("FIN");
@@ -93,7 +125,7 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                 //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la consulta para modificacion
                 long s = dis.readLong();
                 if (s < 0) {
-                    publishProgress("Error en Consulta Cliente...");
+                    publishProgress("Error al rechazar el formulario #"+idform);
                     s = dis.readLong();
                     byte[] e = new byte[(int) s];
                     dis.readFully(e);
@@ -101,19 +133,7 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                     xceptionFlag = true;
                     messageFlag = "Error: " + error;
                 } else {
-                /*ORDEN DE ESTRUCTURAS SAP RECIBIDAS
-                        String jsonCliente = 0;
-                        String jsonNotaEntrega = 1;
-                        String jsonFactura = 2;
-                        String jsonTelefonos = 3;
-                        String jsonFaxes = 4;
-                        String jsonContactos = 5;
-                        String jsonInterlocutores = 6;
-                        String jsonImpuestos = 7;
-                        String jsonBancos = 8;
-                        String jsonVisitas = 9;*/
 
-                    //Toda la info de cliente
                     publishProgress("Iniciando descarga...");
                     byte[] r = new byte[(int) s];
                     int offset = 0;
@@ -126,10 +146,7 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                     dos.flush();
                     publishProgress("Procesando datos recibidos...");
 
-                    String jsoncliente = new String(r);
-                    Gson gson = new Gson();
-                    estructurasSAP.add(gson.fromJson(jsoncliente, JsonArray.class));
-                    publishProgress("Procesando datos cliente..");
+                    jsonrespuesta = new String(r);
 
                 }
             }else{
@@ -155,8 +172,7 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
             messageFlag = e.getMessage();
             e.printStackTrace();
         }
-
-        return estructurasSAP;
+        return jsonrespuesta;
     }
 
     @Override
@@ -169,7 +185,7 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
     protected void onPreExecute() {
         super.onPreExecute();
         AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
-        builder.setCancelable(false); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
+        builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
         builder.setView(R.layout.layout_loading_dialog);
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
@@ -178,17 +194,16 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                 cancel(true);
                 Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
                 activity.get().finish();
-
             }
         });
         dialog = builder.create();
-        if(activity.get() != null && !activity.get().isFinishing()) {
+        if(!activity.get().isFinishing()) {
             dialog.show();
         }
     }
     @Override
-    protected void onPostExecute(ArrayList<JsonArray> estructuras) {
-        super.onPostExecute(estructuras);
+    protected void onPostExecute(String mensajes) {
+        super.onPostExecute(mensajes);
         try {
             dialog.dismiss();
         } catch (final IllegalArgumentException e) {
@@ -200,19 +215,39 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
             dialog.hide();
         }
         if (xceptionFlag) {
-            Toasty.error(context.get(), "No se pudo consultar el cliente: " + messageFlag, Toast.LENGTH_LONG).show();
-            activity.get().finish();
+            //activity.get().finish();
+            Toasty.error(context.get(), messageFlag, Toast.LENGTH_LONG).show();
+        } else {
+            try {
+                //Rechazar solicitud y actualizar el formulario en la parte web
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                Date date = new Date();
+                ContentValues updateValues = new ContentValues();
+                updateValues.put("[estado]", estado);
+                updateValues.put("[fecfin]", dateFormat.format(date));
+                DataBaseHelper mDBHelper = new DataBaseHelper(context.get());
+                SQLiteDatabase mDb = mDBHelper.getWritableDatabase();
+
+                // Create the raw SQL update query
+                String sql = "UPDATE FormHvKof_solicitud SET [W_CTE-COMENTARIOS] = COALESCE([W_CTE-COMENTARIOS], '') || ? WHERE idform = ?";
+                mDb.execSQL(sql, new Object[]{comentario, idform});
+                long modifico = mDb.update("FormHvKof_solicitud", updateValues, "idform = ?", new String[]{idform});
+                mDb.close();
+                Toasty.success(context.get(), "Pre solicitud actualizada con éxito.", Toasty.LENGTH_SHORT).show();
+                if(!activity.get().isFinishing()) {
+                    Intent intent = activity.get().getIntent();
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    activity.get().finish();
+                    /*if (activity.get() instanceof SolicitudActivity || activity.get() instanceof SolicitudModificacionActivity) {
+                        activity.get().overridePendingTransition(0, 0);
+                        startActivity(context.get(), intent, null);
+                        activity.get().overridePendingTransition(0, 0);
+                    }*/
+                }
+            } catch (Exception e) {
+                Toasty.error(context.get(), "Error al actualizar pre-solicitud: " + e.getMessage()).show();
+            }
         }
-        //if (context.get().getClass().getSimpleName().equals("SolicitudModificacionActivity"))
-            //SolicitudModificacionActivity.LlenarCampos(context.get(), activity.get(), estructuras);
-            Activity act = activity.get();
-            if (act instanceof SolicitudModificacionActivity) {
-                // Call method specific to SolicitudModificacionActivity
-                ((SolicitudModificacionActivity) act).LlenarCampos(context.get(), act, estructuras);
-            } else if (context.get().getClass().getSimpleName().equals("SolicitudAvisosEquipoFrioActivity"))
-                SolicitudAvisosEquipoFrioActivity.LlenarCampos(context.get(), activity.get(), estructuras);
-            else if (context.get().getClass().getSimpleName().equals("ConsultaClienteTotalActivity"))
-                ConsultaClienteTotalActivity.LlenarCampos(context.get(), activity.get(), estructuras);
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

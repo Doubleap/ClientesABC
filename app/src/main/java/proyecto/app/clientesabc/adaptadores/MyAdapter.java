@@ -2,6 +2,7 @@ package proyecto.app.clientesabc.adaptadores;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -125,6 +126,9 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         }
         if(formListFiltered.get(position).get("estado").trim().equals("Cancelado")){
             color = R.color.black;
+        }
+        if(formListFiltered.get(position).get("estado").trim().equals("Preventa")){
+            color = R.color.preventa;
         }
         estado_text.setText(formListFiltered.get(position).get("estado").trim());
         estado_text.setTextColor(ContextCompat.getColor(context, color));
@@ -252,7 +256,16 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                     item = popupMenu.findItem(R.id.transmitir);
                     item.setVisible(false);
                 }
-
+                if(formListFiltered.get(position).get("estado").trim().equals("Preventa")){
+                    MenuItem item = popupMenu.findItem(R.id.incompleto);
+                    item.setVisible(false);
+                    item = popupMenu.findItem(R.id.eliminar);
+                    item.setVisible(false);
+                    item = popupMenu.findItem(R.id.transmitir);
+                    item.setVisible(false);
+                    item = popupMenu.findItem(R.id.reactivar);
+                    item.setVisible(false);
+                }
                 //adding click listener
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
@@ -289,6 +302,9 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
                                 break;
                             case R.id.eliminar:
                                 db.EliminarSolicitud(formListFiltered.get(position).get("id_solicitud").trim());
+                                if(formListFiltered.get(position).get("id_preformulario") != null && !formListFiltered.get(position).get("id_preformulario").isEmpty()){
+                                    db.CambiarEstadoSolicitudPorIdform(formListFiltered.get(position).get("id_preformulario").trim(),"Preventa");
+                                }
                                 intent = activity.getIntent();
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                                 activity.finish();
@@ -337,7 +353,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         b.putString("idSolicitud", formListFiltered.get(position).get("id_solicitud").trim()); //id de solicitud
         b.putString("codigoCliente", formListFiltered.get(position).get("codigo").trim());
 
-        if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6") || formListFiltered.get(position).get("ind_modelo").trim().equals("I")) {
+        if(formListFiltered.get(position).get("tipform").trim().equals("1") || formListFiltered.get(position).get("tipform").trim().equals("6") || formListFiltered.get(position).get("ind_modelo").trim().equals("I")|| formListFiltered.get(position).get("ind_modelo").trim().equals("P")) {
             intent = new Intent(context, SolicitudActivity.class);
             intent.putExtras(b); //Pase el parametro el Intent
             context.startActivity(intent);
