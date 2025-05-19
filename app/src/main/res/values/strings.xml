@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ClientesABC CO</string>
+    <string name="app_name">ClientesABC MO</string>
     <string name="title_activity_login">Maestro Clientes Femsa</string>
 
     <!-- PARAMETROS DE MENUS -->
@@ -14,7 +14,7 @@
     <string name="error_invalid_user_mc">Usuario de MC Invalido</string>
     <string name="error_invalid_password">Contrasena Invalida</string>
     <string name="error_incorrect_password">Contrasena Incorrecta</string>
-    <string name="error_field_required">Este campo es requerido</string>
+    <string name="error_field_required">El campo es obligatorio!</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email completions."</string>
     <string name="solicitud">Solicitud Inclusion</string>
     <string name="comunicacion">Comunicacion</string>
@@ -30,6 +30,7 @@
     <string name="title_activity_firma_credito">Aceptación condiciones de crédito</string>
     <string name="title_activity_solicitud">Crear Solicitud</string>
     <string name="title_activity_aviso">Avisos de Equipo frio</string>
+    <string name="title_activity_racks">Racks</string>
     <string name="company_title_activity_firma_tarjeta_cr">COCA COLA FEMSA DE COSTA RICA</string>
     <string name="company_title_activity_firma_tarjeta_ni">COCA COLA FEMSA DE NICARAGUA</string>
     <string name="company_title_activity_firma_tarjeta_pa">VENTAS y MERCADEO S.A.</string>
@@ -462,4 +463,7 @@ mismo día del alta como cliente previo a la recolección de los datos personale
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <item name="action_devolver" type="id" />
+    <item name="action_rechazar" type="id" />
+    <item name="action_aprobar" type="id" />
 </resources>

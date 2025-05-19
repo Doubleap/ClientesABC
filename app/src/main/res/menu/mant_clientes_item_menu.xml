@@ -28,6 +28,11 @@
         android:title="Solicitud de Equipo Frío"
         app:showAsAction="never|withText"/>
     <item
+        android:id="@+id/racks"
+        android:icon="@drawable/icon_racks"
+        android:title="Solicitud de Racks"
+        app:showAsAction="never|withText"/>
+    <item
         android:id="@+id/iniciativas"
         android:icon="@drawable/icon_iniciative"
         android:title="Iniciativas"

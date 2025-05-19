@@ -1,17 +1,26 @@
 package proyecto.app.clientesabc.clases;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -22,6 +31,9 @@ import android.widget.LinearLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -40,6 +52,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -64,13 +77,17 @@ public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,Str
     ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
     ImageView boton;
-    public GenerarCodigoVerificacionServidor(WeakReference<Context> c, WeakReference<Activity> a, String sociedad, String cliente, String num_celular, ImageView btn){
+    PendingIntent sentPI;
+    PendingIntent deliveredPI;
+    public GenerarCodigoVerificacionServidor(WeakReference<Context> c, WeakReference<Activity> a, String sociedad, String cliente, String num_celular, ImageView btn, PendingIntent sentPI, PendingIntent deliveredPI){
         this.context = c;
         this.activity = a;
         this.sociedad = sociedad;
         this.cliente = cliente;
         this.num_celular = num_celular;
         this.boton = btn;
+        this.sentPI = sentPI;
+        this.deliveredPI = deliveredPI;
     }
 
     @Override
@@ -228,15 +245,11 @@ public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,Str
             Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
         }else {
             try {
-                SmsManager smsManager = SmsManager.getDefault();
+                //SmsManager smsManager = SmsManager.getDefault();
                 try {
-                    smsManager.sendTextMessage(num_celular, null, "Código de Verificación: " + mensajes, null, null);
-                    Toasty.success(context.get(), "Código Generado y Enviado", Toast.LENGTH_LONG).show();
-                    boton.setBackgroundTintList(ColorStateList.valueOf(context.get().getResources().getColor(R.color.devuelto, null)));
-                    boton.setOnClickListener((View.OnClickListener) view -> {
-                        //Abrir dialogo para digitar el codigo recibido.
-                        displayDialogVerificarCodigo(cliente, num_celular);
-                    });
+                    //smsManager.sendTextMessage(num_celular, null, "Código de Verificación: " + mensajes, null, null);
+                    enviarSMS(num_celular,"Código de Verificación: " + mensajes, context.get());
+                    //Toasty.success(context.get(), "Código Generado y Enviado", Toast.LENGTH_LONG).show();
                 } catch (Exception e) {
                     Toasty.error(context.get(), "Error al verificar el numero celular: " + e.getMessage()).show();
                 }
@@ -254,6 +267,54 @@ public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,Str
     public void DisableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifimanager.setWifiEnabled(false);
+    }
+
+    public void enviarSMS(String numero, String mensaje, Context context) {
+        try {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(context, "Sin permiso para enviar SMS!", Toast.LENGTH_LONG).show();
+                ActivityCompat.requestPermissions(activity.get(), new String[]{Manifest.permission.SEND_SMS}, 1);
+                return;
+            }
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(context, "Sin permiso para recibir SMS!", Toast.LENGTH_LONG).show();
+                ActivityCompat.requestPermissions(activity.get(), new String[]{Manifest.permission.RECEIVE_SMS}, 1);
+                return;
+            }
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(context, "Sin permiso para leer SMS!", Toast.LENGTH_LONG).show();
+                ActivityCompat.requestPermissions(activity.get(), new String[]{Manifest.permission.READ_SMS}, 1);
+                return;
+            }
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(activity.get(), new String[]{Manifest.permission.READ_PHONE_STATE}, 1001);
+                return;
+            }
+
+            TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            if (tm.getSimState() != TelephonyManager.SIM_STATE_READY) {
+                Toast.makeText(context, "SIM Card no está lista!", Toast.LENGTH_LONG).show();
+            }
+
+            SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
+            List<SubscriptionInfo> activeSims = subscriptionManager.getActiveSubscriptionInfoList();
+            if (activeSims != null && !activeSims.isEmpty()) {
+                int subId = activeSims.get(0).getSubscriptionId(); // Always use the actual SIM
+                // Enviar mensaje
+                SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(subId);
+                smsManager.sendTextMessage(PreferenceManager.getDefaultSharedPreferences(context).getString("CODIGO_PAIS","+57")+numero, null, mensaje, sentPI, deliveredPI);
+                boton.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(R.color.devuelto, null)));
+                boton.setOnClickListener((View.OnClickListener) view -> {
+                    //Abrir dialogo para digitar el codigo recibido.
+                    displayDialogVerificarCodigo(cliente, num_celular);
+                });
+            } else {
+                Toast.makeText(context, "No se pudo detectar ninguna SIM Card!", Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(context, "Error enviando SMS: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
     }
 
     public void displayDialogVerificarCodigo(final String codigoCliente, final String num_celular) {

@@ -178,6 +178,12 @@ public class AdjuntoAPI extends AsyncTask<Void,String,Bitmap> {
                     String ext = nombre.substring(index).toLowerCase();
                     String type = mime.getMimeTypeFromExtension(ext);
                     File folder = new File(context.get().getExternalFilesDir(null), "Download");
+
+                    // Crear directorio si no existe
+                    if (!folder.exists()) {
+                        folder.mkdirs();  // Crea la carpeta y subcarpetas necesarias
+                    }
+
                     tempPDF = new File(folder, "TempMC."+ext);
                     //tempPDF = File.createTempFile("temp", ".pdf", context.get().getExternalCacheDir());
                     //RandomAccessFile raf = new RandomAccessFile(tempPDF, "r");

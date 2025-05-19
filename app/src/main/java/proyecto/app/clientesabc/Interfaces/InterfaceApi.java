@@ -86,4 +86,12 @@ public interface InterfaceApi {
     @Streaming
     @GET("api"+ftp+"/VerificarCodigo/{bukrs}/{kunnr}/{celular}/{codigo_recibido}")
     Call<ResponseBody> VerificarCodigo(@Path("bukrs") String bukrs);
+
+    @Streaming
+    @GET("api"+ftp+"/RechazarPreSolicitud/{bukrs}/{ruta}/{idform}/{estado}/{comentario}")
+    Call<ResponseBody> RechazarPreSolicitud(@Path("bukrs") String bukrs,@Path("ruta") String ruta,@Path("idform") String idform,@Path("estado") String estado,@Path("comentario") String comentario);
+
+    @Streaming
+    @GET("api"+ftp+"/DevolverPreSolicitud/{bukrs}/{ruta}/{idform}/{estado}/{comentario}")
+    Call<ResponseBody> DevolverPreSolicitud(@Path("bukrs") String bukrs,@Path("ruta") String ruta,@Path("idform") String idform,@Path("estado") String estado,@Path("comentario") String comentario);
 }

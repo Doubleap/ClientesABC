@@ -35,6 +35,7 @@ import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.ConsultaClienteTotalActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
+import proyecto.app.clientesabc.actividades.SolicitudRacksActivity;
 
 public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<JsonArray>> {
     private WeakReference<Context> context;
@@ -213,6 +214,8 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                 SolicitudAvisosEquipoFrioActivity.LlenarCampos(context.get(), activity.get(), estructuras);
             else if (context.get().getClass().getSimpleName().equals("ConsultaClienteTotalActivity"))
                 ConsultaClienteTotalActivity.LlenarCampos(context.get(), activity.get(), estructuras);
+            else if (context.get().getClass().getSimpleName().equals("SolicitudRacksActivity"))
+                ((SolicitudRacksActivity) act).LlenarCampos(context.get(), activity.get(), estructuras);
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

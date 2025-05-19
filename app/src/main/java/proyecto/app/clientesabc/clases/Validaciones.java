@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.android.material.textfield.TextInputLayout;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.util.ArrayList;
@@ -87,7 +88,7 @@ public class Validaciones {
                 //rango de Coordenada Y
                 num_min = -4.3;
                 num_max = 12.5;
-                coordenadaY = "^(([1-9][0-9]?)(\\.\\d{3,12}+)?)";
+                coordenadaY = "^(-?([1-9][0-9]?)(\\.\\d{3,12}+)?)";
                 pattern = Pattern.compile(coordenadaY);
                 matcher = pattern.matcher(texto.getText().toString().trim());
                 if (!matcher.matches()) {
@@ -289,6 +290,9 @@ public class Validaciones {
             }else if (configExcepcion.get("dfaul") != null && !configExcepcion.get("dfaul").equals("NULL")){
                 checkbox.setChecked(false);
             }
+            if (configExcepcion.get("descr") != null && !configExcepcion.get("descr").isEmpty() && !configExcepcion.get("descr").equals("NULL")) {
+                checkbox.setText(configExcepcion.get("descr"));
+            }
         }
         if(elemento instanceof SearchableSpinner)
         {
@@ -315,6 +319,12 @@ public class Validaciones {
             if (!configExcepcion.get("dfaul").isEmpty() && !configExcepcion.get("dfaul").equals("NULL")) {
                 combo.setSelection(VariablesGlobales.getIndex(combo,configExcepcion.get("dfaul").trim()));
             }
+            if (configExcepcion.get("descr") != null && !configExcepcion.get("descr").isEmpty() && !configExcepcion.get("descr").equals("NULL")) {
+                if(label instanceof TextInputLayout)
+                    ((TextInputLayout)label).setHint(configExcepcion.get("descr").trim());
+                if(label instanceof TextView)
+                    ((TextView)label).setText(configExcepcion.get("descr").trim());
+            }
         }
         if(elemento instanceof MaskedEditText)
         {
@@ -340,6 +350,12 @@ public class Validaciones {
             }
             if (!configExcepcion.get("dfaul").isEmpty() && !configExcepcion.get("dfaul").equals("NULL")) {
                 et.setText(configExcepcion.get("dfaul").trim());
+            }
+            if (configExcepcion.get("descr") != null && !configExcepcion.get("descr").isEmpty() && !configExcepcion.get("descr").equals("NULL")) {
+                if(label instanceof TextInputLayout)
+                    ((TextInputLayout)label).setHint(configExcepcion.get("descr").trim());
+                if(label instanceof TextView)
+                    ((TextView)label).setText(configExcepcion.get("descr").trim());
             }
         }
     }
@@ -426,6 +442,83 @@ public class Validaciones {
                     et.setText(configExcepcion.get("dfaul").trim());
                 }
             }
+        }
+    }
+
+    public static class TagAwareInputFilter implements InputFilter {
+        private final MaskedEditText editText;
+
+        public TagAwareInputFilter(MaskedEditText editText) {
+            this.editText = editText;
+        }
+
+        @Override
+        public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+            boolean keepOriginal = true;
+            StringBuilder sb = new StringBuilder(end - start);
+            for (int i = start; i < end; i++) {
+                char c = source.charAt(i);
+                if(VariablesGlobales.getSociedad().equals("F428") && c == ' '){
+                    if(dstart == 0 && dend == 0){
+                        keepOriginal = false;
+                    }
+                    if(dend > 1){
+                        char ant = dest.charAt(dend-1);
+                        if(ant == ' '){
+                            keepOriginal = false;
+                        }
+                    }else{
+                        sb.append(c);
+                    }
+                }else {
+                    if (isCharAllowed(c,editText)) // put your condition here
+                        sb.append(c);
+                    else
+                        keepOriginal = false;
+                }
+            }
+            if (keepOriginal)
+                return null;
+            else {
+                if (source instanceof Spanned) {
+                    SpannableString sp = new SpannableString(sb);
+                    TextUtils.copySpansFrom((Spanned) source, start, sb.length(), null, sp, 0);
+                    return sp;
+                } else {
+                    return sb;
+                }
+            }
+        }
+        private boolean isCharAllowed(char c, MaskedEditText editText) {
+            Pattern ps = null;
+            Matcher ms = null;
+            switch (VariablesGlobales.getSociedad()){
+                case "F443":
+                case "F445":
+                case "F446":
+                case "1657":
+                case "1658":
+                    return true;
+                case "F451":
+                    //[¡”#$%&/(),:]
+                    ps = Pattern.compile("^[a-zA-Z 0-9.\\-@_]+$");
+                    ms = ps.matcher(String.valueOf(c));
+                    break;
+                case "1661":
+                case "Z001":
+                    //[¡”#$%&/(),:]
+                    ps = Pattern.compile("^[a-zA-Z 0-9.\\-@_]+$");
+                    ms = ps.matcher(String.valueOf(c));
+                    break;
+                case "F428":
+                    //[¡”#$%&/(),:]
+                    ps = Pattern.compile("^[a-zA-Z 0-9.\\-@_ñÑ]+$");
+                    if(editText.getTag().toString().equals("W_CTE-STCD1"))
+                        ps = Pattern.compile("^[0-9]+$");
+                    ms = ps.matcher(String.valueOf(c));
+                    break;
+            }
+            return ms.matches();
         }
     }
 

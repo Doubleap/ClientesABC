@@ -21,6 +21,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.SpinnerAdapter;
+import android.widget.TextView;
+
 import androidx.appcompat.widget.AppCompatSpinner;
 
 import java.util.ArrayList;
