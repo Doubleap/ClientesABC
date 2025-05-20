@@ -36,6 +36,13 @@
             app:showAsAction="never|withText">
         </item>
         <item
+            android:id="@+id/enviar_encuestas_pendientes"
+            android:icon="@drawable/icon_encuesta"
+            android:title="@string/enviar_encuestas_pendientes"
+            app:showAsAction="never|withText">
+
+        </item>
+        <item
             android:id="@+id/acercade"
             android:title="Acerca de"
             android:icon="@drawable/icon_about"

@@ -2,11 +2,8 @@ package proyecto.app.clientesabc.adaptadores;
 
 import static android.view.View.GONE;
 
-import static androidx.core.content.ContextCompat.startActivity;
-
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 
@@ -24,15 +21,12 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
-import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,33 +36,21 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Filter;
 import android.widget.Filterable;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.honeywell.aidc.AidcManager;
-import com.honeywell.aidc.BarcodeFailureEvent;
-import com.honeywell.aidc.BarcodeReadEvent;
-import com.honeywell.aidc.BarcodeReader;
-import com.honeywell.aidc.InvalidScannerNameException;
-import com.honeywell.aidc.ScannerNotClaimedException;
-import com.honeywell.aidc.ScannerUnavailableException;
-import com.honeywell.aidc.UnsupportedPropertyException;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -78,15 +60,10 @@ import java.util.Locale;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
 import proyecto.app.clientesabc.actividades.LocacionGPSActivity;
-import proyecto.app.clientesabc.actividades.PanelActivity;
-import proyecto.app.clientesabc.actividades.SolicitudActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
-import proyecto.app.clientesabc.actividades.SolicitudesActivity;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
-import proyecto.app.clientesabc.clases.SwipeableRecyclerViewTouchListener;
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoAPI;
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoServidor;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
@@ -146,15 +123,15 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
         TextView textViewHead = holder.listView.findViewById(R.id.base_instalada);
         TextView placa = holder.listView.findViewById(R.id.num_placa);
         TextView codigo = holder.listView.findViewById(R.id.num_serie);
-        TextView nombre = holder.listView.findViewById(R.id.num_equipo);
+        TextView nombre = holder.listView.findViewById(R.id.nombre_encuesta);
         TextView modelo = holder.listView.findViewById(R.id.modelo);
-        TextView ultima_fecha = (TextView) holder.listView.findViewById(R.id.text_ultima_fecha);
+        TextView ultima_fecha = (TextView) holder.listView.findViewById(R.id.descripcion_encuesta);
         CheckBox censado = (CheckBox) holder.listView.findViewById(R.id.check_box);
         LinearLayout estado = (LinearLayout) holder.listView.findViewById(R.id.color_estado);
         TextView estado_text = (TextView) holder.listView.findViewById(R.id.estado_escaneo);
         TextView comentario = (TextView) holder.listView.findViewById(R.id.comentario);
         ImageView anomalia = holder.listView.findViewById(R.id.anomalia);
-        ImageView alerta = holder.listView.findViewById(R.id.alerta);
+        ImageView alerta = holder.listView.findViewById(R.id.estadoIcon);
         ImageView eliminar = holder.listView.findViewById(R.id.eliminar);
         FloatingActionButton cantidad_alertas = (FloatingActionButton)holder.listView.findViewById(R.id.cantidad_alertas);
         TextView label_cantidad_alertas = (TextView)holder.listView.findViewById(R.id.label_cantidad_alertas);
@@ -166,7 +143,7 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
         TextView idform = (TextView) holder.listView.findViewById(R.id.idform);
         TextView fechas = (TextView) holder.listView.findViewById(R.id.fechas_text);*/
         int num_alertas = 0;
-        CardView card_view = (CardView) holder.listView.findViewById(R.id.card_view);
+        CardView card_view = (CardView) holder.listView.findViewById(R.id.encuesta);
 
         textViewHead.setText("");
         placa.setText("");

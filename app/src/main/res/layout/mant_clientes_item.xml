@@ -41,13 +41,14 @@
                 android:layout_marginLeft="10dp"
                 android:text="ID Fiscal"
                 android:textAppearance="?android:textAppearanceSmall" />
+
             <TextView
                 android:id="@+id/textViewDesc"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toRightOf="@id/idfiscal"
                 android:layout_alignBaseline="@+id/idfiscal"
                 android:layout_marginLeft="15dp"
+                android:layout_toRightOf="@id/idfiscal"
                 android:text="Nombre Cliente"
                 android:textAppearance="?android:textAppearanceSmallPopupMenu" />
 
@@ -174,6 +175,80 @@
                             android:textColor="@android:color/white"
                             android:textSize="8dp" />
                     </FrameLayout>
+                </com.rey.material.widget.LinearLayout>
+
+                <com.rey.material.widget.LinearLayout
+                    android:id="@+id/encuesta_gec_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignBottom="@id/correo_layout"
+                    android:orientation="horizontal">
+
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <ImageView
+                            android:id="@+id/imagen_encuesta_gec"
+                            android:layout_width="wrap_content"
+                            android:layout_height="24dp"
+                            android:layout_gravity="right"
+                            android:background="@drawable/icon_encuesta"
+                            android:scaleType="fitXY"
+                            android:tooltipText="Encuestas a Ejecutar" />
+
+                        <FrameLayout
+                            android:id="@+id/cantidadPendiente"
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:layout_alignEnd="@id/imagen_encuesta_gec"
+                            android:layout_alignRight="@id/warningEncuesta"
+                            android:layout_alignBottom="@id/imagen_encuesta_gec"
+                            android:layout_alignParentBottom="false"
+                            android:backgroundTint="@color/gray"
+                            android:contextClickable="false"
+                            android:foregroundGravity="bottom"
+                            android:transitionGroup="true">
+
+                            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                                android:id="@+id/cantidad_encuestas_pendientes"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:backgroundTint="@color/colorProgressBar" />
+
+                            <TextView
+                                android:id="@+id/label_cantidad_encuestas_pendientes"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:elevation="16dp"
+                                android:text="0"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:textColor="@android:color/white"
+                                android:textSize="8dp" />
+                        </FrameLayout>
+
+                        <FrameLayout
+                            android:id="@+id/warningEncuesta"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_alignLeft="@id/imagen_encuesta_gec"
+                            android:layout_alignBottom="@id/imagen_encuesta_gec"
+                            android:backgroundTint="@color/gray"
+                            android:contextClickable="false">
+
+                            <ImageView
+                                android:id="@+id/warningPendientes"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:visibility="invisible"
+                                app:srcCompat="@drawable/ic_baseline_warning_24" />
+
+                        </FrameLayout>
+                    </RelativeLayout>
+
+
                 </com.rey.material.widget.LinearLayout>
             </com.rey.material.widget.LinearLayout>
             <!--<TextView

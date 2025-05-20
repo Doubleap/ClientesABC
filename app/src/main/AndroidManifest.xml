@@ -131,6 +131,11 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
+            android:name=".actividades.EncuestaActivity"
+            android:label="Encuesta GEC"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
             android:name=".actividades.SolicitudesActivity"
             android:exported="false"
             android:label="@string/title_activity_solicitudes"

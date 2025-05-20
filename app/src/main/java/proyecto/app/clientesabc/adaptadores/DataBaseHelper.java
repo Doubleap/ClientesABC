@@ -1,5 +1,7 @@
 package proyecto.app.clientesabc.adaptadores;
 
+import static java.util.stream.Collectors.collectingAndThen;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentValues;
@@ -20,6 +22,8 @@ import android.widget.ArrayAdapter;
 
 //import com.androidbuts.multispinnerfilter.KeyPairBoolData;
 
+import org.chalup.microorm.MicroOrm;
+
 import androidx.recyclerview.widget.AsyncListUtil;
 
 import com.google.gson.JsonArray;
@@ -38,6 +42,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.TreeSet;
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -53,11 +61,15 @@ import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
 import proyecto.app.clientesabc.modelos.Contacto;
+import proyecto.app.clientesabc.modelos.EncuestaCabecera;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
 import proyecto.app.clientesabc.modelos.Horarios;
 import proyecto.app.clientesabc.modelos.Impuesto;
 import proyecto.app.clientesabc.modelos.Interlocutor;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
+import proyecto.app.clientesabc.modelos.OpcionesRespuesta;
+import proyecto.app.clientesabc.modelos.PreguntasEncuesta;
+import proyecto.app.clientesabc.modelos.RespuestaPregunta;
 import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Range")
@@ -3198,18 +3210,81 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //ENCUESTA GEC
     public ArrayList<HashMap<String, String>> getPreguntasGec(){
         ArrayList<HashMap<String, String>> preguntasList = new ArrayList<>();
-        String sql_encuesta = "select zid_quest,text,text2  from cat_preguntas_gec p where bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
+        String sql_encuesta = "select zid_quest,text,text2,orden  from cat_preguntas_gec p where bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         while (cursor.moveToNext()){
             HashMap<String,String> user = new HashMap<>();
             user.put("zid_quest",cursor.getString(0).trim());
             user.put("text",cursor.getString(1).trim());
             user.put("text2",cursor.getString(2).trim());
+            user.put("orden",cursor.getString(3).trim());
             preguntasList.add(user);
         }
         cursor.close();
         return  preguntasList;
     }
+
+    public List<PreguntasEncuesta> getPreguntasEncuesta(String id_encuesta){
+        List<PreguntasEncuesta> preguntasList = new ArrayList<>();
+        String sql_encuesta = "SELECT 'test' as test,p.id_preguntas_encuesta,p.id_encuesta,e.nombre as nombreEncuesta,e.descripcion as descripcionEncuesta,p.id_bukrs,b.desc_bukrs,p.id_tipo_pregunta,t.tipo,p.texto,p.tooltip,p.orden\n" +
+                "  FROM preguntas_encuesta p\n" +
+                "  JOIN cat_bukrs b on b.id_bukrs=p.id_bukrs\n" +
+                "  JOIN cat_tipo_pregunta t on t.id_tipo_pregunta=p.id_tipo_pregunta\n" +
+                "  JOIN encuesta_cabecera e ON e.id_encuesta=p.id_encuesta\n" +
+                "  WHERE p.id_encuesta='"+id_encuesta+"' AND p.id_bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        MicroOrm uOrm = new MicroOrm();
+        preguntasList = uOrm.listFromCursor(cursor, PreguntasEncuesta.class);
+        cursor.close();
+
+        for (PreguntasEncuesta preguntasEncuesta : preguntasList) {
+            sql_encuesta="SELECT * from opciones_respuestas where id_preguntas_encuesta="+preguntasEncuesta.getId();
+            Cursor cursor2 = mDataBase.rawQuery(sql_encuesta,null);
+            List<OpcionesRespuesta> opcionesRespuestas= uOrm.listFromCursor(cursor2, OpcionesRespuesta.class);
+            preguntasEncuesta.setOpciones(opcionesRespuestas);
+            cursor2.close();
+        }
+
+
+
+        return  preguntasList;
+    }
+    public Integer getMontoTotalEncuestaGVC(String GUID) {
+        Integer monto_total = 0;
+
+        String sql_encuesta = "SELECT SUM(CAST(respuesta as decimal)) as monto_total FROM respuesta_pregunta where GUID='"+GUID+"'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            monto_total = cursor.getInt(0);
+        }
+        cursor.close();
+        return monto_total;
+    }
+
+    public String getGecDescripcionSegunEncuestaRealizada(Integer monto_total) {
+        String gec = "";
+
+        String sql_encuesta = "select d.zdescripci  from cat_rangos_gec p join cat_ztmdcmc_00001t d on d.zklabc=p.klabc where bukrs = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","")+"' AND min <=  "+monto_total+" AND max >="+monto_total+"";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            gec = cursor.getString(0).trim();
+        }
+        cursor.close();
+        return gec;
+    }
+
+    public String getGecDescripcionActual(String codigo_cliente) {
+        String gec = "";
+
+        String sql_encuesta = "select distinct d.zdescripci from SAPDClientes c join cat_ztmdcmc_00001t d on d.zklabc=c.KLABC where c.KUNNR = '"+codigo_cliente+"'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            gec = cursor.getString(0).trim();
+        }
+        cursor.close();
+        return gec;
+    }
+
 
     public ArrayList<HashMap<String, String>> getOpcionesXPreguntaGec(String zid_quest){
         ArrayList<HashMap<String, String>> respuestasList = new ArrayList<>();
@@ -4396,5 +4471,133 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             Toasty.warning(mContext,"Error al obtener datos de Censo EF: "+e.getMessage()).show();
         }
         return  existe;
+    }
+
+    public List<EncuestaCabecera> getEncuestasCabecera(String ruta) {
+        List<EncuestaCabecera> encuestasCabeceras = new ArrayList<>();
+        List<EncuestaCabecera> encuestasCabecerasFiltrado = new ArrayList<>();
+        ruta = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH", "");
+        String bzirk = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK", "");
+
+        String sql_encuesta =" SELECT e.id_encuesta,nombre ,descripcion ,id_bukrs ,fecha_inicio,fecha_fin,fecha_creacion,fecha_modificacion, gvc FROM encuesta_cabecera e where fecha_inicio<=datetime('now') and fecha_fin>=datetime('now')";
+
+        try {
+            Cursor cursor = mDataBase.rawQuery(sql_encuesta, null);
+            MicroOrm uOrm = new MicroOrm();
+            if (!(cursor.moveToFirst()) || cursor.getCount() == 0) {
+                //cursor is empty
+            } else {
+                encuestasCabeceras = uOrm.listFromCursor(cursor, EncuestaCabecera.class);
+            }
+            cursor.close();
+            for (EncuestaCabecera encuestaCabecera : encuestasCabeceras) {
+                sql_encuesta = "SELECT * from encuesta_ruta where id_encuesta=" + encuestaCabecera.getId();
+                Cursor cursorRuta = mDataBase.rawQuery(sql_encuesta, null);
+                while (cursorRuta.moveToNext()) {
+                    encuestaCabecera.getRutas().add(cursorRuta.getString(cursorRuta.getColumnIndex("ruta")));
+                }
+                cursorRuta.close();
+
+                sql_encuesta = "SELECT * from encuesta_bzirk where id_encuesta=" + encuestaCabecera.getId();
+                Cursor cursorBzirk = mDataBase.rawQuery(sql_encuesta, null);
+                while (cursorBzirk.moveToNext()) {
+                    encuestaCabecera.getBzirks().add(cursorBzirk.getString(cursorBzirk.getColumnIndex("bzirk")));
+                }
+                cursorBzirk.close();
+            }
+
+            for (EncuestaCabecera encuestaCabecera : encuestasCabeceras) {
+                if (encuestaCabecera.getBzirks().contains(bzirk)) {
+                    if (encuestaCabecera.getRutas().isEmpty()) {
+                        encuestasCabecerasFiltrado.add(encuestaCabecera);
+                    } else {
+                        if (encuestaCabecera.getRutas().contains(ruta)) {
+                            encuestasCabecerasFiltrado.add(encuestaCabecera);
+                        }
+                    }
+                }
+            }
+        }catch(Exception e){
+
+        }
+
+        return  encuestasCabecerasFiltrado;
+    }
+
+    public String getGUIDEncuestaActualCliente(String id_encuesta,String codigo_cliente) {
+        String GUID = "";
+        long cantidad = 0;
+        String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
+        String kkber = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_AREACREDITO","");
+        String sql_encuesta = "select distinct GUID from respuesta_pregunta r join encuesta_cabecera e on e.id_encuesta=r.id_encuesta where r.id_encuesta = '"+id_encuesta+"'        and r.codigo_cliente = '"+codigo_cliente+"'        and fecha_ejecucion between e.fecha_inicio and e.fecha_fin";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            GUID = cursor.getString(0);
+        }
+        cursor.close();
+        return  GUID;
+    }
+
+    public String getEstadoRespuestaEnviada(String GUID) {
+        String estado="";
+        String sql_encuesta = "select distinct estado from respuesta_pregunta r where r.GUID = '"+GUID+"'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            estado = cursor.getString(0);
+        }
+        cursor.close();
+        return  estado;
+    }
+
+    public boolean getValidacionEncuestaClientePendiente(String id_encuesta,String codigo_cliente) {
+        boolean ejecutada = false;
+        long cantidad = 0;
+        String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
+        String kkber = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_AREACREDITO","");
+        String sql_encuesta = "select count(*) from respuesta_pregunta r join encuesta_cabecera e on e.id_encuesta=r.id_encuesta where r.id_encuesta = '"+id_encuesta+"'        and r.codigo_cliente = '"+codigo_cliente+"'        and fecha_ejecucion between e.fecha_inicio and e.fecha_fin and r.estado!='cerrado'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            cantidad = cursor.getLong(0);
+        }
+        cursor.close();
+        if(cantidad>0){
+            ejecutada=true;
+        }
+        return  ejecutada;
+    }
+    public boolean getValidacionEncuestaPendiente() {
+        boolean pendiente = false;
+        long cantidad = 0;
+        String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
+        String kkber = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_AREACREDITO","");
+        String sql_encuesta = "select count(*) from respuesta_pregunta p where estado = 'pendiente'";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        while (cursor.moveToNext()){
+            cantidad = cursor.getLong(0);
+        }
+        cursor.close();
+        if(cantidad>0){
+            pendiente=true;
+        }
+        return  pendiente;
+    }
+
+    public List<RespuestaPregunta> getRespuestasEncuestaCliente(String codigo_cliente,String id_encuesta){
+        List<RespuestaPregunta> respuestaPreguntas = new ArrayList<>();
+        String sql_encuesta = "select * from respuesta_pregunta r join encuesta_cabecera e on e.id_encuesta=r.id_encuesta where r.id_encuesta = '"+id_encuesta+"'        and r.codigo_cliente = '"+codigo_cliente+"'        and fecha_ejecucion between e.fecha_inicio and e.fecha_fin";
+        Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
+        MicroOrm uOrm = new MicroOrm();
+        if (!(cursor.moveToFirst()) || cursor.getCount() ==0){
+            //cursor is empty
+        }else{
+            respuestaPreguntas = uOrm.listFromCursor(cursor, RespuestaPregunta.class);
+        }
+
+        cursor.close();
+
+
+
+
+        return  respuestaPreguntas;
     }
 }

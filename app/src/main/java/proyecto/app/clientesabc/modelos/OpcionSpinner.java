@@ -9,6 +9,7 @@ public class OpcionSpinner {
     private String rel2;
     private int selected;
     private TextView texto;
+    private int idSql;
 
     public boolean isEnabled() {
         return enabled;
@@ -25,6 +26,7 @@ public class OpcionSpinner {
         this.name = name;
         this.enabled = true;
     }
+
     public OpcionSpinner(String id, String name, String rel1) {
         this.id = id;
         this.name = name;
@@ -55,6 +57,13 @@ public class OpcionSpinner {
         this.name = name;
         this.enabled = enabled;
     }
+
+    public OpcionSpinner(int idSql,String id, String name) {
+        this.id = id;
+        this.name = name;
+        this.idSql = idSql;
+    }
+
     public String getId() {
         return id;
     }
@@ -110,5 +119,13 @@ public class OpcionSpinner {
 
     public void setTexto(TextView texto) {
         this.texto = texto;
+    }
+
+    public int getIdSql() {
+        return idSql;
+    }
+
+    public void setIdSql(int idSql) {
+        this.idSql = idSql;
     }
 }
