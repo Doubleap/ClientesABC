@@ -109,13 +109,11 @@ public class EncuestaCabeceraDialog extends DialogFragment {
 
         Dialog myDialog = new Dialog(getContext());
 
-
-
         // Use the LayoutInflater to inflate the
         // dialog_list layout file into a View object
 
         TextView cliente_encuesta =  view.findViewById(R.id.cliente_encuesta);
-        cliente_encuesta.setText(codigo_cliente +" 232323 "+nombre_cliente);
+        cliente_encuesta.setText(codigo_cliente +" - "+nombre_cliente);
         // Set the dialog's content view
         // to the newly created View object
         myDialog.setContentView(view);
@@ -146,6 +144,7 @@ public class EncuestaCabeceraDialog extends DialogFragment {
         // and set it as the RecyclerView's adapter
         mAdapter = new EncuestaCabeceraAdapter(encuestas,getContext(),codigo_cliente,nombre_cliente,tipo_encuesta);
         recyclerView.setAdapter(mAdapter);
+        mAdapter.notifyDataSetChanged();
     }
 
 

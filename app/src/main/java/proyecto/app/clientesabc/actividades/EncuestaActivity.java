@@ -95,8 +95,6 @@ public class EncuestaActivity extends AppCompatActivity{
             GecActualTv.setText(GecActual);
 
         }
-
-
         rv = findViewById(R.id.recycler_view);
 
         mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente,respuestaPreguntas);
@@ -104,15 +102,10 @@ public class EncuestaActivity extends AppCompatActivity{
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
 
-
-
-
-
         TextView cliente =  findViewById(R.id.cliente);
         TextView title =  findViewById(R.id.title);
 
         cliente.setText(codigo_cliente +" - "+nombre_cliente);
-
 
         Button saveBtn = findViewById(R.id.saveBtn);
         saveBtn.setOnClickListener(new View.OnClickListener() {
@@ -325,9 +318,6 @@ public class EncuestaActivity extends AppCompatActivity{
         respuestaPreguntas.clear();
 
         for (int i=0; i<mAdapter.getItemCount(); i++){
-//id
-
-
 
             RespuestaPregunta respuestaPregunta = new RespuestaPregunta();
             respuestaPregunta.setGUID(myGUID.toString());
@@ -338,15 +328,12 @@ public class EncuestaActivity extends AppCompatActivity{
             respuestaPregunta.setCodigoCliente(codigo_cliente);
             respuestaPregunta.setSociedad(PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BUKRS",""));
 
-
-
             RecyclerView.ViewHolder viewHolder = rv.findViewHolderForAdapterPosition(i);
             PreguntaTextView pregunta;
             EditText respuesta;
             switch (viewHolder.getItemViewType()){
                 case 1:
                     EncuestaAdapter.TextoHolder textoHolder = (EncuestaAdapter.TextoHolder) viewHolder;
-
 
                     pregunta = textoHolder.listView.findViewById(R.id.pregunta);
                     respuesta = textoHolder.listView.findViewById(R.id.multiple_group);
@@ -380,14 +367,13 @@ public class EncuestaActivity extends AppCompatActivity{
                     CheckBoxGroupView checkBoxGroupView = multipleHolder.listView.findViewById(R.id.checkGroup);
                     pregunta = multipleHolder.listView.findViewById(R.id.pregunta);
 
-
-                    
-
                     List<OpcionCheckBox> opcionesSeleccionadas = (List<OpcionCheckBox>) checkBoxGroupView.getCheckboxesChecked();
 
                     for (OpcionCheckBox opcion:opcionesSeleccionadas) {
 
                         RespuestaPregunta respuestaPreguntaOpcion = new RespuestaPregunta();
+                        respuestaPreguntaOpcion.setIdEncuesta(idEncuesta);
+                        respuestaPreguntaOpcion.setEncuesta(nombre_encuesta);
                         respuestaPreguntaOpcion.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
                         respuestaPreguntaOpcion.setTextoPregunta(pregunta.getText().toString());
                         respuestaPreguntaOpcion.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
@@ -406,10 +392,6 @@ public class EncuestaActivity extends AppCompatActivity{
                         respuestaPreguntas.add(respuestaPreguntaOpcion);
                     }
 
-
-
-
-
                     if(checkBoxGroupView.getCheckboxesChecked().isEmpty()){
                         //TextView numPregunta = multipleHolder.listView.findViewById(R.id.orden_pregunta);
                     }
@@ -419,7 +401,6 @@ public class EncuestaActivity extends AppCompatActivity{
 
                     pregunta = numericoHolder.listView.findViewById(R.id.pregunta);
                     respuesta = numericoHolder.listView.findViewById(R.id.multiple_group);
-
 
                     respuestaPregunta.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
                     respuestaPregunta.setTextoPregunta(pregunta.getText().toString());
@@ -458,7 +439,6 @@ public class EncuestaActivity extends AppCompatActivity{
 //                    mDb.update("respuesta_pregunta", respuestaValue, "GUID= ? AND id_pregunta_encuesta= ? AND codigo_cliente= ?", new String[]{respuestaPregunta.getGUID(),String.valueOf(respuestaPregunta.getIdPregunta()),respuestaPregunta.getCodigoCliente()});
 //                }
                 mDb.insert("respuesta_pregunta", null, respuestaValue);
-
 
                 respuestaValue.clear();
             } catch (Exception e) {

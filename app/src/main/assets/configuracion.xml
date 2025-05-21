@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuracion>
     <sistema>
-        <nombrePais>Uruguay Monresa</nombrePais>
-        <sociedad>1661</sociedad>
-        <orgvta>0661</orgvta>
-        <land1>UY</land1>
-        <cadenaRM>0000240000</cadenaRM>
-        <ktokd>UYDE</ktokd>
+        <nombrePais>Costa Rica</nombrePais>
+        <sociedad>F443</sociedad>
+        <orgvta>0443</orgvta>
+        <land1>CR</land1>
+        <cadenaRM>0000160000</cadenaRM>
+        <ktokd>RCMA</ktokd>
         <!--
         <nombrePais>Panamá</nombrePais>
         <sociedad>F451</sociedad>

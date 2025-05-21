@@ -28,6 +28,9 @@ import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -495,12 +498,16 @@ public class MantClienteActivity extends AppCompatActivity {
                     bc.putString("canal_cliente", canalCliente);
                     bc.putString("correo_cliente", correoCliente);
                     bc.putString("tipo_encuesta","GVC");
-                    EncuestaCabeceraDialog listDialog = new EncuestaCabeceraDialog(
-                            getBaseContext(),MantClienteActivity.this, encuestaCabeceras);
+                    EncuestaCabeceraDialog listDialog = new EncuestaCabeceraDialog(getBaseContext(),MantClienteActivity.this, encuestaCabeceras);
+                    // Remove previous instance if exists
+                    FragmentManager fm = getSupportFragmentManager();
+                    Fragment prev = fm.findFragmentByTag("EncuestaCabeceraDialog");
+                    if (prev != null) {
+                        fm.beginTransaction().remove(prev).commit();
+                    }
                     // Show the dialog
-
                     listDialog.setArguments(bc);
-                    listDialog.show(getSupportFragmentManager(),"EncuestaCabeceraDialog");
+                    listDialog.show(fm,"EncuestaCabeceraDialog");
                 }
             });
             //ENCUESTA GEC
@@ -1054,15 +1061,24 @@ public class MantClienteActivity extends AppCompatActivity {
     public void actualizarEncuestaDialog() {
         EncuestaCabeceraDialog fragment = new EncuestaCabeceraDialog();
         fragment = (EncuestaCabeceraDialog) getSupportFragmentManager().findFragmentByTag("EncuestaCabeceraDialog");
+
+        // Remove previous instance if exists
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment prev = fm.findFragmentByTag("EncuestaCabeceraDialog");
+        if (prev != null) {
+            fm.beginTransaction().remove(prev).commit();
+        }
+
         if(fragment != null){
             // ok, we got the fragment instance, but should we manipulate its view?
-            fragment.dismiss();
+            //fragment.dismiss();
             for (EncuestaCabecera encuestaCabecera:  encuestaCabeceras) {
                 if(encuestaCabecera.isGvc()){
 
                 }
             }
-            fragment.show(getSupportFragmentManager(),"EncuestaCabeceraDialog");
+
+            fragment.show(fm,"EncuestaCabeceraDialog");
         }
     }
 }

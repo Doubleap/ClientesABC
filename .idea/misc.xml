@@ -51,6 +51,8 @@
         <entry key="..\:/ClientesABC/app/src/main/res/layout/detalle_modelo_dialog_layout.xml" value="0.25" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/digitar_equipo_frio_dialog_layout.xml" value="0.18854166666666666" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/edit_conexion_layout.xml" value="0.2203125" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_cabecera_dialog_layout.xml" value="0.23802083333333332" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_cabecera_item.xml" value="0.23802083333333332" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_canales_dialog_layout.xml" value="0.18333333333333332" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_gec_dialog_layout.xml" value="0.184375" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/equipo_disponible_item.xml" value="0.25" />

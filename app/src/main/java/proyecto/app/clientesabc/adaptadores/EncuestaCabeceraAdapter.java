@@ -144,6 +144,8 @@ public class EncuestaCabeceraAdapter extends RecyclerView.Adapter<EncuestaCabece
                 holder.gecLayout.setVisibility(View.VISIBLE);
                 holder.GecNuevo.setText(gecNuevo);
                 holder.GecActual.setText(gecActual);
+            }else{
+                holder.gecLayout.setVisibility(View.INVISIBLE);
             }
         }else{
             holder.GecActual.setVisibility(View.INVISIBLE);
