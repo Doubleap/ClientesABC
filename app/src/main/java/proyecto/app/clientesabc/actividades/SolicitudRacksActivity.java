@@ -334,9 +334,13 @@ public class SolicitudRacksActivity extends AppCompatActivity {
         String DELIVERED = "SMS_DELIVERED";
         sentPI = PendingIntent.getBroadcast(SolicitudRacksActivity.this, 0, new Intent(SENT), PendingIntent.FLAG_IMMUTABLE);
         deliveredPI = PendingIntent.getBroadcast(SolicitudRacksActivity.this, 0, new Intent(DELIVERED), PendingIntent.FLAG_IMMUTABLE);
-        SolicitudRacksActivity.this.registerReceiver(sentReceiver, new IntentFilter(SENT));
-        SolicitudRacksActivity.this.registerReceiver(deliveredReceiver, new IntentFilter(DELIVERED));
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            SolicitudRacksActivity.this.registerReceiver(sentReceiver, new IntentFilter(SENT), Context.RECEIVER_NOT_EXPORTED);
+            SolicitudRacksActivity.this.registerReceiver(deliveredReceiver, new IntentFilter(DELIVERED), Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            SolicitudRacksActivity.this.registerReceiver(sentReceiver, new IntentFilter(SENT));
+            SolicitudRacksActivity.this.registerReceiver(deliveredReceiver, new IntentFilter(DELIVERED));
+        }
         configExcepciones.clear();
         listaCamposDinamicos.clear();
         listaCamposDinamicosEnca.clear();

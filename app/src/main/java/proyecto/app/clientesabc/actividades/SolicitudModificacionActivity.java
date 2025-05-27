@@ -338,8 +338,14 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         String DELIVERED = "SMS_DELIVERED";
         sentPI = PendingIntent.getBroadcast(SolicitudModificacionActivity.this, 0, new Intent(SENT), PendingIntent.FLAG_IMMUTABLE);
         deliveredPI = PendingIntent.getBroadcast(SolicitudModificacionActivity.this, 0, new Intent(DELIVERED), PendingIntent.FLAG_IMMUTABLE);
-        SolicitudModificacionActivity.this.registerReceiver(sentReceiver, new IntentFilter(SENT));
-        SolicitudModificacionActivity.this.registerReceiver(deliveredReceiver, new IntentFilter(DELIVERED));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            SolicitudModificacionActivity.this.registerReceiver(sentReceiver, new IntentFilter(SENT), Context.RECEIVER_NOT_EXPORTED);
+            SolicitudModificacionActivity.this.registerReceiver(deliveredReceiver, new IntentFilter(DELIVERED), Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            SolicitudModificacionActivity.this.registerReceiver(sentReceiver, new IntentFilter(SENT));
+            SolicitudModificacionActivity.this.registerReceiver(deliveredReceiver, new IntentFilter(DELIVERED));
+        }
+
 
         configExcepciones.clear();
         listaCamposDinamicos.clear();

@@ -27,6 +27,7 @@ import android.graphics.drawable.Drawable;
 import android.icu.lang.UCharacter;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
@@ -121,6 +122,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -343,8 +345,13 @@ public class SolicitudActivity extends AppCompatActivity {
         String DELIVERED = "SMS_DELIVERED";
         sentPI = PendingIntent.getBroadcast(SolicitudActivity.this, 0, new Intent(SENT), PendingIntent.FLAG_IMMUTABLE);
         deliveredPI = PendingIntent.getBroadcast(SolicitudActivity.this, 0, new Intent(DELIVERED), PendingIntent.FLAG_IMMUTABLE);
-        SolicitudActivity.this.registerReceiver(sentReceiver, new IntentFilter(SENT));
-        SolicitudActivity.this.registerReceiver(deliveredReceiver, new IntentFilter(DELIVERED));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            SolicitudActivity.this.registerReceiver(sentReceiver, new IntentFilter(SENT), Context.RECEIVER_NOT_EXPORTED);
+            SolicitudActivity.this.registerReceiver(deliveredReceiver, new IntentFilter(DELIVERED), Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            SolicitudActivity.this.registerReceiver(sentReceiver, new IntentFilter(SENT));
+            SolicitudActivity.this.registerReceiver(deliveredReceiver, new IntentFilter(DELIVERED));
+        }
         suppressRecreateAdapter = false;
         verificarCorreo = null;
         verificarCelular = null;
@@ -4704,10 +4711,10 @@ public class SolicitudActivity extends AppCompatActivity {
                     WeakReference<Context> weakRefs1 = new WeakReference<Context>(context);
                     WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>((Activity) context);
                     if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion", "").equals("api")) {
-                        RechazarPreSolicitudAPI r = new RechazarPreSolicitudAPI(weakRefs1, weakRefAs1, bukrs, idForm, "Rechazado", input.getText().toString());
+                        RechazarPreSolicitudAPI r = new RechazarPreSolicitudAPI(weakRefs1, weakRefAs1, bukrs, idForm, "Rechazado", input.getText().toString().trim());
                         r.execute();
                     } else {
-                        RechazarPreSolicitudServidor r = new RechazarPreSolicitudServidor(weakRefs1, weakRefAs1, bukrs, idForm, "Rechazado", input.getText().toString());
+                        RechazarPreSolicitudServidor r = new RechazarPreSolicitudServidor(weakRefs1, weakRefAs1, bukrs, idForm, "Rechazado", input.getText().toString().trim());
                         r.execute();
                     }
                     d.dismiss();
@@ -4770,10 +4777,10 @@ public class SolicitudActivity extends AppCompatActivity {
                     WeakReference<Context> weakRefs1 = new WeakReference<Context>(context);
                     WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>((Activity) context);
                     if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion", "").equals("api")) {
-                        DevolverPreSolicitudAPI r = new DevolverPreSolicitudAPI(weakRefs1, weakRefAs1, bukrs, idForm, "Pendiente", input.getText().toString());
+                        DevolverPreSolicitudAPI r = new DevolverPreSolicitudAPI(weakRefs1, weakRefAs1, bukrs, idForm, "Pendiente", input.getText().toString().trim());
                         r.execute();
                     } else {
-                        DevolverPreSolicitudServidor r = new DevolverPreSolicitudServidor(weakRefs1, weakRefAs1, bukrs, idForm, "Pendiente", input.getText().toString());
+                        DevolverPreSolicitudServidor r = new DevolverPreSolicitudServidor(weakRefs1, weakRefAs1, bukrs, idForm, "Pendiente", input.getText().toString().trim());
                         r.execute();
                     }
                     d.dismiss();

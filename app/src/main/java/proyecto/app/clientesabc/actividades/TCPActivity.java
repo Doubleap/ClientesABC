@@ -121,8 +121,8 @@ public class TCPActivity extends AppCompatActivity
         OpcionSpinner opGPRS = new OpcionSpinner("gprs","GPRS");
         OpcionSpinner opAPI = new OpcionSpinner("api","REST API");
         //OpcionSpinner opLocal = new OpcionSpinner("local","Local");
-        listatipos.add(opWifi);
-        listatipos.add(opGPRS);
+        //listatipos.add(opWifi);
+        //listatipos.add(opGPRS);
         listatipos.add(opAPI);
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(this, R.layout.simple_spinner_item, listatipos);
