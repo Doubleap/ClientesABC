@@ -33,18 +33,25 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
+import proyecto.app.clientesabc.actividades.EncuestaActivity;
+import proyecto.app.clientesabc.actividades.PanelActivity;
+import proyecto.app.clientesabc.actividades.SolicitudesActivity;
 
 public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
     private ImageView imagen;
     private TextView tv_nombre;
+    private Map<Integer, File> imageFiles;
+    private int position;
     private String nombre;
     private boolean xceptionFlag = false;
     private String messageFlag = "";
@@ -58,6 +65,14 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
         this.activity = a;
         this.imagen = imagen;
         this.tv_nombre = tv_nombre;
+    }
+    public AdjuntoServidor(WeakReference<Context> c, WeakReference<Activity> a, ImageView imagen, TextView tv_nombre,  Map<Integer, File> imageFiles, int position){
+        this.context = c;
+        this.activity = a;
+        this.imagen = imagen;
+        this.tv_nombre = tv_nombre;
+        this.imageFiles = imageFiles;
+        this.position =  position;
     }
     @Override
     protected Bitmap doInBackground(Void... voids) {
@@ -188,6 +203,11 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
         if (!xceptionFlag){
             if(adjunto != null) {
                 imagen.setImageBitmap(Bitmap.createScaledBitmap(adjunto, adjunto.getWidth(), adjunto.getHeight(), true));
+                if (activity.get() instanceof EncuestaActivity) {
+                    imagen.setTag("foto");
+                    File file = guardarBitmapComoArchivo(adjunto, tv_nombre.getText().toString(), context.get());
+                    EncuestaActivity.ActualizarImagenesEncuesta(file,imageFiles,position);
+                }
             }else{
                 File tempPDF;
                 String ext="";
@@ -238,6 +258,37 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
             // Do nothing.
         } catch (final Exception e) {
             // Do nothing.
+        }
+    }
+
+    public File guardarBitmapComoArchivo(Bitmap bitmap, String nombreArchivo, Context context) {
+        // Crear carpeta destino si no existe
+        File directorio = new File(context.getExternalFilesDir(null), "imagenes_guardadas");
+        if (!directorio.exists()) {
+            directorio.mkdirs();
+        }
+
+        // Ruta del archivo destino
+        File archivo = new File(directorio, nombreArchivo);
+
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(archivo);
+
+            // Comprimir el Bitmap al archivo (formato JPG con 90% calidad)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+            fos.flush();
+
+            return archivo;  // Devuelve el archivo creado
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                if (fos != null) fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
     public void EnableWiFi(){

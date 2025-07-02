@@ -21,6 +21,8 @@
         <entry key="..\:/ClientesABC/app/src/main/res/drawable/spinner_background.xml" value="0.1995" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable/spinner_background_cont.xml" value="0.1995" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable/spinner_underlined.xml" value="0.1995" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/squared_orange_border.xml" value="0.1875" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/squared_textbackground.xml" value="0.1875" />
         <entry key="..\:/ClientesABC/app/src/main/res/drawable/textbackground_old.xml" value="0.195" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/acercade_dialog_layout.xml" value="0.18072916666666666" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_api_config.xml" value="0.17760416666666667" />
@@ -32,6 +34,7 @@
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_login.xml" value="0.2557291666666667" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_mant_clientes.xml" value="0.20677083333333332" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_monitor_equipo_frio.xml" value="0.22" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_osm_picker.xml" value="0.17916666666666667" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_panel2.xml" value="0.18541666666666667" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_solicitud.xml" value="0.20677083333333332" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_solicitudes.xml" value="0.20677083333333332" />
@@ -55,6 +58,12 @@
         <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_cabecera_item.xml" value="0.23802083333333332" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_canales_dialog_layout.xml" value="0.18333333333333332" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_gec_dialog_layout.xml" value="0.184375" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_gec_layout.xml" value="0.184375" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_image_item.xml" value="0.184375" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_multiple_item.xml" value="0.25" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_numerico_item.xml" value="0.17916666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_seleccion_item.xml" value="0.17916666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_texto_item.xml" value="0.17916666666666667" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/equipo_disponible_item.xml" value="0.25" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/generar_alerta_dialog_layout.xml" value="0.18854166666666666" />
         <entry key="..\:/ClientesABC/app/src/main/res/layout/item_listview_multiple.xml" value="0.18541666666666667" />

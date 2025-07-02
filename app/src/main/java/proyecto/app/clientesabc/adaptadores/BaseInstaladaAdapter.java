@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -138,6 +139,9 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
         LinearLayout menu_bottom = (LinearLayout) holder.listView.findViewById(R.id.menu_bottom);
         ImageView transmitido = holder.listView.findViewById(R.id.transmitido);
         ImageView ver_anomalia = holder.listView.findViewById(R.id.ver_anomalia);
+
+        ImageView calendarIcon = holder.listView.findViewById(R.id.calendarIcon);
+        TextView calendarNumber = holder.listView.findViewById(R.id.calendarNumber);
         /*ImageView textViewOptions = holder.listView.findViewById(R.id.textViewOptions);
         TextView tipo_solicitud = (TextView) holder.listView.findViewById(R.id.tipo_solicitud);
         TextView idform = (TextView) holder.listView.findViewById(R.id.idform);
@@ -174,6 +178,29 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
         }else {
             comentario.setText(formListFiltered.get(position).getComentario());
         }
+        String valor = formListFiltered.get(position).getUltima_lectura();
+        if(valor != null) {
+            calendarNumber.setText(formListFiltered.get(position).getUltima_lectura());
+            Integer dias = Integer.parseInt(valor);
+            if(dias <= 60){
+                calendarIcon.setColorFilter(context.getResources().getColor(R.color.aprobados, null), PorterDuff.Mode.SRC_IN);
+                calendarNumber.setTextColor(ColorStateList.valueOf(context.getResources().getColor(R.color.aprobados, null)));
+            }
+            if(dias > 60 && dias <= 90){
+                calendarIcon.setColorFilter(context.getResources().getColor(R.color.nuevo, null), PorterDuff.Mode.SRC_IN);
+                calendarNumber.setTextColor(ColorStateList.valueOf(context.getResources().getColor(R.color.nuevo, null)));
+            }
+            if(dias > 90){
+                calendarIcon.setColorFilter(context.getResources().getColor(R.color.rechazado, null), PorterDuff.Mode.SRC_IN);
+                calendarNumber.setTextColor(ColorStateList.valueOf(context.getResources().getColor(R.color.rechazado, null)));
+            }
+        }else {
+            calendarNumber.setText("∞");
+            calendarIcon.setColorFilter(context.getResources().getColor(R.color.rechazado,null), PorterDuff.Mode.SRC_IN);
+            calendarNumber.setTextColor(ColorStateList.valueOf(context.getResources().getColor(R.color.rechazado,null)));
+        }
+
+
 
 
         Drawable background = estado.getBackground();

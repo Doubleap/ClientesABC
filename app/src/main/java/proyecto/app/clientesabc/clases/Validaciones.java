@@ -1,6 +1,7 @@
 package proyecto.app.clientesabc.clases;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.text.InputFilter;
 import android.text.SpannableString;
@@ -178,6 +179,7 @@ public class Validaciones {
                 }
                 break;
         }
+
         //Toasty.success(texto.getContext(),"Formato Coordenada X "+valor+" valido!").show();
         return true;
     }

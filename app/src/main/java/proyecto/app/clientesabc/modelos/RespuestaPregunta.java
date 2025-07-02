@@ -52,6 +52,11 @@ public class RespuestaPregunta {
     @Column("estado")
     private String estado;
 
+    @Column("imagenPath")
+    private String imagenPath;
+
+    @Column("imagenUrl")
+    private String imagenUrl;
 
     public RespuestaPregunta() {
     }
@@ -190,5 +195,22 @@ public class RespuestaPregunta {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+
+    public String getImagenPath() {
+        return imagenPath;
+    }
+
+    public void setImagenPath(String path) {
+        this.imagenPath = path;
+    }
+
+    public String getImagenUrl() {
+        return imagenUrl;
+    }
+
+    public void setImagenUrl(String url) {
+        this.imagenUrl = url;
     }
 }

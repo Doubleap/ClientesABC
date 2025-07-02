@@ -7,8 +7,6 @@ import org.chalup.microorm.annotations.Embedded;
 import java.util.List;
 
 public class PreguntasEncuesta {
-
-
     @Column("id_preguntas_encuesta")
     private int id;
     @Column("nombreEncuesta")
@@ -23,7 +21,6 @@ public class PreguntasEncuesta {
     private String tooltip;
     @Column("orden")
     private int orden;
-
 
     private List<OpcionesRespuesta> opciones;
 

@@ -49,7 +49,8 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning"
-        tools:replace="android:appComponentFactory">
+        tools:replace="android:appComponentFactory"
+        android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".actividades.SplashScreen"
             android:exported="true"
@@ -231,6 +232,9 @@
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".actividades.OSMPickerActivity"
+            android:theme="@style/Base.Theme.AppCompat" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -243,6 +247,10 @@
                 android:resource="@xml/filepaths"
                 tools:replace="android:resource" />
         </provider>
+        <uses-library android:name="org.osmdroid" android:required="false"/>
+
+        <meta-data android:name="osmdroid.basePath" android:value="osmdroid"/>
+        <meta-data android:name="osmdroid.cachePath" android:value="osmdroid/tiles"/>
     </application>
 
 </manifest>

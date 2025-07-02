@@ -218,6 +218,11 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
         label_gauge_final = findViewById(R.id.label_gauge_final);
         halfGauge = findViewById(R.id.halfGauge);
 
+        if(formList.size() == 0) {
+            Toasty.warning(this, "No hay datos para alimentar el monitor. (VistaMonitorEquipoFrio)").show();
+            getActivity(this).finish();
+            return;
+        }
         pais.setText(formList.get(0).get("pais").toString());
         estado.setText(formList.get(0).get("estado").toString());
 

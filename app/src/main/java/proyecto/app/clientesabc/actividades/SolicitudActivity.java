@@ -30,6 +30,8 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
@@ -163,6 +165,8 @@ import proyecto.app.clientesabc.clases.DevolverPreSolicitudAPI;
 import proyecto.app.clientesabc.clases.DevolverPreSolicitudServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.FileHelper;
+import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionAPI;
+import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionCorreoAPI;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionCorreoServidor;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionServidor;
 import proyecto.app.clientesabc.clases.Haversine;
@@ -225,7 +229,7 @@ public class SolicitudActivity extends AppCompatActivity {
     static Spinner prefijo_direccion = null;
     static ImageView verificarCorreo = null;
     static ImageView verificarCelular = null;
-
+    static Drawable rightIconLocation = null;
 
     @SuppressLint("StaticFieldLeak")
     private static de.codecrafters.tableview.TableView<Contacto> tb_contactos;
@@ -255,7 +259,7 @@ public class SolicitudActivity extends AppCompatActivity {
     private BarcodeReader reader;
     private ActivityResultLauncher<CropImageContractOptions> cropImage;
     static ManejadorAdjuntos manejadorAdjuntos;
-    public static String[] visitas_permitidas = {"ZPV","ZJV","ZTV","ZRM","ZAT","ZKV","ZDY","ZGE","ZCM","ZCS","ZDI","ZEJ","ZES","ZIN","ZOP","ZPK","ZSP","ZWB","ZWE","ZWJ","ZWP"};
+    public static String[] visitas_permitidas = {"ZPV","ZJV","ZTV","ZRM","ZAT","ZKV","ZDY","ZGE","ZCM","ZCS","ZDI","ZEJ","ZES","ZIN","ZOP","ZPK","ZSP","ZWB","ZWE","ZWJ","ZWP","ZDM","ZMB","ZDP"};
     static boolean suppressRecreateAdapter = false;
     public static PendingIntent sentPI;
     public static PendingIntent deliveredPI;
@@ -346,8 +350,8 @@ public class SolicitudActivity extends AppCompatActivity {
         sentPI = PendingIntent.getBroadcast(SolicitudActivity.this, 0, new Intent(SENT), PendingIntent.FLAG_IMMUTABLE);
         deliveredPI = PendingIntent.getBroadcast(SolicitudActivity.this, 0, new Intent(DELIVERED), PendingIntent.FLAG_IMMUTABLE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            SolicitudActivity.this.registerReceiver(sentReceiver, new IntentFilter(SENT), Context.RECEIVER_NOT_EXPORTED);
-            SolicitudActivity.this.registerReceiver(deliveredReceiver, new IntentFilter(DELIVERED), Context.RECEIVER_NOT_EXPORTED);
+            SolicitudActivity.this.registerReceiver(sentReceiver, new IntentFilter(SENT), Context.RECEIVER_EXPORTED);
+            SolicitudActivity.this.registerReceiver(deliveredReceiver, new IntentFilter(DELIVERED), Context.RECEIVER_EXPORTED);
         } else {
             SolicitudActivity.this.registerReceiver(sentReceiver, new IntentFilter(SENT));
             SolicitudActivity.this.registerReceiver(deliveredReceiver, new IntentFilter(DELIVERED));
@@ -451,6 +455,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                         if(!Validaciones.ValidarCoordenadaY(tv)) {
                                             numErrores++;
                                             mensajeError += "- Formato Coordenada Y invalido\n";
+                                        }else{
+                                            Drawable leftIcon = getResources().getDrawable(R.drawable.icon_location, null);
+                                            tv.setCompoundDrawablesWithIntrinsicBounds(leftIcon, null, rightIconLocation, null);
                                         }
                                     }
                                     if(listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG")){
@@ -461,6 +468,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                         if(!Validaciones.ValidarCoordenadaX(tv)) {
                                             numErrores++;
                                             mensajeError += "- Formato Coordenada X invalido\n";
+                                        }else{
+                                            Drawable leftIcon = getResources().getDrawable(R.drawable.icon_location, null);
+                                            tv.setCompoundDrawablesWithIntrinsicBounds(leftIcon, null, rightIconLocation, null);
                                         }
                                     }
                                 }
@@ -488,6 +498,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                 if(!listaCamposObligatorios.contains("W_CTE-ZZCRMA_LAT") && !Validaciones.ValidarCoordenadaY(texto)){
                                     numErrores++;
                                     mensajeError += "- Formato Coordenada Y invalido\n";
+                                }else{
+                                    Drawable leftIcon = getResources().getDrawable(R.drawable.icon_location, null);
+                                    texto.setCompoundDrawablesWithIntrinsicBounds(leftIcon, null, rightIconLocation, null);
                                 }
                             }
                         }
@@ -497,6 +510,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                 if(!listaCamposObligatorios.contains("W_CTE-ZZCRMA_LONG") && !Validaciones.ValidarCoordenadaX(texto)){
                                     numErrores++;
                                     mensajeError += "- Formato Coordenada X invalido\n";
+                                }else{
+                                    Drawable leftIcon = getResources().getDrawable(R.drawable.icon_location, null);
+                                    texto.setCompoundDrawablesWithIntrinsicBounds(leftIcon, null, rightIconLocation, null);
                                 }
                             }
                         }
@@ -992,12 +1008,19 @@ public class SolicitudActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudActivity.this);
-        try {
-            manejadorAdjuntos.setUri(mPhotoUri);
-            manejadorAdjuntos.ActivityResult(requestCode, resultCode, data);
-            //ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (requestCode == VariablesGlobales.REQUEST_CODE_MAP && resultCode == 1 && data != null) {
+            String lat = data.getStringExtra("latitude");
+            String lng = data.getStringExtra("longitude");
+            ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT")).setText(lat);
+            ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG")).setText(lng);
+        }else {
+            try {
+                manejadorAdjuntos.setUri(mPhotoUri);
+                manejadorAdjuntos.ActivityResult(requestCode, resultCode, data);
+                //ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -1801,34 +1824,43 @@ public class SolicitudActivity extends AppCompatActivity {
                         if (campos.get(i).get("campo").trim().equals("W_CTE-KVGR5")) {
                             //TODO aqui se debe cambiar si se quiere trabajar con diferentes tipos de 'PR'
                             if (solicitudSeleccionada.size() == 0) {
-                                combo.setSelection(VariablesGlobales.getIndex(combo, "PR"));
-                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").equals("ZAT")){
-                                    if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F428"))
-                                        combo.setSelection(VariablesGlobales.getIndex(combo, "C27"));
-                                    else
-                                        combo.setSelection(VariablesGlobales.getIndex(combo, "GV"));
-                                }
+                                String mv = db.AsignarModalidadSegunAgenciayTipoVisita(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BZIRK",""),PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA",""));
+                                if(mv != ""){
+                                    combo.setSelection(VariablesGlobales.getIndex(combo, mv));
+                                }else {
+                                    combo.setSelection(VariablesGlobales.getIndex(combo, "PR"));
+                                    if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "ZPV").equals("ZAT")) {
+                                        if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS", "").equals("F428"))
+                                            combo.setSelection(VariablesGlobales.getIndex(combo, "C27"));
+                                        else
+                                            combo.setSelection(VariablesGlobales.getIndex(combo, "GV"));
+                                    }
 
-                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZTV")){
-                                    combo.setSelection(VariablesGlobales.getIndex(combo, "TA"));
+                                    if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "ZPV").toString().equals("ZTV")) {
+                                        combo.setSelection(VariablesGlobales.getIndex(combo, "TA"));
+                                    }
+                                    if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "ZPV").toString().equals("ZJV")) {
+                                        combo.setSelection(VariablesGlobales.getIndex(combo, "PE"));
+                                    }
+                                    if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "ZPV").toString().equals("ZGE")) {
+                                        combo.setSelection(VariablesGlobales.getIndex(combo, "C03"));
+                                    }
+                                    if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "ZPV").toString().equals("ZCM")) {
+                                        combo.setSelection(VariablesGlobales.getIndex(combo, "C32"));
+                                    }
+                                    if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "ZPV").toString().equals("ZCS")) {
+                                        combo.setSelection(VariablesGlobales.getIndex(combo, "C02"));
+                                    }
+                                    if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "ZPV").equals("ZES")) {
+                                        if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS", "").equals("F428"))
+                                            combo.setSelection(VariablesGlobales.getIndex(combo, "C11"));
+                                    }
                                 }
-                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZJV")){
-                                    combo.setSelection(VariablesGlobales.getIndex(combo, "PE"));
-                                }
-                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZGE")){
-                                    combo.setSelection(VariablesGlobales.getIndex(combo, "C03"));
-                                }
-                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZCM")){
-                                    combo.setSelection(VariablesGlobales.getIndex(combo, "C32"));
-                                }
-                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZCS")){
-                                    combo.setSelection(VariablesGlobales.getIndex(combo, "C02"));
-                                }
-                                if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").equals("ZES")){
-                                    //if(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F428"))
-                                        //combo.setSelection(VariablesGlobales.getIndex(combo, "C11"));
-                                }
-                                if(!PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","F443").toString().equals("F428")) {
+                                if (combo.getSelectedItemPosition() == Spinner.INVALID_POSITION || combo.getSelectedItemPosition() == 0) {
+                                    // Nada seleccionado o está en la posición inicial (por ejemplo, "Seleccione una opción")
+                                    combo.setEnabled(true);
+                                    combo.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
+                                }else{
                                     combo.setEnabled(false);
                                     combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
                                 }
@@ -2695,7 +2727,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                     WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                     if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
-                                        GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
+                                        GenerarCodigoVerificacionAPI v = new GenerarCodigoVerificacionAPI(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
                                         v.execute();
                                     } else {
                                         GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
@@ -2721,7 +2753,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                             if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
-                                                GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
+                                                GenerarCodigoVerificacionAPI v = new GenerarCodigoVerificacionAPI(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
                                                 v.execute();
                                             } else {
                                                 GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
@@ -2780,6 +2812,23 @@ public class SolicitudActivity extends AppCompatActivity {
                                     }
                                 }
                             }
+                            atCorreo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                                    String correoOriginal = et.getText().toString();
+
+                                    if (correoOriginal.contains("@") && opcion != null && opcion.getId().contains("@")) {
+                                        String parteAntesDelArroba = correoOriginal.substring(0, correoOriginal.indexOf("@"));
+                                        et.setText(parteAntesDelArroba); // Quita el dominio
+                                    }
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+                                    // No hacer nada
+                                }
+                            });
                         }
                         if(campos.get(i).get("nombre") != null && campos.get(i).get("nombre").toLowerCase().contains("verificarcorreo") && modificable) {
                             verificarCorreo = new ImageView(getContext());
@@ -2853,7 +2902,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                     WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                     if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion", "").equals("api")) {
-                                        GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
+                                        GenerarCodigoVerificacionCorreoAPI v = new GenerarCodigoVerificacionCorreoAPI(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
                                         v.execute();
                                     } else {
                                         GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
@@ -2885,7 +2934,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                             WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                             if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion", "").equals("api")) {
-                                                GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
+                                                GenerarCodigoVerificacionCorreoAPI v = new GenerarCodigoVerificacionCorreoAPI(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
                                                 v.execute();
                                             } else {
                                                 GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
@@ -2993,7 +3042,16 @@ public class SolicitudActivity extends AppCompatActivity {
 
 
                         if (campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LAT") || campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LONG")) {
-                            et.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.icon_location, null), null, null, null);
+                            Drawable leftIcon = getResources().getDrawable(R.drawable.icon_location, null);
+                            Drawable rightIcon = null;
+
+                            if (campos.get(i).get("nombre").trim().equals("mapa")) {
+                                rightIcon = getResources().getDrawable(R.drawable.map, null);
+                                rightIconLocation = rightIcon;
+                            }
+
+                            et.setCompoundDrawablesWithIntrinsicBounds(leftIcon, null, rightIcon, null);
+
                             et.setCompoundDrawablePadding(16);
                             et.setInputType(InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
@@ -3006,13 +3064,48 @@ public class SolicitudActivity extends AppCompatActivity {
                                     final int DRAWABLE_BOTTOM = 3;
 
                                     if (event.getAction() == MotionEvent.ACTION_UP) {
-                                        if (event.getRawX() <= (et.getLeft() + et.getCompoundDrawables()[DRAWABLE_LEFT].getBounds().width()) * 2) {
-                                            Toasty.info(getContext(), "Refrescando ubicacion..").show();
-                                            LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
-                                            autoPineo.startLocationUpdates();
-                                            return true;
+                                        float touchX = event.getX();
+
+                                        Drawable leftDrawable = et.getCompoundDrawables()[DRAWABLE_LEFT];
+                                        Drawable rightDrawable = et.getCompoundDrawables()[DRAWABLE_RIGHT];
+
+                                        if (leftDrawable != null) {
+                                            int leftWidth = leftDrawable.getBounds().width();
+                                            if (touchX <= et.getPaddingLeft() + leftWidth) {
+                                                // LEFT icon clicked
+                                                Toasty.info(getContext(), "Refrescando ubicación...").show();
+                                                LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(),
+                                                        (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"),
+                                                        (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG")
+                                                );
+                                                autoPineo.startLocationUpdates();
+                                                return true;
+                                            }
+                                        }
+
+                                        if (rightDrawable != null) {
+                                            if (rightDrawable == rightIconLocation) {
+                                                int rightWidth = rightDrawable.getBounds().width();
+                                                if (touchX >= (et.getWidth() - et.getPaddingRight() - rightWidth)) {
+                                                    // RIGHT icon clicked
+                                                    Intent intent = new Intent(getContext(), OSMPickerActivity.class);
+                                                    getActivity().startActivityForResult(intent, VariablesGlobales.REQUEST_CODE_MAP);
+                                                    return true;
+                                                }
+                                            } else {
+                                                // ✅ User tapped the error icon, let the popup show
+                                                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                                    et.setError(null); // remove error
+                                                    et.setCompoundDrawablesWithIntrinsicBounds(
+                                                            leftIcon, null, rightIconLocation, null
+                                                    );
+                                                }, 2000); // Delay allows popup to show first
+
+                                                return false; // block custom icon click this time
+                                            }
                                         }
                                     }
+
                                     return false;
                                 }
                             });

@@ -103,7 +103,7 @@ public class AdjuntoAPI extends AsyncTask<Void,String,Bitmap> {
                     int bytesRead;
                     while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != fileSize) {
                         offset += bytesRead;
-                        publishProgress("Descargando..." + String.format("%.02f", (100f / (fileSize / 1024f)) * (offset / 1024f)) + "%");
+                        publishProgress("Descargando..." + String.format("%.02f", (100f / (fileSize / 1024f)) * (offset / 1024f)) + "% ("+String.format("%.2f", (offset/1000000.0))+" de "+String.format("%.2f", (fileSize/1000000.0))+")");
                     }
 
                     if (nombre.toLowerCase().contains(".pdf") || nombre.toLowerCase().contains(".xls") || nombre.toLowerCase().contains(".msg")  || nombre.toLowerCase().contains(".doc") || nombre.toLowerCase().contains(".zip")) {

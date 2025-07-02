@@ -2,18 +2,17 @@ package proyecto.app.clientesabc.clases;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.database.sqlite.SQLiteDatabase;
+import android.content.res.ColorStateList;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -36,30 +35,28 @@ import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.Interfaces.InterfaceApi;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
-import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
-import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
-import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
-import proyecto.app.clientesabc.modelos.EquipoFrio;
 import retrofit2.Call;
 import retrofit2.Response;
 
-public class ValidacionAnomaliaAPI extends AsyncTask<Void,String,ArrayList<JsonArray>> {
+public class VerificarCodigoAPI extends AsyncTask<Void,String,ArrayList<JsonArray>> {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
-    private EquipoFrio equipoFrio;
+    private String sociedad;
+    private String cliente;
+    private String num_celular;
+    private String codigo;
     private boolean xceptionFlag = false;
     private String messageFlag = "";
-    private ServerSocket ss;
-    private Socket socket;
-    ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
-    private DataBaseHelper mDBHelper;
-    public ValidacionAnomaliaAPI(WeakReference<Context> c, WeakReference<Activity> a, EquipoFrio equipoFrio){
+    ImageView boton;
+    public VerificarCodigoAPI(WeakReference<Context> c, WeakReference<Activity> a, String sociedad, String cliente, String num_celular, String codigo, ImageView btn){
         this.context = c;
         this.activity = a;
-        this.equipoFrio = equipoFrio;
-        mDBHelper = new DataBaseHelper(this.context.get());
+        this.sociedad = sociedad;
+        this.cliente = cliente;
+        this.num_celular = num_celular;
+        this.codigo = codigo;
+        this.boton = btn;
     }
 
     @Override
@@ -70,7 +67,7 @@ public class ValidacionAnomaliaAPI extends AsyncTask<Void,String,ArrayList<JsonA
         System.out.println("Estableciendo comunicación para enviar archivos...");
         String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
         if(mensaje.equals("")) {
-            String codigo = String.format("%10s", String.valueOf("CodigoEquipo")).replace(' ', '0');
+            String codigocliente = String.format("%10s", String.valueOf(this.cliente)).replace(' ', '0');
             //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la consulta para modificacion
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             dateFormat.setTimeZone(TimeZone.getTimeZone("GMT-6"));
@@ -79,7 +76,7 @@ public class ValidacionAnomaliaAPI extends AsyncTask<Void,String,ArrayList<JsonA
 
             InterfaceApi apiService = ServiceGenerator.createService(context, activity,InterfaceApi.class, PreferenceManager.getDefaultSharedPreferences(context.get()).getString("TOKEN", ""));
 
-            Call<ResponseBody> call = apiService.ValidarFlujoCliente(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()), PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), version, "codigo", "tipoFormulario", "numEquipo");
+            Call<ResponseBody> call = apiService.VerificarCodigo(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()), codigocliente, num_celular, codigo);
             Response<ResponseBody> response;
             try {
                 response = call.execute();
@@ -100,9 +97,7 @@ public class ValidacionAnomaliaAPI extends AsyncTask<Void,String,ArrayList<JsonA
                     byte[] r = Arrays.copyOfRange(temp, 0, offset);
                     String respuestajson = new String(r);
                     try {
-                        Gson gson = new Gson();
-                        respuesta.add(gson.fromJson(respuestajson, JsonArray.class));
-                        publishProgress("Procesando datos cliente..");
+                        publishProgress("Validando verificación..");
                     }catch(Exception e){
                         xceptionFlag = true;
                         messageFlag = e.getMessage();
@@ -121,7 +116,6 @@ public class ValidacionAnomaliaAPI extends AsyncTask<Void,String,ArrayList<JsonA
         publishProgress("Proceso Terminado...");
 
         Log.i("===end of start ====", "==");
-
 
         return respuesta;
     }
@@ -162,15 +156,25 @@ public class ValidacionAnomaliaAPI extends AsyncTask<Void,String,ArrayList<JsonA
         } catch (final Exception e) {
             // Do nothing.
         }
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("transmitido","1");
-        long update = db.update("CensoEquipoFrio",values,"trim(kunnr_censo) = ? AND trim(num_placa) = ? AND fecha_lectura = ? AND transmitido = '0'",new String[]{equipoFrio.getKunnrCenso(),equipoFrio.getNumPlaca(),equipoFrio.getFechaLectura()});
-        if(update <= 0){
-            //Toasty.success(context.get(),"No se actualizo el estado de transmision de la lectura!",Toast.LENGTH_LONG).show();
-        }
         if(dialog.isShowing()) {
             dialog.hide();
+        }
+        if(xceptionFlag){
+            //activity.get().finish();
+            Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
+        }else {
+            try {
+                try {
+                    boton.setBackgroundTintList(ColorStateList.valueOf(context.get().getResources().getColor(R.color.aprobados, null)));
+                    Toasty.success(context.get(), "Numero de celular verificado!", Toast.LENGTH_LONG).show();
+                    boton.setOnClickListener(null);
+                } catch (Exception e) {
+                    Toasty.error(context.get(), "Error al verificar el numero celular: " + e.getMessage()).show();
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
     public void EnableWiFi(){

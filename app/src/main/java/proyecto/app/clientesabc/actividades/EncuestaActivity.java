@@ -1,14 +1,20 @@
 package proyecto.app.clientesabc.actividades;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,19 +23,31 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.JsonArray;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 import es.dmoral.toasty.Toasty;
@@ -46,7 +64,13 @@ import proyecto.app.clientesabc.modelos.OpcionSpinner;
 import proyecto.app.clientesabc.modelos.PreguntasEncuesta;
 import proyecto.app.clientesabc.modelos.RespuestaPregunta;
 
-public class EncuestaActivity extends AppCompatActivity{
+public class EncuestaActivity extends AppCompatActivity implements EncuestaAdapter.OnImagePickerClickListener {
+    @Override
+    public void onImagePickerClicked(int position) {
+        showImageSourceDialog(position); // now you can call your activity method safely
+    }
+    private int selectedImagePosition = -1;
+    static Uri mPhotoUri;
     DataBaseHelper db;
     public static SQLiteDatabase mDb;
     private static EncuestaAdapter mAdapter;
@@ -63,6 +87,12 @@ public class EncuestaActivity extends AppCompatActivity{
     RecyclerView rv;
     boolean encuestaNueva = true;
 
+    private static final int REQUEST_IMAGE_PICK = 1;
+    private static final int REQUEST_IMAGE_CAPTURE = 2;
+    private Uri imageUri;
+    private ImageView imageView;
+    private Map<Integer, File> imageFiles;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,7 +106,6 @@ public class EncuestaActivity extends AppCompatActivity{
             GecActual = b.getString("GecActual");
             esGVC = b.getBoolean("esGVC");
         }
-        db = new DataBaseHelper(this);
         db = new DataBaseHelper(this);
         mDb = db.getWritableDatabase();
         preguntas = db.getPreguntasEncuesta(idEncuesta);
@@ -96,8 +125,9 @@ public class EncuestaActivity extends AppCompatActivity{
 
         }
         rv = findViewById(R.id.recycler_view);
+        imageFiles = new HashMap<>();
 
-        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente,respuestaPreguntas);
+        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente,respuestaPreguntas,this,imageFiles);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
@@ -117,118 +147,128 @@ public class EncuestaActivity extends AppCompatActivity{
 
             }
         });
-
-
-
-
-
-
     }
     @Override
     protected  void onResume(){
         super.onResume();
 
-        preguntas = db.getPreguntasEncuesta(idEncuesta);
+        /*preguntas = db.getPreguntasEncuesta(idEncuesta);
         RecyclerView rv = findViewById(R.id.recycler_view);
 
-        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente,respuestaPreguntas);
+        mAdapter = new EncuestaAdapter(preguntas,this, EncuestaActivity.this,nombre_cliente,respuestaPreguntas, this,imageFiles);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
-        rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
-
+        rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));*/
     }
 
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        Bitmap image = null;
-        Bundle b = null;
-        if (data != null)
-            b = data.getExtras();
-        if (b != null) {
-            //campoEscaneo = b.getString("campoEscaneo");
-            if (b.getInt("requestCode") != 0)
-                requestCode = b.getInt("requestCode");
-        }
+    private void showImageSourceDialog(int position) {
+        selectedImagePosition = position;
+        String[] options = {"Cámara", "Galeria"};
 
-        if (requestCode == VariablesGlobales.ESCANEO_EQUIPO_FRIO) {
-            if (resultCode == RESULT_OK) {
-                if (b != null) {
-                    //Se verifica el codigo leida y se pueden dar las siguientes situaciones:
-                    //1. El codigo del equipo frio si existe en el cliente, simplemente se marca como censado
-                    //2. El codigo del equipo no existe en sistema, se debe agregar a la lista de censados como HALLAZGO o anomalía
-                    //3. El codigo del equipo leida esta en otro cliente
-                    //4. Hay un equipo que no puede ser censado pero si esta en la lista del cliente(NO tiene placa, NO esta en sitio, no existe), Se debe poder indicar que el equipo no pudo ser censado y ver que estado ponerle
-
-                    //Caso 1. El codigo del equipo frio si exsite en el cliente, simplemente se marca como censado con un nuevo regsitro en CensoEquipoFrio
-                    if (db.ExisteEquipoFrioEnCliente(codigo_cliente, b.getString("codigo"))) {
-                        EquipoFrio eq = db.getEquipoFrioDB(codigo_cliente, b.getString("codigo"), false);
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                        Date date = new Date();
-                        ContentValues insertValues = new ContentValues();
-                        insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BUKRS",""));
-                        insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BZIRK",""));
-                        insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_RUTAHH",""));
-                        insertValues.put("estado","Verificado");
-                        insertValues.put("kunnr_censo",codigo_cliente);
-                        insertValues.put("nombre_cliente", nombre_cliente);
-                        insertValues.put("num_placa",eq.getSerge());
-                        insertValues.put("activo", "1");
-                        insertValues.put("transmitido", "0");
-                        insertValues.put("fecha_lectura", dateFormat.format(date));
-                        insertValues.put("num_activo", eq.getSernr());
-                        insertValues.put("num_equipo", eq.getEqunr());
-                        insertValues.put("modelo_equipo", eq.getMatnr());
-                        insertValues.put("fuente", "Escaner");
-                        insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("userMC",""));
-
-
-                    }else
-                    //2. El codigo del equipo no existe en sistema, se debe agregar a la lista de censados como HALLAZGO o anomalía
-                    if (!db.ExisteEquipoFrio(b.getString("codigo"))) {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                        Date date = new Date();
-                        ContentValues insertValues = new ContentValues();
-                        insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BUKRS",""));
-                        insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BZIRK",""));
-                        insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_RUTAHH",""));
-                        insertValues.put("estado","Hallazgo");
-                        insertValues.put("kunnr_censo",codigo_cliente);
-                        insertValues.put("nombre_cliente", nombre_cliente);
-                        insertValues.put("num_placa",b.getString("codigo").trim());
-                        insertValues.put("activo", "1");
-                        insertValues.put("transmitido", "0");
-                        insertValues.put("fecha_lectura", dateFormat.format(date));
-                        insertValues.put("comentario","Número de placa no aparece en ningun cliente instalado.");
-                        insertValues.put("fuente", "Escaner");
-                    }//3. El codigo del equipo leida esta en otro cliente
-                    else if (db.ExisteEquipoFrio(b.getString("codigo"))) {
-                        EquipoFrio eq = db.getEquipoFrioDatosCenso(b.getString("codigo"));
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                        Date date = new Date();
-                        ContentValues insertValues = new ContentValues();
-                        insertValues.put("bukrs", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BUKRS",""));
-                        insertValues.put("bzirk", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_BZIRK",""));
-                        insertValues.put("ruta", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("W_CTE_RUTAHH",""));
-                        insertValues.put("estado","Hallazgo");
-                        insertValues.put("kunnr_censo",codigo_cliente);
-                        insertValues.put("nombre_cliente", nombre_cliente);
-                        insertValues.put("num_placa",eq.getSerge());
-                        insertValues.put("activo", "1");
-                        insertValues.put("transmitido", "0");
-                        insertValues.put("fecha_lectura", dateFormat.format(date));
-                        insertValues.put("num_activo", eq.getSernr());
-                        insertValues.put("num_equipo", eq.getEqunr());
-                        insertValues.put("modelo_equipo", eq.getMatnr());
-                        insertValues.put("creado_por", PreferenceManager.getDefaultSharedPreferences(EncuestaActivity.this).getString("userMC",""));
-                        insertValues.put("comentario","Pertenece a otro cliente "+eq.getKunnr()+"!");
-                        insertValues.put("fuente","Escaner");
+        new AlertDialog.Builder(this)
+                .setTitle("Selecione")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        openCamera();
+                    } else {
+                        openGallery();
                     }
-                }
+                })
+                .show();
+    }
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        startActivityForResult(intent, REQUEST_IMAGE_PICK);
+    }
+
+    private void openCamera() {
+        //Initialize on every usage
+        mPhotoUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new ContentValues());
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
+        try {
+            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+
+        } catch (ActivityNotFoundException e) {
+            Log.e("tag", getResources().getString(R.string.no_activity));
+        }
+       /*
+        //Initialize on every usage
+        boolean mPhotoUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new ContentValues());
+        intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
+        try {
+            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+
+        } catch (ActivityNotFoundException e) {
+            Log.e("tag", getResources().getString(R.string.no_activity));
+        }
+        */
+    }
+
+    private File createImageFile() {
+        try {
+            String fileName = "img_" + System.currentTimeMillis();
+            File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File image = File.createTempFile(fileName, ".jpg", storageDir);
+            //File finalImageFile = image;
+            return image;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /*@Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_MAP && resultCode == RESULT_OK && data != null) {
+            double lat = data.getDoubleExtra("latitude", 0);
+            double lng = data.getDoubleExtra("longitude", 0);
+
+            //editTextLat.setText(String.valueOf(lat));
+            //editTextLng.setText(String.valueOf(lng));
+        }
+    }*/
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) {
+            Uri selectedImageUri = null;
+
+            File finalImageFile = null;
+            if (requestCode == REQUEST_IMAGE_PICK && data != null) {
+                selectedImageUri = data.getData();
+                finalImageFile = compressImage(selectedImageUri);
+            } else if (requestCode == REQUEST_IMAGE_CAPTURE) {
+                selectedImageUri = mPhotoUri;
+                finalImageFile = compressImage(selectedImageUri);
+            }
+
+            if (finalImageFile != null) {
+                imageFiles.put(selectedImagePosition, finalImageFile);
+                mAdapter.notifyItemChanged(selectedImagePosition);
+                //mAdapter.notifyDataSetChanged();
             }
         }
-
     }
-
+    private File compressImage(Uri imageUri) {
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+            File compressedFile = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "compressed_" + System.currentTimeMillis() + ".jpg");
+            FileOutputStream out = new FileOutputStream(compressedFile);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 75, out); // adjust quality
+            out.flush();
+            out.close();
+            return compressedFile;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
     private static Activity getActivity(Context context) {
         if (context == null) {
             return null;
@@ -244,57 +284,83 @@ public class EncuestaActivity extends AppCompatActivity{
         return null;
     }
 
+    //falta para imagen
     private boolean validarRespuestas(Context context){
         boolean valido=true;
         String msj = "Por favor validar las preguntas: ";
-        for (int i=0; i<mAdapter.getItemCount(); i++){
-
-
-        RecyclerView.ViewHolder viewHolder = rv.findViewHolderForAdapterPosition(i);
-
+        for (int i=0; i < mAdapter.getItemCount(); i++){
+            LinearLayout borderContainer = null;
+            RecyclerView.ViewHolder viewHolder = rv.findViewHolderForAdapterPosition(i);
             switch (viewHolder.getItemViewType()){
                 case 1:
                     EncuestaAdapter.TextoHolder textoHolder = (EncuestaAdapter.TextoHolder) viewHolder;
-
+                    borderContainer = textoHolder.listView.findViewById(R.id.border_container);
                     EditText editText = textoHolder.listView.findViewById(R.id.multiple_group);
                     TextView textView = textoHolder.listView.findViewById(R.id.pregunta);
+
                     if(editText.getText().toString().isEmpty()){
                         TextView numPregunta = textoHolder.listView.findViewById(R.id.orden_pregunta);
                         msj+=numPregunta.getText()+", ";
                         valido=false;
+                        borderContainer.setBackgroundResource(R.drawable.squared_orange_border);
+                    }else{
+                        borderContainer.setBackgroundResource(R.drawable.squared_textbackground);
                     }
                     break;
                 case 2:
                     EncuestaAdapter.SeleccionHolder seleccionHolder = (EncuestaAdapter.SeleccionHolder) viewHolder;
+                    borderContainer = seleccionHolder.listView.findViewById(R.id.border_container);
+                    Spinner editTextSeleccion = seleccionHolder.listView.findViewById(R.id.multiple_group);
 
-//                   EditText editTextSeleccion = seleccionHolder.listView.findViewById(R.id.multiple_group);
-//
-//                   if(editTextSeleccion.getText().toString().isEmpty()){
-//                        TextView numPregunta = seleccionHolder.listView.findViewById(R.id.orden_pregunta);
-//                        msj+=numPregunta.getText()+", ";
-//                        valido=false;
-//                   }
+                   if(editTextSeleccion.getSelectedItem() == null){
+                        TextView numPregunta = seleccionHolder.listView.findViewById(R.id.orden_pregunta);
+                        msj+=numPregunta.getText()+", ";
+                        valido=false;
+                       borderContainer.setBackgroundResource(R.drawable.squared_orange_border);
+                   }else{
+                       borderContainer.setBackgroundResource(R.drawable.squared_textbackground);
+                   }
                     break;
                 case 3:
                     EncuestaAdapter.MultipleHolder multipleHolder = (EncuestaAdapter.MultipleHolder) viewHolder;
-
+                    borderContainer = multipleHolder.listView.findViewById(R.id.border_container);
                     CheckBoxGroupView checkBoxGroupView = multipleHolder.listView.findViewById(R.id.checkGroup);
 
                     if(checkBoxGroupView.getCheckboxesChecked().isEmpty()){
                         TextView numPregunta = multipleHolder.listView.findViewById(R.id.orden_pregunta);
                         msj+=numPregunta.getText()+", ";
                         valido=false;
+                        borderContainer.setBackgroundResource(R.drawable.squared_orange_border);
+                    }else{
+                        borderContainer.setBackgroundResource(R.drawable.squared_textbackground);
                     }
                     break;
                 case 4:
                     EncuestaAdapter.NumericoHolder numericoHolder = (EncuestaAdapter.NumericoHolder) viewHolder;
-
+                    borderContainer = numericoHolder.listView.findViewById(R.id.border_container);
                     EditText editTextNum = numericoHolder.listView.findViewById(R.id.multiple_group);
 
                     if(editTextNum.getText().toString().isEmpty()){
                         TextView numPregunta = numericoHolder.listView.findViewById(R.id.orden_pregunta);
                         msj+=numPregunta.getText()+", ";
                         valido=false;
+                        borderContainer.setBackgroundResource(R.drawable.squared_orange_border);
+                    }else{
+                        borderContainer.setBackgroundResource(R.drawable.squared_textbackground);
+                    }
+                    break;
+                case 5:
+                    EncuestaAdapter.ImageHolder imageHolder = (EncuestaAdapter.ImageHolder) viewHolder;
+                    ImageView imageView = imageHolder.listView.findViewById(R.id.image_view);
+                    borderContainer = imageHolder.listView.findViewById(R.id.border_container);
+
+                    if(imageView.getTag() == "default"){
+                        TextView numPregunta = imageHolder.listView.findViewById(R.id.orden_pregunta);
+                        msj+=numPregunta.getText()+", ";
+                        valido=false;
+                        borderContainer.setBackgroundResource(R.drawable.squared_orange_border);
+                    }else{
+                        borderContainer.setBackgroundResource(R.drawable.squared_textbackground);
                     }
                     break;
             }
@@ -309,7 +375,7 @@ public class EncuestaActivity extends AppCompatActivity{
         return valido;
     }
 
-
+//falta para imagen
     private void guardarRespuestas(Context context){
         UUID myGUID = java.util.UUID.randomUUID();
         if(!respuestaPreguntas.isEmpty()){
@@ -372,14 +438,11 @@ public class EncuestaActivity extends AppCompatActivity{
                     for (OpcionCheckBox opcion:opcionesSeleccionadas) {
 
                         RespuestaPregunta respuestaPreguntaOpcion = new RespuestaPregunta();
-                        respuestaPreguntaOpcion.setIdEncuesta(idEncuesta);
-                        respuestaPreguntaOpcion.setEncuesta(nombre_encuesta);
-                        respuestaPreguntaOpcion.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
-                        respuestaPreguntaOpcion.setTextoPregunta(pregunta.getText().toString());
                         respuestaPreguntaOpcion.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
                         respuestaPreguntaOpcion.setTextoPregunta(pregunta.getText().toString());
                         respuestaPreguntaOpcion.setGUID(myGUID.toString());
-                        respuestaPreguntaOpcion.setEncuesta(tipo_encuesta);
+                        respuestaPreguntaOpcion.setIdEncuesta(idEncuesta);
+                        respuestaPreguntaOpcion.setEncuesta(nombre_encuesta);
                         respuestaPreguntaOpcion.setFecha((new java.sql.Date(Calendar.getInstance().getTimeInMillis())).toString());
                         respuestaPreguntaOpcion.setNombreCliente(nombre_cliente);
                         respuestaPreguntaOpcion.setCodigoCliente(codigo_cliente);
@@ -410,8 +473,28 @@ public class EncuestaActivity extends AppCompatActivity{
                     respuestaPregunta.setIdTipoPregunta(String.valueOf(viewHolder.getItemViewType()));
                     respuestaPreguntas.add(respuestaPregunta);
                     break;
-            }
+                case 5:
+                    EncuestaAdapter.ImageHolder imageHolder = (EncuestaAdapter.ImageHolder) viewHolder;
 
+                    pregunta = imageHolder.listView.findViewById(R.id.pregunta);
+                    respuesta = imageHolder.listView.findViewById(R.id.multiple_group);
+                    ImageView imagen = imageHolder.listView.findViewById(R.id.image_view);
+
+
+                    respuestaPregunta.setIdPregunta(pregunta.getPreguntasEncuesta().getId());
+                    respuestaPregunta.setTextoPregunta(pregunta.getText().toString());
+                    //respuestaPregunta.setRespuesta(respuesta.getText().toString());
+                    //respuestaPregunta.setIdRespuesta("0");
+                    //respuestaPregunta.setIdTextoRespuesta("");
+                    respuestaPregunta.setIdTipoPregunta(String.valueOf(viewHolder.getItemViewType()));
+
+                    File imageFile = imageFiles.get(i);
+                    if (imageFile != null) {
+                        respuestaPregunta.setImagenPath(imageFile.getAbsolutePath());
+                    }
+                    respuestaPreguntas.add(respuestaPregunta);
+                    break;
+            }
         }
 
         ContentValues respuestaValue = new ContentValues();
@@ -432,6 +515,8 @@ public class EncuestaActivity extends AppCompatActivity{
             respuestaValue.put("codigo_cliente", respuestaPregunta.getCodigoCliente());
             respuestaValue.put("nombre_cliente", respuestaPregunta.getNombreCliente());
             respuestaValue.put("bukrs", respuestaPregunta.getSociedad());
+            respuestaValue.put("imagenPath", respuestaPregunta.getImagenPath());
+            respuestaValue.put("imagenUrl", respuestaPregunta.getImagenUrl());
             try {
 //                if(encuestaNueva){
 //                    mDb.insert("respuesta_pregunta", null, respuestaValue);
@@ -454,13 +539,9 @@ public class EncuestaActivity extends AppCompatActivity{
             f.DisableWiFi();
         }
         f.execute();
-
-
-
-
-
     }
 
-
-
+    public static void ActualizarImagenesEncuesta(File file, Map<Integer, File> imageFiles,int position ) {
+        imageFiles.put(position,file);
+    }
 }

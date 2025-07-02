@@ -81,11 +81,19 @@ public interface InterfaceApi {
 
     @Streaming
     @GET("api"+ftp+"/GenerarCodigoVerificacion/{bukrs}/{kunnr}/{celular}")
-    Call<ResponseBody> GenerarCodigoVerificacion(@Path("bukrs") String bukrs);
+    Call<ResponseBody> GenerarCodigoVerificacion(@Path("bukrs") String bukrs, @Path("kunnr") String kunnr, @Path("celular") String celular);
+
+    @Streaming
+    @GET("api"+ftp+"/GenerarCodigoVerificacionCorreo/{bukrs}/{kunnr}/{correo}")
+    Call<ResponseBody> GenerarCodigoVerificacionCorreo(@Path("bukrs") String bukrs, @Path("kunnr") String kunnr, @Path("correo") String correo);
 
     @Streaming
     @GET("api"+ftp+"/VerificarCodigo/{bukrs}/{kunnr}/{celular}/{codigo_recibido}")
-    Call<ResponseBody> VerificarCodigo(@Path("bukrs") String bukrs);
+    Call<ResponseBody> VerificarCodigo(@Path("bukrs") String bukrs,@Path("kunnr") String kunnr,@Path("celular") String celular,  @Path("codigo_recibido") String codigo_recibido);
+
+    @Streaming
+    @GET("api"+ftp+"/VerificarCodigoCorreo/{bukrs}/{kunnr}/{correo}/{codigo_recibido}")
+    Call<ResponseBody> VerificarCodigoCorreo(@Path("bukrs") String bukrs,@Path("kunnr") String kunnr,@Path("correo") String correo,  @Path("codigo_recibido") String codigo_recibido);
 
     @Streaming
     @GET("api"+ftp+"/RechazarPreSolicitud/{bukrs}/{ruta}/{idform}/{estado}/{comentario}")

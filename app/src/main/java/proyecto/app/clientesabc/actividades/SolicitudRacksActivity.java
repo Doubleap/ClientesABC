@@ -140,6 +140,8 @@ import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
 import proyecto.app.clientesabc.clases.ConsultaClienteAPI;
 import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
+import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionAPI;
+import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionCorreoAPI;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionCorreoServidor;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionServidor;
 import proyecto.app.clientesabc.clases.Haversine;
@@ -2904,7 +2906,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
                                 WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                 WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                 if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
-                                    GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
+                                    GenerarCodigoVerificacionAPI v = new GenerarCodigoVerificacionAPI(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
                                     v.execute();
                                 } else {
                                     GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
@@ -2933,7 +2935,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
                                         WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                         WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                         if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
-                                            GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
+                                            GenerarCodigoVerificacionAPI v = new GenerarCodigoVerificacionAPI(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
                                             v.execute();
                                         } else {
                                             GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
@@ -3051,7 +3053,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
                                 WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                 WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                 if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion", "").equals("api")) {
-                                    GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
+                                    GenerarCodigoVerificacionCorreoAPI v = new GenerarCodigoVerificacionCorreoAPI(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
                                     v.execute();
                                 } else {
                                     GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
@@ -3094,7 +3096,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
                                         WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                         WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                         if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion", "").equals("api")) {
-                                            GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
+                                            GenerarCodigoVerificacionCorreoAPI v = new GenerarCodigoVerificacionCorreoAPI(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
                                             v.execute();
                                         } else {
                                             GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);

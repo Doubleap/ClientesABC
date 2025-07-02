@@ -134,6 +134,8 @@ import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
 import proyecto.app.clientesabc.clases.ConsultaClienteAPI;
 import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
+import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionAPI;
+import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionCorreoAPI;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionCorreoServidor;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionServidor;
 import proyecto.app.clientesabc.clases.Haversine;
@@ -248,7 +250,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     private static LinearLayout ll_visitas;
     private ActivityResultLauncher<CropImageContractOptions> cropImage;
     public static ManejadorAdjuntos manejadorAdjuntos;
-    public static String[] visitas_permitidas = {"ZPV","ZJV","ZTV","ZRM","ZAT","ZKV","ZDY","ZGE","ZCM","ZCS","ZDI","ZEJ","ZES","ZIN","ZOP","ZPK","ZSP","ZWB","ZWE","ZWJ","ZWP"};
+    public static String[] visitas_permitidas = {"ZPV","ZJV","ZTV","ZRM","ZAT","ZKV","ZDY","ZGE","ZCM","ZCS","ZDI","ZEJ","ZES","ZIN","ZOP","ZPK","ZSP","ZWB","ZWE","ZWJ","ZWP","ZDM","ZMB","ZDP"};
     public static PendingIntent sentPI;
     public static PendingIntent deliveredPI;
 
@@ -502,12 +504,12 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         CheckBox encuesta = (CheckBox) mapeoCamposDinamicos.get("W_CTE-ENCUESTA");
                         if (encuesta != null && !encuesta.isChecked()) {
                             numErrores++;
-                            mensajeError += "- Debe ejecutar la encuesta GEC!\n";
+                            mensajeError += "- Debe ejecutar la encuesta de Canales!\n";
                         }
                         CheckBox encuesta_gec = (CheckBox) mapeoCamposDinamicos.get("W_CTE-ENCUESTA_GEC");
                         if (encuesta_gec != null && !encuesta_gec.isChecked()) {
                             numErrores++;
-                            mensajeError += "- Debe ejecutar la encuesta de Canales!\n";
+                            mensajeError += "- Debe ejecutar la encuesta GEC!\n";
                         }
                         //Validar el campo de ruta de reparto del grid de visitas
                         Spinner comboModalidad = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KVGR5"));
@@ -2874,6 +2876,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         verificarCelular = new ImageView(getContext());
                         if(campos.get(i).get("nombre").toLowerCase().contains("opc"))
                             verificarCelular.setTag("Opcional");
+                        if(campos.get(i).get("nombre").toLowerCase().contains("obl"))
+                            verificarCelular.setTag("Obligatorio");
                         label.setLayoutParams(textolp);
                         verificarCelular.setBackground(getResources().getDrawable(R.drawable.verifiy_phone,null));
                         TableRow.LayoutParams textolp_ver = new TableRow.LayoutParams(MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
@@ -2902,7 +2906,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                 WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                 if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
-                                    GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
+                                    GenerarCodigoVerificacionAPI v = new GenerarCodigoVerificacionAPI(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
                                     v.execute();
                                 } else {
                                     GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
@@ -2923,7 +2927,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             public void afterTextChanged(Editable s) {
                                 //Restuarar icono de varificacion de numero celular
                                 finalBtnAyuda1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red, null)));
-                                if(solicitudSeleccionada.size() > 0 && s.toString().equals(solicitudSeleccionada.get(0).get(campos.get(finalI3).get("campo"))))
+                                if(solicitudSeleccionada.size() > 0 && s.toString().equals(solicitudSeleccionada.get(0).get(campos.get(finalI3).get("campo"))) && !verificarCelular.getTag().toString().equals("Obligatorio"))
                                     finalBtnAyuda1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.aprobados, null)));
                                 finalBtnAyuda1.setOnClickListener((View.OnClickListener) view -> {
                                     String bukrs = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
@@ -2931,7 +2935,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                         WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                         if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion","").equals("api")) {
-                                            GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
+                                            GenerarCodigoVerificacionAPI v = new GenerarCodigoVerificacionAPI(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
                                             v.execute();
                                         } else {
                                             GenerarCodigoVerificacionServidor v = new GenerarCodigoVerificacionServidor(weakRefs1, weakRefAs1, bukrs, "0", et.getText().toString(), finalBtnAyuda,sentPI,deliveredPI);
@@ -2951,7 +2955,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
 
                         });
-                        if(solicitudSeleccionada.size() > 0 && verificarCelular != null){
+                        if(solicitudSeleccionada.size() > 0 && verificarCelular != null && !verificarCelular.getTag().toString().equals("Obligatorio")){
                             verificarCelular.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.aprobados, null)));
                         }
                     }
@@ -2992,11 +2996,30 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 }
                             }
                         }
+                        atCorreo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                                String correoOriginal = et.getText().toString();
+
+                                if (correoOriginal.contains("@") && opcion != null && opcion.getId().contains("@")) {
+                                    String parteAntesDelArroba = correoOriginal.substring(0, correoOriginal.indexOf("@"));
+                                    et.setText(parteAntesDelArroba); // Quita el dominio
+                                }
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+                                // No hacer nada
+                            }
+                        });
                     }
                     if(campos.get(i).get("nombre") != null && campos.get(i).get("nombre").toLowerCase().contains("verificarcorreo") && modificable) {
                         verificarCorreo = new ImageView(getContext());
                         if(campos.get(i).get("nombre").toLowerCase().contains("opc"))
                             verificarCorreo.setTag("Opcional");
+                        if(campos.get(i).get("nombre").toLowerCase().contains("obl"))
+                            verificarCorreo.setTag("Obligatorio");
                         int marginRight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 125, getResources().getDisplayMetrics());
                         int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, getResources().getDisplayMetrics());
                         int marginEnd = 0;
@@ -3051,7 +3074,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                 WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                 if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion", "").equals("api")) {
-                                    GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
+                                    GenerarCodigoVerificacionCorreoAPI v = new GenerarCodigoVerificacionCorreoAPI(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
                                     v.execute();
                                 } else {
                                     GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
@@ -3078,7 +3101,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         correo = ((TextView)et).getText().toString()+((OpcionSpinner)finalAtCorreo1.getSelectedItem()).getId().toString();
                                     }
                                 }
-                                if(solicitudSeleccionada.size() > 0 && correo.toString().equals(solicitudSeleccionada.get(0).get(campos.get(finalI4).get("campo")))) {
+                                if(solicitudSeleccionada.size() > 0 && correo.toString().equals(solicitudSeleccionada.get(0).get(campos.get(finalI4).get("campo"))) && !finalBtnAyuda1.getTag().toString().equals("Obligatorio")) {
                                     finalBtnAyuda1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.aprobados, null)));
                                 }
                                 finalBtnAyuda1.setOnClickListener((View.OnClickListener) view -> {
@@ -3094,7 +3117,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                         WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
                                         if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion", "").equals("api")) {
-                                            GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
+                                            GenerarCodigoVerificacionCorreoAPI v = new GenerarCodigoVerificacionCorreoAPI(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
                                             v.execute();
                                         } else {
                                             GenerarCodigoVerificacionCorreoServidor v = new GenerarCodigoVerificacionCorreoServidor(weakRefs1, weakRefAs1, bukrs, "0", correo_armado, finalBtnAyuda);
@@ -3274,7 +3297,14 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
 
                     if(campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LAT") || campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LONG")){
-                        et.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.icon_location,null), null, null,null);
+                        Drawable leftIcon = getResources().getDrawable(R.drawable.icon_location, null);
+                        Drawable rightIcon = null;
+
+                        if (campos.get(i).get("nombre").trim().equals("mapa")) {
+                            rightIcon = getResources().getDrawable(R.drawable.map, null);
+                        }
+
+                        et.setCompoundDrawablesWithIntrinsicBounds(leftIcon, null, rightIcon, null);
                         et.setCompoundDrawablePadding(16);
                         et.setInputType(InputType.TYPE_NUMBER_FLAG_SIGNED|InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
@@ -7263,12 +7293,12 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         atCorreo.setSelection(VariablesGlobales.getIndex(atCorreo, "Otros"));
                                     }
                                 }
-                                if (verificarCorreo != null  && !cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim().equals("")) {
+                                if (verificarCorreo != null  && !cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim().equals("") && !verificarCorreo.getTag().toString().equals("Obligatorio")) {
                                     verificarCorreo.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(R.color.aprobados, null)));
                                 }
                             }
                         }
-                        if(verificarCelular != null && listaFinal.get(i).contains("TEL") && (!cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim().equals("") || solicitudSeleccionada.size()>0)){
+                        if(verificarCelular != null && listaFinal.get(i).contains("TEL") && (!cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim().equals("") || solicitudSeleccionada.size()>0)  && !verificarCelular.getTag().toString().equals("Obligatorio")){
                             verificarCelular.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(R.color.aprobados, null)));
                         }
                         if (listaFinal.get(i).equals("W_CTE-STREET") && VariablesGlobales.getSociedad().equals("F428")) {
@@ -9615,12 +9645,15 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 campoEscaneo = b.getString("campoEscaneo");
                 ((MaskedEditText)mapeoCamposDinamicos.get(campoEscaneo)).setText(b.getString("codigo"));
             }
+        }else if (requestCode == VariablesGlobales.REQUEST_CODE_MAP && resultCode == 1 && data != null) {
+            String lat = data.getStringExtra("latitude");
+            String lng = data.getStringExtra("longitude");
+            ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT")).setText(lat);
+            ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG")).setText(lng);
         }else {
-            WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudModificacionActivity.this);
             try {
                 manejadorAdjuntos.setUri(mPhotoUri);
                 manejadorAdjuntos.ActivityResult(requestCode, resultCode, data);
-                //ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(), weakRefA.get(), mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos);
             } catch (IOException e) {
                 e.printStackTrace();
             }

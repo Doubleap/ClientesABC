@@ -121,8 +121,8 @@ public class TCPActivity extends AppCompatActivity
         OpcionSpinner opGPRS = new OpcionSpinner("gprs","GPRS");
         OpcionSpinner opAPI = new OpcionSpinner("api","REST API");
         //OpcionSpinner opLocal = new OpcionSpinner("local","Local");
-        //listatipos.add(opWifi);
-        //listatipos.add(opGPRS);
+        listatipos.add(opWifi);
+        listatipos.add(opGPRS);
         listatipos.add(opAPI);
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(this, R.layout.simple_spinner_item, listatipos);
@@ -332,7 +332,7 @@ public class TCPActivity extends AppCompatActivity
             Toasty.warning(getBaseContext(),"Por favor digite una direccion IP válida.").show();
             retorno = false;
         }
-        if(puerto_text.getText().toString().trim().isEmpty()){
+        if(puerto_text.getText().toString().trim().isEmpty() && !((OpcionSpinner)tipo_conexion.getSelectedItem()).getId().toString().equals("api")){
             Toasty.warning(getBaseContext(),"Por favor digite un puerto válido.").show();
             retorno = false;
         }

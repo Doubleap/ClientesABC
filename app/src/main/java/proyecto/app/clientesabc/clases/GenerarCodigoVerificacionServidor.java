@@ -161,9 +161,23 @@ public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,Str
                     byte[] r = new byte[(int) s];
                     int offset = 0;
                     int bytesRead;
-                    while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
+                    /*while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
                         offset += bytesRead;
                         publishProgress("Descargando..." + String.format("%.02f", (100f / (s / 1024f)) * (offset / 1024f)) + "%");
+                    }*/
+                    while (offset < s) {
+                        bytesRead = dis.read(r, offset, r.length - offset);
+                        if (bytesRead == -1) {
+                            throw new IOException("Unexpected end of stream at offset " + offset + " of " + s);
+                        }
+                        if (bytesRead == 0) {
+                            Thread.sleep(10); // brief wait before retrying; avoid tight loop
+                            continue;
+                        }
+
+                        offset += bytesRead;
+
+                        publishProgress("Descargando..." + String.format("%.02f", (100f * offset / s)) + "% ("+String.format("%.2f", (offset/1000000.0))+" de "+String.format("%.2f", (s/1000000.0))+")");
                     }
                     dos.writeUTF("END");
                     dos.flush();
@@ -180,7 +194,7 @@ public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,Str
                 messageFlag = mensaje;
             }
             publishProgress("Proceso Terminado...");
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             xceptionFlag = true;
             messageFlag = e.getMessage();
             e.printStackTrace();
@@ -302,7 +316,7 @@ public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,Str
                 int subId = activeSims.get(0).getSubscriptionId(); // Always use the actual SIM
                 // Enviar mensaje
                 SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(subId);
-                smsManager.sendTextMessage(PreferenceManager.getDefaultSharedPreferences(context).getString("CODIGO_PAIS","+57")+numero, null, mensaje, sentPI, deliveredPI);
+                smsManager.sendTextMessage(PreferenceManager.getDefaultSharedPreferences(context).getString("CODIGO_PAIS","+506")+numero, null, mensaje, sentPI, deliveredPI);
                 boton.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(R.color.devuelto, null)));
                 boton.setOnClickListener((View.OnClickListener) view -> {
                     //Abrir dialogo para digitar el codigo recibido.
@@ -338,7 +352,7 @@ public class GenerarCodigoVerificacionServidor extends AsyncTask<Void,String,Str
                 try{
                     //Realizar el llamada el servicio de la aplicacion para validar el codigo digitado
                     if (PreferenceManager.getDefaultSharedPreferences(context.get()).getString("tipo_conexion","").equals("api")) {
-                        VerificarCodigoServidor verificador = new VerificarCodigoServidor(context, activity, sociedad, cliente, num_celular, codigo_txt, boton);
+                        VerificarCodigoAPI verificador = new VerificarCodigoAPI(context, activity, sociedad, cliente, num_celular, codigo_txt, boton);
                         verificador.execute();
                     } else {
                         VerificarCodigoServidor verificador = new VerificarCodigoServidor(context, activity, sociedad, cliente, num_celular, codigo_txt, boton);

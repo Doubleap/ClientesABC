@@ -175,13 +175,13 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("api")){
-                     if(mUserView.getText().toString().isEmpty() || mPasswordView.getText().toString().isEmpty()){
+                     if(mUserView.getText().toString().isEmpty() || (mPasswordView.getText().toString().trim().isEmpty() && !mUserView.getText().toString().equals("9999"))){
                         Toasty.warning(getBaseContext(),"Debe Ingresar sus credenciales antes de continuar!").show();
                     }else{
                          String id_usuarioMC = VariablesGlobales.UsuarioHH2UsuarioMC(LoginActivity.this, mUserView.getText().toString());
                          PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("user", mUserView.getText().toString()).apply();
                          PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("userMC", id_usuarioMC).apply();
-                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("password", mPasswordView.getText().toString()).apply();
+                         PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).edit().putString("password", mPasswordView.getText().toString().trim()).apply();
                          DialogHandler appdialog = new DialogHandler();
                          appdialog.Confirm(LoginActivity.this, "Confirmar Sincronización", "Esta seguro que desea sincronizar la información de la ruta?", "NO", "SI", new LoginActivity.SincronizarLogin(LoginActivity.this));
                     }

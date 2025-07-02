@@ -112,12 +112,29 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                     byte[] r = new byte[(int) s];
                     int offset = 0;
                     int bytesRead;
-                    while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
+                    /*while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
                         offset += bytesRead;
                         publishProgress("Descargando..." + String.format("%.02f", (100f / (s / 1024f)) * (offset / 1024f)) + "%");
+                    }*/
+
+                    while (offset < s) {
+                        bytesRead = dis.read(r, offset, r.length - offset);
+                        if (bytesRead == -1) {
+                            throw new IOException("Unexpected end of stream at offset " + offset + " of " + s);
+                        }
+                        if (bytesRead == 0) {
+                            Thread.sleep(10); // brief wait before retrying; avoid tight loop
+                            continue;
+                        }
+
+                        offset += bytesRead;
+
+                            publishProgress("Descargando..." + String.format("%.02f", (100f * offset / s)) + "% ("+String.format("%.1f", (offset/1000000.0))+" de "+String.format("%.1f", (s/1000000.0))+" Mb)");
                     }
+
                     dos.writeUTF("END");
                     dos.flush();
+
                     publishProgress("Procesando datos recibidos...");
                     File tranFileDir;
                     File externalStorage = context.get().getExternalFilesDir(null);
@@ -281,7 +298,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                 messageFlag = mensaje;
             }
             publishProgress("Proceso Terminado...");
-        } catch (IOException e) {
+        } catch (IOException  | InterruptedException e) {
             xceptionFlag = true;
             if(e.getMessage() == null)
                 messageFlag = "Revise los datos de comunicación o intente de nuevo!"+e.getMessage();

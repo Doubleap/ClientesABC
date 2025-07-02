@@ -28,6 +28,7 @@ import java.lang.ref.WeakReference;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -118,6 +119,14 @@ public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
 
                     files.add(myFile);
 
+                    List<String> imagenPaths = mDBHelper.getImagenPaths(GUID); // Método personalizado
+                    for (String path : imagenPaths) {
+                        File imageFile = new File(path);
+                        if (imageFile.exists()) {
+                            files.add(imageFile);
+                        }
+                    }
+
                     System.out.println("Creando Streams de datos...");
                     DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
                     DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
@@ -192,9 +201,23 @@ public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
                         byte[] r = new byte[(int) s];
                         int offset = 0;
                         int bytesRead;
-                        while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
+                        /*while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
                             offset += bytesRead;
                             publishProgress("Descargando..." + String.format("%.02f", (100f / (s / 1024f)) * (offset / 1024f)) + "%");
+                        }*/
+                        while (offset < s) {
+                            bytesRead = dis.read(r, offset, r.length - offset);
+                            if (bytesRead == -1) {
+                                throw new IOException("Unexpected end of stream at offset " + offset + " of " + s);
+                            }
+                            if (bytesRead == 0) {
+                                Thread.sleep(10); // brief wait before retrying; avoid tight loop
+                                continue;
+                            }
+
+                            offset += bytesRead;
+
+                            publishProgress("Descargando..." + String.format("%.02f", (100f * offset / s)) + "% ("+String.format("%.2f", (offset/1000000.0))+" de "+String.format("%.2f", (s/1000000.0))+")");
                         }
                         dos.writeUTF("END");
                         dos.flush();
@@ -209,7 +232,7 @@ public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
                     errorFlag = mensaje;
                 }
             publishProgress("Transmision encuesta Finalizada...");
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             xceptionFlag = true;
             errorFlag = e.getMessage();
             e.printStackTrace();

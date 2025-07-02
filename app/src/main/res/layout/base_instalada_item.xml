@@ -19,12 +19,13 @@
             android:background="@color/colorPrimary"
             android:orientation="horizontal">
         </LinearLayout>
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/margin_medium"
             android:paddingTop="@dimen/margin_small"
+            android:paddingRight="@dimen/margin_medium"
             android:paddingBottom="@dimen/margin_medium">
 
             <TextView
@@ -104,7 +105,7 @@
                 android:height="50sp"
                 android:textAlignment="center"
                 android:theme="@style/CheckBoxEquipoFrio"
-                android:visibility="invisible"/>
+                android:visibility="invisible" />
 
             <TextView
                 android:id="@+id/estado_escaneo"
@@ -130,6 +131,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/comentario"
                 android:layout_alignParentEnd="true">
+
                 <ImageView
                     android:id="@+id/ver_anomalia"
                     android:layout_width="wrap_content"
@@ -137,8 +139,8 @@
                     android:layout_marginLeft="10dp"
                     android:background="@drawable/icon_view"
                     android:tooltipText="Consultar anomalia generada"
-                    android:visibility="gone"
-                    />
+                    android:visibility="gone" />
+
                 <ImageView
                     android:id="@+id/estadoIcon"
                     android:layout_width="wrap_content"
@@ -194,6 +196,53 @@
                     android:tooltipText="Eliminar lectura de equipo frio." />
 
 
+            </com.rey.material.widget.LinearLayout>
+
+
+            <com.rey.material.widget.LinearLayout
+                android:id="@+id/menu_bottom_left"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/comentario"
+                android:layout_alignParentEnd="false">
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:paddingTop="0dp"
+                    android:paddingLeft="7dp">
+                    <!-- Calendar icon background -->
+                    <ImageView
+                        android:id="@+id/calendarIcon"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Cantidad de Dias sin censar el equipo frio"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_calendar"
+                        android:tooltipText="Dias sin lectura"/>
+
+                    <!-- Number overlay -->
+                    <TextView
+                        android:id="@+id/calendarNumber"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@android:color/transparent"
+                        android:gravity="center"
+                        android:paddingTop="4dp"
+                        android:text="23"
+                        android:textColor="@android:color/black"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:tooltipText="Dias sin lectura"/>
+                </FrameLayout>
+                <TextView
+                    android:id="@+id/label_ultima_lectura"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="0dp"
+                    android:text="Dias Sin Lectura"
+                    android:textAppearance="?android:textAppearanceSmall" />
             </com.rey.material.widget.LinearLayout>
         </RelativeLayout>
 

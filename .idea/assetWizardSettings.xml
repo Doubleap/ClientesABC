@@ -385,7 +385,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/history/baseline_history_24.xml" />
+                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/edit_location/baseline_edit_location_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -395,8 +395,8 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="0db4e7" />
-                            <entry key="outputName" value="ic_historial" />
+                            <entry key="color" value="3fa72d" />
+                            <entry key="outputName" value="ic_map" />
                             <entry key="sourceFile" value="C:\Users\andre\Downloads\barcode_off.svg" />
                           </map>
                         </option>

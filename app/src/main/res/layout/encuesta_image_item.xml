@@ -65,25 +65,40 @@
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:paddingTop="@dimen/margin_small"
             android:paddingBottom="@dimen/margin_medium">
-
+            <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
             <proyecto.app.clientesabc.clases.PreguntaTextView
                 android:id="@+id/pregunta"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="15dp"
-                android:text="Pregunta"
+                android:text="Evidencia de fotografia"
                 android:textAppearance="?android:textAppearanceSmallPopupMenu" />
 
-            <Spinner
-                android:id="@+id/multiple_group"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/pregunta"
-                android:layout_marginStart="15dp"
-                android:layout_marginTop="4dp"
-                android:ems="10"
-                android:inputType="text" />
+            <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
+                <ImageView
+                    android:id="@+id/image_view"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:scaleType="centerCrop"
+                    android:background="#DDD"
+                    android:src="@drawable/icon_image"
+                    />
+
+
+            </LinearLayout>
+            </LinearLayout>
         </RelativeLayout>
 
     </androidx.cardview.widget.CardView>

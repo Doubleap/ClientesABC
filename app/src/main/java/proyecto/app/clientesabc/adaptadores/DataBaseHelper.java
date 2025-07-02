@@ -2884,6 +2884,27 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return rutasDigitales;
     }
 
+    public String AsignarModalidadSegunAgenciayTipoVisita(String agencia,String tipo_visita) {
+        String modalidadVenta = "";
+        try {
+            Cursor cursor = mDataBase.rawQuery("select case when ind_digital = 0 OR ind_digital IS NULL then mod_venta else mod_venta_digital END as modalidad_venta FROM loc_modvta_x_uo_tipvis WHERE agencia = ? AND tipo_visita = ?", new String[]{agencia, tipo_visita});
+            if (cursor.moveToNext()) {
+                modalidadVenta = cursor.getString(cursor.getColumnIndex("modalidad_venta"));
+            }
+
+            if (modalidadVenta == "") {
+                cursor = mDataBase.rawQuery("select case when ind_digital = 0 OR ind_digital IS NULL then mod_venta else mod_venta_digital END as modalidad_venta FROM loc_modvta_x_uo_tipvis WHERE agencia = ? AND tipo_visita = ?", new String[]{"*", tipo_visita});
+                if (cursor.moveToNext()) {
+                    modalidadVenta = cursor.getString(cursor.getColumnIndex("modalidad_venta"));
+                }
+            }
+            cursor.close();
+        }catch(Exception ex){
+            modalidadVenta = "";
+        }
+        return modalidadVenta;
+    }
+
     public boolean EsBloqueObligatorio(String campo)
     {
         String query = "select OBL FROM ConfigCampos WHERE bukrs = ? AND ktokd = ? AND campo = ?";
@@ -3231,7 +3252,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 "  JOIN cat_bukrs b on b.id_bukrs=p.id_bukrs\n" +
                 "  JOIN cat_tipo_pregunta t on t.id_tipo_pregunta=p.id_tipo_pregunta\n" +
                 "  JOIN encuesta_cabecera e ON e.id_encuesta=p.id_encuesta\n" +
-                "  WHERE p.id_encuesta='"+id_encuesta+"' AND p.id_bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'";
+                "  WHERE p.id_encuesta='"+id_encuesta+"' AND p.id_bukrs = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'" +
+                "ORDER BY p.orden asc";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         MicroOrm uOrm = new MicroOrm();
         preguntasList = uOrm.listFromCursor(cursor, PreguntasEncuesta.class);
@@ -4031,12 +4053,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<EquipoFrio> getCensoEquiposFriosDB(String id_cliente){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<EquipoFrio> equiposFriosList = new ArrayList<>();
-        String query = "SELECT DISTINCT b.*, c.* FROM sapDBaseInstalada b " +
+        String query = "SELECT DISTINCT b.*, c.*,(SELECT ROUND(julianday('now') - julianday(c2.fecha_lectura)) FROM CensoEquipoFrio c2 WHERE c2.num_equipo = b.EQUNR ORDER BY c2.fecha_lectura DESC LIMIT 1) AS ultima_lectura FROM sapDBaseInstalada b " +
                 "LEFT JOIN CensoEquipoFrio c ON (b.kunnr = ? AND c.activo = 1 AND b.serge = c.num_placa) " +
                 "and c.fecha_lectura = (SELECT MAX(c2.fecha_lectura) FROM CensoEquipoFrio c2 WHERE c2.kunnr_censo = ? AND c2.activo = 1 AND c2.num_placa = c.num_placa)" +
                 "WHERE b.KUNNR = ?" +
                 " UNION "+
-                "SELECT DISTINCT b.*, c.* FROM CensoEquipoFrio c " +
+                "SELECT DISTINCT b.*, c.*, (SELECT ROUND(julianday('now') - julianday(c2.fecha_lectura)) FROM CensoEquipoFrio c2 WHERE c2.num_equipo = b.EQUNR ORDER BY c2.fecha_lectura DESC LIMIT 1) AS ultima_lectura FROM CensoEquipoFrio c " +
                 "LEFT JOIN sapDBaseInstalada AS b ON (b.serge IS NULL AND c.kunnr_censo = ? AND c.activo = 1) " +
                 "WHERE c.kunnr_censo = ? AND c.activo = 1 AND c.num_placa NOT IN (SELECT serge FROM sapDBaseInstalada s WHERE s.kunnr = ?) " +
                 "and c.fecha_lectura = (SELECT MAX(c2.fecha_lectura) FROM CensoEquipoFrio c2 WHERE c2.kunnr_censo = ? AND c2.activo = 1 AND c2.num_placa = c.num_placa) ";
@@ -4096,6 +4118,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 ef.setTransmitido(cursor.getString(cursor.getColumnIndex("transmitido")).trim());
             if(cursor.getString(cursor.getColumnIndex("id_solicitud")) !=  null)
                 ef.setIdSolicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")).trim());
+            if(cursor.getString(cursor.getColumnIndex("ultima_lectura")) !=  null)
+                ef.setIdSolicitud(cursor.getString(cursor.getColumnIndex("ultima_lectura")).trim());
             equiposFriosList.add(ef);
         }
         cursor.close();
@@ -4315,7 +4339,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 solicitud.put("prioridad_gec", cursor.getString(cursor.getColumnIndex("prioridad_gec")) != null ? cursor.getString(cursor.getColumnIndex("prioridad_gec")) : "");
                 solicitud.put("prioridad", cursor.getString(cursor.getColumnIndex("prioridad")) != null ? cursor.getString(cursor.getColumnIndex("prioridad")) : "");
                 solicitud.put("desc_prioridad", cursor.getString(cursor.getColumnIndex("desc_prioridad")) != null ? cursor.getString(cursor.getColumnIndex("desc_prioridad")) : "");
-
                 dataMonitor.add(solicitud);
             }
             cursor.close();
@@ -4479,7 +4502,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ruta = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH", "");
         String bzirk = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK", "");
 
-        String sql_encuesta =" SELECT e.id_encuesta,nombre ,descripcion ,id_bukrs ,fecha_inicio,fecha_fin,fecha_creacion,fecha_modificacion, gvc FROM encuesta_cabecera e where fecha_inicio<=datetime('now') and fecha_fin>=datetime('now')";
+        String sql_encuesta ="SELECT e.id_encuesta,nombre ,descripcion ,id_bukrs ,fecha_inicio,fecha_fin,fecha_creacion,fecha_modificacion, gvc FROM encuesta_cabecera e where fecha_inicio<=datetime('now') and fecha_fin>=datetime('now')";
 
         try {
             Cursor cursor = mDataBase.rawQuery(sql_encuesta, null);
@@ -4584,7 +4607,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public List<RespuestaPregunta> getRespuestasEncuestaCliente(String codigo_cliente,String id_encuesta){
         List<RespuestaPregunta> respuestaPreguntas = new ArrayList<>();
-        String sql_encuesta = "select * from respuesta_pregunta r join encuesta_cabecera e on e.id_encuesta=r.id_encuesta where r.id_encuesta = '"+id_encuesta+"'        and r.codigo_cliente = '"+codigo_cliente+"'        and fecha_ejecucion between e.fecha_inicio and e.fecha_fin";
+        String sql_encuesta = "select * from respuesta_pregunta r join encuesta_cabecera e on e.id_encuesta=r.id_encuesta where r.id_encuesta = '"+id_encuesta+"'        and r.codigo_cliente = '"+codigo_cliente+"' and fecha_ejecucion between e.fecha_inicio and e.fecha_fin";
         Cursor cursor = mDataBase.rawQuery(sql_encuesta,null);
         MicroOrm uOrm = new MicroOrm();
         if (!(cursor.moveToFirst()) || cursor.getCount() ==0){
@@ -4595,9 +4618,22 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         cursor.close();
 
-
-
-
         return  respuestaPreguntas;
+    }
+
+    public List<String> getImagenPaths(String guid) {
+        List<String> paths = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT imagenPath FROM respuesta_pregunta WHERE GUID = ? AND imagenPath IS NOT NULL", new String[]{guid});
+        if (cursor.moveToFirst()) {
+            do {
+                String path = cursor.getString(0);
+                if (path != null && !path.isEmpty()) {
+                    paths.add(path);
+                }
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return paths;
     }
 }

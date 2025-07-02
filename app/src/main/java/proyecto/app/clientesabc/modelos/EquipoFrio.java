@@ -60,12 +60,25 @@ public class EquipoFrio implements Cloneable{
     @SerializedName("FUENTE")
     private String fuente;
 
+
+
+    @SerializedName("ULTIMA_LECTURA")
+    private String ultima_lectura;
+
     public String getIdSolicitud() {
         return id_solicitud;
     }
 
     public void setIdSolicitud(String id_solicitud) {
         this.id_solicitud = id_solicitud;
+    }
+
+    public String getUltima_lectura() {
+        return ultima_lectura;
+    }
+
+    public void setUltima_lectura(String ultima_lectura) {
+        this.ultima_lectura = ultima_lectura;
     }
 
     public EquipoFrio() { }

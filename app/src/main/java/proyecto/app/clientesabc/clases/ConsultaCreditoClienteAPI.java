@@ -96,7 +96,7 @@ public class ConsultaCreditoClienteAPI extends AsyncTask<Void,String,ArrayList<J
                     int bytesRead;
                     while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != fileSize) {
                         offset += bytesRead;
-                        publishProgress("Descargando..." + String.format("%.02f", (100f / (fileSize / 1024f)) * (offset / 1024f)) + "%");
+                        publishProgress("Descargando..." + String.format("%.02f", (100f / (fileSize / 1024f)) * (offset / 1024f)) + "% ("+String.format("%.2f", (offset/1000000.0))+" de "+String.format("%.2f", (fileSize/1000000.0))+")");
                     }
                     /*ORDEN DE ESTRUCTURAS SAP RECIBIDAS
                         String jsonCliente = 0;
