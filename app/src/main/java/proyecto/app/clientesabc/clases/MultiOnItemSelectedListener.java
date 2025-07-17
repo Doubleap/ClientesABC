@@ -3,7 +3,6 @@ package proyecto.app.clientesabc.clases;
 
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Spinner;
 
 import es.dmoral.toasty.Toasty;
 

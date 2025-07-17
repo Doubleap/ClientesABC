@@ -17,50 +17,34 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.gson.JsonArray;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.EncuestaAdapter;
-import proyecto.app.clientesabc.clases.CheckBoxGroupView;
-import proyecto.app.clientesabc.clases.PreguntaTextView;
 import proyecto.app.clientesabc.clases.TransmisionEncuestaServidor;
-import proyecto.app.clientesabc.modelos.EquipoFrio;
-import proyecto.app.clientesabc.modelos.OpcionCheckBox;
-import proyecto.app.clientesabc.modelos.OpcionSpinner;
 import proyecto.app.clientesabc.modelos.PreguntasEncuesta;
 import proyecto.app.clientesabc.modelos.RespuestaPregunta;
 
@@ -177,9 +161,15 @@ public class EncuestaActivity extends AppCompatActivity implements EncuestaAdapt
                 .show();
     }
     private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK);
+        /*Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
-        startActivityForResult(intent, REQUEST_IMAGE_PICK);
+        startActivityForResult(intent, REQUEST_IMAGE_PICK);*/
+
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+        startActivityForResult(Intent.createChooser(intent, "Selecciona una imagen"), REQUEST_IMAGE_PICK);
     }
 
     private void openCamera() {
@@ -220,18 +210,23 @@ public class EncuestaActivity extends AppCompatActivity implements EncuestaAdapt
             return null;
         }
     }
+    private File copyUriToTempFile(Context context, Uri uri) throws IOException {
+        InputStream inputStream = context.getContentResolver().openInputStream(uri);
+        if (inputStream == null) throw new IOException("No se pudo abrir el URI");
 
-    /*@Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_MAP && resultCode == RESULT_OK && data != null) {
-            double lat = data.getDoubleExtra("latitude", 0);
-            double lng = data.getDoubleExtra("longitude", 0);
+        File tempFile = File.createTempFile("imagen_encuesta_", ".jpg", context.getCacheDir());
+        OutputStream outputStream = new FileOutputStream(tempFile);
 
-            //editTextLat.setText(String.valueOf(lat));
-            //editTextLng.setText(String.valueOf(lng));
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, bytesRead);
         }
-    }*/
+
+        inputStream.close();
+        outputStream.close();
+        return tempFile;
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -242,10 +237,43 @@ public class EncuestaActivity extends AppCompatActivity implements EncuestaAdapt
             File finalImageFile = null;
             if (requestCode == REQUEST_IMAGE_PICK && data != null) {
                 selectedImageUri = data.getData();
-                finalImageFile = compressImage(selectedImageUri);
+                //finalImageFile = compressImage(selectedImageUri);
+                try {
+                    // ✅ Paso clave
+                    File finalImage = compressImage(selectedImageUri);
+
+                    // Guarda en tu mapa y actualiza el adapter
+                    if (imageFiles != null && selectedImagePosition >= 0) {
+                        imageFiles.put(selectedImagePosition, finalImage);
+
+                        // 2. 🟢 ACTUALIZAR respuesta (clave para que se guarde luego en SQLite)
+                        PreguntasEncuesta pregunta = preguntas.get(selectedImagePosition);
+                        mAdapter.updateRespuestaImagen(pregunta, finalImage.getAbsolutePath());
+
+                        mAdapter.notifyItemChanged(selectedImagePosition);
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toasty.error(this, "No se pudo procesar la imagen").show();
+                }
             } else if (requestCode == REQUEST_IMAGE_CAPTURE) {
                 selectedImageUri = mPhotoUri;
-                finalImageFile = compressImage(selectedImageUri);
+                //finalImageFile = compressImage(selectedImageUri);
+                try {
+                    // ✅ Paso clave
+                    File finalImage = compressImage(selectedImageUri);
+
+                    // Guarda en tu mapa y actualiza el adapter
+                    if (imageFiles != null && selectedImagePosition >= 0) {
+                        imageFiles.put(selectedImagePosition, finalImage);
+                        mAdapter.notifyItemChanged(selectedImagePosition);
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toasty.error(this, "No se pudo procesar la imagen").show();
+                }
             }
 
             if (finalImageFile != null) {
@@ -255,7 +283,7 @@ public class EncuestaActivity extends AppCompatActivity implements EncuestaAdapt
             }
         }
     }
-    private File compressImage(Uri imageUri) {
+    /*private File compressImage(Uri imageUri) {
         try {
             Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
             File compressedFile = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "compressed_" + System.currentTimeMillis() + ".jpg");
@@ -268,6 +296,18 @@ public class EncuestaActivity extends AppCompatActivity implements EncuestaAdapt
             e.printStackTrace();
             return null;
         }
+    }*/
+    private File compressImage(Uri uri) throws IOException {
+        File originalFile = copyUriToTempFile(this, uri);
+        Bitmap bitmap = BitmapFactory.decodeFile(originalFile.getAbsolutePath());
+
+        File compressedFile = new File(getCacheDir(), "compressed_" + System.currentTimeMillis() + ".jpg");
+        FileOutputStream out = new FileOutputStream(compressedFile);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 75, out);
+        out.flush();
+        out.close();
+
+        return compressedFile;
     }
     private static Activity getActivity(Context context) {
         if (context == null) {
@@ -285,12 +325,16 @@ public class EncuestaActivity extends AppCompatActivity implements EncuestaAdapt
     }
 
     //falta para imagen
-    private boolean validarRespuestas(Context context){
+    /*private boolean validarRespuestas(Context context){
         boolean valido=true;
         String msj = "Por favor validar las preguntas: ";
         for (int i=0; i < mAdapter.getItemCount(); i++){
             LinearLayout borderContainer = null;
             RecyclerView.ViewHolder viewHolder = rv.findViewHolderForAdapterPosition(i);
+            if(viewHolder == null) {
+                Toasty.warning(context, "Posición " + i + " no encontrada!").show();
+                return false;
+            }
             switch (viewHolder.getItemViewType()){
                 case 1:
                     EncuestaAdapter.TextoHolder textoHolder = (EncuestaAdapter.TextoHolder) viewHolder;
@@ -373,10 +417,130 @@ public class EncuestaActivity extends AppCompatActivity implements EncuestaAdapt
         }
 
         return valido;
+    }*/
+    public boolean validarRespuestas(Context context) {
+        boolean valido=true;
+        String msj = "Por favor validar las preguntas: ";
+        for (PreguntasEncuesta p : preguntas) {
+            RespuestaPregunta r = mAdapter.findRespuestaByPreguntaId(p.getId());
+
+            switch (p.getTipoPregunta()) {
+                case 1:
+                    if (r == null || r.getRespuesta() == null || r.getRespuesta().trim().isEmpty()) {
+                        if (r != null) r.setEsValida(false);
+                        msj+= p.getOrden()+", ";
+                        valido=false;
+                    }
+                    break;
+                case 2:
+                    if (r == null || r.getIdRespuesta() == null || r.getIdRespuesta().trim().isEmpty()) {
+                        if (r != null) r.setEsValida(false);
+                        msj+= p.getOrden()+", ";
+                        valido=false;
+                    }
+                    break;
+                case 3:
+                    List<RespuestaPregunta> respuestasMultiples = mAdapter.findRespuestasMultiplesByPreguntaId(p.getId());
+                    if (respuestasMultiples == null || respuestasMultiples.isEmpty()) {
+                        // Para marcar en rojo, marcamos todos los relacionados como inválidos (si existen)
+                        if (r != null) r.setEsValida(false);
+                        msj+= p.getOrden()+", ";
+                        valido = false;
+                    }
+
+                    break;
+
+                case 4:
+                    if (r == null || r.getRespuesta() == null || r.getRespuesta().trim().isEmpty()) {
+                        if (r != null) r.setEsValida(false);
+                        msj+= p.getOrden()+", ";
+                        valido=false;
+                    }
+                    break;
+
+                case 5:
+                    if (r == null || r.getImagenPath() == null || !(new File(r.getImagenPath()).exists())) {
+                        if (r != null) r.setEsValida(false);
+                        msj+= p.getOrden()+", ";
+                        valido=false;
+                    }
+                    break;
+            }
+        }
+        if(!valido){
+            msj=msj.substring(0,msj.length()-2);
+            Toasty.error(context,msj).show();
+        }
+        mAdapter.notifyDataSetChanged(); // 🔄 Forzar redraw de los bordes
+        return valido;
     }
 
+    private void guardarRespuestas(Context context) {
+        UUID myGUID = java.util.UUID.randomUUID();
+
+        if (!respuestaPreguntas.isEmpty() && respuestaPreguntas.get(0).getGUID() != null) {
+            myGUID = java.util.UUID.fromString(respuestaPreguntas.get(0).getGUID());
+        }
+
+        // Si es nueva encuesta, se genera GUID y se aplica a todos
+        for (RespuestaPregunta respuesta : respuestaPreguntas) {
+            respuesta.setGUID(myGUID.toString());
+            respuesta.setIdEncuesta(idEncuesta);
+            respuesta.setEncuesta(nombre_encuesta);
+            respuesta.setFecha((new java.sql.Date(Calendar.getInstance().getTimeInMillis())).toString());
+            respuesta.setNombreCliente(nombre_cliente);
+            respuesta.setCodigoCliente(codigo_cliente);
+            respuesta.setSociedad(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BUKRS", ""));
+        }
+
+        ContentValues respuestaValue = new ContentValues();
+
+        // Eliminar respuestas anteriores si no es encuesta nueva
+        if (!encuestaNueva) {
+            mDb.delete("respuesta_pregunta", "GUID= ? AND codigo_cliente= ?", new String[]{myGUID.toString(), codigo_cliente});
+        }
+
+        // Insertar nuevas respuestas
+        for (RespuestaPregunta respuestaPregunta : respuestaPreguntas) {
+            respuestaValue.put("GUID", respuestaPregunta.getGUID());
+            respuestaValue.put("id_pregunta_encuesta", respuestaPregunta.getIdPregunta());
+            respuestaValue.put("id_tipo_pregunta", respuestaPregunta.getIdTipoPregunta());
+            respuestaValue.put("texto_pregunta", respuestaPregunta.getTextoPregunta());
+            respuestaValue.put("respuesta", respuestaPregunta.getRespuesta());
+            respuestaValue.put("id_respuesta", respuestaPregunta.getIdRespuesta());
+            respuestaValue.put("id_texto_respuesta", respuestaPregunta.getIdTextoRespuesta());
+            respuestaValue.put("fecha_ejecucion", respuestaPregunta.getFecha().toString());
+            respuestaValue.put("id_encuesta", respuestaPregunta.getIdEncuesta());
+            respuestaValue.put("texto_encuesta", respuestaPregunta.getEncuesta());
+            respuestaValue.put("codigo_cliente", respuestaPregunta.getCodigoCliente());
+            respuestaValue.put("nombre_cliente", respuestaPregunta.getNombreCliente());
+            respuestaValue.put("bukrs", respuestaPregunta.getSociedad());
+            respuestaValue.put("imagenPath", respuestaPregunta.getImagenPath());
+            respuestaValue.put("imagenUrl", respuestaPregunta.getImagenUrl());
+
+            try {
+                mDb.insert("respuesta_pregunta", null, respuestaValue);
+                respuestaValue.clear();
+            } catch (Exception e) {
+                Toasty.error(context, "Error Insertando Respuesta Encuesta", Toasty.LENGTH_SHORT).show();
+            }
+        }
+
+        // Transmitir a servidor
+        WeakReference<Context> weakRef = new WeakReference<>(context);
+        WeakReference<Activity> weakRefA = new WeakReference<>(getActivity(context));
+        TransmisionEncuestaServidor f = new TransmisionEncuestaServidor(weakRef, weakRefA, myGUID.toString());
+
+        if (PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion", "").equals("wifi")) {
+            f.EnableWiFi();
+        } else {
+            f.DisableWiFi();
+        }
+
+        f.execute();
+    }
 //falta para imagen
-    private void guardarRespuestas(Context context){
+    /*private void guardarRespuestas(Context context){
         UUID myGUID = java.util.UUID.randomUUID();
         if(!respuestaPreguntas.isEmpty()){
             myGUID = java.util.UUID.fromString(respuestaPreguntas.get(0).getGUID());
@@ -539,7 +703,8 @@ public class EncuestaActivity extends AppCompatActivity implements EncuestaAdapt
             f.DisableWiFi();
         }
         f.execute();
-    }
+    }*/
+
 
     public static void ActualizarImagenesEncuesta(File file, Map<Integer, File> imageFiles,int position ) {
         imageFiles.put(position,file);

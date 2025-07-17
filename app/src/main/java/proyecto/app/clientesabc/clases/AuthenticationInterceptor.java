@@ -2,11 +2,9 @@ package proyecto.app.clientesabc.clases;
 
 import android.app.Activity;
 import android.content.Context;
-import android.preference.PreferenceManager;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.concurrent.ExecutionException;
 
 import okhttp3.Interceptor;
 import okhttp3.Request;

@@ -336,10 +336,10 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                         new int[]{-android.R.attr.state_enabled}, // enabled
                 },
                 new int[]{
-                        Color.parseColor(context.getResources().getString(color)),
-                        Color.parseColor(context.getResources().getString(color)),
-                        Color.parseColor(context.getResources().getString(color)),
-                        Color.parseColor(context.getResources().getString(color)),
+                        ContextCompat.getColor(context, color),
+                        ContextCompat.getColor(context, color),
+                        ContextCompat.getColor(context, color),
+                        ContextCompat.getColor(context, color),
                 }
         );
         CompoundButtonCompat.setButtonTintList(censado, colorStateList);

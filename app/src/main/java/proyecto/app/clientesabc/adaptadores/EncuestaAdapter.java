@@ -2,18 +2,21 @@ package proyecto.app.clientesabc.adaptadores;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -24,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +37,6 @@ import proyecto.app.clientesabc.actividades.LocacionGPSActivity;
 import proyecto.app.clientesabc.clases.AdjuntoAPI;
 import proyecto.app.clientesabc.clases.AdjuntoServidor;
 import proyecto.app.clientesabc.clases.CheckBoxGroupView;
-import proyecto.app.clientesabc.actividades.OSMPickerActivity;
 import proyecto.app.clientesabc.clases.PreguntaTextView;
 import proyecto.app.clientesabc.modelos.OpcionCheckBox;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
@@ -155,7 +158,7 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         // - Obtener Elemento del data set en esta position
         // - Reemplazar aqui cualquier contenido dinamico dependiendo de algun valor de l dataset creado y o el contenido del dataset
-
+        LinearLayout borderContainer = null;
         PreguntaTextView pregunta;
         TextView orden;
         CardView cardView;
@@ -164,18 +167,36 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             //texto
             case 1:
                 TextoHolder textoHolder = (TextoHolder) holder;
+                EditText editTextTexto = textoHolder.listView.findViewById(R.id.multiple_group);
                 pregunta = textoHolder.listView.findViewById(R.id.pregunta);
                 orden = textoHolder.listView.findViewById(R.id.orden_pregunta);
-                pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
+
+                pregunta.setText(preguntas.get(position).getTexto() == null ? "" : preguntas.get(position).getTexto().trim());
                 pregunta.setPreguntasEncuesta(preguntas.get(position));
                 orden.setText(String.valueOf(preguntas.get(position).getOrden()));
-                if(!respuestas.isEmpty()){
-                    for (RespuestaPregunta respuesta: respuestas) {
-                        if(respuesta.getIdPregunta()==pregunta.getPreguntasEncuesta().getId()){
-                            EditText editText = textoHolder.listView.findViewById(R.id.multiple_group);
-                            editText.setText(respuesta.getRespuesta());
-                        }
+
+                editTextTexto.setImeOptions(EditorInfo.IME_ACTION_DONE); // ← aquí
+                editTextTexto.setOnEditorActionListener((v, actionId, event) -> {
+                    return actionId == EditorInfo.IME_ACTION_DONE;
+                });
+
+                // 🔄 cargar respuesta previa
+                RespuestaPregunta respuestaTexto = findRespuestaByPreguntaId(pregunta.getPreguntasEncuesta().getId());
+                if (respuestaTexto != null) editTextTexto.setText(respuestaTexto.getRespuesta());
+
+                // 🔄 sincronizar input
+                editTextTexto.addTextChangedListener(new TextWatcher() {
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        updateRespuestaTexto(preguntas.get(position), s.toString());
                     }
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                    public void afterTextChanged(Editable s) {}
+                });
+                borderContainer = textoHolder.listView.findViewById(R.id.border_container);
+                if (respuestaTexto == null || (respuestaTexto != null && !respuestaTexto.isEsValida())) {
+                    borderContainer.setBackgroundResource(R.drawable.squared_orange_border);
+                } else {
+                    borderContainer.setBackgroundResource(R.drawable.squared_textbackground);
                 }
                 break;
             case 2:
@@ -183,87 +204,123 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 pregunta = seleccionHolder.listView.findViewById(R.id.pregunta);
                 orden = seleccionHolder.listView.findViewById(R.id.orden_pregunta);
                 Spinner spinner = seleccionHolder.listView.findViewById(R.id.multiple_group);
+
+                pregunta.setText(preguntas.get(position).getTexto() == null ? "" : preguntas.get(position).getTexto().trim());
                 pregunta.setPreguntasEncuesta(preguntas.get(position));
+                orden.setText(String.valueOf(preguntas.get(position).getOrden()));
 
                 ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
-                int selectedIndex = 0;
-                for (int j = 0; j < preguntas.get(position).getOpciones().size(); j++){
+                for (int j = 0; j < preguntas.get(position).getOpciones().size(); j++) {
                     listaopciones.add(new OpcionSpinner(preguntas.get(position).getOpciones().get(j).getId(),preguntas.get(position).getOpciones().get(j).getIdTexto(), preguntas.get(position).getOpciones().get(j).getTexto()));
                 }
 
-
-                // Creando el adaptador(opciones) para el comboBox deseado
                 ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones);
-                // Drop down layout style - list view with radio button
                 dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-                // attaching data adapter to spinner
-                Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_underlined, null);
-                spinner.setBackground(spinner_back);
                 spinner.setAdapter(dataAdapter);
-                if(!respuestas.isEmpty()){
-                    for (RespuestaPregunta respuesta: respuestas) {
-                        if(respuesta.getIdPregunta()==pregunta.getPreguntasEncuesta().getId()){
-                            for (int i = 0; i < listaopciones.size(); i++) {
-                                if(String.valueOf( listaopciones.get(i).getIdSql()).equals(respuesta.getIdRespuesta())){
-                                    spinner.setSelection(i);
-                                }
-                            }
+                spinner.setBackground(context.getResources().getDrawable(R.drawable.spinner_underlined, null));
 
+                // 🔄 set selección previa
+                RespuestaPregunta respuestaSpinner = findRespuestaByPreguntaId(pregunta.getPreguntasEncuesta().getId());
+                if (respuestaSpinner != null) {
+                    for (int i = 0; i < listaopciones.size(); i++) {
+                        if (String.valueOf(listaopciones.get(i).getIdSql()).equals(respuestaSpinner.getIdRespuesta())) {
+                            spinner.setSelection(i);
                         }
+                    }
+                }
 
+                // 🔄 listener para guardar selección
+                spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                        OpcionSpinner seleccionada = (OpcionSpinner) parent.getItemAtPosition(pos);
+                        updateRespuestaSpinner(preguntas.get(position), seleccionada);
                     }
 
+                    public void onNothingSelected(AdapterView<?> parent) {}
+                });
+                borderContainer = seleccionHolder.listView.findViewById(R.id.border_container);
+                if (respuestaSpinner == null || (respuestaSpinner != null && !respuestaSpinner.isEsValida())) {
+                    borderContainer.setBackgroundResource(R.drawable.squared_orange_border);
+                } else {
+                    borderContainer.setBackgroundResource(R.drawable.squared_textbackground);
                 }
-                pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
-                pregunta.setPreguntasEncuesta(preguntas.get(position));
-                orden.setText(String.valueOf(preguntas.get(position).getOrden()));
                 break;
             case 3:
                 MultipleHolder multipleHolder = (MultipleHolder) holder;
                 pregunta = multipleHolder.listView.findViewById(R.id.pregunta);
                 orden = multipleHolder.listView.findViewById(R.id.orden_pregunta);
-                pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
+                pregunta.setText(preguntas.get(position).getTexto() == null ? "" : preguntas.get(position).getTexto().trim());
                 pregunta.setPreguntasEncuesta(preguntas.get(position));
                 orden.setText(String.valueOf(preguntas.get(position).getOrden()));
 
-
                 CheckBoxGroupView checkBoxGroupView = multipleHolder.listView.findViewById(R.id.checkGroup);
                 checkBoxGroupView.setColumnCount(2);
-                for (int j = 0; j < preguntas.get(position).getOpciones().size(); j++){
+                checkBoxGroupView.removeAllViews();
+                checkBoxGroupView.removeAll();
+
+                List<RespuestaPregunta> respuestaMultiple = findRespuestasMultiplesByPreguntaId(pregunta.getPreguntasEncuesta().getId());
+
+                for (int j = 0; j < preguntas.get(position).getOpciones().size(); j++) {
                     OpcionCheckBox checkBox = new OpcionCheckBox(context);
                     checkBox.setText(preguntas.get(position).getOpciones().get(j).getTexto());
                     checkBox.setIdTexto(preguntas.get(position).getOpciones().get(j).getIdTexto());
                     checkBox.setOpcionRespuesta(preguntas.get(position).getOpciones().get(j));
 
-
-                    checkBoxGroupView.put(checkBox);
-                    if(!respuestas.isEmpty()){
-                        for (RespuestaPregunta respuesta: respuestas) {
-                            if(respuesta.getIdPregunta()==pregunta.getPreguntasEncuesta().getId()){
-                                if(respuesta.getIdRespuesta().equals(String.valueOf(checkBox.getOpcionRespuesta().getId()))){
-//                                    checkBoxGroupView.setCheckboxCheckedById(Integer.parseInt(respuesta.getIdRespuesta()));
-                                    checkBox.setChecked(true);
-                                }
-
+                    // 🔄 Restaurar selección
+                    if(!respuestaMultiple.isEmpty()) {
+                        for (int i = 0; i < respuestaMultiple.size(); i++) {
+                            if (respuestaMultiple.get(i) != null && respuestaMultiple.get(i).getIdTextoRespuesta() != null &&
+                                respuestaMultiple.get(i).getIdTextoRespuesta().equals(checkBox.getOpcionRespuesta().getIdTexto())) {
+                                checkBox.setChecked(true);
                             }
                         }
                     }
+                    // 🔄 Listener
+                    int finalJ = j;
+                    checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                        updateRespuestaMultiple(preguntas.get(position), checkBox, isChecked);
+                    });
+
+                    checkBoxGroupView.put(checkBox);
+                }
+                borderContainer = multipleHolder.listView.findViewById(R.id.border_container);
+                if (respuestaMultiple == null || (respuestaMultiple != null && respuestaMultiple.isEmpty())) {
+                    borderContainer.setBackgroundResource(R.drawable.squared_orange_border);
+                } else {
+                    borderContainer.setBackgroundResource(R.drawable.squared_textbackground);
                 }
                 break;
             case 4:
                 NumericoHolder numericoHolder = (NumericoHolder) holder;
+                EditText editTextNumerico = numericoHolder.listView.findViewById(R.id.multiple_group);
                 pregunta = numericoHolder.listView.findViewById(R.id.pregunta);
                 orden = numericoHolder.listView.findViewById(R.id.orden_pregunta);
-                pregunta.setText(preguntas.get(position).getTexto() == null?"":  preguntas.get(position).getTexto().trim());
+
+                editTextNumerico.setImeOptions(EditorInfo.IME_ACTION_DONE); // ← aquí
+                editTextNumerico.setOnEditorActionListener((v, actionId, event) -> {
+                    return actionId == EditorInfo.IME_ACTION_DONE;
+                });
+
+
+                pregunta.setText(preguntas.get(position).getTexto() == null ? "" : preguntas.get(position).getTexto().trim());
                 pregunta.setPreguntasEncuesta(preguntas.get(position));
                 orden.setText(String.valueOf(preguntas.get(position).getOrden()));
-                if(!respuestas.isEmpty()){
-                    for (RespuestaPregunta respuesta: respuestas) {
-                        if(respuesta.getIdPregunta()==pregunta.getPreguntasEncuesta().getId()){
-                            EditText editText = numericoHolder.listView.findViewById(R.id.multiple_group);
-                            editText.setText(respuesta.getRespuesta());
-                        }
+
+                RespuestaPregunta respuestaNumerico = findRespuestaByPreguntaId(pregunta.getPreguntasEncuesta().getId());
+                if (respuestaNumerico != null) editTextNumerico.setText(respuestaNumerico.getRespuesta());
+
+                editTextNumerico.addTextChangedListener(new TextWatcher() {
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        updateRespuestaTexto(preguntas.get(position), s.toString());
                     }
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                    public void afterTextChanged(Editable s) {}
+                });
+                borderContainer = numericoHolder.listView.findViewById(R.id.border_container);
+                if (respuestaNumerico == null || (respuestaNumerico != null && !respuestaNumerico.isEsValida())) {
+                    borderContainer.setBackgroundResource(R.drawable.squared_orange_border);
+                } else {
+                    borderContainer.setBackgroundResource(R.drawable.squared_textbackground);
                 }
                 break;
             case 5:
@@ -321,6 +378,12 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         imageView.setImageResource(R.drawable.icon_file);
                         imageView.setTag("default");
                     }
+                    borderContainer = imageHolder.listView.findViewById(R.id.border_container);
+                    if (respuesta == null || (respuesta != null && !respuesta.isEsValida())) {
+                        borderContainer.setBackgroundResource(R.drawable.squared_orange_border);
+                    } else {
+                        borderContainer.setBackgroundResource(R.drawable.squared_textbackground);
+                    }
                 }
 
                  // Simple and safe
@@ -340,6 +403,7 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 break;
 
         }
+
     }
 
     @Override
@@ -360,12 +424,125 @@ public class EncuestaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return preguntas.get(position).getTipoPregunta();
     }
 
-    private RespuestaPregunta findRespuestaByPreguntaId(int preguntaId) {
-        for (RespuestaPregunta r : respuestas) {
-            if (r.getIdPregunta() == preguntaId) {
-                return r;
+    public RespuestaPregunta findRespuestaByPreguntaId(int preguntaId) {
+
+        for (PreguntasEncuesta p : preguntas) {
+            if (p.getId() == preguntaId) {
+                for (RespuestaPregunta r : respuestas) {
+                    if (r.getIdPregunta() == p.getId()) {
+                        return r;
+                    }
+                }
             }
         }
         return null;
+    }
+    public RespuestaPregunta findRespuestaByPreguntaId(int preguntaId, String idTexto) {
+
+        for (PreguntasEncuesta p : preguntas) {
+            if (p.getId() == preguntaId) {
+                for (RespuestaPregunta r : respuestas) {
+                    if (r.getIdTextoRespuesta() != null && r.getIdTextoRespuesta().equals(idTexto) && r.getIdPregunta() == preguntaId) {
+                        return r;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    public List<RespuestaPregunta> findRespuestasMultiplesByPreguntaId(int idPregunta) {
+        List<RespuestaPregunta> respuestasMultiples = new ArrayList<>();
+        for (RespuestaPregunta r : respuestas) {
+            if (r.getIdPregunta() == idPregunta && "3".equals(r.getIdTipoPregunta())) {
+                respuestasMultiples.add(r);
+            }
+        }
+        return respuestasMultiples;
+    }
+
+    private void updateRespuestaTexto(PreguntasEncuesta pregunta, String texto) {
+        RespuestaPregunta r = findRespuestaByPreguntaId(pregunta.getId());
+        if (r == null) {
+            RespuestaPregunta respuestaPreguntaOpcion = new RespuestaPregunta();
+            respuestaPreguntaOpcion.setIdPregunta(pregunta.getId());
+            respuestaPreguntaOpcion.setTextoPregunta(pregunta.getTexto());
+            respuestaPreguntaOpcion.setFecha((new java.sql.Date(Calendar.getInstance().getTimeInMillis())).toString());
+            respuestaPreguntaOpcion.setNombreCliente(nombre_cliente);
+            respuestaPreguntaOpcion.setSociedad(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BUKRS",""));
+
+            respuestaPreguntaOpcion.setIdTextoRespuesta(texto);
+            respuestaPreguntaOpcion.setRespuesta(texto);
+            respuestaPreguntaOpcion.setIdRespuesta("0");
+            respuestaPreguntaOpcion.setIdTipoPregunta(String.valueOf(pregunta.getTipoPregunta()));
+            respuestas.add(respuestaPreguntaOpcion);
+        } else {
+            r.setIdTextoRespuesta(texto);
+            r.setRespuesta(texto);
+            r.setIdRespuesta("0");
+        }
+    }
+
+    private void updateRespuestaSpinner(PreguntasEncuesta pregunta, OpcionSpinner opcion) {
+        RespuestaPregunta r = findRespuestaByPreguntaId(pregunta.getId());
+        if (r == null) {
+            RespuestaPregunta respuestaPreguntaOpcion = new RespuestaPregunta();
+            respuestaPreguntaOpcion.setIdPregunta(pregunta.getId());
+            respuestaPreguntaOpcion.setTextoPregunta(pregunta.getTexto());
+            respuestaPreguntaOpcion.setFecha((new java.sql.Date(Calendar.getInstance().getTimeInMillis())).toString());
+            respuestaPreguntaOpcion.setNombreCliente(nombre_cliente);
+            respuestaPreguntaOpcion.setSociedad(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BUKRS",""));
+            respuestaPreguntaOpcion.setRespuesta(opcion.getName());
+            respuestaPreguntaOpcion.setIdRespuesta(String.valueOf(opcion.getIdSql()));
+            respuestaPreguntaOpcion.setIdTextoRespuesta(opcion.getId());
+            respuestaPreguntaOpcion.setIdTipoPregunta(String.valueOf(pregunta.getTipoPregunta()));
+            respuestas.add(respuestaPreguntaOpcion);
+        } else {
+            r.setIdRespuesta(String.valueOf(opcion.getIdSql()));
+            r.setIdTextoRespuesta(opcion.getId());
+            r.setRespuesta(opcion.getName());
+        }
+    }
+
+    private void updateRespuestaMultiple(PreguntasEncuesta pregunta, OpcionCheckBox checkBox, boolean checked) {
+        RespuestaPregunta r = findRespuestaByPreguntaId(pregunta.getId(),checkBox.getIdTexto());
+        if (r == null && checked) {
+            RespuestaPregunta respuestaPreguntaOpcion = new RespuestaPregunta();
+            respuestaPreguntaOpcion.setIdPregunta(pregunta.getId());
+            respuestaPreguntaOpcion.setTextoPregunta(pregunta.getTexto());
+            //respuestaPreguntaOpcion.setGUID(myGUID.toString());
+            //respuestaPreguntaOpcion.setIdEncuesta(idEncuesta);
+            //respuestaPreguntaOpcion.setEncuesta(nombre_encuesta);
+            respuestaPreguntaOpcion.setFecha((new java.sql.Date(Calendar.getInstance().getTimeInMillis())).toString());
+            respuestaPreguntaOpcion.setNombreCliente(nombre_cliente);
+            //respuestaPreguntaOpcion.setCodigoCliente(codigo_cliente);
+            respuestaPreguntaOpcion.setSociedad(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BUKRS",""));
+
+            respuestaPreguntaOpcion.setIdRespuesta(String.valueOf(checkBox.getOpcionRespuesta().getId()));
+            respuestaPreguntaOpcion.setIdTextoRespuesta(checkBox.getOpcionRespuesta().getIdTexto());
+            respuestaPreguntaOpcion.setRespuesta(checkBox.getOpcionRespuesta().getTexto());
+
+            respuestaPreguntaOpcion.setIdTipoPregunta(String.valueOf(pregunta.getTipoPregunta()));
+            respuestas.add(respuestaPreguntaOpcion);
+        }if (!checked) {
+            respuestas.remove(r);
+        }
+    }
+
+    public void updateRespuestaImagen(PreguntasEncuesta pregunta, String path) {
+        RespuestaPregunta r = findRespuestaByPreguntaId(pregunta.getId());
+        if (r == null) {
+            RespuestaPregunta respuestaPreguntaOpcion = new RespuestaPregunta();
+            respuestaPreguntaOpcion.setIdPregunta(pregunta.getId());
+            respuestaPreguntaOpcion.setTextoPregunta(pregunta.getTexto());
+            respuestaPreguntaOpcion.setFecha((new java.sql.Date(Calendar.getInstance().getTimeInMillis())).toString());
+            respuestaPreguntaOpcion.setNombreCliente(nombre_cliente);
+            respuestaPreguntaOpcion.setSociedad(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BUKRS",""));
+            respuestaPreguntaOpcion.setIdTipoPregunta(String.valueOf(pregunta.getTipoPregunta()));
+            respuestaPreguntaOpcion.setImagenPath(path);
+            respuestas.add(respuestaPreguntaOpcion);
+
+        }else {
+            r.setImagenPath(path);
+        }
     }
 }

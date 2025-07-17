@@ -16,12 +16,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 
-import com.google.android.gms.location.LocationServices;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
-import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;

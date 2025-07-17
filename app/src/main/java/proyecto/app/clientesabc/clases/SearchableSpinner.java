@@ -1,7 +1,5 @@
 package proyecto.app.clientesabc.clases;
 
-import static proyecto.app.clientesabc.R.drawable.botella_coca_header_der;
-
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -9,7 +7,6 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
-import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -17,11 +14,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.SpinnerAdapter;
-import android.widget.TextView;
 
 import androidx.appcompat.widget.AppCompatSpinner;
 
@@ -30,7 +24,6 @@ import java.util.List;
 
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.adaptadores.SpinnerImageAdapter;
-import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 public class SearchableSpinner extends AppCompatSpinner implements View.OnTouchListener,
         SearchableListDialog.SearchableItem{

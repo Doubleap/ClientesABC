@@ -1,32 +1,22 @@
 package proyecto.app.clientesabc.clases;
 
-import static androidx.core.content.ContextCompat.startActivity;
-
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
-import android.telephony.SmsManager;
 import android.util.Log;
-import android.view.View;
-import android.view.Window;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -46,11 +36,6 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
-import proyecto.app.clientesabc.actividades.PanelActivity;
-import proyecto.app.clientesabc.actividades.SolicitudActivity;
-import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
-import proyecto.app.clientesabc.actividades.SolicitudesActivity;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 public class RechazarPreSolicitudServidor extends AsyncTask<Void,String,String> {

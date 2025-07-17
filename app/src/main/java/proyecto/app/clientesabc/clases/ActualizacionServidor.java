@@ -2,8 +2,6 @@ package proyecto.app.clientesabc.clases;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,14 +10,12 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
-import android.os.StatFs;
 import android.preference.PreferenceManager;
-import androidx.core.content.FileProvider;
-
-import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.content.FileProvider;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -31,7 +27,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.ServerSocket;

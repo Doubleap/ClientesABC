@@ -10,7 +10,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.TextView;
@@ -40,7 +39,6 @@ import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
-import static androidx.core.content.ContextCompat.getExternalFilesDirs;
 import static androidx.core.content.ContextCompat.startActivity;
 
 public class SincronizacionServidor extends AsyncTask<Void,String,Void> {

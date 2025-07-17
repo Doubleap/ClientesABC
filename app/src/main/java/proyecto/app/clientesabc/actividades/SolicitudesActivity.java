@@ -152,6 +152,10 @@ public class SolicitudesActivity extends AppCompatActivity {
             toolbar.setTitle("Mis Solicitudes "+estado.replace("Preventa","Call Center")+" ("+mAdapter.getItemCount()+")");
         else
             toolbar.setTitle("Mis Solicitudes ("+mAdapter.getItemCount()+")");
+
+        if (searchView != null && searchView.getQuery() != null) {
+            mAdapter.getFilter().filter(searchView.getQuery());
+        }
     }
 
     private void showDialogFilters(View view) {

@@ -1,6 +1,5 @@
 package proyecto.app.clientesabc.clases;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -15,9 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatTextView;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 public class CustomArrayAdapter extends ArrayAdapter<OpcionSpinner> implements Filterable {

@@ -8,28 +8,21 @@ import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.icu.lang.UCharacter;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -39,16 +32,12 @@ import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
-import android.text.SpannableString;
-import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.util.Patterns;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -68,8 +57,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.RelativeLayout.LayoutParams;
-import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -83,13 +70,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ContextThemeWrapper;
-import androidx.appcompat.widget.TooltipCompat;
 import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.ViewCompat;
 import androidx.core.widget.CompoundButtonCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -104,27 +88,20 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.honeywell.aidc.AidcManager;
+/*import com.honeywell.aidc.AidcManager;
 import com.honeywell.aidc.BarcodeFailureEvent;
 import com.honeywell.aidc.BarcodeReadEvent;
 import com.honeywell.aidc.BarcodeReader;
 import com.honeywell.aidc.InvalidScannerNameException;
 import com.honeywell.aidc.ScannerNotClaimedException;
 import com.honeywell.aidc.ScannerUnavailableException;
-import com.honeywell.aidc.UnsupportedPropertyException;
+import com.honeywell.aidc.UnsupportedPropertyException;*/
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -139,15 +116,13 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.codecrafters.tableview.TableDataAdapter;
 import de.codecrafters.tableview.listeners.TableDataClickListener;
 import de.codecrafters.tableview.listeners.TableDataLongClickListener;
-import de.codecrafters.tableview.model.TableColumnWeightModel;
 import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
 import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
 
-import proyecto.app.clientesabc.Animaciones.CubeTransformer;
+import proyecto.app.clientesabc.animaciones.CubeTransformer;
 
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
@@ -160,11 +135,9 @@ import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
 import proyecto.app.clientesabc.adaptadores.SpinnerAdapter;
 import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
-import proyecto.app.clientesabc.clases.CustomTimePickerDialog;
 import proyecto.app.clientesabc.clases.DevolverPreSolicitudAPI;
 import proyecto.app.clientesabc.clases.DevolverPreSolicitudServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
-import proyecto.app.clientesabc.clases.FileHelper;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionAPI;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionCorreoAPI;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionCorreoServidor;
@@ -180,7 +153,6 @@ import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
 import proyecto.app.clientesabc.modelos.Contacto;
-import proyecto.app.clientesabc.modelos.EditTextDatePicker;
 import proyecto.app.clientesabc.modelos.Horarios;
 import proyecto.app.clientesabc.modelos.Impuesto;
 import proyecto.app.clientesabc.modelos.Interlocutor;
@@ -189,11 +161,9 @@ import proyecto.app.clientesabc.modelos.Visitas;
 
 import static android.view.View.INVISIBLE;
 import static android.view.View.TEXT_ALIGNMENT_CENTER;
-import static android.view.ViewGroup.LayoutParams.FILL_PARENT;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
-import static com.google.android.material.tabs.TabLayout.GRAVITY_FILL;
 import static com.google.android.material.tabs.TabLayout.GRAVITY_START;
 import static com.google.android.material.tabs.TabLayout.INDICATOR_GRAVITY_TOP;
 
@@ -255,8 +225,8 @@ public class SolicitudActivity extends AppCompatActivity {
     private static ArrayList<Horarios> horariosSolicitud;
     private static ArrayList<Comentario> comentarios;
     private static LinearLayout ll_visitas;
-    private AidcManager manager;
-    private BarcodeReader reader;
+    //private AidcManager manager;
+    //private BarcodeReader reader;
     private ActivityResultLauncher<CropImageContractOptions> cropImage;
     static ManejadorAdjuntos manejadorAdjuntos;
     public static String[] visitas_permitidas = {"ZPV","ZJV","ZTV","ZRM","ZAT","ZKV","ZDY","ZGE","ZCM","ZCS","ZDI","ZEJ","ZES","ZIN","ZOP","ZPK","ZSP","ZWB","ZWE","ZWJ","ZWP","ZDM","ZMB","ZDP"};
@@ -761,7 +731,7 @@ public class SolicitudActivity extends AppCompatActivity {
         if(modificable) {
             // create the AidcManager providing a Context and an
             // CreatedCallback implementation.
-            AidcManager.create(getBaseContext(), new AidcManager.CreatedCallback() {
+            /*AidcManager.create(getBaseContext(), new AidcManager.CreatedCallback() {
                 @Override
                 public void onCreated(AidcManager aidcManager) {
                     manager = aidcManager;
@@ -815,14 +785,6 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 case "F443":
                                                 case "F445":
                                                 case "F451":
-                                                    /*datosCedula = decodificarLecturaPDF417(lecturaCedula);
-                                                    codigo = datosCedula;
-                                                    if(codigo.length() > 100) {
-                                                        cedula = codigo.substring(0, 9).trim();
-                                                        nombre = codigo.substring(61, 91).trim();
-                                                        apellido1 = codigo.substring(9, 35).trim();
-                                                        apellido2 = codigo.substring(35, 61).trim();
-                                                    }*/
                                                     codigo = datosCedula;
                                                     codigo = lecturaCedula;
                                                     cedula = codigo.substring(5, 18).trim();
@@ -911,7 +873,7 @@ public class SolicitudActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
-            });
+            });*/
         }else if(!tipoSolicitud.equals("70")){
             LinearLayout ll = findViewById(R.id.LinearLayoutMain);
             DrawerLayout.LayoutParams h = new DrawerLayout.LayoutParams(MATCH_PARENT,MATCH_PARENT);
@@ -3084,11 +3046,19 @@ public class SolicitudActivity extends AppCompatActivity {
                                         }
 
                                         if (rightDrawable != null) {
-                                            if (rightDrawable == rightIconLocation) {
+                                            Drawable expectedDrawable = ContextCompat.getDrawable(getContext(), R.drawable.map); // el ícono que esperás
+
+                                            if (expectedDrawable != null && rightDrawable.getConstantState() != null && rightDrawable.getConstantState().equals(expectedDrawable.getConstantState())) {
                                                 int rightWidth = rightDrawable.getBounds().width();
                                                 if (touchX >= (et.getWidth() - et.getPaddingRight() - rightWidth)) {
                                                     // RIGHT icon clicked
                                                     Intent intent = new Intent(getContext(), OSMPickerActivity.class);
+                                                    MaskedEditText met_lat = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT");
+                                                    MaskedEditText met_long = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG");
+                                                    if(Validaciones.ValidarCoordenadaX(met_long) && Validaciones.ValidarCoordenadaY(met_lat)){
+                                                        intent.putExtra(OSMPickerActivity.EXTRA_LATITUDE, Double.parseDouble(met_lat.getText().toString()));
+                                                        intent.putExtra(OSMPickerActivity.EXTRA_LONGITUDE, Double.parseDouble(met_long.getText().toString()));
+                                                    }
                                                     getActivity().startActivityForResult(intent, VariablesGlobales.REQUEST_CODE_MAP);
                                                     return true;
                                                 }
@@ -3099,7 +3069,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                     et.setCompoundDrawablesWithIntrinsicBounds(
                                                             leftIcon, null, rightIconLocation, null
                                                     );
-                                                }, 2000); // Delay allows popup to show first
+                                                }, 3000); // Delay allows popup to show first
 
                                                 return false; // block custom icon click this time
                                             }
@@ -5290,7 +5260,6 @@ public class SolicitudActivity extends AppCompatActivity {
             window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         }
     }
-    @SuppressWarnings("unchecked")
     public static void displayDialogEncuestaCanales(final Context context) {
         final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -8346,7 +8315,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
         return -1;
     }
-    @Override
+    /*@Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch(keyCode){
             case KeyEvent.KEYCODE_UNKNOWN:
@@ -8385,7 +8354,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 break;
         }
         return super.onKeyUp(keyCode, event);
-    }
+    }*/
     private final BroadcastReceiver sentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {

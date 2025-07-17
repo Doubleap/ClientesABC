@@ -123,10 +123,10 @@ public class EquipoDisponibleAdapter extends RecyclerView.Adapter<EquipoDisponib
                         new int[]{-android.R.attr.state_enabled}, // enabled
                 },
                 new int[]{
-                        Color.parseColor(context.getResources().getString(color)),
-                        Color.parseColor(context.getResources().getString(color)),
-                        Color.parseColor(context.getResources().getString(color)),
-                        Color.parseColor(context.getResources().getString(color)),
+                        ContextCompat.getColor(context, color),
+                        ContextCompat.getColor(context, color),
+                        ContextCompat.getColor(context, color),
+                        ContextCompat.getColor(context, color),
                 }
         );
 
@@ -140,10 +140,10 @@ public class EquipoDisponibleAdapter extends RecyclerView.Adapter<EquipoDisponib
                         new int[]{-android.R.attr.state_enabled}, // enabled
                 },
                 new int[]{
-                        Color.parseColor(context.getResources().getString(color2)),
-                        Color.parseColor(context.getResources().getString(color2)),
-                        Color.parseColor(context.getResources().getString(color2)),
-                        Color.parseColor(context.getResources().getString(color2)),
+                        ContextCompat.getColor(context, color2),
+                        ContextCompat.getColor(context, color2),
+                        ContextCompat.getColor(context, color2),
+                        ContextCompat.getColor(context, color2),
                 }
         );
 

@@ -26,10 +26,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.Socket;
-import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -38,9 +36,6 @@ import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
-import proyecto.app.clientesabc.actividades.SolicitudActivity;
-import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
-import proyecto.app.clientesabc.adaptadores.BaseInstaladaAdapter;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
 

@@ -100,7 +100,7 @@ import de.codecrafters.tableview.listeners.TableDataLongClickListener;
 import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
 import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
-import proyecto.app.clientesabc.Animaciones.CubeTransformer;
+import proyecto.app.clientesabc.animaciones.CubeTransformer;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
@@ -3649,7 +3649,6 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
             window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         }
     }
-    @SuppressWarnings("unchecked")
     public static void displayDialogEncuestaCanales(final Context context) {
         final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setOnDismissListener(new DialogInterface.OnDismissListener() {

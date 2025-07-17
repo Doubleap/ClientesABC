@@ -2,7 +2,6 @@ package proyecto.app.clientesabc.adaptadores;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -37,7 +36,6 @@ import java.util.Date;
 import java.util.HashMap;
 
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.SolicitudActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
@@ -135,7 +133,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> impl
         estado.setBackground(ContextCompat.getDrawable(context, color));
         estado_circulo.getBackground().setTint(ContextCompat.getColor(context, color));
         tipo_solicitud.setText(formListFiltered.get(position).get("tipo_solicitud").trim());
-        tipo_solicitud.setTextColor(color);
+        tipo_solicitud.setTextColor(ContextCompat.getColor(context, color));
         if(formListFiltered.get(position).get("idform") != null)
             idform.setText("("+formListFiltered.get(position).get("idform").trim()+")");
         else

@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
-import android.telephony.SmsManager;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;

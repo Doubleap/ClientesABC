@@ -6,10 +6,8 @@ import android.app.DialogFragment;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,22 +15,14 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Filter;
-import android.widget.Filterable;
 import android.widget.ListView;
 import android.widget.SearchView;
-
-import androidx.appcompat.widget.AppCompatTextView;
-import androidx.appcompat.widget.Toolbar;
-
-import com.rey.material.widget.TextView;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.modelos.EquipoFrio;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 public class SearchableListDialog extends DialogFragment implements

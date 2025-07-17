@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.BitmapFactory;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
@@ -17,9 +16,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
@@ -34,7 +31,7 @@ import java.util.TimeZone;
 import es.dmoral.toasty.Toasty;
 import okhttp3.ResponseBody;
 import proyecto.app.clientesabc.BuildConfig;
-import proyecto.app.clientesabc.Interfaces.InterfaceApi;
+import proyecto.app.clientesabc.interfaces.InterfaceApi;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
@@ -42,8 +39,6 @@ import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 import retrofit2.Call;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ValidarFlujoClienteAPI extends AsyncTask<Void,String,ArrayList<JsonArray>> {
     private WeakReference<Context> context;

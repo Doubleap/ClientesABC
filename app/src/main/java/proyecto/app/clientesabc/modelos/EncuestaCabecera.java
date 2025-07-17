@@ -2,7 +2,6 @@ package proyecto.app.clientesabc.modelos;
 
 import org.chalup.microorm.annotations.Column;
 
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 

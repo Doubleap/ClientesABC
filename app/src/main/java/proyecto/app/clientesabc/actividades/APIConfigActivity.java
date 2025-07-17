@@ -3,11 +3,8 @@ package proyecto.app.clientesabc.actividades;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -18,7 +15,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,26 +26,14 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.bottomnavigation.BottomNavigationMenuView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 
-import de.codecrafters.tableview.listeners.TableDataClickListener;
-import de.codecrafters.tableview.listeners.TableDataLongClickListener;
-import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
-import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.adaptadores.ConexionTableAdapter;
 import proyecto.app.clientesabc.clases.PruebaConexionAPI;
 import proyecto.app.clientesabc.clases.PruebaConexionServidor;
 import proyecto.app.clientesabc.clases.SincronizacionAPI;
@@ -58,8 +42,6 @@ import proyecto.app.clientesabc.clases.TransmisionAPI;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
 import proyecto.app.clientesabc.modelos.Conexion;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
-
-import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
 
 public class APIConfigActivity extends AppCompatActivity
 {

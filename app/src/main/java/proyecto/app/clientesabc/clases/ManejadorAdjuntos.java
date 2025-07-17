@@ -12,7 +12,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
-import android.os.Parcel;
 import android.preference.PreferenceManager;
 import android.provider.OpenableColumns;
 import android.util.Log;
@@ -34,10 +33,8 @@ import androidx.core.app.ComponentActivity;
 import androidx.core.content.FileProvider;
 
 import com.canhub.cropper.CropImage;
-import com.canhub.cropper.CropImageContract;
 import com.canhub.cropper.CropImageContractOptions;
 import com.canhub.cropper.CropImageOptions;
-import com.canhub.cropper.CropImageView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -48,7 +45,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -56,7 +52,6 @@ import de.codecrafters.tableview.TableView;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.SolicitudActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
@@ -64,7 +59,6 @@ import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.modelos.Adjuntos;
-import proyecto.app.clientesabc.modelos.Solicitud;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;

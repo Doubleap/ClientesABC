@@ -33,7 +33,6 @@ import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.ConsultaClienteTotalActivity;
-import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
 
 public class ConsultaClienteTotalServidor extends AsyncTask<Void,String,ArrayList<JsonArray>> {
     private WeakReference<Context> context;

@@ -1,36 +1,24 @@
 package proyecto.app.clientesabc.actividades;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.ContextWrapper;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
-import proyecto.app.clientesabc.adaptadores.EncuestaAdapter;
 import proyecto.app.clientesabc.adaptadores.EncuestaCabeceraAdapter;
-import proyecto.app.clientesabc.clases.CheckBoxGroupView;
 import proyecto.app.clientesabc.modelos.EncuestaCabecera;
 
 public class EncuestaCabeceraDialog extends DialogFragment {

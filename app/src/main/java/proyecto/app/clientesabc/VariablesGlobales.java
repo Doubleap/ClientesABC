@@ -4,20 +4,13 @@ import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.preference.PreferenceManager;
-import android.text.InputFilter;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextUtils;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import proyecto.app.clientesabc.actividades.LoginActivity;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
-import proyecto.app.clientesabc.modelos.RegexInputFilter;
 import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Registered")
@@ -35,13 +28,14 @@ public class VariablesGlobales extends Application {
         return comentariosAutomaticos;
     }
 
-    //private static String urlApi = "https://kofcrazapl01.na.kof.ccf/MaestroClientes/";//Ambiente produccion CAM
-    private static String urlApi = "https://kofcoazcli01.sa.kof.ccf/MaestroClientes/";//Ambiente produccion COL
+    private static String urlApi = "https://kofcrazapl01.na.kof.ccf/MaestroClientes/";//Ambiente produccion CAM
+    //private static String urlApi = "https://kofcoazcli01.sa.kof.ccf/MaestroClientes/";//Ambiente produccion COL
     //private static String urlApi = "http://10.0.2.2:51123/";//Local host
     //private static String urlApi = "http://10.153.58.132/";//Servidor produccion para BD, pero ambiente calidad en VM uruguay(El ambiente de produccion es el appservice en azure), ocupa VPN
     //private static String urlApi = "http://10.153.152.69:90/MaestroClientes/"; //URL CAM CALIDAD
     //private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API en el app service azure
-    private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.56.71/FAWM_HVKOF;instance=MSSQLSERVER;user=maestro_clientes;password=kofcrmcli$;";//Se usa en beta para inactivar lectura de censo de equipo frio.
+    private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.56.71/FAWM_HVKOF;instance=MSSQLSERVER;user=maestro_clientes;password=kofcrmcli$;";//Se usa en beta para inactivar lectura de censo de equipo frio. Ambient PRODUCCION CAM
+    //private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.152.69/FAWM_HVKOF;instance=MSSQLSERVER;user=maestro_clientes;password=kofcrmcli$;";//Ambiente CALIDAD CAM
     private static String nombrePais = "Costa Rica";
     private static String sociedad = "F443";
     private static String orgvta = "0443";

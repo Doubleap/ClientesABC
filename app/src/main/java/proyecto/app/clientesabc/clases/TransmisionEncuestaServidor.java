@@ -1,13 +1,10 @@
 package proyecto.app.clientesabc.clases;
 
-import static androidx.core.content.ContextCompat.startActivity;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -36,9 +33,7 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
-import proyecto.app.clientesabc.modelos.EquipoFrio;
 
 public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
 
@@ -288,7 +283,7 @@ public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
             }
         }
         else{
-            Toasty.success(context.get(),"Encuesta exitosa!",Toast.LENGTH_LONG).show();
+
             //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
             ContentValues values = new ContentValues();
@@ -303,7 +298,7 @@ public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
             if(update <= 0){
                 Toasty.success(context.get(),"No se actualizo el estado de la encuesta!",Toast.LENGTH_LONG).show();
             }
-
+            Toasty.success(context.get(),"Encuesta exitosa!",Toast.LENGTH_LONG).show();
         }
         try {
             dialog.dismiss();
@@ -316,18 +311,14 @@ public class TransmisionEncuestaServidor extends AsyncTask<Void,String,Void> {
             dialog.hide();
         //activity.get().recreate();
         if(!pendientes){
-            if(!activity.get().isFinishing()) {
-                Intent intent = activity.get().getIntent();
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                activity.get().finish();
+            Activity act = activity.get();
+            if (act != null && !act.isFinishing()) {
+                act.finish();
+                act.overridePendingTransition(0, 0); // no animation
             }
         }else{
             activity.get().recreate();
         }
-
-
-
-
     }
 
     public void EnableWiFi(){

@@ -1,13 +1,8 @@
 package proyecto.app.clientesabc.clases;
 
-import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 public class Haversine {

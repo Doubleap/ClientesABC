@@ -1,10 +1,6 @@
 package proyecto.app.clientesabc.actividades;
 
-import static android.app.PendingIntent.getActivity;
 import static androidx.core.content.ContextCompat.startActivity;
-import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
-
-import static proyecto.app.clientesabc.R.drawable.textbackground;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -20,11 +16,7 @@ import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.hardware.camera2.CameraAccessException;
@@ -33,24 +25,18 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
-import android.webkit.MimeTypeMap;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
@@ -75,20 +61,14 @@ import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
-import com.googlecode.tesseract.android.TessBaseAPI;
-import com.canhub.cropper.CropImage;
+//import com.googlecode.tesseract.android.TessBaseAPI;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
-import org.intellij.lang.annotations.Language;
-
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -96,36 +76,22 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.BaseInstaladaAdapter;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
-import proyecto.app.clientesabc.clases.ConsultaClienteAPI;
-import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
-import proyecto.app.clientesabc.clases.ConsultaEquipoFrioServidor;
-import proyecto.app.clientesabc.clases.DialogHandler;
-import proyecto.app.clientesabc.clases.FileHelper;
 import proyecto.app.clientesabc.clases.KeyPairBoolData;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
 import proyecto.app.clientesabc.clases.MultiSpinnerListener;
 import proyecto.app.clientesabc.clases.MultiSpinnerSearch;
-import proyecto.app.clientesabc.clases.SearchableSpinner;
-import proyecto.app.clientesabc.clases.TesseractOCR;
-import proyecto.app.clientesabc.clases.TransmisionAPI;
+
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoAPI;
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoServidor;
-import proyecto.app.clientesabc.clases.TransmisionServidor;
 import proyecto.app.clientesabc.clases.ValidacionAnomaliaServidor;
-import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
-import proyecto.app.clientesabc.modelos.OpcionSpinner;
-
-import androidx.core.content.ContextCompat;
 
 public class BaseInstaladaActivity extends AppCompatActivity implements LocacionGPSActivity.LocationListenerCallback{
     DataBaseHelper db;
@@ -167,8 +133,6 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
             canal_cliente = b.getString("canal_cliente");
             correo_cliente = b.getString("correo_cliente");
         }
-        db = new DataBaseHelper(this);
-
         db = new DataBaseHelper(this);
         mDb = db.getWritableDatabase();
         /*if(estado != null && tipform != null)
@@ -344,7 +308,7 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
                                 .addOnSuccessListener(new OnSuccessListener<Text>() {
                                     @Override
                                     public void onSuccess(Text visionText) {
-                                        String lecturaDepurada = visionText.getText().replaceAll("[^0-9^A-Z^a-z]", "");
+                                        String lecturaDepurada = visionText.getText().replaceAll("[^0-9^A-Za-z]", "");
                                         if (PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BUKRS", "").equals("F443")
                                                 || PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BUKRS", "").equals("F445")
                                                 || PreferenceManager.getDefaultSharedPreferences(BaseInstaladaActivity.this).getString("W_CTE_BUKRS", "").equals("F451")) {
@@ -745,6 +709,9 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
         toolbar.setTitle(codigo_cliente +" - "+nombre_cliente);
         toolbar.setSubtitle("Base Instalada ("+mAdapter.getItemCount()+")");
         toolbar.setSubtitleTextColor(Color.DKGRAY);
+        if (searchView != null && searchView.getQuery() != null) {
+            mAdapter.getFilter().filter(searchView.getQuery());
+        }
     }
 
     public void showNoFlashError() {

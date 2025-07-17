@@ -3,13 +3,8 @@ package proyecto.app.clientesabc.clases;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -25,11 +20,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import es.dmoral.toasty.Toasty;
 import okhttp3.ResponseBody;
-import proyecto.app.clientesabc.Interfaces.InterfaceApi;
-import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.interfaces.InterfaceApi;
 import retrofit2.Call;
 import retrofit2.Response;
 

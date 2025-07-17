@@ -23,6 +23,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
@@ -119,7 +121,7 @@ import de.codecrafters.tableview.listeners.TableDataLongClickListener;
 import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
 import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
-import proyecto.app.clientesabc.Animaciones.CubeTransformer;
+import proyecto.app.clientesabc.animaciones.CubeTransformer;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
@@ -163,8 +165,6 @@ import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
 import static com.google.android.material.tabs.TabLayout.GRAVITY_FILL;
 import static com.google.android.material.tabs.TabLayout.INDICATOR_GRAVITY_TOP;
 
-import org.json.JSONException;
-
 public class SolicitudModificacionActivity extends AppCompatActivity {
 
     static ActionBar actionBar;
@@ -203,6 +203,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     static Spinner prefijo_direccion = null;
     static ImageView verificarCorreo = null;
     static ImageView verificarCelular = null;
+    static Drawable rightIconLocation = null;
 
     @SuppressLint("StaticFieldLeak")
     private static de.codecrafters.tableview.TableView<Contacto> tb_contactos;
@@ -418,10 +419,16 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         if (listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LAT") && !Validaciones.ValidarCoordenadaY(tv)) {
                                             numErrores++;
                                             mensajeError += "- Formato Coordenada Y invalido\n";
+                                        }else{
+                                            Drawable leftIcon = getResources().getDrawable(R.drawable.icon_location, null);
+                                            tv.setCompoundDrawablesWithIntrinsicBounds(leftIcon, null, rightIconLocation, null);
                                         }
                                         if (listaCamposObligatorios.get(i).trim().equals("W_CTE-ZZCRMA_LONG") && !Validaciones.ValidarCoordenadaX(tv)) {
                                             numErrores++;
                                             mensajeError += "- Formato Coordenada X invalido\n";
+                                        }else{
+                                            Drawable leftIcon = getResources().getDrawable(R.drawable.icon_location, null);
+                                            tv.setCompoundDrawablesWithIntrinsicBounds(leftIcon, null, rightIconLocation, null);
                                         }
                                     }
                                 }
@@ -453,6 +460,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 if (!listaCamposObligatorios.contains("W_CTE-ZZCRMA_LAT") && !Validaciones.ValidarCoordenadaY(texto)) {
                                     numErrores++;
                                     mensajeError += "- Formato Coordenada Y invalido\n";
+                                }else{
+                                    Drawable leftIcon = getResources().getDrawable(R.drawable.icon_location, null);
+                                    texto.setCompoundDrawablesWithIntrinsicBounds(leftIcon, null, rightIconLocation, null);
                                 }
                             }
                         }
@@ -462,6 +472,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 if (!listaCamposObligatorios.contains("W_CTE-ZZCRMA_LONG") && !Validaciones.ValidarCoordenadaX(texto)) {
                                     numErrores++;
                                     mensajeError += "- Formato Coordenada X invalido\n";
+                                }else{
+                                    Drawable leftIcon = getResources().getDrawable(R.drawable.icon_location, null);
+                                    texto.setCompoundDrawablesWithIntrinsicBounds(leftIcon, null, rightIconLocation, null);
                                 }
                             }
                         }
@@ -3302,6 +3315,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                         if (campos.get(i).get("nombre").trim().equals("mapa")) {
                             rightIcon = getResources().getDrawable(R.drawable.map, null);
+                            rightIconLocation = rightIcon;
                         }
 
                         et.setCompoundDrawablesWithIntrinsicBounds(leftIcon, null, rightIcon, null);
@@ -3316,14 +3330,56 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 final int DRAWABLE_RIGHT = 2;
                                 final int DRAWABLE_BOTTOM = 3;
 
-                                if(event.getAction() == MotionEvent.ACTION_UP) {
-                                    if(event.getRawX() <= ((et.getPaddingLeft()) + et.getCompoundDrawables()[DRAWABLE_LEFT].getBounds().width())*2) {
-                                        Toasty.info(getContext(),"Refrescando ubicacion..").show();
-                                        LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"), (MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG"));
-                                        autoPineo.startLocationUpdates();
-                                        return true;
+                                if (event.getAction() == MotionEvent.ACTION_UP) {
+                                    float touchX = event.getX();
+
+                                    Drawable leftDrawable = et.getCompoundDrawables()[DRAWABLE_LEFT];
+                                    Drawable rightDrawable = et.getCompoundDrawables()[DRAWABLE_RIGHT];
+
+                                    if (leftDrawable != null) {
+                                        int leftWidth = leftDrawable.getBounds().width();
+                                        if (touchX <= et.getPaddingLeft() + leftWidth) {
+                                            // LEFT icon clicked
+                                            Toasty.info(getContext(), "Refrescando ubicación...").show();
+                                            LocacionGPSActivity autoPineo = new LocacionGPSActivity(getContext(), getActivity(),
+                                                    (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT"),
+                                                    (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG")
+                                            );
+                                            autoPineo.startLocationUpdates();
+                                            return true;
+                                        }
+                                    }
+
+                                    if (rightDrawable != null) {
+                                        if (rightDrawable == rightIconLocation) {
+                                            int rightWidth = rightDrawable.getBounds().width();
+                                            if (touchX >= (et.getWidth() - et.getPaddingRight() - rightWidth)) {
+                                                // RIGHT icon clicked
+                                                Intent intent = new Intent(getContext(), OSMPickerActivity.class);
+                                                MaskedEditText met_lat = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT");
+                                                MaskedEditText met_long = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG");
+                                                if(Validaciones.ValidarCoordenadaX(met_long) && Validaciones.ValidarCoordenadaY(met_lat)){
+                                                    intent.putExtra(OSMPickerActivity.EXTRA_LATITUDE, Double.parseDouble(met_lat.getText().toString()));
+                                                    intent.putExtra(OSMPickerActivity.EXTRA_LONGITUDE, Double.parseDouble(met_long.getText().toString()));
+                                                }
+                                                getActivity().startActivityForResult(intent, VariablesGlobales.REQUEST_CODE_MAP);
+                                                return true;
+                                            }
+                                        } else {
+                                            // ✅ User tapped the error icon, let the popup show
+                                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                                et.setError(null); // remove error
+                                                et.setCompoundDrawablesWithIntrinsicBounds(
+                                                        leftIcon, null, rightIconLocation, null
+                                                );
+                                            }, 3000); // Delay allows popup to show first
+
+                                            return false; // block custom icon click this time
+                                        }
                                     }
                                 }
+
+
                                 return false;
                             }
                         });
@@ -5098,7 +5154,6 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         }
     }
-    @SuppressWarnings("unchecked")
     public static void displayDialogEncuestaCanales(final Context context) {
         final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setOnDismissListener(new DialogInterface.OnDismissListener() {

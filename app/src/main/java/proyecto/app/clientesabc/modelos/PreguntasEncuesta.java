@@ -2,7 +2,6 @@ package proyecto.app.clientesabc.modelos;
 
 
 import org.chalup.microorm.annotations.Column;
-import org.chalup.microorm.annotations.Embedded;
 
 import java.util.List;
 

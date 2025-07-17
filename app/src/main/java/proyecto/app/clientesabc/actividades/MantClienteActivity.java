@@ -5,13 +5,11 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -29,16 +27,13 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.preference.PreferenceManager;
-import android.text.InputType;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -47,28 +42,24 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.textfield.TextInputEditText;
-import com.honeywell.aidc.AidcManager;
+/*import com.honeywell.aidc.AidcManager;
 import com.honeywell.aidc.BarcodeFailureEvent;
 import com.honeywell.aidc.BarcodeReadEvent;
 import com.honeywell.aidc.BarcodeReader;
 import com.honeywell.aidc.InvalidScannerNameException;
 import com.honeywell.aidc.ScannerNotClaimedException;
 import com.honeywell.aidc.ScannerUnavailableException;
-import com.honeywell.aidc.UnsupportedPropertyException;
+import com.honeywell.aidc.UnsupportedPropertyException;*/
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -77,15 +68,12 @@ import java.util.List;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.TransmisionEncuestaServidor;
 import proyecto.app.clientesabc.modelos.EncuestaCabecera;
-import proyecto.app.clientesabc.modelos.EquipoFrio;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
-import proyecto.app.clientesabc.modelos.RespuestaPregunta;
 
 
 public class MantClienteActivity extends AppCompatActivity {
@@ -93,8 +81,8 @@ public class MantClienteActivity extends AppCompatActivity {
     private SearchView searchView;
     private MyAdapter mAdapter;
     private DataBaseHelper db;
-    private AidcManager manager;
-    private BarcodeReader reader;
+    //private AidcManager manager;
+    //private BarcodeReader reader;
     private MovableFloatingActionButton fab;
     private FloatingActionButton fab1;
     private FloatingActionButton fab2;
@@ -235,7 +223,9 @@ public class MantClienteActivity extends AppCompatActivity {
             fab.setEnabled(true);
         }
         actualizarEncuestaDialog();
-
+        if (searchView != null && searchView.getQuery() != null) {
+            mAdapter.getFilter().filter(searchView.getQuery());
+        }
     }
 
     @Override
@@ -631,8 +621,11 @@ public class MantClienteActivity extends AppCompatActivity {
                     if(!db.ExistenFormulariosEquipoFrio() || !db.AccesoEquipoFrioLibre()){
                         MenuItem menuItem = (MenuItem)popup.getMenu().getItem(4).setVisible(false);
                     }
-                    if(!db.ExistenIniciativas()){
+                    if(!db.ExistenFormulariosRacks()){
                         MenuItem menuItem = (MenuItem)popup.getMenu().getItem(5).setVisible(false);
+                    }
+                    if(!db.ExistenIniciativas()){
+                        MenuItem menuItem = (MenuItem)popup.getMenu().getItem(6).setVisible(false);
                     }
 
                     popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -953,7 +946,7 @@ public class MantClienteActivity extends AppCompatActivity {
         equipoFrioSpinner.setSelection(0);
 
         //Scanner
-        AidcManager.create(this, new AidcManager.CreatedCallback() {
+        /*AidcManager.create(this, new AidcManager.CreatedCallback() {
             @Override
             public void onCreated(AidcManager aidcManager) {
                 manager = aidcManager;
@@ -968,7 +961,8 @@ public class MantClienteActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if(true/*barcodeReadEvent.getAimId().substring(1,2).equals("L")*/) {//Lectura a placa de equipo frio
+                                    //barcodeReadEvent.getAimId().substring(1,2).equals("L")
+                                    if(true) {//Lectura a placa de equipo frio
                                         String lecturaEquipoFrio = barcodeReadEvent.getBarcodeData();
                                         try {
                                             reader.softwareTrigger(false);
@@ -1048,7 +1042,7 @@ public class MantClienteActivity extends AppCompatActivity {
                     }
                     return false;
             }
-        });
+        });*/
 
         //SHOW DIALOG
         d.show();

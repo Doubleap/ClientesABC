@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
@@ -24,24 +22,15 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
 
 import es.dmoral.toasty.Toasty;
 import okhttp3.ResponseBody;
-import proyecto.app.clientesabc.BuildConfig;
-import proyecto.app.clientesabc.Interfaces.InterfaceApi;
+import proyecto.app.clientesabc.interfaces.InterfaceApi;
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.ConfiguracionGeneralActivity;
-import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 import retrofit2.Call;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ConfiguracionPaisAPI extends AsyncTask<Void,String,ArrayList<JsonArray>> {
     private WeakReference<Context> context;

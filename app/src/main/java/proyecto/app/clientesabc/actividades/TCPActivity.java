@@ -39,11 +39,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.OptionalDataException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 import de.codecrafters.tableview.listeners.TableDataClickListener;
 import de.codecrafters.tableview.listeners.TableDataLongClickListener;
@@ -53,7 +51,6 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.ConexionTableAdapter;
-import proyecto.app.clientesabc.clases.ObtenerAutenticacionTokenAPI;
 import proyecto.app.clientesabc.clases.PruebaConexionAPI;
 import proyecto.app.clientesabc.clases.PruebaConexionServidor;
 import proyecto.app.clientesabc.clases.SincronizacionAPI;
@@ -123,7 +120,7 @@ public class TCPActivity extends AppCompatActivity
         //OpcionSpinner opLocal = new OpcionSpinner("local","Local");
         listatipos.add(opWifi);
         listatipos.add(opGPRS);
-        listatipos.add(opAPI);
+        //listatipos.add(opAPI);
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(this, R.layout.simple_spinner_item, listatipos);
         // Drop down layout style - list view with radio button

@@ -26,7 +26,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.appcompat.widget.AppCompatSpinner;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
@@ -179,9 +178,9 @@ public class MultiSpinnerSearch extends AppCompatSpinner implements OnCancelList
 
         listener.onItemsSelected(selectedData);
 
-        /**
-         * To hide dropdown which is already opened at the time of performClick...
-         * This code will hide automatically and no need to tap by user.
+        /*
+          To hide dropdown which is already opened at the time of performClick...
+          This code will hide automatically and no need to tap by user.
          */
         new Thread(new Runnable() {
             @Override
@@ -239,8 +238,8 @@ public class MultiSpinnerSearch extends AppCompatSpinner implements OnCancelList
             editText.setVisibility(GONE);
         }
 
-        /**
-         * For selected items
+        /*
+          For selected items
          */
         selected = 0;
         for (int i = 0; i < items.size(); i++) {

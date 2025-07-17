@@ -1,21 +1,16 @@
 package proyecto.app.clientesabc.adaptadores;
 
-import static java.util.stream.Collectors.collectingAndThen;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.ArrayAdapter;
@@ -23,8 +18,6 @@ import android.widget.ArrayAdapter;
 //import com.androidbuts.multispinnerfilter.KeyPairBoolData;
 
 import org.chalup.microorm.MicroOrm;
-
-import androidx.recyclerview.widget.AsyncListUtil;
 
 import com.google.gson.JsonArray;
 
@@ -42,19 +35,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.TreeSet;
-import static java.util.Comparator.comparingInt;
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toCollection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
-import proyecto.app.clientesabc.actividades.LoginActivity;
-import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
 import proyecto.app.clientesabc.clases.KeyPairBoolData;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.modelos.Adjuntos;
@@ -4119,7 +4105,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             if(cursor.getString(cursor.getColumnIndex("id_solicitud")) !=  null)
                 ef.setIdSolicitud(cursor.getString(cursor.getColumnIndex("id_solicitud")).trim());
             if(cursor.getString(cursor.getColumnIndex("ultima_lectura")) !=  null)
-                ef.setIdSolicitud(cursor.getString(cursor.getColumnIndex("ultima_lectura")).trim());
+                ef.setUltima_lectura(cursor.getString(cursor.getColumnIndex("ultima_lectura")).trim());
             equiposFriosList.add(ef);
         }
         cursor.close();

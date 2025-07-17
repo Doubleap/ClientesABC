@@ -1,7 +1,6 @@
 package proyecto.app.clientesabc.clases;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.text.InputFilter;
 import android.text.SpannableString;

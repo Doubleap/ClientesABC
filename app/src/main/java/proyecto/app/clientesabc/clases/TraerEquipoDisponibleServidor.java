@@ -34,8 +34,6 @@ import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.EquipoDisponibleActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
-import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
-import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 
 public class TraerEquipoDisponibleServidor extends AsyncTask<Void,String,ArrayList<JsonArray>> {
     private WeakReference<Context> context;

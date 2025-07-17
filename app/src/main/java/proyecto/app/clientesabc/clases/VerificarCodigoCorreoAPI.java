@@ -13,17 +13,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,12 +29,9 @@ import java.util.TimeZone;
 import es.dmoral.toasty.Toasty;
 import okhttp3.ResponseBody;
 import proyecto.app.clientesabc.BuildConfig;
-import proyecto.app.clientesabc.Interfaces.InterfaceApi;
+import proyecto.app.clientesabc.interfaces.InterfaceApi;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
-import proyecto.app.clientesabc.actividades.SolicitudCreditoActivity;
-import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 import retrofit2.Call;
 import retrofit2.Response;
 

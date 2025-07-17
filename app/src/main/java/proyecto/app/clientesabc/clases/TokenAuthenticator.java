@@ -2,11 +2,7 @@ package proyecto.app.clientesabc.clases;
 
 import android.app.Activity;
 import android.content.Context;
-import android.net.Proxy;
-import android.os.AsyncTask;
-import android.os.Looper;
 import android.preference.PreferenceManager;
-import android.text.format.DateUtils;
 
 import androidx.annotation.WorkerThread;
 
@@ -22,14 +18,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.ExecutionException;
 
 import es.dmoral.toasty.Toasty;
 import okhttp3.Authenticator;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
-import proyecto.app.clientesabc.actividades.LoginActivity;
 
 public class TokenAuthenticator  implements Authenticator {
     private WeakReference<Context> context;

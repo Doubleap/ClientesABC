@@ -14,7 +14,6 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -40,7 +39,6 @@ import java.util.Locale;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.clases.FileHelper;
-import proyecto.app.clientesabc.clases.NumerosALetras;
 
 public class FirmaTarjetasActivity extends AppCompatActivity {
 

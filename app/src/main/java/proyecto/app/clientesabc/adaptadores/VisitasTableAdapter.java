@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
-import android.hardware.camera2.params.MultiResolutionStreamInfo;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -13,22 +12,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
-import com.vicmikhailau.maskededittext.MaskedEditText;
 
 import java.util.ArrayList;
 
 import de.codecrafters.tableview.TableDataAdapter;
 import proyecto.app.clientesabc.R;
-import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.SolicitudActivity;
-import proyecto.app.clientesabc.actividades.TCPActivity;
-import proyecto.app.clientesabc.clases.Haversine;
-import proyecto.app.clientesabc.clases.Validaciones;
 import proyecto.app.clientesabc.modelos.Visitas;
 
 public class VisitasTableAdapter extends TableDataAdapter<Visitas> {

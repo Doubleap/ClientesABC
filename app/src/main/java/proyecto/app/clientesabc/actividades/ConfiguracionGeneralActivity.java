@@ -3,65 +3,42 @@ package proyecto.app.clientesabc.actividades;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.Toolbar;
 
-import com.google.android.material.bottomnavigation.BottomNavigationMenuView;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -74,24 +51,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import de.codecrafters.tableview.listeners.TableDataClickListener;
-import de.codecrafters.tableview.listeners.TableDataLongClickListener;
-import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
-import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.adaptadores.ConexionTableAdapter;
 import proyecto.app.clientesabc.clases.ConfiguracionPaisAPI;
 import proyecto.app.clientesabc.clases.ConfiguracionPaisServidor;
-import proyecto.app.clientesabc.clases.PruebaConexionAPI;
-import proyecto.app.clientesabc.clases.PruebaConexionServidor;
-import proyecto.app.clientesabc.clases.SincronizacionServidor;
-import proyecto.app.clientesabc.clases.TransmisionServidor;
 import proyecto.app.clientesabc.modelos.Conexion;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
-
-import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
 
 public class ConfiguracionGeneralActivity extends AppCompatActivity
 {

@@ -2,7 +2,6 @@ package proyecto.app.clientesabc.modelos;
 
 import org.chalup.microorm.annotations.Column;
 
-import java.sql.Date;
 import java.util.List;
 
 public class RespuestaPregunta {
@@ -76,6 +75,14 @@ public class RespuestaPregunta {
         this.idTextoRespuesta = idTextoRespuesta;
         this.respuesta = respuesta;
     }
+
+    public RespuestaPregunta(int idPregunta){
+        this.idPregunta = idPregunta;
+    };
+    public RespuestaPregunta(int idPregunta, String idTextoRespuesta){
+        this.idPregunta = idPregunta;
+        this.idTextoRespuesta = idTextoRespuesta;
+    };
 
     public int getId() {
         return id;
@@ -212,5 +219,25 @@ public class RespuestaPregunta {
 
     public void setImagenUrl(String url) {
         this.imagenUrl = url;
+    }
+
+    // Este campo no está ligado directamente a la base de datos
+    private transient List<String> respuestasMultiples;
+
+    public List<String> getRespuestasMultiples() {
+        return respuestasMultiples;
+    }
+
+    public void setRespuestasMultiples(List<String> respuestasMultiples) {
+        this.respuestasMultiples = respuestasMultiples;
+    }
+    private transient boolean esValida = true;
+
+    public boolean isEsValida() {
+        return esValida;
+    }
+
+    public void setEsValida(boolean esValida) {
+        this.esValida = esValida;
     }
 }

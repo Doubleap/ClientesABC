@@ -2,7 +2,6 @@ package proyecto.app.clientesabc.clases;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.widget.CheckBox;
 import android.widget.GridLayout;
 
 import java.util.ArrayList;
@@ -26,6 +25,10 @@ public class CheckBoxGroupView extends GridLayout {
 
     public void remove(Integer id) {
         // TODO: Remove items from ArrayList
+    }
+
+    public void removeAll(){
+        checkboxes.clear();
     }
 
     public List<?> getCheckboxesChecked(){
@@ -105,7 +108,9 @@ public class CheckBoxGroupView extends GridLayout {
         super.onAttachedToWindow();
 
         for(OpcionCheckBox c: checkboxes) {
-            addView(c);
+            if (c.getParent() == null) {
+                addView(c);
+            }
         }
 
         invalidate();
@@ -116,4 +121,6 @@ public class CheckBoxGroupView extends GridLayout {
     protected void onFinishInflate() {
         super.onFinishInflate();
     }
+
+
 }

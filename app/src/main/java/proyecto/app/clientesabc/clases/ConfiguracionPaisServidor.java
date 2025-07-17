@@ -20,7 +20,6 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -30,14 +29,10 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import es.dmoral.toasty.Toasty;
-import okhttp3.ResponseBody;
 import proyecto.app.clientesabc.BuildConfig;
-import proyecto.app.clientesabc.Interfaces.InterfaceApi;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.ConfiguracionGeneralActivity;
-import retrofit2.Call;
-import retrofit2.Response;
 
 public class ConfiguracionPaisServidor extends AsyncTask<Void,String,ArrayList<JsonArray>> {
     private WeakReference<Context> context;

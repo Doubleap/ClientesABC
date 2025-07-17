@@ -11,7 +11,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
@@ -40,10 +39,7 @@ import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
-import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
 import proyecto.app.clientesabc.actividades.EncuestaActivity;
-import proyecto.app.clientesabc.actividades.PanelActivity;
-import proyecto.app.clientesabc.actividades.SolicitudesActivity;
 
 public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
     private WeakReference<Context> context;
