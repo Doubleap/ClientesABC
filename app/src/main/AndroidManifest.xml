@@ -40,10 +40,10 @@
 
     <application
         android:appComponentFactory="whateverString"
-        android:icon="@drawable/favicon"
+        android:icon="@drawable/logo_transparent"
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
-        android:roundIcon="@drawable/favicon"
+        android:roundIcon="@drawable/logo_transparent"
         android:screenOrientation="portrait"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"

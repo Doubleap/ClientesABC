@@ -62,7 +62,7 @@ public class OSMPickerActivity extends AppCompatActivity {
 
         switch(PreferenceManager.getDefaultSharedPreferences(mapView.getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad())){
             case "F443":
-                mapFile = new File(getExternalFilesDir(null), "costa-rica.map");
+                mapFile = new File(getExternalFilesDir(null), "extra/costa-rica.map");
                 break;
             case "F445":
                 mapFile = new File(getExternalFilesDir(null), "nicaragua.map");

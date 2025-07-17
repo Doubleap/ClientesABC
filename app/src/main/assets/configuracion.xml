@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuracion>
     <sistema>
-        <nombrePais>Costa Rica</nombrePais>
-        <sociedad>F443</sociedad>
-        <orgvta>0443</orgvta>
-        <land1>CR</land1>
-        <cadenaRM>0000160000</cadenaRM>
-        <ktokd>RCMA</ktokd>
+        <nombrePais>Colombia</nombrePais>
+        <sociedad>F428</sociedad>
+        <orgvta>0428</orgvta>
+        <land1>CO</land1>
+        <cadenaRM>0000220334</cadenaRM>
+        <ktokd>CODE</ktokd>
         <!--
         <nombrePais>Panamá</nombrePais>
         <sociedad>F451</sociedad>
