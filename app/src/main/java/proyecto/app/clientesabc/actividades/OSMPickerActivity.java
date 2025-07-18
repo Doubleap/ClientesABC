@@ -77,7 +77,7 @@ public class OSMPickerActivity extends AppCompatActivity {
                 mapFile = new File(getExternalFilesDir(null), "uruguay.map");
                 break;
             case "F428":
-                mapFile = new File(getExternalFilesDir(null), "colombia.map");
+                mapFile = new File(getExternalFilesDir(null), "extra/colombia.map");
                 break;
         }
 

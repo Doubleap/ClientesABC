@@ -27,7 +27,7 @@
         android:layout_gravity="end|bottom"
         android:id="@+id/MenuContainer"
         >
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <proyecto.app.clientesabc.clases.MovableFloatingActionButton
             android:id="@+id/onOffFlashlight"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -104,9 +104,9 @@ public class BaseInstaladaActivity extends AppCompatActivity implements Locacion
     private SearchView searchView;
     //private MyAdapter mAdapter;
     private MovableFloatingActionButton fab;
-    private FloatingActionButton fab1;
-    private FloatingActionButton fab2;
-    private FloatingActionButton fab3;
+    private MovableFloatingActionButton fab1;
+    private MovableFloatingActionButton fab2;
+    private MovableFloatingActionButton fab3;
     boolean isFABOpen = false;
     String codigo_cliente;
     String nombre_cliente;
