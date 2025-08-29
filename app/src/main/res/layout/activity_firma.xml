@@ -61,7 +61,8 @@
             android:maxLines="1000"
             android:minLines="5"
             android:padding="@dimen/margin_medium"
-            android:textAlignment="center"
+            android:textAlignment="textStart"
+            android:justificationMode="inter_word"
             android:textColor="@color/colorTextView"
             android:maxLength="1000000"
             />

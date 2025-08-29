@@ -376,6 +376,21 @@ public class Visitas implements Cloneable{
         return valorCelda;
     }
 
+    public void LimpiarDias() {
+        this.setLun_a("");
+        this.setLun_de("");
+        this.setMar_a("");
+        this.setMar_de("");
+        this.setMier_a("");
+        this.setMier_de("");
+        this.setJue_a("");
+        this.setJue_de("");
+        this.setVie_a("");
+        this.setVie_de("");
+        this.setSab_a("");
+        this.setSab_de("");
+    }
+
     public boolean DiferenciaDeDiasDeVisita(Visitas visitasOld) {
         boolean cambio = false;
         if((this.getLun_a().length() == 0 && visitasOld.getLun_a().length() > 0) || (this.getLun_a().length() > 0 && visitasOld.getLun_a().length() == 0))

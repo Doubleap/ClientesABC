@@ -1768,7 +1768,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                             zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte,PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_RUTAHH","").trim()));
                                         }else if(PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZCM")
                                                 || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZDM")
-                                                || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZDP")){
+                                                || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZDP")
+                                                || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZMB")){
                                             zona_transporte.setEnabled(true);
                                             zona_transporte.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
                                         }
@@ -1870,7 +1871,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 }
                             });
                         }
-                        if (campos.get(i).get("campo").trim().equals("W_CTE-VSBED") && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZAT")) {
+                        if (campos.get(i).get("campo").trim().equals("W_CTE-VSBED") && mDBHelper.esTipoAutoventa(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "ZPV"))) {
                             String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_VKORG",""), PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_RUTAHH",""));
                             combo.setSelection(VariablesGlobales.getIndex(combo, condicionExpedicion));
                         }
@@ -2262,7 +2263,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte,PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_RUTAHH","").trim()));
                                             }else if(PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZCM")
                                                     || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZDM")
-                                                    || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZDP")){
+                                                    || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZDP")
+                                                    || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZMB")){
                                                 zona_transporte.setEnabled(true);
                                                 zona_transporte.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
                                             }
@@ -2356,7 +2358,8 @@ public class SolicitudActivity extends AppCompatActivity {
                                                 zona_transporte.setSelection(VariablesGlobales.getIndex(zona_transporte,PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_RUTAHH","").trim()));
                                             }else if(PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZCM")
                                                     || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZDM")
-                                                    || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZDP")){
+                                                    || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZDP")
+                                                    || PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("W_CTE_TIPORUTA","ZPV").toString().equals("ZMB")){
                                                 zona_transporte.setEnabled(true);
                                                 zona_transporte.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
                                             }
@@ -3766,10 +3769,10 @@ public class SolicitudActivity extends AppCompatActivity {
                             header_visitas.setTextSize(10);
 
                             LinearLayout.LayoutParams hlpv = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
-                            hlpv.setMargins(0, 25, 0, 15);
+                            hlpv.setMargins(0, 35, 0, 5);
                             seccion_visitas.setLayoutParams(hlpv);
                             seccion_visitas.setBackground(getResources().getDrawable(R.color.colorPrimary, null));
-                            seccion_visitas.setPadding(5, 5, 5, 5);
+                            seccion_visitas.setPadding(5, 0, 5, 0);
 
                             seccion_visitas.addView(header_visitas);
                             ll_visitas.addView(seccion_visitas);
@@ -3802,7 +3805,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 et.setInputType(InputType.TYPE_CLASS_NUMBER);
                                 et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(4)});
                                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                                lp.setMargins(0, 10, 10, 10);
+                                lp.setMargins(0, 0, 10, 0);
                                 et.setPadding(1, 0, 1, 0);
 
                                 et.setLayoutParams(lp);
@@ -3839,7 +3842,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     label.setVisibility(View.GONE);
                                 }
 
-                                if (!modificable || tipoVisitaActual.equals("ZDY")) {
+                                if (!modificable || tipoVisitaActual.equals("ZDY") || ((tipoVisitaActual.equals("ZWE") || tipoVisitaActual.equals("ZWB")) && VariablesGlobales.getSociedad().equals("F428"))) {
                                     et.setEnabled(false);
                                     et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
                                 }
@@ -4269,14 +4272,21 @@ public class SolicitudActivity extends AppCompatActivity {
                                             }
                                         }
                                     }
+
                                     private void determinarDiasDigitales(TextInputEditText et, int finalIndZWB, int finalIndZWE) {
-                                        int finalIndPreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA",""));
-                                        if(et.getTag().toString().contains(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA","")) )
-                                            if (mDBHelper.ExisteEnVisitPlanActual(finalModalidad,"ZWB")) {
-                                                if(!et.getText().toString().equals("")) {
+                                        int finalIndPreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", ""));
+                                        if (et.getTag().toString().contains(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "")))
+                                            if (mDBHelper.ExisteEnVisitPlanActual(finalModalidad, "ZWB")) {
+                                                boolean tieneMasDe1Dia = TieneMasDe1DiaAsignado(finalIndPreventa);
+                                                if (!et.getText().toString().equals("")) {
                                                     int frecuencia = Integer.parseInt(et.getText().toString());
-                                                    if (frecuencia == 1) {
+                                                    if (!tieneMasDe1Dia) {
                                                         TextInputEditText copiar = null;
+
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_D");
+                                                        if (copiar != null)
+                                                            copiar.setText("");
+
                                                         if (finalX == 0)//Preventa Lunes -> Digitales Miércoles
                                                             copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_M");
                                                         if (finalX == 1)//Preventa Martes -> Digitales Jueves
@@ -4285,61 +4295,178 @@ public class SolicitudActivity extends AppCompatActivity {
                                                             copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_V");
                                                         if (finalX == 3)//Preventa Jueves -> Digitales Sábado
                                                             copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_S");
+                                                        if (finalX == 4)//Preventa Viernes -> Digitales Lunes
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_L");
+                                                        if (finalX == 5)//Preventa Sabado -> Digitales Martes
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_K");
                                                         if (copiar != null)
                                                             copiar.setText("1");
-                                                        if (finalIndPreventa > 0 && finalIndZWB > 0 && visitasSolicitud.size() > 0) {
-                                                            visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(finalX + 2, "0001");
+                                                        if (finalIndPreventa >= 0 && finalIndZWB >= 0 && visitasSolicitud.size() > 0) {
+
+                                                            int mifinal = -1;
+                                                            switch (finalX){
+                                                                case 0:
+                                                                case 1:
+                                                                case 2:
+                                                                case 3:
+                                                                    mifinal = finalX+2;
+                                                                    break;
+                                                                case 4:
+                                                                    mifinal = 0;
+                                                                    break;
+                                                                case 5:
+                                                                    mifinal = 1;
+                                                                    break;
+                                                            }
+                                                            if(mifinal >= 0)
+                                                                visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(mifinal, "0001");
                                                         }
-                                                    }
-                                                    if (frecuencia > 1) {//Mayor que 1, poner dia domingo en visita digital
+                                                        int eldia = Solo1DiaAsignado(finalIndPreventa);
+                                                        if(eldia >= 0){
+                                                            if (eldia == 0)//Preventa Lunes -> Digitales Miércoles
+                                                                copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_M");
+                                                            if (eldia == 1)//Preventa Martes -> Digitales Jueves
+                                                                copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_J");
+                                                            if (eldia == 2)//Preventa Miércoles -> Digitales Viernes
+                                                                copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_V");
+                                                            if (eldia == 3)//Preventa Jueves -> Digitales Sábado
+                                                                copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_S");
+                                                            if (eldia == 4)//Preventa Viernes -> Digitales Lunes
+                                                                copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_L");
+                                                            if (eldia == 5)//Preventa Sabado -> Digitales Martes
+                                                                copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_K");
+                                                            if (copiar != null)
+                                                                copiar.setText("1");
+                                                            if (finalIndPreventa >= 0 && finalIndZWB >= 0 && visitasSolicitud.size() > 0) {
+                                                                int mifinal = -1;
+                                                                switch (finalX){
+                                                                    case 0:
+                                                                    case 1:
+                                                                    case 2:
+                                                                    case 3:
+                                                                        mifinal = finalX+2;
+                                                                        break;
+                                                                    case 4:
+                                                                        mifinal = 0;
+                                                                        break;
+                                                                    case 5:
+                                                                        mifinal = 1;
+                                                                        break;
+                                                                }
+                                                                if(mifinal >= 0)
+                                                                    visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(mifinal, "0001");
+                                                            }
+                                                        }
+
+                                                    } else {//Tiene mas de 1 dia asignado, se debe colocar siempre el domingo solamente.
+                                                        LimpiarDias("ZWB");
                                                         TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_D");
                                                         if (copiar != null)
                                                             copiar.setText("1");
-                                                        if (finalIndPreventa > 0 && finalIndZWB > 0 && visitasSolicitud.size() > 0) {
+                                                        if (finalIndZWB >= 0 && visitasSolicitud.size() > 0) {
+
+                                                            visitasSolicitud.get(finalIndZWB).LimpiarDias();
                                                             visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(6, "0001");
                                                         }
                                                     }
-                                                }else if(originalValue[0].equals("1")){
+                                                } else {//valor viene vacio
                                                     TextInputEditText copiar = null;
-                                                    if (finalX == 0)//Preventa Lunes -> Digitales Miércoles
-                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_M");
-                                                    if (finalX == 1)//Preventa Martes -> Digitales Jueves
-                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_J");
-                                                    if (finalX == 2)//Preventa Miércoles -> Digitales Viernes
-                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_V");
-                                                    if (finalX == 3)//Preventa Jueves -> Digitales Sábado
-                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_S");
-                                                    if (copiar != null)
-                                                        copiar.setText("");
-                                                    if (finalIndPreventa > 0 && finalIndZWB > 0 && visitasSolicitud.size() > 0) {
-                                                        visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(finalX + 2, "");
-                                                    }
-
-                                                }else if(!originalValue[0].equals("")){//Caso cuando es vacio, y le valor original es diferente 1
-                                                    //Si viene vacio, revisar si tiene algun otro dia en 2 o mas para desactivar el domingo?
-                                                    boolean activado = false;
-                                                    for(int i = 0;i <= 5;i++){
-                                                        if(finalIndPreventa > 0) {
-                                                            if (visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(i) != null && !visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(i).equals("") && !visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(i).equals("0001") && finalX != i) {
-                                                                activado = true;
-                                                            }
-                                                        }
-                                                    }
-                                                    if(!activado) {
-                                                        TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_D");
+                                                    if (!tieneMasDe1Dia) {
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_D");
                                                         if (copiar != null)
                                                             copiar.setText("");
-                                                        if (finalIndPreventa > 0 && finalIndZWB > 0 && visitasSolicitud.size() > 0) {
-                                                            visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(6, "");
+                                                        if (finalX == 0)//Preventa Lunes -> Digitales Miércoles
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_M");
+                                                        if (finalX == 1)//Preventa Martes -> Digitales Jueves
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_J");
+                                                        if (finalX == 2)//Preventa Miércoles -> Digitales Viernes
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_V");
+                                                        if (finalX == 3)//Preventa Jueves -> Digitales Sábado
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_S");
+                                                        if (finalX == 4)//Preventa Viernes -> Digitales Lunes
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_L");
+                                                        if (finalX == 5)//Preventa Sabado -> Digitales Martes
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_K");
+                                                        if (copiar != null)
+                                                            copiar.setText("");
+                                                        if (finalIndPreventa >= 0 && finalIndZWB >= 0 && visitasSolicitud.size() > 0) {
+                                                            int mifinal = -1;
+                                                            switch (finalX){
+                                                                case 0:
+                                                                case 1:
+                                                                case 2:
+                                                                case 3:
+                                                                    mifinal = finalX+2;
+                                                                    break;
+                                                                case 4:
+                                                                    mifinal = 0;
+                                                                    break;
+                                                                case 5:
+                                                                    mifinal = 1;
+                                                                    break;
+                                                            }
+                                                            if(mifinal >= 0)
+                                                                visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(mifinal, "");
+                                                        }
+                                                        int eldia = Solo1DiaAsignado(finalIndPreventa);
+                                                        if(eldia >= 0){
+                                                            if (eldia == 0)//Preventa Lunes -> Digitales Miércoles
+                                                                copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_M");
+                                                            if (eldia == 1)//Preventa Martes -> Digitales Jueves
+                                                                copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_J");
+                                                            if (eldia == 2)//Preventa Miércoles -> Digitales Viernes
+                                                                copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_V");
+                                                            if (eldia == 3)//Preventa Jueves -> Digitales Sábado
+                                                                copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_S");
+                                                            if (eldia == 4)//Preventa Viernes -> Digitales Lunes
+                                                                copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_L");
+                                                            if (eldia == 5)//Preventa Sabado -> Digitales Martes
+                                                                copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_K");
+                                                            if (copiar != null)
+                                                                copiar.setText("1");
+                                                            if (finalIndPreventa >= 0 && finalIndZWB >= 0 && visitasSolicitud.size() > 0) {
+                                                                int mifinal = -1;
+                                                                switch (finalX){
+                                                                    case 0:
+                                                                    case 1:
+                                                                    case 2:
+                                                                    case 3:
+                                                                        mifinal = finalX+2;
+                                                                        break;
+                                                                    case 4:
+                                                                        mifinal = 0;
+                                                                        break;
+                                                                    case 5:
+                                                                        mifinal = 1;
+                                                                        break;
+                                                                }
+                                                                if(mifinal >= 0)
+                                                                    visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(mifinal, "0001");
+                                                            }
+                                                        }
+                                                    } else {//Tiene mas de 1 dia asignado, se debe colocar siempre el domingo solamente.
+                                                        LimpiarDias("ZWB");
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_D");
+                                                        if (copiar != null)
+                                                            copiar.setText("1");
+                                                        if (finalIndZWB >= 0 && visitasSolicitud.size() > 0) {
+                                                            visitasSolicitud.get(finalIndZWB).LimpiarDias();
+                                                            visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(6, "0001");
                                                         }
                                                     }
                                                 }
                                             }
-                                        if (mDBHelper.ExisteEnVisitPlanActual(finalModalidad,"ZWE")) {
-                                            if(!et.getText().toString().equals("")) {
+                                        if (mDBHelper.ExisteEnVisitPlanActual(finalModalidad, "ZWE")) {
+                                            boolean tieneMasDe1Dia = TieneMasDe1DiaAsignado(finalIndPreventa);
+                                            if (!et.getText().toString().equals("")) {
                                                 int frecuencia = Integer.parseInt(et.getText().toString());
-                                                if (frecuencia == 1) {
+                                                if (!tieneMasDe1Dia) {
                                                     TextInputEditText copiar = null;
+
+                                                    copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_D");
+                                                    if (copiar != null)
+                                                        copiar.setText("");
+
                                                     if (finalX == 0)//Preventa Lunes -> Digitales Miércoles
                                                         copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_M");
                                                     if (finalX == 1)//Preventa Martes -> Digitales Jueves
@@ -4348,53 +4475,146 @@ public class SolicitudActivity extends AppCompatActivity {
                                                         copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_V");
                                                     if (finalX == 3)//Preventa Jueves -> Digitales Sábado
                                                         copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_S");
+                                                    if (finalX == 4)//Preventa Viernes -> Digitales Lunes
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_L");
+                                                    if (finalX == 5)//Preventa Sabado -> Digitales Martes
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_K");
                                                     if (copiar != null)
                                                         copiar.setText("1");
-                                                    if (finalIndPreventa > 0 && finalIndZWE > 0 && visitasSolicitud.size() > 0) {
+                                                    if (finalIndPreventa >= 0 && finalIndZWE >= 0 && visitasSolicitud.size() > 0) {
                                                         visitasSolicitud.get(finalIndZWE).setValorDiaSegunIndice(finalX + 2, "0001");
                                                     }
-                                                }
-                                                if (frecuencia > 1) {//Mayor que 1, poner dia domingo en visita digital
+                                                    int eldia = Solo1DiaAsignado(finalIndPreventa);
+                                                    if(eldia >= 0){
+                                                        if (eldia == 0)//Preventa Lunes -> Digitales Miércoles
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_M");
+                                                        if (eldia == 1)//Preventa Martes -> Digitales Jueves
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_J");
+                                                        if (eldia == 2)//Preventa Miércoles -> Digitales Viernes
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_V");
+                                                        if (eldia == 3)//Preventa Jueves -> Digitales Sábado
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_S");
+                                                        if (eldia == 4)//Preventa Viernes -> Digitales Lunes
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_L");
+                                                        if (eldia == 5)//Preventa Sabado -> Digitales Martes
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_K");
+                                                        if (copiar != null)
+                                                            copiar.setText("1");
+                                                        if (finalIndPreventa >= 0 && finalIndZWE >= 0 && visitasSolicitud.size() > 0) {
+                                                            int mifinal = -1;
+                                                            switch (finalX){
+                                                                case 0:
+                                                                case 1:
+                                                                case 2:
+                                                                case 3:
+                                                                    mifinal = finalX+2;
+                                                                    break;
+                                                                case 4:
+                                                                    mifinal = 0;
+                                                                    break;
+                                                                case 5:
+                                                                    mifinal = 1;
+                                                                    break;
+                                                            }
+                                                            if(mifinal >= 0)
+                                                            visitasSolicitud.get(finalIndZWE).setValorDiaSegunIndice(mifinal, "0001");
+                                                        }
+                                                    }
+                                                } else {//Tiene mas de 1 dia asignado, se debe colocar siempre el domingo solamente.
+                                                    LimpiarDias("ZWE");
                                                     TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_D");
                                                     if (copiar != null)
                                                         copiar.setText("1");
-                                                    if (finalIndPreventa > 0 && finalIndZWE > 0 && visitasSolicitud.size() > 0) {
+                                                    if (finalIndZWE >= 0 && visitasSolicitud.size() > 0) {
+                                                        visitasSolicitud.get(finalIndZWE).LimpiarDias();
                                                         visitasSolicitud.get(finalIndZWE).setValorDiaSegunIndice(6, "0001");
                                                     }
                                                 }
-                                            }else if(originalValue[0].equals("1")){
+                                            } else {//valor viene vacio
                                                 TextInputEditText copiar = null;
-                                                if (finalX == 0)//Preventa Lunes -> Digitales Miércoles
-                                                    copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_M");
-                                                if (finalX == 1)//Preventa Martes -> Digitales Jueves
-                                                    copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_J");
-                                                if (finalX == 2)//Preventa Miércoles -> Digitales Viernes
-                                                    copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_V");
-                                                if (finalX == 3)//Preventa Jueves -> Digitales Sábado
-                                                    copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_S");
-                                                if (copiar != null)
-                                                    copiar.setText("");
-                                                if (finalIndPreventa > 0 && finalIndZWB > 0 && visitasSolicitud.size() > 0) {
-                                                    visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(finalX + 2, "");
-                                                }
-
-                                            }else if(!originalValue[0].equals("")){//Caso cuando es vacio, y el valor original es diferente 1
-                                                //Si viene vacio, revisar si tiene algun otro dia en 2 o mas para desactivar el domingo?
-                                                boolean activado = false;
-                                                for(int i = 0;i <= 5;i++){
-                                                    if(finalIndPreventa > 0) {
-                                                        if (visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(i) != null && !visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(i).equals("") && !visitasSolicitud.get(finalIndPreventa).getValorDiaSegunIndice(i).equals("0001") && finalX != i) {
-                                                            activado = true;
-                                                        }
-                                                    }
-                                                }
-                                                if(!activado) {
-                                                    TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_D");
+                                                if (!tieneMasDe1Dia) {
+                                                    copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_D");
                                                     if (copiar != null)
                                                         copiar.setText("");
-                                                    if (finalIndPreventa > 0 && finalIndZWB > 0 && visitasSolicitud.size() > 0) {
-                                                        visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(6, "");
+                                                    if (finalX == 0)//Preventa Lunes -> Digitales Miércoles
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_M");
+                                                    if (finalX == 1)//Preventa Martes -> Digitales Jueves
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_J");
+                                                    if (finalX == 2)//Preventa Miércoles -> Digitales Viernes
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_V");
+                                                    if (finalX == 3)//Preventa Jueves -> Digitales Sábado
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_S");
+                                                    if (finalX == 4)//Preventa Viernes -> Digitales Lunes
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_L");
+                                                    if (finalX == 5)//Preventa Sabado -> Digitales Martes
+                                                        copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_K");
+                                                    if (copiar != null)
+                                                        copiar.setText("");
+                                                    if (finalIndPreventa >= 0 && finalIndZWE >= 0 && visitasSolicitud.size() > 0) {
+                                                        int mifinal = -1;
+                                                        switch (finalX){
+                                                            case 0:
+                                                            case 1:
+                                                            case 2:
+                                                            case 3:
+                                                                mifinal = finalX+2;
+                                                                break;
+                                                            case 4:
+                                                                mifinal = 0;
+                                                                break;
+                                                            case 5:
+                                                                mifinal = 1;
+                                                                break;
+                                                        }
+                                                        if(mifinal >= 0)
+                                                        visitasSolicitud.get(finalIndZWE).setValorDiaSegunIndice(mifinal, "");
                                                     }
+                                                    int eldia = Solo1DiaAsignado(finalIndPreventa);
+                                                    if(eldia >= 0){
+                                                        if (eldia == 0)//Preventa Lunes -> Digitales Miércoles
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_M");
+                                                        if (eldia == 1)//Preventa Martes -> Digitales Jueves
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_J");
+                                                        if (eldia == 2)//Preventa Miércoles -> Digitales Viernes
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_V");
+                                                        if (eldia == 3)//Preventa Jueves -> Digitales Sábado
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_S");
+                                                        if (eldia == 4)//Preventa Viernes -> Digitales Lunes
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_L");
+                                                        if (eldia == 5)//Preventa Sabado -> Digitales Martes
+                                                            copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_K");
+                                                        if (copiar != null)
+                                                            copiar.setText("1");
+                                                        if (finalIndPreventa >= 0 && finalIndZWE >= 0 && visitasSolicitud.size() > 0) {
+                                                            int mifinal = -1;
+                                                            switch (finalX){
+                                                                case 0:
+                                                                case 1:
+                                                                case 2:
+                                                                case 3:
+                                                                    mifinal = finalX+2;
+                                                                    break;
+                                                                case 4:
+                                                                    mifinal = 0;
+                                                                    break;
+                                                                case 5:
+                                                                    mifinal = 1;
+                                                                    break;
+                                                            }
+                                                            if(mifinal >= 0)
+                                                            visitasSolicitud.get(finalIndZWE).setValorDiaSegunIndice(mifinal, "0001");
+                                                        }
+                                                    }
+                                                } else {//Tiene mas de 1 dia asignado, se debe colocar siempre el domingo solamente.
+                                                    LimpiarDias("ZWE");
+                                                    copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_D");
+                                                    if (copiar != null)
+                                                        copiar.setText("1");
+                                                    if (finalIndPreventa >= 0 && finalIndZWE >= 0 && visitasSolicitud.size() > 0) {
+                                                        visitasSolicitud.get(finalIndZWE).LimpiarDias();
+                                                        visitasSolicitud.get(finalIndZWE).setValorDiaSegunIndice(6, "0001");
+                                                    }
+
                                                 }
                                             }
                                         }
@@ -4419,7 +4639,18 @@ public class SolicitudActivity extends AppCompatActivity {
 
                                 tr.addView(label);
                                 label.addView(et);
+
+                                if(visitasSolicitud.size() > 0 && visitasSolicitud.get(i).getRuta().trim().isEmpty()) {
+                                    et.setVisibility(View.GONE);
+                                    label.setVisibility(View.GONE);
+                                }else {
+                                    et.setVisibility(View.VISIBLE);
+                                    label.setVisibility(View.VISIBLE);
+                                }
                             }
+
+                            //Validar si no tiene ruta asignada se deben esconder los campos del tipo de visita
+
 
                             /*v_ll.addView(tr);
                             if (v_ll.getParent() != null)
@@ -4427,7 +4658,15 @@ public class SolicitudActivity extends AppCompatActivity {
                             ll_visitas.addView(v_ll);
                             if (ll_visitas.getParent() == null)
                                 ll.addView(ll_visitas);*/
+
+                            //Validar si no tiene ruta asignada, esconder los campos de ese tipo de visita
+                            if(visitasSolicitud.size() > 0 && visitasSolicitud.get(i).getRuta().trim().isEmpty())
+                                seccion_visitas.setVisibility(View.GONE);
+                            else
+                                seccion_visitas.setVisibility(View.VISIBLE);
                         }
+
+
                         v_ll.addView(tr);
                         if (v_ll.getParent() != null)
                             ((ViewGroup) v_ll.getParent()).removeView(v_ll);
@@ -4699,6 +4938,74 @@ public class SolicitudActivity extends AppCompatActivity {
             }
         }
 
+        private void LimpiarDias(String tipo_visita) {
+            Object obj_L = (mapeoCamposDinamicos != null) ? mapeoCamposDinamicos.get(tipo_visita + "_L") : null;
+            if (obj_L instanceof TextInputEditText) {
+                ((TextInputEditText) obj_L).setText("");
+            }
+            Object obj_K = (mapeoCamposDinamicos != null) ? mapeoCamposDinamicos.get(tipo_visita + "_K") : null;
+            if (obj_K instanceof TextInputEditText) {
+                ((TextInputEditText) obj_K).setText("");
+            }
+            Object obj_M = (mapeoCamposDinamicos != null) ? mapeoCamposDinamicos.get(tipo_visita + "_M") : null;
+            if (obj_M instanceof TextInputEditText) {
+                ((TextInputEditText) obj_M).setText("");
+            }
+            Object obj_J = (mapeoCamposDinamicos != null) ? mapeoCamposDinamicos.get(tipo_visita + "_J") : null;
+            if (obj_J instanceof TextInputEditText) {
+                ((TextInputEditText) obj_J).setText("");
+            }
+            Object obj_V = (mapeoCamposDinamicos != null) ? mapeoCamposDinamicos.get(tipo_visita + "_V") : null;
+            if (obj_V instanceof TextInputEditText) {
+                ((TextInputEditText) obj_V).setText("");
+            }
+            Object obj_S = (mapeoCamposDinamicos != null) ? mapeoCamposDinamicos.get(tipo_visita + "_S") : null;
+            if (obj_S instanceof TextInputEditText) {
+                ((TextInputEditText) obj_S).setText("");
+            }
+            Object obj_D = (mapeoCamposDinamicos != null) ? mapeoCamposDinamicos.get(tipo_visita + "_D") : null;
+            if (obj_D instanceof TextInputEditText) {
+                ((TextInputEditText) obj_D).setText("");
+            }
+        }
+
+    }
+
+    public static boolean TieneMasDe1DiaAsignado(int indiceVisita){
+        int contador = 0;
+
+        if (visitasSolicitud.get(indiceVisita).getLun_a() != null && !visitasSolicitud.get(indiceVisita).getLun_a().replace('0', ' ').trim().isEmpty())
+            contador++;
+        if (visitasSolicitud.get(indiceVisita).getMar_a() != null && !visitasSolicitud.get(indiceVisita).getMar_a().replace('0', ' ').trim().isEmpty())
+            contador++;
+        if (visitasSolicitud.get(indiceVisita).getMier_a() != null && !visitasSolicitud.get(indiceVisita).getMier_a().replace('0', ' ').trim().isEmpty())
+            contador++;
+        if (visitasSolicitud.get(indiceVisita).getJue_a() != null && !visitasSolicitud.get(indiceVisita).getJue_a().replace('0', ' ').trim().isEmpty())
+            contador++;
+        if (visitasSolicitud.get(indiceVisita).getVie_a() != null && !visitasSolicitud.get(indiceVisita).getVie_a().replace('0', ' ').trim().isEmpty())
+            contador++;
+        if (visitasSolicitud.get(indiceVisita).getSab_a() != null && !visitasSolicitud.get(indiceVisita).getSab_a().replace('0', ' ').trim().isEmpty())
+            contador++;
+
+        return contador > 1 ? true : false;
+    }
+    public static int Solo1DiaAsignado(int indiceVisita){
+        int dia = -1;
+
+        if (visitasSolicitud.get(indiceVisita).getLun_a() != null && !visitasSolicitud.get(indiceVisita).getLun_a().replace('0', ' ').trim().isEmpty())
+            dia = 0;
+        if (visitasSolicitud.get(indiceVisita).getMar_a() != null && !visitasSolicitud.get(indiceVisita).getMar_a().replace('0', ' ').trim().isEmpty())
+            dia = 1;
+        if (visitasSolicitud.get(indiceVisita).getMier_a() != null && !visitasSolicitud.get(indiceVisita).getMier_a().replace('0', ' ').trim().isEmpty())
+            dia = 2;
+        if (visitasSolicitud.get(indiceVisita).getJue_a() != null && !visitasSolicitud.get(indiceVisita).getJue_a().replace('0', ' ').trim().isEmpty())
+            dia = 3;
+        if (visitasSolicitud.get(indiceVisita).getVie_a() != null && !visitasSolicitud.get(indiceVisita).getVie_a().replace('0', ' ').trim().isEmpty())
+            dia = 4;
+        if (visitasSolicitud.get(indiceVisita).getSab_a() != null && !visitasSolicitud.get(indiceVisita).getSab_a().replace('0', ' ').trim().isEmpty())
+            dia = 5;
+
+        return dia;
     }
 
     //Pruebas para seccion de bloques
@@ -6280,7 +6587,7 @@ public class SolicitudActivity extends AppCompatActivity {
         title.setText(String.format(context.getString(R.string.palabras_2),context.getString(R.string.label_vp),seleccionado.getVptyp()));
 
         ArrayAdapter<String> spinnerArrayAdapter;
-        if(seleccionado.getVptyp().equals("ZAT"))
+        if(/*seleccionado.getVptyp().equals("ZAT") && */mDBHelper.esTipoAutoventa(seleccionado.getVptyp()))
             spinnerArrayAdapter =new ArrayAdapter<String>(this,R.layout.spinner_item, getResources().getStringArray(R.array.OpcionesKvgr4Autoventa));
         else
             spinnerArrayAdapter =new ArrayAdapter<String>(this,R.layout.spinner_item, getResources().getStringArray(R.array.OpcionesKvgr4));
@@ -6335,7 +6642,7 @@ public class SolicitudActivity extends AppCompatActivity {
         //Validar si existe ruta mixta para determinar si puede modificar o no la ruta de su VP
         if(!reparto){
             if((seleccionado.getVptyp().equals("ZPV") && !mDBHelper.ExisteRutaMixta() && PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_TIPORUTA","").equals(seleccionado.getVptyp()))
-                    || seleccionado.getVptyp().equals("ZAT")
+                    || /*seleccionado.getVptyp().equals("ZAT")*/ mDBHelper.esTipoAutoventa(seleccionado.getVptyp())
                     || (PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_TIPORUTA","").equals(seleccionado.getVptyp()))
             || (PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_BUKRS","").equals("F428") && (seleccionado.getVptyp().equals("ZWE") || seleccionado.getVptyp().equals("ZWB"))) ) {
                 ruta_reparto.setVisibility(View.GONE);
@@ -6418,11 +6725,39 @@ public class SolicitudActivity extends AppCompatActivity {
                         String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_VKORG",""), seleccionado.getRuta());
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")) != null)
                             ((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-VSBED")), condicionExpedicion));
-                    }else if(seleccionado.getVptyp().equals("ZCM") || seleccionado.getVptyp().equals("ZDM") || seleccionado.getVptyp().equals("ZDP")){
+                    }else if(seleccionado.getVptyp().equals("ZCM") || seleccionado.getVptyp().equals("ZDM") || seleccionado.getVptyp().equals("ZDP") || seleccionado.getVptyp().equals("ZMB")){
                         //((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setSelection(VariablesGlobales.getIndex(((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")),seleccionado.getRuta()));
                         ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setEnabled(true);
                         ((Spinner)mapeoCamposDinamicos.get("W_CTE-LZONE")).setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
                     }
+                    //Repintar los textos de los tipos de Visita activados por la seleccion de la ruta
+                    int mostrar = 0;
+                    if(seleccionado.getRuta().isEmpty()){
+                        mostrar = View.GONE;
+                    }else{
+                        mostrar = View.VISIBLE;
+                    }
+                    ((View)mapeoVisitas.get(seleccionado.getVptyp())).setVisibility(mostrar);
+
+                    TextInputEditText vp_Lunes = ((TextInputEditText) mapeoCamposDinamicos.get(seleccionado.getVptyp()+"_L"));
+                    TextInputEditText vp_Martes = ((TextInputEditText) mapeoCamposDinamicos.get(seleccionado.getVptyp()+"_K"));
+                    TextInputEditText vp_Miercoles = ((TextInputEditText) mapeoCamposDinamicos.get(seleccionado.getVptyp()+"_M"));
+                    TextInputEditText vp_Jueves = ((TextInputEditText) mapeoCamposDinamicos.get(seleccionado.getVptyp()+"_J"));
+                    TextInputEditText vp_Viernes = ((TextInputEditText) mapeoCamposDinamicos.get(seleccionado.getVptyp()+"_V"));
+                    TextInputEditText vp_Sabado = ((TextInputEditText) mapeoCamposDinamicos.get(seleccionado.getVptyp()+"_S"));
+                    vp_Lunes.setVisibility(mostrar);
+                    vp_Martes.setVisibility(mostrar);
+                    vp_Miercoles.setVisibility(mostrar);
+                    vp_Jueves.setVisibility(mostrar);
+                    vp_Viernes.setVisibility(mostrar);
+                    vp_Sabado.setVisibility(mostrar);
+                    ((TextInputLayout) vp_Lunes.getParent().getParent()).setVisibility(mostrar);
+                    ((TextInputLayout) vp_Martes.getParent().getParent()).setVisibility(mostrar);
+                    ((TextInputLayout) vp_Miercoles.getParent().getParent()).setVisibility(mostrar);
+                    ((TextInputLayout) vp_Jueves.getParent().getParent()).setVisibility(mostrar);
+                    ((TextInputLayout) vp_Viernes.getParent().getParent()).setVisibility(mostrar);
+                    ((TextInputLayout) vp_Sabado.getParent().getParent()).setVisibility(mostrar);
+
                 }
                 //seleccionado.setRuta(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_RUTAHH",""));
                 seleccionado.setKvgr4(kvgr4Spinner.getSelectedItem().toString().trim());
@@ -6441,7 +6776,6 @@ public class SolicitudActivity extends AppCompatActivity {
                     vp.setF_fin(f_finEditText.getText().toString());
                     vp.setKvgr4(seleccionado.getKvgr4());
                 }
-
                 //RECALCULAR DIAS DE VISITA
                 RecalcularDiasDeReparto();
 
@@ -6494,7 +6828,7 @@ public class SolicitudActivity extends AppCompatActivity {
             //TODO cambiar el valor "PR" por el valor dinamico del comboBox de Modalidad de venta
             if(!esReparto && !vp.getVptyp().equals("ZRM") && !vp.getVptyp().equals("ZDY")){
                 String rutaReparto = "";
-                if(rutaReparto.equals("ZAT")){//Autoventa no ocupa recalcular su reparto
+                if(/*rutaReparto.equals("ZAT")*/rutaReparto.equals("ZDP")){//Autoventa no ocupa recalcular su reparto
                     return;
                 }
                 else if(vp.getVptyp().equals("ZTV"))

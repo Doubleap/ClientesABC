@@ -62,21 +62,26 @@ public class OSMPickerActivity extends AppCompatActivity {
 
         switch(PreferenceManager.getDefaultSharedPreferences(mapView.getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad())){
             case "F443":
-                mapFile = new File(getExternalFilesDir(null), "extra/costa-rica.map");
+                copiarArchivoMapSiNoExiste("costa-rica.map");
+                mapFile = new File(getExternalFilesDir(null), "costa-rica.map");
                 break;
             case "F445":
+                copiarArchivoMapSiNoExiste("nicaragua.map");
                 mapFile = new File(getExternalFilesDir(null), "nicaragua.map");
                 break;
             case "F446":
             case "1657":
             case "1658":
+                copiarArchivoMapSiNoExiste("guatemala.map");
                 mapFile = new File(getExternalFilesDir(null), "guatemala.map");
                 break;
             case "1661":
             case "Z001":
+                copiarArchivoMapSiNoExiste("uruguay.map");
                 mapFile = new File(getExternalFilesDir(null), "uruguay.map");
                 break;
             case "F428":
+                copiarArchivoMapSiNoExiste("colombia.map");
                 mapFile = new File(getExternalFilesDir(null), "extra/colombia.map");
                 break;
         }
@@ -305,10 +310,10 @@ public class OSMPickerActivity extends AppCompatActivity {
         return AndroidGraphicFactory.convertToBitmap(getResources().getDrawable(R.drawable.pin_point, null)).getHeight() / 2;
     }
 
-    private void copiarArchivoMapSiNoExiste() {
-        File mapFile = new File(getExternalFilesDir(null), "extra/costa-rica.map");
+    private void copiarArchivoMapSiNoExiste(String nombreArchivo) {
+        File mapFile = new File(getExternalFilesDir(null), nombreArchivo);
         if (!mapFile.exists()) {
-            try (InputStream is = getAssets().open("extra/costa-rica.map");
+            try (InputStream is = getAssets().open(nombreArchivo);
                  OutputStream os = new FileOutputStream(mapFile)) {
                 byte[] buffer = new byte[4096];
                 int length;

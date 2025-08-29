@@ -674,6 +674,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 solicitud.put("W_CTE-STKZN", cursor.getString(cursor.getColumnIndex("W_CTE-STKZN")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STKZN")) : "");
             }catch(Exception e){}
 
+            try {//Para Actividad Economica CR
+                solicitud.put("W_CTE-ZZCNAE", cursor.getString(cursor.getColumnIndex("W_CTE-ZZCNAE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZCNAE")) : "");
+                solicitud.put("W_CTE-ZREGFISCAL", cursor.getString(cursor.getColumnIndex("W_CTE-ZREGFISCAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZREGFISCAL")) : "");
+            }catch(Exception e){}
+
             formList.add(solicitud);
         }
 
@@ -923,6 +928,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 solicitud.put("W_CTE-SORT1", cursor.getString(cursor.getColumnIndex("W_CTE-SORT1")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-SORT1")) : "");
                 solicitud.put("W_CTE-SORT2", cursor.getString(cursor.getColumnIndex("W_CTE-SORT2")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-SORT2")) : "");
                 solicitud.put("W_CTE-STKZN", cursor.getString(cursor.getColumnIndex("W_CTE-STKZN")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-STKZN")) : "");
+            }catch(Exception e){}
+
+            try {//Para Actividad Economica CR
+                solicitud.put("W_CTE-ZZCNAE", cursor.getString(cursor.getColumnIndex("W_CTE-ZZCNAE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZCNAE")) : "");
+                solicitud.put("W_CTE-ZREGFISCAL", cursor.getString(cursor.getColumnIndex("W_CTE-ZREGFISCAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZREGFISCAL")) : "");
             }catch(Exception e){}
 
             formList.add(solicitud);
@@ -2806,8 +2816,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         //Caso exclusivo para tipos de visita autoventa, donde la preventa y el reparto son lo mismo.
-        if(tiporuta.contains("ZAT") || tiporuta.contains("ZAH") || tiporuta.contains("ZAI") || tiporuta.contains("ZAN") || tiporuta.contains("ZAP")){
+        if(tiporuta.contains("ZAT") || tiporuta.contains("ZAH") || tiporuta.contains("ZAI") || tiporuta.contains("ZAN") || tiporuta.contains("ZAP")
+        || tiporuta.contains("ZDI") || tiporuta.contains("ZCM") || tiporuta.contains("ZDM") || tiporuta.contains("ZDP") || tiporuta.contains("ZMB") || tiporuta.contains("ZMY")){
             retorno = false;
+        }
+        return retorno;
+    }
+    public boolean esTipoAutoventa(String tiporuta)
+    {
+        boolean retorno = false;
+        if(tiporuta.contains("ZAT") || tiporuta.contains("ZAH") || tiporuta.contains("ZAI") || tiporuta.contains("ZAN") || tiporuta.contains("ZAP")
+                || tiporuta.contains("ZDI") || tiporuta.contains("ZCM") || tiporuta.contains("ZDM") || tiporuta.contains("ZDP") || tiporuta.contains("ZMB") || tiporuta.contains("ZMY")){
+            retorno = true;
         }
         return retorno;
     }
@@ -2914,16 +2934,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String porpais = "";
         switch (pais) {
             case "CR":
-                porpais = " AND SUBSTR(CITY1,1,1) = 'C' OR CITY1 = 'PCCI'";
+                //porpais = " AND SUBSTR(CITY1,1,1) = 'C' OR CITY1 = 'PCCI'";
+                porpais = " AND LAND1 = 'CR'";
                 break;
             case "NI":
-                porpais = " AND SUBSTR(CITY1,1,1) = 'N'";
+                porpais = " AND (SUBSTR(CITY1,1,1) = 'N' OR (LAND1 = 'NI'))";
                 break;
             case "GT":
-                porpais = " AND SUBSTR(CITY1,1,1)  NOT IN ('C','P','N','G')";
+                porpais = " AND (SUBSTR(CITY1,1,1) NOT IN ('C','P','N','G') OR (LAND1 = 'GT'))";
                 break;
             case "PA":
-                porpais = " AND SUBSTR(CITY1,1,1) = 'P'";
+                porpais = " AND (SUBSTR(CITY1,1,1) = 'P' OR (LAND1 = 'PA'))";
                 break;
         }
         ArrayList<HashMap<String, String>> cantones = getDatosCatalogo("cat_ztsdvtc_00296", "regio = '"+provincia+"'"+porpais);

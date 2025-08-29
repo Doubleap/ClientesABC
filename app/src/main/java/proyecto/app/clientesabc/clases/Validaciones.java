@@ -337,6 +337,7 @@ public class Validaciones {
                 et.setEnabled(true);
                 et.setBackground(context.getResources().getDrawable(R.drawable.textbackground, null));
             }
+            //TODO si el campo es modificacion = 2 que tiene ojito para ver el valor viejo, se debe tambien esconder el ojito para que no puedan presionarlo
             if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X")) {
                 et.setVisibility(View.GONE);
                 label.setVisibility(View.GONE);

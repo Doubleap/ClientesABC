@@ -7329,7 +7329,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
                                 Log.w("Async", "Asigna " + VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
                                 sp.setSelection(VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
                             }
-                            if (listaFinal.get(i).trim().equals("W_CTE-VSBED") && PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_TIPORUTA", "ZPV").toString().equals("ZAT")) {
+                            if (listaFinal.get(i).trim().equals("W_CTE-VSBED") && mDBHelper.esTipoAutoventa(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_TIPORUTA", "ZPV"))) {
                                 String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_VKORG", ""), PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_RUTAHH", ""));
                                 sp.setSelection(VariablesGlobales.getIndex(sp, condicionExpedicion));
                             }

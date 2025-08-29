@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ClientesABC CO</string>
+    <string name="app_name">ClientesABC CR</string>
     <string name="title_activity_login">Maestro Clientes Femsa</string>
 
     <!-- PARAMETROS DE MENUS -->
@@ -26,7 +26,7 @@
     <string name="title_activity_firma_gt">AVISO INFORMATIVO</string>
     <string name="title_activity_firma_abvo">AVISO INFORMATIVO</string>
     <string name="title_activity_firma_uy">Firma Aceptación Uso de Datos del Cliente</string>
-    <string name="title_activity_firma_co">Firma Aceptación Tratamiento de Datos Personales</string>
+    <string name="title_activity_firma_co">DECLARACIONES Y OBLIGACIONES RESPECTO DEL LA/FT/FPADM</string>
     <string name="title_activity_firma_t4">Firma Constancia Cliente</string>
     <string name="title_activity_firma_credito">Aceptación condiciones de crédito</string>
     <string name="title_activity_solicitud">Crear Solicitud</string>
@@ -254,32 +254,26 @@ mismo día del alta como cliente previo a la recolección de los datos personale
     ]]>
     </string>
     <string name="politica_privacidad_uy">En cumplimiento de la Ley de Protección de Datos Personales No. 18.331 y sus Decretos Reglamentarios, Montevideo Refrescos S.R.L. (COCA-COLA FEMSA URUGUAY), garantiza la protección de todos los datos personales que le sean facilitados en virtud del presente Formulario. Los datos personales recopilados serán utilizados única y exclusivamente para fines internos de COCA-COLA FEMSA DE URUGUAY, y no serán de ninguna manera comercializados o transferidos a terceras personas. Los clientes podrán ejercer en todo momento su derecho al acceso, rectificación, supresión de sus datos personales. Para la recopilación y tratamiento de datos personales se aplicarán los protocolos de seguridad necesarios para proteger los datos personales contra su destrucción, pérdida, alteración, acceso, divulgación o uso accidental, ilegal o no autorizado. Los protocolos de seguridad utilizados para la recopilación y tratamiento de datos personales son: Custodiar, almacenar o transportar las bases de datos solamente en dispositivos KOF que están bajo los estándares de seguridad de T.I. de la empresa. 2- El usuario no debe custodiar, almacenar o transportar las bases de datos en dispositivos USB, discos externos, CD, u otros dispositivos externos. 3- El usuario no debe enviar las bases de datos a correos electrónicos personales, de proveedores, clientes u otros que no sean KOF.4- El usuario no debe colocar bases de datos en Share Point, en la nube o en carpetas compartidas.5- El envío de bases de datos por medio de correos electrónicos KOF se debe realizar cuando tiene conexión a la red KOF o cuando está utilizando VPN. 6- El usuario no debe prestar los accesos a sistemas a ningún colaborador interno o externo, incluyendo niveles superiores. 7- La entrega de la base de datos a terceros autorizados, se debe realizar en el medio físico o electrónico que establezca T.I., previo, contrato de confidencialidad formal. Con la firma del presente formulario se autoriza expresamente a Montevideo Refrescos S.R.L. (COCA-COLA FEMSA URUGUAY) a recopilar sus datos personales y se aceptan las condiciones de esta política de privacidad.</string>
-    <string name="politica_privacidad_co"><![CDATA[ Por medio de la presente, autorizo de manera libre, previa, expresa e informada el tratamiento de
-    mis datos personales a Industria Nacional de Gaseosas S.A. (NIT 8909033858-7), y a las demás
-    compañías que se relacionan en la Política de Tratamiento de Informacion (PTI) para recolectar,
-    almacenar, tratar, actualizar, usar, suprimir mis datos personales los cuales se utilizaran para las
-    siguientes finalidades: 1. Cumplir el objeto de las relaciones comerciales y contractuales surgidas
-    entre el titular de la información y Coca-Cola FEMSA. 2. Desarrollar acciones comerciales o servicios
-    de post venta. 3. Para otros fines comerciales de atención al cliente, encuestas de satisfacción,
-    mercadeo, investigación y/o actualización. 4. El titular autoriza a la compañia a ser contactado en
-    horarios y con una periodicidad distinta a la establecida en el articulo 3 de la Ley 2300 de 2023, es
-    decir por fuera de la franja horaria allí establecida: Lunes a viernes y de 7:00 am a 7:00 pm, y sabados
-    de 8:00 am a 3:00 pm, y en consecuencia autoriza el contacto por vía telefónica (llamadas y/o
-    mensajes de texto), correo electrónico, redes sociales, aplicaciones de mensajería instantanea y, en
-    general, medios digitales (como Whatsapp, Facebook, Instagram, entre otros) para realizar las
-    anteriores finalidades. 5. Tranferir o Transmitir datos personales dentro y fuera del país cuando sea
-    necesario que un tercero aliado los trate para el desarrollo de las anteriores finalidades. 6. Las demás
-    finalidades que puede consultar en nuestro Política de Tratamiento de Información (PTI). Los
-    anteriores tratamientos, cuentan con todos los medios de seguridad físicas, técnicas y
-    administrativas para evitar su pérdida, adulteración, uso fraudulento o no adecuado. Sus derechos
-    como titular del dato son los previstos de la Constitución, la ley 1581 de 2012 y nuestras PTI. Si usted
-    es menor de edad, o es Representante Legal del menor de edad, tenga en cuenta que no está en la
-    obligación de entregar sus respuestas a las preguntas que versen sobre datos de niños, niñas y
-    adolescentes. Usted tiene derecho a conocer, actualizar y rectificar su información personal y a
-    abstenerse de responder las preguntas sobre datos sensibles. En caso de un reclamo o consulta
-    puede realizarla a través del correo electrónico proteccion.de.datos@kof.com y/o canales de
-    comunicación establecidos en la PTI que puede consultar en el siguiente enlace https://coca-colafemsa.com/aviso-de-privacidad-colombia.
-    ]]>
+    <string name="politica_privacidad_co"><![CDATA[
+    El cliente <b>declara</b>:<br/><br/>
+    Todos los recursos, fondos, dineros, activos o bienes de su propiedad son de procedencia lícita y no están vinculados con el lavado de activos, corrupción, financiación del terrorismo, ni con ninguno de sus delitos fuente; de la misma forma, declara que los recursos, fondos, dineros, activos o bienes que pasen a su propiedad no serán destinados a la financiación del terrorismo, financiación de la proliferación de armas de destrucción masiva o cualquier otra conducta delictiva
+    <br/><br/>
+    Se obliga a no contratar ni tener vínculos con ninguna persona que se encuentre enlistada en listas restrictivas, entre ellas, pero sin limitarse, a las del Consejo de Seguridad de las Naciones Unidas descritas en las Resoluciones 1267 de 1999, 1373 de 2001, 1718 de 1737 de 2006, y 2178 de 2014, la lista Specially Designated Nationals del Departamento del Tesoro de los Estados Unidos de América, listas de la Interpol, listas de la Policía Nacional, u otras listas nacionales o internacionales sobre personas vinculadas con delitos de lavado de activos, financiación del terrorismo, financiación de la proliferación de armas de destrucción masiva, actos de corrupción, entre otros.
+    <br/><br/>
+    Se obliga a dar cumplimiento a la normativa legal colombiana sobre la prevención y control de los delitos antes indicados, que le sea aplicable, y a entregar información para la actualización de sus datos cuando sea requerido. En el caso de que el cliente no cumpla con cualquiera de las declaraciones mencionadas anteriormente, la compañía se reservará el derecho de terminar el acuerdo de inmediato sin previo aviso y sin obligación de indemnizar al cliente.
+    <br/><br/>
+    <b>ACEPTACIÓN TRATAMIENTO DE DATOS PERSONALES</b>
+    <br/><br/>
+    Por medio de la presente, autorizo de manera libre, previa, expresa e informada el tratamiento de mis datos personales a Industria Nacional de Gaseosas S.A.S (Nit 890.903.858-7), y a las demás compañías que se relacionan en la política de tratamiento de información, para recolectar, almacenar, tratar, actualizar, usar, transferir, transmitir y suprimir, mis datos personales, los cuales se utilizarán para las siguientes finalidades: 1. Cumplir el objeto de las relaciones comerciales y contractuales surgidas entre el titular de la información y Coca-Cola FEMSA. 2. Desarrollar acciones comerciales o servicios de post venta. 3. Para otros fines comerciales de atención al cliente, encuestas de satisfacción, mercadeo, investigación y/o actualización. 4. Ser contactado en horarios y con una periodicidad distinta a la establecida en el artículo 3 de la Ley 2300 de 2023, es decir por fuera de la franja horaria allí establecida (Lunes a viernes y de 7:00 am a 7:00 pm, y sábados de 8:00 am a 3:00 pm), y en consecuencia autoriza el contacto por vía telefónica (llamadas y/o mensajes de texto), correo electrónico, redes sociales, aplicaciones de mensajería instantánea y, en general, medios digitales (como WhatsApp, Facebook o Instagram, entre otros) para realizar las anteriores finalidades. 6. Transferir o Transmitir datos personales dentro y fuera del país cuando sea necesario que un tercero aliado las trate para el desarrollo de las anteriores finalidades. 7.Las demás finalidades que puede consultar en nuestra Política de Tratamiento de Datos Personales https://coca-colafemsa.com/aviso-de-privacidad-colombia.
+<br/><br/>
+Los anteriores tratamientos, cuentan con todas las medidas de seguridad físicas, técnicas y administrativas para evitar su perdida, adulteración, uso fraudulento o no adecuado.
+<br/><br/>
+Sus derechos como titular de datos personales son los establecidos en la Constitución Política y en la Ley 1581 de 2012, especialmente los siguientes: (i) Acceder a los datos proporcionados (ii) Conocer, actualizar y rectificar mi información (iii) Solicitar prueba de la autorización otorgada; (iv) Presentar ante la Superintendencia de Industria y Comercio quejas por infracciones a lo dispuesto en la normatividad vigente; (v) Revocar la autorización y/o solicitar la supresión del dato, siempre que no exista un deber legal o contractual que impida eliminarlos; (vi) Abstenerme de responder las preguntas sobre Datos Sensibles.
+<br/><br/>
+Si usted es menor de edad, o es Representante Legal del menor de edad, tenga en cuenta que no está en la obligación de entregar sus respuestas a las preguntas que versen sobre datos de niños, niñas y adolescentes.
+<br/><br/>
+En caso de un reclamo o consulta puede realizarla a través del correo electrónico proteccion.de.datos@kof.com.
+]]>
     </string>
     <string name="firma_t4">El cliente hace constar que ha solicitado la INSTALACIÓN de equipo frio de Coca Cola Femsa.</string>
     <string name="firma_t5">El cliente hace constar que ha solicitado el RETIRO de equipo frio de Coca Cola Femsa.</string>
