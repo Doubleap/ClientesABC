@@ -10,8 +10,10 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
@@ -41,6 +43,10 @@ import java.util.concurrent.Executors;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.actividades.MantClienteActivity;
+import proyecto.app.clientesabc.actividades.PanelActivity;
+import proyecto.app.clientesabc.actividades.SolicitudActivity;
+import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 import proyecto.app.clientesabc.clases.KeyPairBoolData;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.modelos.Adjuntos;
@@ -287,7 +293,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             }
             switch (PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "")) {
                 case "F443":
-                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
+                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal " +
                             ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
                             " FROM SAPDClientes ";
                             if(usaMonitor)
@@ -295,7 +301,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     break;
                 case "F445":
                 case "F451":
-                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
+                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal " +
                             ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
                             " FROM SAPDClientes ";
                         if(usaMonitor)
@@ -304,7 +310,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 case "1657":
                 case "1658":
                 case "F446":
-                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
+                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal " +
                             ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
                             " FROM SAPDClientes";
                     if(usaMonitor)
@@ -319,7 +325,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                         query += " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
                     break;
                 case "F428":
-                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
+                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal " +
                             ", 0 as cant_base_instalada" + columnas_monitor +
                             " FROM SAPDClientes ";
                     if(usaMonitor)
@@ -347,6 +353,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     user.put("puertas_por_instalar", cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) != null ? cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) : "");
                 }
                 user.put("canal", cursor.getString(cursor.getColumnIndex("canal")) != null ? cursor.getString(cursor.getColumnIndex("canal")) : "");
+                user.put("tipo_canal", cursor.getString(cursor.getColumnIndex("tipo_canal")) != null ? cursor.getString(cursor.getColumnIndex("tipo_canal")) : "");
                 clientList.add(user);
             }
             cursor.close();
@@ -679,6 +686,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 solicitud.put("W_CTE-ZREGFISCAL", cursor.getString(cursor.getColumnIndex("W_CTE-ZREGFISCAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZREGFISCAL")) : "");
             }catch(Exception e){}
 
+            try {//Campo especifico para colombia para saber si viene de un cliente anterior por cambio de razon social
+                solicitud.put("CAMBIO_RAZON", cursor.getString(cursor.getColumnIndex("CAMBIO_RAZON")) != null ? cursor.getString(cursor.getColumnIndex("CAMBIO_RAZON")) : "");
+            }catch(Exception e){}
+
             formList.add(solicitud);
         }
 
@@ -933,6 +944,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             try {//Para Actividad Economica CR
                 solicitud.put("W_CTE-ZZCNAE", cursor.getString(cursor.getColumnIndex("W_CTE-ZZCNAE")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZZCNAE")) : "");
                 solicitud.put("W_CTE-ZREGFISCAL", cursor.getString(cursor.getColumnIndex("W_CTE-ZREGFISCAL")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-ZREGFISCAL")) : "");
+            }catch(Exception e){}
+
+            try {//Campo especifico para colombia para saber si viene de un cliente anterior por cambio de razon social
+                solicitud.put("CAMBIO_RAZON", cursor.getString(cursor.getColumnIndex("CAMBIO_RAZON")) != null ? cursor.getString(cursor.getColumnIndex("CAMBIO_RAZON")) : "");
             }catch(Exception e){}
 
             formList.add(solicitud);
@@ -1414,7 +1429,31 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         //Cadena = cat_zesdvt_00561, Keyaccount = cat_ztmdcmc_00038t
         if(tabla.equals("cat_zesdvt_00561") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F428")){
-            filtros.append(" AND trim(hkunnr) = '"+PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_CADENARM","")+"' AND zzkeyacc = 'CA002'");
+            String tipoSolicitud  = "";
+            if (mContext instanceof SolicitudActivity) {
+                SolicitudActivity activity = (SolicitudActivity) mContext;
+                Bundle extras = activity.getIntent().getExtras();
+                if (extras != null) {
+                    tipoSolicitud = extras.getString("tipoSolicitud");
+                }
+            }
+            if (mContext instanceof SolicitudModificacionActivity) {
+                SolicitudModificacionActivity activity = (SolicitudModificacionActivity) mContext;
+                Bundle extras = activity.getIntent().getExtras();
+                if (extras != null) {
+                    tipoSolicitud = extras.getString("tipoSolicitud");
+                }
+            }
+            if(UsaIndirectos() && esDestinoIndirecto(tipoSolicitud)) {
+                List<String> listaCadenasInd = getCadenasIndirectos();
+                // Convert list → string for IN clause
+                String inClause =  "'" + TextUtils.join("','", listaCadenasInd) + "'";
+
+                filtros.append(" AND trim(hkunnr) IN (" + inClause + ")");
+            }
+            else {
+                filtros.append(" AND trim(hkunnr) = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_CADENARM", "") + "' AND zzkeyacc = 'CA002'");
+            }
         }
         if(tabla.equals("cat_ztmdcmc_00038t") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F428")){
             filtros.append(" AND trim(zkeyacc) = 'CA002'");
@@ -1650,6 +1689,32 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }
         return listaCatalogo;
+    }
+
+    public List<String> getCadenasIndirectos(){
+        List<String> list = new ArrayList<>();
+        // Select All Query
+        String selectQuery = "select hkunnr FROM cat_loc_cadenas_indirectos " +
+                " where bukrs = '"+ PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","") + "'"+
+                " order by hkunnr";
+        try {
+            //SQLiteDatabase db = this.getReadableDatabase();
+            Cursor cursor = mDataBase.rawQuery(selectQuery, null);
+            // looping through all rows and adding to list
+            if (cursor.moveToFirst()) {
+                do {
+                    list.add(cursor.getString(0).trim());//3era columna del query
+                } while (cursor.moveToNext());
+            }
+            // closing connection
+            cursor.close();
+            //mDataBase.close();
+            // returning lables
+        }catch (Exception e){
+            e.getMessage();
+            e.printStackTrace();
+        }
+        return list;
     }
 
     public void getDatosCatalogoAsync(String tabla, int columnaId, int columnaDesc, Integer columnaAdicional, WeakReference<Activity> activity, ArrayList<HashMap<String, String>> solicitudSeleccionada, ArrayList<HashMap<String, String>> solicitudSeleccionadaOld, HashMap<String, String> campo, JsonArray clienteJson, SearchableSpinner combo, String... filtroAdicional){
@@ -1930,6 +1995,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         catch (NumberFormatException ex){
             user = VariablesGlobales.UsuarioMC2UsuarioHH(mContext, usuario);
         }
+
         String selectQuery = "SELECT count(*) as existe FROM t_i_users WHERE upper(trim(UserName)) = '" + user.trim().toUpperCase() +"' AND Password = '" + contrasena.trim()+"'";
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
@@ -1983,30 +2049,31 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         query = "SELECT * FROM EX_T_RUTAS_VP WHERE zroute_pr = ?";
         cursor = mDataBase.rawQuery(query, new String [] {PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH","").trim()});
 
-        while (cursor.moveToNext()){
+        while (cursor.moveToNext()) {
             ret = true;
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KTOKD", PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_GRUPOCUENTAS", VariablesGlobales.getKtokd()) ).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKORG", cursor.getString(cursor.getColumnIndex("vkorg")) ).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BUKRS", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg"))) ).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg"))) ).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KDGRP", cursor.getString(cursor.getColumnIndex("kdgrp")) ).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KVGR3", cursor.getString(cursor.getColumnIndex("kvgr3")) ).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BZIRK", cursor.getString(cursor.getColumnIndex("bzirk")) ).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKBUR", cursor.getString(cursor.getColumnIndex("vkbur")) ).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKGRP", cursor.getString(cursor.getColumnIndex("vkgrp")) ).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KTOKD", PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_GRUPOCUENTAS", VariablesGlobales.getKtokd())).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKORG", cursor.getString(cursor.getColumnIndex("vkorg"))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BUKRS", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg")))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg")))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KDGRP", cursor.getString(cursor.getColumnIndex("kdgrp"))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_KVGR3", cursor.getString(cursor.getColumnIndex("kvgr3"))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_BZIRK", cursor.getString(cursor.getColumnIndex("bzirk"))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKBUR", cursor.getString(cursor.getColumnIndex("vkbur"))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VKGRP", cursor.getString(cursor.getColumnIndex("vkgrp"))).apply();
 
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_SOCIEDAD", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg"))) ).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_ORGVENTAS", cursor.getString(cursor.getColumnIndex("vkorg")) ).apply();
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg"))) ).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_SOCIEDAD", vkorgToBukrs(cursor.getString(cursor.getColumnIndex("vkorg")))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_ORGVENTAS", cursor.getString(cursor.getColumnIndex("vkorg"))).apply();
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg")))).apply();
 
-            if(!cursor.getString(cursor.getColumnIndex("vwerks")).isEmpty()){
-                PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VWERK", cursor.getString(cursor.getColumnIndex("vwerks")) ).apply();
-            }
-            ArrayList<HashMap<String, String>> valores = getValoresKOFSegunZonaVentas(cursor.getString(cursor.getColumnIndex("bzirk")) );
-            if(valores.size() == 0){
-                ret = false;
-            }else {
-                PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VWERK", valores.get(0).get("VWERK")).apply();
+            if (!cursor.getString(cursor.getColumnIndex("vwerks")).isEmpty()) {
+                PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VWERK", cursor.getString(cursor.getColumnIndex("vwerks"))).apply();
+            } else {
+                ArrayList<HashMap<String, String>> valores = getValoresKOFSegunZonaVentas(cursor.getString(cursor.getColumnIndex("bzirk")));
+                if (valores.size() == 0) {
+                    ret = false;
+                } else {
+                    PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VWERK", valores.get(0).get("VWERK")).apply();
+                }
             }
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_TIPORUTA", cursor.getString(cursor.getColumnIndex("vptyp")) ).apply();
             String areactrlcred = "";
@@ -2054,7 +2121,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //Formularios de modificacion permitidos para la HH
     public ArrayList<HashMap<String, String>> getModificacionesPermitidas(){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
-        String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'M' and ind_credito = 0 order by orden";
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'M' and ind_credito = 0  and ind_tipo_cliente != 'IN' order by orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> flujo = new HashMap<>();
@@ -2066,10 +2133,36 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return  flujoList;
     }
 
+    public ArrayList<HashMap<String, String>> getModificacionesIndirectosPermitidas(){
+        ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'M' and ind_credito = 0 and ind_tipo_cliente = 'IN' order by orden";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> flujo = new HashMap<>();
+            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_form")).trim());
+            flujo.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")).trim());
+            flujoList.add(flujo);
+        }
+        cursor.close();
+        return  flujoList;
+    }
     //Formularios de modificacion permitidos para la HH
     public ArrayList<HashMap<String, String>> getModificacionesCreditoPermitidas(){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
-        String query = "SELECT * FROM flujo WHERE permitirHH = 1 and activo = 1 and ind_modelo = 'M' and ind_credito = 1 order by orden";
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 and activo = 1 and ind_modelo = 'M' and ind_credito = 1 and ind_tipo_cliente != 'IN' order by orden";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> flujo = new HashMap<>();
+            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_form")).trim());
+            flujo.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")).trim());
+            flujoList.add(flujo);
+        }
+        cursor.close();
+        return  flujoList;
+    }
+    public ArrayList<HashMap<String, String>> getModificacionesCreditoIndirectosPermitidas(){
+        ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 and activo = 1 and ind_modelo = 'M' and ind_credito = 1 and ind_tipo_cliente = 'IN' order by orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> flujo = new HashMap<>();
@@ -3189,6 +3282,27 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 break;
             }
         }
+        if(preguntasList.size() == 0){//Con el VP de la  ruta sincronizada
+            query = "select vwerks FROM EX_T_RUTAS_VP WHERE bzirk = ? AND vptyp = ?";
+            Cursor micursorZat = mDataBase.rawQuery(query,new String[]{bzirk,PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA", "")});
+            while (micursorZat.moveToNext()){
+                HashMap<String, String> user = new HashMap<>();
+                user.put("VWERK", micursorZat.getString(0).trim());
+                preguntasList.add(user);
+                break;
+            }
+        }
+        // lo mas general posible para no depender de un tipo de visita especifico para la informacion
+        if(preguntasList.size() == 0){
+            query = "select vwerks FROM EX_T_RUTAS_VP WHERE bzirk = ? AND vwerks IS NOT NULL AND vwerks != ''";
+            Cursor micursorZat = mDataBase.rawQuery(query,new String[]{bzirk,PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA", "")});
+            while (micursorZat.moveToNext()){
+                HashMap<String, String> user = new HashMap<>();
+                user.put("VWERK", micursorZat.getString(0).trim());
+                preguntasList.add(user);
+                break;
+            }
+        }
         micursor.close();
         return  preguntasList;
     }
@@ -4288,6 +4402,37 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             cursor.close();
         }catch(Exception e){
             //Toasty.error(mContext,"Error determinando Uso de Monitor Equipo Frio: "+e.getMessage()).show();
+        }
+        return retorno;
+    }
+    public boolean UsaIndirectos()
+    {
+        boolean retorno = false;
+        try {
+            String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
+            String query = "select usa_indirectos FROM cat_bukrs WHERE id_bukrs = ? ";
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{sociedad});
+            if (cursor.moveToNext()) {
+                retorno = cursor.getString(cursor.getColumnIndex("usa_indirectos")).trim().equals("1") ? true : false;
+            }
+            cursor.close();
+        }catch(Exception e){
+            //Toasty.error(mContext,"Error determinando Uso de Monitor Equipo Frio: "+e.getMessage()).show();
+        }
+        return retorno;
+    }
+    public boolean esDestinoIndirecto(String id_form)
+    {
+        boolean retorno = false;
+        try {
+            String query = "select ind_tipo_cliente_n FROM flujo WHERE id_form = ? ";
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{id_form});
+            if (cursor.moveToNext()) {
+                retorno = cursor.getString(cursor.getColumnIndex("ind_tipo_cliente_n")).trim().equals("IN") ? true : false;
+            }
+            cursor.close();
+        }catch(Exception e){
+            Toasty.error(mContext,"No se pudo obtener campo Indirecto: "+e.getMessage()).show();
         }
         return retorno;
     }

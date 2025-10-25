@@ -41,6 +41,7 @@ public class LocacionGPSActivity {
     }
 
     public LocacionGPSActivity(Context context, LocationListenerCallback callback) {
+        mAlertDialog = new AlertDialog.Builder(context).create();
         locationManager = (LocationManager) context.getSystemService(context.LOCATION_SERVICE);
         if (locationManager == null) {
             Toasty.error(context, "Los servicios de ubicacion no estan disponibles en este dispositivo").show();
@@ -48,7 +49,7 @@ public class LocacionGPSActivity {
         }
         this.context = context;
         this.callback = callback;
-        mAlertDialog = new AlertDialog.Builder(this.context).create();
+
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
@@ -115,6 +116,7 @@ public class LocacionGPSActivity {
     }
 
     protected void startLocationUpdates() {
+        mAlertDialog = new AlertDialog.Builder(context).create();
         checkLocation();
         // Listener para escuchar cada vez que la locacion cambia
         locationListener = new LocationListener() {

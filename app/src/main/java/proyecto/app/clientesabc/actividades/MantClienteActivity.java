@@ -68,6 +68,7 @@ import java.util.List;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
@@ -107,13 +108,17 @@ public class MantClienteActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                view.setEnabled(false);
-                Bundle b = new Bundle();
-                //TODO seleccionar el tipo de solicitud por el UI
-                b.putString("tipoSolicitud", "1"); //id de solicitud
-                Intent intent = new Intent(view.getContext(),SolicitudActivity.class);
-                intent.putExtras(b); //Pase el parametro el Intent
-                startActivity(intent);
+                if(db.UsaIndirectos()) {
+                    mostrarDialogoSeleccionTipoCliente(MantClienteActivity.this, VariablesGlobales.getSociedad());
+                }else {
+                    view.setEnabled(false);
+                    Bundle b = new Bundle();
+                    //TODO seleccionar el tipo de solicitud por el UI
+                    b.putString("tipoSolicitud", "1"); //id de solicitud
+                    Intent intent = new Intent(view.getContext(),SolicitudActivity.class);
+                    intent.putExtras(b); //Pase el parametro el Intent
+                    startActivity(intent);
+                }
             }
         });
 
@@ -363,6 +368,15 @@ public class MantClienteActivity extends AppCompatActivity {
             idfiscal.setText(formListFiltered.get(position).get("idfiscal") == null?"":formListFiltered.get(position).get("idfiscal").trim());
             TextView correo = holder.listView.findViewById(R.id.correo);
             correo.setText(formListFiltered.get(position).get("correo") == null?"":formListFiltered.get(position).get("correo").trim());
+            TextView indirecto = holder.listView.findViewById(R.id.indirecto);
+            final String tipo_canal = formListFiltered.get(position).get("tipo_canal") != null?formListFiltered.get(position).get("tipo_canal"):"";
+            if(db.UsaIndirectos() && tipo_canal.equals("60")){
+                indirecto.setVisibility(View.VISIBLE);
+            }else{
+                indirecto.setVisibility(View.INVISIBLE);
+            }
+
+
             final String codigoCliente = codigo.getText().toString().trim();
             final String nombreCliente = nombre.getText().toString().trim();
             final String canalCliente = formListFiltered.get(position).get("canal").trim();
@@ -559,6 +573,8 @@ public class MantClienteActivity extends AppCompatActivity {
             final String latitud = formListFiltered.get(position).get("latitud").toString();
             final String longitud = formListFiltered.get(position).get("longitud").toString();
 
+
+
             switch(klabc) {
                 case "00":
                     color = R.color.baja;break;
@@ -646,30 +662,40 @@ public class MantClienteActivity extends AppCompatActivity {
                                     startActivity(intent);
                                     break;
                                 case R.id.modificar:
-                                    showDialogFormulariosModificacion(codigoCliente,false, false, false);
+                                    if(tipo_canal.equals("60"))
+                                        showDialogFormulariosModificacion(codigoCliente,false, false, false, true);
+                                    else
+                                        showDialogFormulariosModificacion(codigoCliente,false, false, false, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Modificaciones NO disponible de momento.").show();
                                     break;
                                 case R.id.cierre:
                                     Bundle bc = new Bundle();
-                                    bc.putString("tipoSolicitud", "5"); //id de solicitud
+                                    if(db.UsaIndirectos() && tipo_canal.equals("60")) {
+                                        bc.putString("tipoSolicitud", "504"); //id de solicitud
+                                    }else{
+                                        bc.putString("tipoSolicitud", "5"); //id de solicitud
+                                    }
                                     bc.putString("codigoCliente", codigoCliente);
-                                    intent = new Intent(getApplicationContext(),SolicitudModificacionActivity.class);
+                                    intent = new Intent(getApplicationContext(), SolicitudModificacionActivity.class);
                                     intent.putExtras(bc); //Pase el parametro el Intent
                                     startActivity(intent);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Cierre NO disponible de momento.").show();
                                     break;
                                 case R.id.credito:
-                                    showDialogFormulariosModificacion(codigoCliente,true, false, false);
+                                    if(tipo_canal.equals("60"))
+                                        showDialogFormulariosModificacion(codigoCliente,true, false, false, true);
+                                    else
+                                        showDialogFormulariosModificacion(codigoCliente,true, false, false, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Credito NO disponible de momento.").show();
                                     break;
                                 case R.id.equipofrio:
                                     //EQUIPO FRIO
-                                    showDialogFormulariosModificacion(codigoCliente,false, true, false);
+                                    showDialogFormulariosModificacion(codigoCliente,false, true, false, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
                                     break;
                                 case R.id.iniciativas:
                                     //INICIATIVAS, estos formularios son locales y nunca van a SAP
-                                    showDialogFormulariosModificacion(codigoCliente,false, false, true);
+                                    showDialogFormulariosModificacion(codigoCliente,false, false, true, false);
                                     break;
                                 case R.id.comollegar:
                                     String uri = "";
@@ -765,13 +791,21 @@ public class MantClienteActivity extends AppCompatActivity {
         }
     }
 
-    private void showDialogFormulariosModificacion(final String codigoCliente, boolean credito, boolean equipofrio, boolean iniciativas) {
+    private void showDialogFormulariosModificacion(final String codigoCliente, boolean credito, boolean equipofrio, boolean iniciativas, boolean indirecto) {
         ArrayList<HashMap<String,String>> formulariosPermitidos = null;
         if(credito) {
-            formulariosPermitidos = db.getModificacionesCreditoPermitidas();
-            if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
-                Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de crédito para HH.").show();
-                return;
+            if(db.UsaIndirectos() && indirecto){
+                formulariosPermitidos = db.getModificacionesCreditoIndirectosPermitidas();
+                if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
+                    Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de crédito clientes Indirecto para HH.").show();
+                    return;
+                }
+            }else {
+                formulariosPermitidos = db.getModificacionesCreditoPermitidas();
+                if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
+                    Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de crédito para HH.").show();
+                    return;
+                }
             }
         }else if(equipofrio) {
             formulariosPermitidos = db.getOrdenesServicioPermitidas();
@@ -786,10 +820,18 @@ public class MantClienteActivity extends AppCompatActivity {
                 return;
             }
         }else {
-            formulariosPermitidos = db.getModificacionesPermitidas();
-            if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
-                Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de modificación para HH.").show();
-                return;
+            if(db.UsaIndirectos() && indirecto){
+                formulariosPermitidos = db.getModificacionesIndirectosPermitidas();
+                if (formulariosPermitidos == null || formulariosPermitidos.size() == 0) {
+                    Toasty.info(getBaseContext(), "No se ha configurado ningun formulario de modificación Cliente Indirecto para HH.").show();
+                    return;
+                }
+            }else {
+                formulariosPermitidos = db.getModificacionesPermitidas();
+                if (formulariosPermitidos == null || formulariosPermitidos.size() == 0) {
+                    Toasty.info(getBaseContext(), "No se ha configurado ningun formulario de modificación para HH.").show();
+                    return;
+                }
             }
         }
 
@@ -1052,6 +1094,72 @@ public class MantClienteActivity extends AppCompatActivity {
         }
     }
 
+    private void mostrarDialogoSeleccionTipoCliente(Context context, String pais) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.titlebar, null);
+        TextView titulo = view.findViewById(R.id.title);
+        titulo.setText("Nuevo Cliente");
+        builder.setCustomTitle(view);
+
+        String[] opciones = {"Mercado Abierto", "Indirecto"};
+
+        builder.setSingleChoiceItems(opciones, -1, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int arg1) {
+                //ListView lw = ((AlertDialog)dialog).getListView();
+                //Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
+            }
+
+        });
+
+        builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                //Solo para crearlo
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        //Sobreescribir handler de click de boton positivo
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                // user clicked OK, so save the mSelectedItems results somewhere
+                // or return them to the component that opened the dialog
+                int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                if(selectedPosition < 0){
+                    Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de cliente!").show();
+                }else {
+                    dialog.dismiss();
+                    if (selectedPosition == 0) {
+                        abrirSolicitud("1");
+                    }
+                    else {
+                        abrirSolicitud("501");
+                    }
+                }
+            }
+        });
+    }
+    private void abrirSolicitud(String tipoSolicitud) {
+        Bundle b = new Bundle();
+        b.putString("tipoSolicitud", tipoSolicitud);
+
+        Intent intent = new Intent(getApplicationContext(), SolicitudActivity.class);
+        intent.putExtras(b);
+        startActivity(intent);
+    }
     public void actualizarEncuestaDialog() {
         EncuestaCabeceraDialog fragment = new EncuestaCabeceraDialog();
         fragment = (EncuestaCabeceraDialog) getSupportFragmentManager().findFragmentByTag("EncuestaCabeceraDialog");

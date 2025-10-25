@@ -2,12 +2,14 @@ package proyecto.app.clientesabc.actividades;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridLayout;
@@ -17,6 +19,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
@@ -119,12 +122,16 @@ public class PanelActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.action_nuevo_cliente:
-                        item.setEnabled(false);
-                        Bundle b = new Bundle();
-                        b.putString("tipoSolicitud", "1"); //id de solicitud
-                        intent = new Intent(getApplicationContext(), SolicitudActivity.class);
-                        intent.putExtras(b); //Pase el parametro el Intent
-                        startActivity(intent);
+                        if(mDBHelper.UsaIndirectos()) {
+                            mostrarDialogoSeleccionTipoCliente(PanelActivity.this, VariablesGlobales.getSociedad());
+                        }else {
+                            item.setEnabled(false);
+                            Bundle b = new Bundle();
+                            b.putString("tipoSolicitud", "1"); //id de solicitud
+                            intent = new Intent(getApplicationContext(), SolicitudActivity.class);
+                            intent.putExtras(b); //Pase el parametro el Intent
+                            startActivity(intent);
+                        }
                         break;
                     case R.id.action_clientes:
                         intent = new Intent(getBaseContext(), MantClienteActivity.class);
@@ -323,6 +330,72 @@ public class PanelActivity extends AppCompatActivity {
         b.putString("estado", estado.trim()); //id de solicitud
         intent = new Intent(this, SolicitudesActivity.class);
         intent.putExtras(b); //Pase el parametro el Intent
+        startActivity(intent);
+    }
+    private void mostrarDialogoSeleccionTipoCliente(Context context, String pais) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.titlebar, null);
+        TextView titulo = view.findViewById(R.id.title);
+        titulo.setText("Nuevo Cliente");
+        builder.setCustomTitle(view);
+
+        String[] opciones = {"Mercado Abierto", "Indirecto"};
+
+        builder.setSingleChoiceItems(opciones, -1, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int arg1) {
+                //ListView lw = ((AlertDialog)dialog).getListView();
+                //Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
+            }
+
+        });
+
+        builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                //Solo para crearlo
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        //Sobreescribir handler de click de boton positivo
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                // user clicked OK, so save the mSelectedItems results somewhere
+                // or return them to the component that opened the dialog
+                int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                if(selectedPosition < 0){
+                    Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de cliente!").show();
+                }else {
+                    dialog.dismiss();
+                    if (selectedPosition == 0) {
+                        abrirSolicitud("1");
+                    }
+                    else {
+                        abrirSolicitud("501");
+                    }
+                }
+            }
+        });
+    }
+    private void abrirSolicitud(String tipoSolicitud) {
+        Bundle b = new Bundle();
+        b.putString("tipoSolicitud", tipoSolicitud);
+
+        Intent intent = new Intent(getApplicationContext(), SolicitudActivity.class);
+        intent.putExtras(b);
         startActivity(intent);
     }
 }

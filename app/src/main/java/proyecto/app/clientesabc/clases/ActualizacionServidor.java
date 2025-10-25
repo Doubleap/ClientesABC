@@ -159,16 +159,8 @@ public class ActualizacionServidor extends AsyncTask<Void,String,Void> {
                         final File file = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "ClientesABC.apk");
 
                         try {
-                            //Save in Download Folder too
-                                publishProgress("Guardando en descargas...");
-                                File filep = new File(context.get().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),  "ClientesABC_" + context.get().getSharedPreferences("CONFIG_SOCIEDAD", Context.MODE_PRIVATE).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad()) + ".apk");
-                                try (OutputStream outputStream = new FileOutputStream(filep)) {
-                                    outputStream.write(Files.readAllBytes(file.toPath()));
-                                    Log.d("FileSave", "File saved to: " + filep.getAbsolutePath());
-                                } catch (Exception e) {
-                                    Log.e("FileSave", "Error saving file", e);
-                                }
-                                publishProgress("Guardado!");
+                            //Save in External Download Folder too
+                                FileHelper.copyToPublicDownload(context.get(),externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "", file.getName());
 
                         }catch(Exception e){
                             xceptionFlag = true;

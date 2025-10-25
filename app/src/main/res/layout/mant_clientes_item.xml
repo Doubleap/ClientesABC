@@ -25,6 +25,7 @@
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:paddingTop="@dimen/margin_small"
             android:paddingBottom="@dimen/margin_medium">
+
             <TextView
                 android:id="@+id/textViewHead"
                 android:layout_width="wrap_content"
@@ -33,6 +34,19 @@
                 android:text="Codigo"
                 android:textAppearance="?android:textAppearanceMedium" />
 
+            <TextView
+                android:id="@+id/indirecto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/textViewHead"
+
+                android:layout_centerInParent="true"
+                android:layout_marginLeft="10dp"
+                android:layout_toRightOf="@id/textViewHead"
+                android:text="Indirecto"
+                android:textColor="@color/indirectos"
+                android:textSize="12sp"
+                android:visibility="visible" />
             <TextView
                 android:id="@+id/idfiscal"
                 android:layout_width="wrap_content"
@@ -66,11 +80,11 @@
                 android:id="@+id/textViewOptions"
                 android:layout_width="wrap_content"
                 android:layout_height="25dp"
-                android:layout_marginTop="@dimen/margin_small"
-                android:text="Cancelar"
-                android:textAlignment="center"
                 android:layout_alignParentEnd="true"
-                android:background="@drawable/icon_menu"/>
+                android:layout_marginTop="@dimen/margin_small"
+                android:background="@drawable/icon_menu"
+                android:text="Cancelar"
+                android:textAlignment="center" />
 
             <com.rey.material.widget.LinearLayout
                 android:id="@+id/correo_layout"

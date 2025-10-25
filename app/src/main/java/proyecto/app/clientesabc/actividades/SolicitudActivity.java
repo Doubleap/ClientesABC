@@ -44,6 +44,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.inputmethod.EditorInfo;
@@ -51,6 +52,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
@@ -104,6 +106,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -311,7 +314,7 @@ public class SolicitudActivity extends AppCompatActivity {
                 modificable = false;
             }
         }else{
-            if(!tipoSolicitud.equals("1") && !tipoSolicitud.equals("6")){
+            if(!tipoSolicitud.equals("1") && !tipoSolicitud.equals("6") && !tipoSolicitud.equals("501")){
                 firma = true;
             }
         }
@@ -660,14 +663,14 @@ public class SolicitudActivity extends AppCompatActivity {
                             mensajeError += "- Siguiente Aprobador\n";
                         }
                         //Validaciones Colombia de verificacion de Celular y Correo Electronico
-                        if(verificarCelular != null && verificarCelular.getBackgroundTintList().getColorForState(new int[] { android.R.attr.state_enabled},0) != getResources().getColor(R.color.aprobados,null) && (verificarCelular.getTag() == null || (verificarCelular.getTag() != null && !verificarCelular.getTag().toString().equals("Opcional")))){
+                        /*if(verificarCelular != null && verificarCelular.getBackgroundTintList().getColorForState(new int[] { android.R.attr.state_enabled},0) != getResources().getColor(R.color.aprobados,null) && (verificarCelular.getTag() == null || (verificarCelular.getTag() != null && !verificarCelular.getTag().toString().equals("Opcional")))){
                             numErrores++;
                             mensajeError += "- Falta verificar el número de celular\n";
                         }
                         if(verificarCorreo != null && verificarCorreo.getBackgroundTintList().getColorForState(new int[] { android.R.attr.state_enabled},0) != getResources().getColor(R.color.aprobados,null) && (verificarCorreo.getTag() == null || (verificarCorreo.getTag() != null && !verificarCorreo.getTag().toString().equals("Opcional")))){
                             numErrores++;
                             mensajeError += "- Falta verificar el correo electrónico\n";
-                        }
+                        }*/
 
                         //Validacion de datos obligatorios en los bloques (Contactos para Colombia)
                         for(int i=0; i < listaCamposBloque.size(); i++) {
@@ -691,16 +694,27 @@ public class SolicitudActivity extends AppCompatActivity {
                                         if(visitasSolicitud.size() == 0) {
                                             numErrores++;
                                             mensajeError += "- Falta agregar al menos 1 tipo de visita!\n";
+                                        }else{
+                                            for(int x=0; x < visitasSolicitud.size(); x++){
+                                                Visitas vp = visitasSolicitud.get(x);
+                                                if(!vp.getRuta().equals("")){
+                                                    if(vp.getLun_a() == null && vp.getMar_a()==null && vp.getMier_a()==null
+                                                            && vp.getJue_a()==null && vp.getVie_a()==null && vp.getSab_a()==null && vp.getDom_a()==null){
+                                                        numErrores++;
+                                                        mensajeError += "- Falta asignar 1 dia de visita al tipo de visita "+vp.getVptyp()+"!\n";
+                                                    }
+                                                }
+                                            }
                                         }
                                         break;
                                     case "W_CTE-IMPUESTOS":
-                                        if(visitasSolicitud.size() == 0) {
+                                        if(impuestosSolicitud.size() == 0) {
                                             numErrores++;
                                             mensajeError += "- Falta agregar al menos 1 Impuesto!\n";
                                         }
                                         break;
                                     case "W_CTE-INTERLOCUTOR":
-                                        if(visitasSolicitud.size() == 0) {
+                                        if(interlocutoresSolicitud.size() == 0) {
                                             numErrores++;
                                             mensajeError += "- Falta agregar al menos 1 Interlocutor!\n";
                                         }
@@ -1355,6 +1369,37 @@ public class SolicitudActivity extends AppCompatActivity {
                         }
                         if (campos.get(i).get("dfaul").trim().length() > 0) {
                             checkbox.setChecked(true);
+                        }
+
+                        //Caso especial para colombia que el campo debe mostrar otro campo si lo checkean
+                        if(campos.get(i).get("campo").equals("CAMBIO_RAZON")){
+                            checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                                @Override
+                                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                    MaskedEditText cliente_anterior = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ALTKN"));
+                                    if(cliente_anterior != null) {
+                                        TextInputLayout milabel = getTextInputLayoutFromEditText(cliente_anterior);
+                                        if(milabel != null) {
+                                            if (isChecked) {
+                                                // Enable when checkbox is checked
+                                                milabel.setVisibility(View.VISIBLE);
+                                                cliente_anterior.setVisibility(View.VISIBLE);
+                                                cliente_anterior.setEnabled(true);
+                                                if (!listaCamposObligatorios.contains("W_CTE-ALTKN")) {
+                                                    listaCamposObligatorios.add("W_CTE-ALTKN");
+                                                }
+                                            } else {
+                                                // Disable when checkbox is unchecked
+                                                milabel.setVisibility(View.GONE);
+                                                cliente_anterior.setVisibility(View.GONE);
+                                                cliente_anterior.setText("");
+                                                cliente_anterior.setEnabled(false);
+                                                listaCamposObligatorios.remove("W_CTE-ALTKN");
+                                            }
+                                        }
+                                    }
+                                }
+                            });
                         }
 
                         ll.addView(checkbox);
@@ -2509,11 +2554,12 @@ public class SolicitudActivity extends AppCompatActivity {
                                 et.setMaxLines(5);
                             }
                             if (Integer.valueOf(campos.get(i).get("maxlength")) > 0) {
-                                editFilters = et.getFilters();
+                                setOrUpdateMaxLength(et, Integer.valueOf(campos.get(i).get("maxlength")));
+                                /*editFilters = et.getFilters();
                                 newFilters = new InputFilter[editFilters.length + 1];
                                 System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
                                 newFilters[editFilters.length] = new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("maxlength")));
-                                et.setFilters(newFilters);
+                                et.setFilters(newFilters);*/
                                 if(Integer.valueOf(campos.get(i).get("maxlength")) >= 20){
                                     // IMPORTANT, do this before any of the code following it
                                     et.setSingleLine(true);
@@ -2522,12 +2568,14 @@ public class SolicitudActivity extends AppCompatActivity {
                                 }
                             }
                         } else if (campos.get(i).get("datatype") != null && campos.get(i).get("datatype").equals("decimal")) {
+
                             et.setInputType(InputType.TYPE_CLASS_NUMBER);
-                            editFilters = et.getFilters();
+                            setOrUpdateMaxLength(et, Integer.valueOf(campos.get(i).get("numeric_precision")));
+                            /*editFilters = et.getFilters();
                             newFilters = new InputFilter[editFilters.length + 1];
                             System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
                             newFilters[editFilters.length] = new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("numeric_precision")));
-                            et.setFilters(newFilters);
+                            et.setFilters(newFilters);*/
                         }
 
 
@@ -2666,7 +2714,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 verificarCelular.setTag("Opcional");
                             label.setLayoutParams(textolp);
                             verificarCelular.setBackground(getResources().getDrawable(R.drawable.verifiy_phone,null));
-                            if(solicitudSeleccionada.size() > 0 && (solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia") || solicitudSeleccionada.get(0).get("ESTADO").equals("Incompleto") || solicitudSeleccionada.get(0).get("ESTADO").equals("Modificado")))
+                            if(solicitudSeleccionada.size() > 0 && (solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia") || solicitudSeleccionada.get(0).get("ESTADO").equals("Incompleto") || solicitudSeleccionada.get(0).get("ESTADO").equals("Modificado") || solicitudSeleccionada.get(0).get("ESTADO").equals("Nuevo")))
                                 verificarCelular.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.aprobados,null)));
                             else
                                 verificarCelular.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red,null)));
@@ -2836,7 +2884,7 @@ public class SolicitudActivity extends AppCompatActivity {
                             label.setLayoutParams(textolp);
                             verificarCorreo.setBackground(getResources().getDrawable(R.drawable.verify_mail, null));
 
-                            if(solicitudSeleccionada.size() > 0 && (solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia") || solicitudSeleccionada.get(0).get("ESTADO").equals("Incompleto") || solicitudSeleccionada.get(0).get("ESTADO").equals("Modificado")))
+                            if(solicitudSeleccionada.size() > 0 && (solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia") || solicitudSeleccionada.get(0).get("ESTADO").equals("Incompleto") || solicitudSeleccionada.get(0).get("ESTADO").equals("Modificado") || solicitudSeleccionada.get(0).get("ESTADO").equals("Nuevo")))
                                 verificarCorreo.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.aprobados,null)));
                             else
                                 verificarCorreo.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red,null)));
@@ -2968,6 +3016,23 @@ public class SolicitudActivity extends AppCompatActivity {
                                 TableRow.LayoutParams filalp = new TableRow.LayoutParams(MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,10.0f);
                                 filalp.setMargins(0,-marginTop,0,0);
                                 fila.setLayoutParams(filalp);
+                                prefijo_direccion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                        final OpcionSpinner opcion = (OpcionSpinner) adapterView.getSelectedItem();
+                                        int tam = opcion.getId().length()+1;
+                                        MaskedEditText input = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-STREET"));
+
+                                        if (Integer.valueOf(campos.get(finalI).get("maxlength")) > 0) {
+                                            setOrUpdateMaxLength(input, Integer.valueOf(campos.get(finalI).get("maxlength"))-tam);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                                    }
+                                });
                             }
                             if(solicitudSeleccionada.size() > 0) {
                                 String direccion_original = solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim();
@@ -2978,6 +3043,13 @@ public class SolicitudActivity extends AppCompatActivity {
                                     if (index_at != -1) {//Significa que si existe
                                         et.setText(partes_direccion[1]);
                                         prefijo_direccion.setSelection(index_at);
+                                    }else{//SI no existe lo validamos con doble palabra
+                                        partes_direccion = direccion_original.split(" ", 3);
+                                        index_at = partes_direccion.length > 2 ? VariablesGlobales.getIndex(prefijo_direccion,partes_direccion[0]+" "+partes_direccion[1]):-1;
+                                        if (index_at != -1) {//Significa que si existe
+                                            et.setText(partes_direccion[2]);
+                                            prefijo_direccion.setSelection(index_at);
+                                        }
                                     }
                                 }
                             }
@@ -3266,7 +3338,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     ll.addView(combo);
                 }
 
-                if(tipoSolicitud.equals("1") || tipoSolicitud.equals("6")) {
+                if(tipoSolicitud.equals("1") || tipoSolicitud.equals("6") || tipoSolicitud.equals("501")) {
                     //Check Box para la aceptacion de las politicas de privacidad
                     final CheckBox checkbox = new CheckBox(getContext());
                     checkbox.setText("Aceptar Politicas de Privacidad");
@@ -3577,7 +3649,7 @@ public class SolicitudActivity extends AppCompatActivity {
                     }
                     //Adaptadores
                     if (interlocutoresSolicitud != null) {
-                        if (tipoSolicitud.equals("1") || tipoSolicitud.equals("6")) {
+                        if (tipoSolicitud.equals("1") || tipoSolicitud.equals("6") || tipoSolicitud.equals("501")) {
                             tb_interlocutores.getLayoutParams().height = tb_interlocutores.getLayoutParams().height + (interlocutoresSolicitud.size() * alturaFilaTableView);
                             tb_interlocutores.setDataAdapter(new InterlocutorTableAdapter(getContext(), interlocutoresSolicitud));
                         }
@@ -6693,6 +6765,11 @@ public class SolicitudActivity extends AppCompatActivity {
         fcalidSpinner.setAdapter(dataAdapter);
         fcalidSpinner.setSelection(selectedIndex);
 
+        if(PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F428")){
+            fcalidSpinner.setEnabled(false);
+            kvgr4Spinner.setEnabled(false);
+        }
+
         //SAVE
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -6815,6 +6892,8 @@ public class SolicitudActivity extends AppCompatActivity {
                 vp.setVie_a("");
                 vp.setSab_de("");
                 vp.setSab_a("");
+                vp.setDom_de("");
+                vp.setDom_a("");
             }
         }
         //Recalcular los dias de visita del(os) reparto segun las preventas existentes nuevas determinadas
@@ -7923,13 +8002,16 @@ public class SolicitudActivity extends AppCompatActivity {
                         if (texto.getText().toString().trim().length() == 12) {
                             texto.setText(texto.getText() + "-00");
                         }
-                        cedula = "[0][1-9]-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-00";
+                        cedula = "^[0][1-9]-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9][0-9])|([1-9][0-9][0-9][0-9]))-00$";
                         break;
                     case "C2":
-                        cedula = "((3-[0-9]{3,3}-[0-9]{6,6})|(4-000-[0-9]{6,6}))";
+                        cedula = "^((3-[0-9]{3,3}-[0-9]{6,6})|(4-000-[0-9]{6,6}))$";
                         break;
                     case "C3":
-                        cedula = "([1-9][0-9])-[0-9]{4,4}-[0-9]{4,4}-[0-9]{2,2}";
+                        cedula = "^([1-9][0-9])-[0-9]{4,4}-[0-9]{4,4}-[0-9]{2,2}$";
+                        break;
+                    case "C4":
+                        cedula = "^([1-9])([0-9]){9,9}$";
                         break;
                 }
                 pattern = Pattern.compile(cedula);
@@ -7938,6 +8020,10 @@ public class SolicitudActivity extends AppCompatActivity {
                     cedulaValidada = false;
                     Toasty.warning(texto.getContext(), "Formato Regimen " + tipoCedula + " invalido!", Toasty.LENGTH_SHORT).show();
                     texto.setError("Formato Regimen " + tipoCedula + " invalido!");
+                    MaskedEditText idfiscal = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
+                    if (idfiscal != null) {
+                        idfiscal.setEnabled(true);
+                    }
                     return true;
                 }
                 cedulaValidada = true;
@@ -8251,6 +8337,52 @@ public class SolicitudActivity extends AppCompatActivity {
                 break;
         }
         return true;
+    }
+    private static void setOrUpdateMaxLength(MaskedEditText editText, int maxLength) {
+        InputFilter[] oldFilters = editText.getFilters();
+        InputFilter[] updatedFilters = Arrays.copyOf(oldFilters, oldFilters.length);
+        boolean replaced = false;
+
+        for (int i = 0; i < updatedFilters.length; i++) {
+            if (updatedFilters[i] instanceof InputFilter.LengthFilter) {
+                updatedFilters[i] = new InputFilter.LengthFilter(maxLength);
+                replaced = true;
+                break;
+            }
+        }
+
+        if (!replaced) {
+            updatedFilters = Arrays.copyOf(updatedFilters, updatedFilters.length + 1);
+            updatedFilters[updatedFilters.length - 1] = new InputFilter.LengthFilter(maxLength);
+        }
+
+        editText.setFilters(updatedFilters);
+
+        // Trim if needed
+        CharSequence text = editText.getText();
+        if (text != null && text.length() > maxLength) {
+            editText.setText(text.subSequence(0, maxLength));
+            editText.post(() -> editText.setSelection(editText.getText().length()));
+            try {
+                Toasty.warning(editText.getContext(),
+                        "El texto fue acortado al máximo permitido",
+                        Toasty.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Toast.makeText(editText.getContext(),
+                        "El texto fue acortado al máximo permitido",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+    public static TextInputLayout getTextInputLayoutFromEditText(MaskedEditText editText) {
+        ViewParent parent = editText.getParent();
+        while (parent != null) {
+            if (parent instanceof TextInputLayout) {
+                return (TextInputLayout) parent;
+            }
+            parent = parent.getParent();
+        }
+        return null; // not found
     }
     private static boolean ValidarIDFiscal(Context context,boolean... mensajes) {
         SearchableSpinner regimen = (SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-KATR3");

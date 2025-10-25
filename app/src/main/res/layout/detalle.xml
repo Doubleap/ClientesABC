@@ -39,7 +39,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
-        android:src="@android:drawable/ic_input_add"
+        android:src="@drawable/icon_add_client"
         android:tint="@color/white"
         android:backgroundTint="@color/pendientes"
         android:layout_margin="16dp" />

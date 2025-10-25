@@ -101,6 +101,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -3189,6 +3190,24 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             TableRow.LayoutParams filalp = new TableRow.LayoutParams(MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,10.0f);
                             filalp.setMargins(0,-marginTop,0,0);
                             fila.setLayoutParams(filalp);
+
+                            prefijo_direccion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                    final OpcionSpinner opcion = (OpcionSpinner) adapterView.getSelectedItem();
+                                    int tam = opcion.getId().length()+1;
+                                    MaskedEditText input = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-STREET"));
+
+                                    if (Integer.valueOf(campos.get(finalI).get("maxlength")) > 0) {
+                                        setOrUpdateMaxLength(input, Integer.valueOf(campos.get(finalI).get("maxlength"))-tam);
+                                    }
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                                }
+                            });
                         }
                     }
 
@@ -6584,6 +6603,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             ruta_reparto.setSelection(VariablesGlobales.getIndex(ruta_reparto, seleccionado.getRuta()));
         }
 
+        /*if(PreferenceManager.getDefaultSharedPreferences(SolicitudModificacionActivity.this).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("F428")){
+            fcalidSpinner.setEnabled(false);
+            kvgr4Spinner.setEnabled(false);
+        }*/
         /*if(reparto){
             kvgr4Spinner.setVisibility(GONE);
             f_icoEditText.setVisibility(GONE);
@@ -8786,7 +8809,42 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 break;
         }
     }
+    private static void setOrUpdateMaxLength(MaskedEditText editText, int maxLength) {
+        InputFilter[] oldFilters = editText.getFilters();
+        InputFilter[] updatedFilters = Arrays.copyOf(oldFilters, oldFilters.length);
+        boolean replaced = false;
 
+        for (int i = 0; i < updatedFilters.length; i++) {
+            if (updatedFilters[i] instanceof InputFilter.LengthFilter) {
+                updatedFilters[i] = new InputFilter.LengthFilter(maxLength);
+                replaced = true;
+                break;
+            }
+        }
+
+        if (!replaced) {
+            updatedFilters = Arrays.copyOf(updatedFilters, updatedFilters.length + 1);
+            updatedFilters[updatedFilters.length - 1] = new InputFilter.LengthFilter(maxLength);
+        }
+
+        editText.setFilters(updatedFilters);
+
+        // Trim if needed
+        CharSequence text = editText.getText();
+        if (text != null && text.length() > maxLength) {
+            editText.setText(text.subSequence(0, maxLength));
+            editText.post(() -> editText.setSelection(editText.getText().length()));
+            try {
+                Toasty.warning(editText.getContext(),
+                        "El texto fue acortado al máximo permitido",
+                        Toasty.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Toast.makeText(editText.getContext(),
+                        "El texto fue acortado al máximo permitido",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
     private static void Canales(AdapterView<?> parent){
         final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
         ArrayList<HashMap<String, String>> canales = mDBHelper.Canales(opcion.getId());

@@ -1,8 +1,14 @@
 package proyecto.app.clientesabc.clases;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -12,10 +18,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
 public class FileHelper {
@@ -317,5 +327,65 @@ public class FileHelper {
             return file;
         }
     }
+    public static void copyToPublicDownload(Context context, String path, String fileName) {
+        File sourceFile = new File(path, fileName);
 
+        if (!sourceFile.exists()) {
+            showToast(context, "Archivo no encontrado");
+            return;
+        }
+
+        OutputStream outStream = null;
+        InputStream inStream = null;
+
+        try {
+            // Create MediaStore entry for Downloads
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Downloads.DISPLAY_NAME, fileName.replace(".apk","_"+VariablesGlobales.getSociedad()+".apk"));
+            values.put(MediaStore.Downloads.MIME_TYPE, getMimeType(fileName));
+            values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+
+            Uri externalUri = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+            Uri newFileUri = context.getContentResolver().insert(externalUri, values);
+
+            if (newFileUri == null) {
+                showToast(context, "No se pudo crear el archivo en Descargas");
+                return;
+            }
+
+            inStream = new FileInputStream(sourceFile);
+            outStream = context.getContentResolver().openOutputStream(newFileUri);
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inStream.read(buffer)) != -1) {
+                outStream.write(buffer, 0, bytesRead);
+            }
+
+            outStream.flush();
+            showToast(context, "Archivo copiado a Descargas con éxito");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toasty.warning(context, "Error: " + e.getMessage(), Toasty.LENGTH_SHORT).show();
+        } finally {
+            try {
+                if (inStream != null) inStream.close();
+                if (outStream != null) outStream.close();
+            } catch (IOException ignored) {}
+        }
+    }
+
+    private static String getMimeType(String fileName) {
+        if (fileName.endsWith(".pdf")) return "application/pdf";
+        if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) return "image/jpeg";
+        if (fileName.endsWith(".png")) return "image/png";
+        if (fileName.endsWith(".txt")) return "text/plain";
+        return "application/octet-stream";
+    }
+    private static void showToast(Context context, String message) {
+        new Handler(Looper.getMainLooper()).post(() ->
+                Toasty.warning(context, message, Toasty.LENGTH_SHORT).show()
+        );
+    }
 }

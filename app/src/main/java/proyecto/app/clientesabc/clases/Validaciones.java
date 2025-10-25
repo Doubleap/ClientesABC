@@ -86,16 +86,31 @@ public class Validaciones {
                 break;
             case "F428":
                 //rango de Coordenada Y
-                num_min = -4.3;
-                num_max = 12.5;
-                coordenadaY = "^(-?([1-9][0-9]?)(\\.\\d{3,12}+)?)";
+                double[][] validXRanges = {
+                        {-4.3, 12.6},   // Range 1
+                        {13.2, 13.5},   // Range 2
+                };
+
+                //13.2,13.4
+                coordenadaY = "^(-?([0-9][0-9]?)(\\.\\d{3,12}+)?)";
                 pattern = Pattern.compile(coordenadaY);
                 matcher = pattern.matcher(texto.getText().toString().trim());
                 if (!matcher.matches()) {
                     texto.setError("Formato Coordenada Y "+texto.getText().toString().trim()+" invalido!");
                     return false;
                 }
-                if(num_min > Double.parseDouble(texto.getText().toString()) || num_max < Double.parseDouble(texto.getText().toString())){
+
+                // Check if value is within any valid range
+                boolean inRange = false;
+                for (double[] range : validXRanges) {
+                    double min = range[0];
+                    double max = range[1];
+                    if (Double.parseDouble(texto.getText().toString()) >= min && Double.parseDouble(texto.getText().toString()) <= max) {
+                        inRange = true;
+                        break;
+                    }
+                }
+                if (!inRange) {
                     texto.setError("Valor Coordenada Y "+texto.getText().toString().trim()+" fuera de territorio nacional!");
                     return false;
                 }
@@ -162,9 +177,12 @@ public class Validaciones {
                 }
                 break;
             case "F428":
+                boolean inRange = false;
                 //rango de Coordenada X
-                num_min = -79.1;
-                num_max = -66.7;
+                double[][] validXRanges = {
+                        {-79.1, -66.7},   // Range 1
+                        {-81.8, -81.1},   // Range 2
+                };
                 coordenadaX = "^[-](([1-9][0-9]?)(\\.\\d{3,12}+)?)";
                 pattern = Pattern.compile(coordenadaX);
                 matcher = pattern.matcher(texto.getText().toString().trim());
@@ -172,7 +190,16 @@ public class Validaciones {
                     texto.setError("Formato Coordenada X "+texto.getText().toString().trim()+" invalido!");
                     return false;
                 }
-                if(num_min > Double.parseDouble(texto.getText().toString()) || num_max < Double.parseDouble(texto.getText().toString())){
+                // Check if value is within any valid range
+                for (double[] range : validXRanges) {
+                    double min = range[0];
+                    double max = range[1];
+                    if (Double.parseDouble(texto.getText().toString()) >= min && Double.parseDouble(texto.getText().toString()) <= max) {
+                        inRange = true;
+                        break;
+                    }
+                }
+                if (!inRange) {
                     texto.setError("Valor Coordenada X "+texto.getText().toString().trim()+" fuera de territorio nacional!");
                     return false;
                 }
