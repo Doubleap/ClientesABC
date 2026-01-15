@@ -33,6 +33,7 @@ import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.ConsultaClienteTotalActivity;
+import proyecto.app.clientesabc.actividades.SolicitudActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
 import proyecto.app.clientesabc.actividades.SolicitudRacksActivity;
@@ -41,16 +42,18 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
     private String codigoCliente;
+    private String tipoCliente = "";
     private boolean xceptionFlag = false;
     private String messageFlag = "";
     private ServerSocket ss;
     private Socket socket;
     ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
-    public ConsultaClienteServidor(WeakReference<Context> c, WeakReference<Activity> a, String codigoCliente){
+    public ConsultaClienteServidor(WeakReference<Context> c, WeakReference<Activity> a, String codigoCliente, String tipoCliente){
         this.context = c;
         this.activity = a;
         this.codigoCliente = codigoCliente;
+        this.tipoCliente = tipoCliente;
     }
 
     @Override
@@ -177,8 +180,14 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
     @Override
     protected void onProgressUpdate(String... progress) {
         super.onProgressUpdate(progress);
-        TextView v = (TextView) dialog.findViewById(R.id.mensaje_espera);
-        v.setText(progress[0]);
+        if (dialog != null) {
+            TextView v = dialog.findViewById(R.id.mensaje_espera);
+            if (v != null) {
+                v.setText(progress[0]);
+            }
+        }
+        //TextView v = (TextView) dialog.findViewById(R.id.mensaje_espera);
+        //v.setText(progress[0]);
     }
     @Override
     protected void onPreExecute() {
@@ -222,14 +231,20 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
             //SolicitudModificacionActivity.LlenarCampos(context.get(), activity.get(), estructuras);
             Activity act = activity.get();
             if (act instanceof SolicitudModificacionActivity) {
-                // Call method specific to SolicitudModificacionActivity
-                ((SolicitudModificacionActivity) act).LlenarCampos(context.get(), act, estructuras);
+                if(tipoCliente.equals("MERCADO_ABIERTO"))
+                    ((SolicitudModificacionActivity) act).LlenarCampos(context.get(), act, estructuras);
+                else if(tipoCliente.equals("CADENA_PADRE"))
+                    ((SolicitudModificacionActivity) act).LlenarCamposCadena(context.get(), act, estructuras);
+                else
+                    ((SolicitudModificacionActivity) act).LlenarCampos(context.get(), act, estructuras);
             } else if (context.get().getClass().getSimpleName().equals("SolicitudAvisosEquipoFrioActivity"))
                 SolicitudAvisosEquipoFrioActivity.LlenarCampos(context.get(), activity.get(), estructuras);
             else if (context.get().getClass().getSimpleName().equals("ConsultaClienteTotalActivity"))
                 ConsultaClienteTotalActivity.LlenarCampos(context.get(), activity.get(), estructuras);
             else if (context.get().getClass().getSimpleName().equals("SolicitudRacksActivity"))
                 ((SolicitudRacksActivity) act).LlenarCampos(context.get(), activity.get(), estructuras);
+            else if (context.get().getClass().getSimpleName().equals("SolicitudActivity"))
+                ((SolicitudActivity) act).LlenarCamposCadena(context.get(), activity.get(), estructuras);
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

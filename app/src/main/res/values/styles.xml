@@ -10,6 +10,7 @@
 
         <item name="android:dropDownListViewStyle">@style/mySpinnerStyle</item>
         <item name="cardViewStyle">@style/CardView.Light</item>
+        <item name="materialCalendarTheme">@style/ThemeOverlay.MaterialComponents.MaterialCalendar</item>
     </style>
     <style name="AppThemeNoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
@@ -160,6 +161,7 @@
         <item name="android:colorAccent">@color/rechazado</item>
         <item name="android:textColorPrimaryDisableOnly">@color/modificado</item>
     </style>
+
 
     <declare-styleable name="MultiSpinnerSearch">
         <attr name="hintText" format="string" />

@@ -98,6 +98,8 @@ import com.honeywell.aidc.InvalidScannerNameException;
 import com.honeywell.aidc.ScannerNotClaimedException;
 import com.honeywell.aidc.ScannerUnavailableException;
 import com.honeywell.aidc.UnsupportedPropertyException;*/
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 import com.vicmikhailau.maskededittext.MaskedEditText;
@@ -110,10 +112,12 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -138,6 +142,8 @@ import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
 import proyecto.app.clientesabc.adaptadores.SpinnerAdapter;
 import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
+import proyecto.app.clientesabc.clases.ConsultaClienteAPI;
+import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
 import proyecto.app.clientesabc.clases.DevolverPreSolicitudAPI;
 import proyecto.app.clientesabc.clases.DevolverPreSolicitudServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
@@ -151,6 +157,8 @@ import proyecto.app.clientesabc.clases.RechazarPreSolicitudAPI;
 import proyecto.app.clientesabc.clases.RechazarPreSolicitudServidor;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.Validaciones;
+import proyecto.app.clientesabc.clases.ValidarFlujoClienteAPI;
+import proyecto.app.clientesabc.clases.ValidarFlujoClienteServidor;
 import proyecto.app.clientesabc.clases.ValidarIdConInspektor;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
@@ -173,7 +181,7 @@ import static com.google.android.material.tabs.TabLayout.INDICATOR_GRAVITY_TOP;
 public class SolicitudActivity extends AppCompatActivity {
 
     static int alturaFilaTableView = 0;
-    static String tipoSolicitud ="";
+    public static String tipoSolicitud ="";
     static String idSolicitud = "";
     static String idPresolicitud = "";
     static String idForm = "";
@@ -203,6 +211,13 @@ public class SolicitudActivity extends AppCompatActivity {
     static ImageView verificarCorreo = null;
     static ImageView verificarCelular = null;
     static Drawable rightIconLocation = null;
+    private static final Set<String> VALID_COMBINATIONS = new HashSet<>(
+            Arrays.asList(
+                    "L", "M", "R", "J", "V", "S",
+                    "LJ", "MV", "RS",
+                    "LRV", "MJS"
+            )
+    );
 
     @SuppressLint("StaticFieldLeak")
     private static de.codecrafters.tableview.TableView<Contacto> tb_contactos;
@@ -572,6 +587,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                 numErrores++;
                                 mensajeError += "- Falta asignar ruta de Preventa(ZPV) en PLANES DE VISITA!\n";
                             }
+                            //Se puede validar el campo zopcional de la tabla 185_x?
                         }else{
                             numErrores++;
                             mensajeError += "- Modalidad de Venta!\n";
@@ -588,6 +604,15 @@ public class SolicitudActivity extends AppCompatActivity {
                                                         numErrores++;
                                                         mensajeError += "- El cliente debe tener al menos 1 día de visita!\n";
                                                     }
+                            }
+                            if(VariablesGlobales.getSociedad().equals("F428")){//Validar las combinaciones especificas para colombia
+                                String combo = getActiveDays();
+
+                                if (!VALID_COMBINATIONS.contains(combo)) {
+                                    // INVALID combination
+                                    numErrores++;
+                                    mensajeError += "- La combinación de visitas '"+combo+"' no es válida!\n";
+                                }
                             }
                             int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZJV");
                             if(indiceEspecializada != -1){
@@ -948,6 +973,33 @@ public class SolicitudActivity extends AppCompatActivity {
             }
         });
         manejadorAdjuntos = new ManejadorAdjuntos(mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos,  getApplicationContext(),SolicitudActivity.this,cropImage);
+    }
+
+    String getActiveDays() {
+        StringBuilder sb = new StringBuilder();
+        String tipoVisita = PreferenceManager.getDefaultSharedPreferences(SolicitudActivity.this).getString("W_CTE_TIPORUTA","ZPV").toString();
+        if (isActive(((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_L")))) sb.append("L");
+        if (isActive(((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_K")))) sb.append("M");
+        if (isActive(((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_M")))) sb.append("R");
+        if (isActive(((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_J")))) sb.append("J");
+        if (isActive(((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_V")))) sb.append("V");
+        if (isActive(((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_S")))) sb.append("S");
+        //if (isActive(((TextInputEditText) mapeoCamposDinamicos.get(tipoVisita+"_D")))) sb.append("D");
+        return sb.toString();
+    }
+
+    boolean isActive(TextInputEditText editText) {
+        if(editText == null)
+            return false;
+        String v = editText.getText().toString().trim();
+        if (v.isEmpty()) return false;
+
+        try {
+            int num = Integer.parseInt(v);
+            return num > 0 && num < 1440;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
@@ -1373,6 +1425,7 @@ public class SolicitudActivity extends AppCompatActivity {
 
                         //Caso especial para colombia que el campo debe mostrar otro campo si lo checkean
                         if(campos.get(i).get("campo").equals("CAMBIO_RAZON")){
+
                             checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                                 @Override
                                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -2143,6 +2196,50 @@ public class SolicitudActivity extends AppCompatActivity {
 
                                 }
                             });
+                        }
+                        if (campos.get(i).get("llamado1").trim().toLowerCase(Locale.ROOT).contains("informacionka") ) {
+
+                            final boolean[] userIsInteracting = {false};
+
+                            combo.setOnTouchListener((v, event) -> {
+                                userIsInteracting[0] = true; // 👈 user touched the spinner
+                                return false; // allow normal behavior (dropdown to open)
+                            });
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    //Traer informacion de Cadena padre para rellenar el formulario de datos
+                                    if (userIsInteracting[0]) {
+                                        if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                            setErrorWithTooltipOnTouch(combo, parent.getResources().getString(R.string.error_field_required));
+
+                                        String codigoClienteCadena = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                        if (codigoClienteCadena != null && !codigoClienteCadena.equals("")) {
+                                            WeakReference<Context> weakRefs1 = new WeakReference<Context>(parent.getContext());
+                                            WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+
+                                            if (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("tipo_conexion", "").equals("api")) {
+
+                                                ConsultaClienteAPI c = new ConsultaClienteAPI(weakRefs1, getActivity(), codigoClienteCadena);
+                                                c.execute();
+                                            } else {
+                                                ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoClienteCadena,"CADENA_PADRE");
+                                                c.execute();
+                                            }
+                                        }
+                                        userIsInteracting[0] = false;
+                                    }
+                                }
+
+                                private void InformacionKA(AdapterView<?> parent) {
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+
                         }
                         if (campos.get(i).get("llamado1").trim().contains("ReplicarValor")) {
                             String[] split = campos.get(i).get("llamado1").trim().split("'");
@@ -3077,7 +3174,20 @@ public class SolicitudActivity extends AppCompatActivity {
                             fila.addView(verificarCorreo);
                         ll.addView(fila);
 
+                        if (campos.get(i).get("campo").trim().equals("W_CTE-ALTKN")) {
 
+                            MaskedEditText altkn = et; // your dynamic field
+                            TextInputLayout milabel = getTextInputLayoutFromEditText(altkn);
+
+                            // Hide only if CAMBIO_RAZON exists AND is unchecked
+                            CompoundButton cambioRazon = (CompoundButton) mapeoCamposDinamicos.get("CAMBIO_RAZON");
+                            if (cambioRazon != null && !cambioRazon.isChecked()) {
+                                milabel.setVisibility(View.GONE);
+                                altkn.setVisibility(View.GONE);
+                                altkn.setEnabled(false);
+                                altkn.setText("");
+                            }
+                        }
                         if (campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LAT") || campos.get(i).get("campo").trim().equals("W_CTE-ZZCRMA_LONG")) {
                             Drawable leftIcon = getResources().getDrawable(R.drawable.icon_location, null);
                             Drawable rightIcon = null;
@@ -4713,23 +4823,21 @@ public class SolicitudActivity extends AppCompatActivity {
                                 label.addView(et);
 
                                 if(visitasSolicitud.size() > 0 && visitasSolicitud.get(i).getRuta().trim().isEmpty()) {
+                                    header_visitas.setVisibility(View.GONE);
                                     et.setVisibility(View.GONE);
                                     label.setVisibility(View.GONE);
                                 }else {
+                                    header_visitas.setVisibility(View.VISIBLE);
                                     et.setVisibility(View.VISIBLE);
                                     label.setVisibility(View.VISIBLE);
                                 }
+                                //Validar si son ZWE o ZWB para colombia deben salir escondidos
+                                if(tipoVisitaActual.equals("ZWE") || tipoVisitaActual.equals("ZWB")){
+                                    header_visitas.setVisibility(View.GONE);
+                                    label.setVisibility(View.GONE);
+                                    et.setVisibility(View.GONE);
+                                }
                             }
-
-                            //Validar si no tiene ruta asignada se deben esconder los campos del tipo de visita
-
-
-                            /*v_ll.addView(tr);
-                            if (v_ll.getParent() != null)
-                                ((ViewGroup) v_ll.getParent()).removeView(v_ll);
-                            ll_visitas.addView(v_ll);
-                            if (ll_visitas.getParent() == null)
-                                ll.addView(ll_visitas);*/
 
                             //Validar si no tiene ruta asignada, esconder los campos de ese tipo de visita
                             if(visitasSolicitud.size() > 0 && visitasSolicitud.get(i).getRuta().trim().isEmpty())
@@ -7452,6 +7560,115 @@ public class SolicitudActivity extends AppCompatActivity {
         }
 
     }
+    public void LlenarCamposCadena(Context context, Activity activity, ArrayList<JsonArray> estructurasSAP){
+        if(estructurasSAP.size() == 0){
+            //Toasty.error(context.getApplicationContext(),"No se pudo obtener la informacion de la cadena padre!").show();
+            return;
+        }
+
+        try {
+            JsonArray cliente = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Cliente");
+
+            //LLenar los campos necesarios de la encuesta.
+            var mensajeCadena = "";
+            String zzent3 = cliente.get(0).getAsJsonObject().get("W_CTE-ZZENT3").getAsString();
+            String zzent4 = cliente.get(0).getAsJsonObject().get("W_CTE-ZZENT4").getAsString();
+            String zzcanal = cliente.get(0).getAsJsonObject().get("W_CTE-ZZCANAL").getAsString();
+            String ztpocanal = cliente.get(0).getAsJsonObject().get("W_CTE-ZTPOCANAL").getAsString();
+            String zgpocanal = cliente.get(0).getAsJsonObject().get("W_CTE-ZGPOCANAL").getAsString();
+            String pson3 = cliente.get(0).getAsJsonObject().get("W_CTE-PSON3").getAsString();
+            //Extras diferente a MA
+            String zzkeyacc = cliente.get(0).getAsJsonObject().get("W_CTE-ZZKEYACC").getAsString();
+            String zzunneg = cliente.get(0).getAsJsonObject().get("W_CTE-ZZUNNEG").getAsString();
+            String zzsubunneg = cliente.get(0).getAsJsonObject().get("W_CTE-ZZSUBUNNEG").getAsString();
+            String zzklabc = cliente.get(0).getAsJsonObject().get("W_CTE-KLABC").getAsString();
+            String zzent2 = cliente.get(0).getAsJsonObject().get("W_CTE-ZZENT2").getAsString();
+            String zzent5 = cliente.get(0).getAsJsonObject().get("W_CTE-ZZENT5").getAsString();
+            String akont = cliente.get(0).getAsJsonObject().get("W_CTE-AKONT").getAsString();
+
+            if (zzent3.equals("")) {
+                mensajeCadena += " CANAL ISSCOM, ";
+            }
+            if (zzent4.equals("")) {
+                mensajeCadena += " CANAL PAIS, ";
+            }
+            if (zzcanal.equals("")) {
+                mensajeCadena += " CANAL KOF, ";
+            }
+            if (ztpocanal.equals("")) {
+                mensajeCadena += " TIPO CANAL, ";
+            }
+            if (zgpocanal.equals("")) {
+                mensajeCadena += " GRUPO CANAL, ";
+            }
+                /*if (cliente.get(0).getAsJsonObject().get("W_CTE-PSON3").getAsString().equals("")) {
+                    mensajeCadena += " CLUSTER GVC, ";
+                }*/
+            if (mensajeCadena != "") {
+                mensajeCadena = "La cadena seleccionada no tiene el valor para el campo " + mensajeCadena;
+                Toasty.warning(context, mensajeCadena).show();
+                return;
+            }
+
+            Spinner sp_zzent3 = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZENT3"));
+            if (sp_zzent3 != null)
+                sp_zzent3.setSelection(VariablesGlobales.getIndex(sp_zzent3, zzent3));
+
+            Spinner sp_zzent4 = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZENT4"));
+            if (sp_zzent4 != null)
+                sp_zzent4.setSelection(VariablesGlobales.getIndex(sp_zzent4, zzent4));
+
+            Spinner sp_zzcanal = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZCANAL"));
+            if (sp_zzcanal != null)
+                sp_zzcanal.setSelection(VariablesGlobales.getIndex(sp_zzcanal, zzcanal));
+            //Si no exiiste el valor lo debo obligar a que si lo seleccione?
+
+            Spinner sp_ztpocanal = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZTPOCANAL"));
+            if (sp_ztpocanal != null)
+                sp_ztpocanal.setSelection(VariablesGlobales.getIndex(sp_ztpocanal, ztpocanal));
+
+            Spinner sp_zgpocanal = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZGPOCANAL"));
+            if (sp_zgpocanal != null)
+                sp_zgpocanal.setSelection(VariablesGlobales.getIndex(sp_zgpocanal, zgpocanal));
+
+            Spinner sp_pson3 = ((Spinner) mapeoCamposDinamicos.get("W_CTE-PSON3"));
+            if (sp_pson3 != null)
+                sp_pson3.setSelection(VariablesGlobales.getIndex(sp_pson3, pson3));
+
+            //Extras diferentes a MA
+            Spinner sp_zzkeyacc = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZKEYACC"));
+            if (sp_zzkeyacc != null)
+                sp_zzkeyacc.setSelection(VariablesGlobales.getIndex(sp_zzkeyacc, zzkeyacc));
+
+            Spinner sp_zzklabc = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KLABC"));
+            if (sp_zzklabc != null)
+                sp_zzklabc.setSelection(VariablesGlobales.getIndex(sp_zzklabc, zzklabc));
+
+            Spinner sp_zzunneg = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZUNNEG"));
+            if (sp_zzunneg != null)
+                sp_zzunneg.setSelection(VariablesGlobales.getIndex(sp_zzunneg, zzunneg));
+
+            Spinner sp_zzsubunneg = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZSUBUNNEG"));
+            if (sp_zzsubunneg != null)
+                sp_zzsubunneg.setSelection(VariablesGlobales.getIndex(sp_zzsubunneg, zzsubunneg));
+
+            Spinner sp_zzent2 = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZENT2"));
+            if (sp_zzent2 != null)
+                sp_zzent2.setSelection(VariablesGlobales.getIndex(sp_zzent2, zzent2));
+
+            Spinner sp_zzent5 = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZENT5"));
+            if (sp_zzent5 != null)
+                sp_zzent5.setSelection(VariablesGlobales.getIndex(sp_zzent5, zzent5));
+
+            //Credito
+            Spinner sp_akont = ((Spinner) mapeoCamposDinamicos.get("W_CTE-AKONT"));
+            if (sp_akont != null)
+                sp_akont.setSelection(VariablesGlobales.getIndex(sp_akont, akont));
+        }catch (Exception e){
+            Toasty.warning(context,"Error en los valores de la Cadena Padre: "+e.getMessage()).show();
+        }
+    }
+
     private static void Cantones(AdapterView<?> parent){
         Spinner pais = (Spinner)mapeoCamposDinamicos.get("W_CTE-LAND1");
         final OpcionSpinner opcionpais = (OpcionSpinner) pais.getSelectedItem();
@@ -8441,15 +8658,25 @@ public class SolicitudActivity extends AppCompatActivity {
                     if(((OpcionSpinner)regimen.getSelectedItem()).getId().equals("G2")){
                         //cedulaValidada = true; //No ocuparia validacion por que no es obligatorio??
                         // Se reemplazan los espacios en blanco en la cadena (si tiene)
-                        String Cui = idfiscal.getText().toString().replace(" ", "");
-                        // Extraemos el numero del DPI
-                        String no = Cui.substring(0, 8);
-                        // Extraemos el numero de Departamento
-                        int depto = Integer.parseInt(Cui.substring(9, 11));
-                        // Extraemos el numero de Municipio
-                        int muni = Integer.parseInt(Cui.substring(11, 13));
-                        // Se extra el numero validador
-                        int ver = Integer.parseInt(Cui.substring(8, 9));
+                        String Cui = "";
+                        String no = "";
+                        int depto = 0;
+                        int muni = 0;
+                        int ver = 0;
+                        try {
+                            Cui = idfiscal.getText().toString().replace(" ", "");
+                            // Extraemos el numero del DPI
+                            no = Cui.substring(0, 8);
+                            // Extraemos el numero de Departamento
+                            depto = Integer.parseInt(Cui.substring(9, 11));
+                            // Extraemos el numero de Municipio
+                            muni = Integer.parseInt(Cui.substring(11, 13));
+                            // Se extra el numero validador
+                            ver = Integer.parseInt(Cui.substring(8, 9));
+                        }catch(StringIndexOutOfBoundsException e){
+                            idfiscal.setError("CUI no válido. Longitud no valida!");
+                            return true;
+                        }
                         // Array con la cantidad de municipios que contiene cada departamento.
                         int munisPorDepto[] = {
                                 /* 01 - Guatemala tiene:      */ 17 /* municipios. */,
@@ -8749,6 +8976,12 @@ public class SolicitudActivity extends AppCompatActivity {
         }
     }
 
+    private void setSpinnerSelectionSilently(Spinner spinner, int position) {
+        AdapterView.OnItemSelectedListener listener = spinner.getOnItemSelectedListener();
+        spinner.setOnItemSelectedListener(null);
+        spinner.setSelection(position, false);
+        spinner.setOnItemSelectedListener(listener);
+    }
 
     public static int getIndexConfigCampo(String campo) {
         for (int i = 0; i < configExcepciones.size(); i++) {

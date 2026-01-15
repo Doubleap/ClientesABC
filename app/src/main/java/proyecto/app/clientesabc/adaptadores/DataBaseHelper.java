@@ -353,7 +353,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     user.put("puertas_por_instalar", cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) != null ? cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) : "");
                 }
                 user.put("canal", cursor.getString(cursor.getColumnIndex("canal")) != null ? cursor.getString(cursor.getColumnIndex("canal")) : "");
-                user.put("tipo_canal", cursor.getString(cursor.getColumnIndex("tipo_canal")) != null ? cursor.getString(cursor.getColumnIndex("tipo_canal")) : "");
+                if (cursor.getColumnIndex("tipo_canal") != -1) {
+                    user.put("tipo_canal", cursor.getString(cursor.getColumnIndex("tipo_canal")) != null ? cursor.getString(cursor.getColumnIndex("tipo_canal")) : "");
+                }
                 clientList.add(user);
             }
             cursor.close();
@@ -690,6 +692,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 solicitud.put("CAMBIO_RAZON", cursor.getString(cursor.getColumnIndex("CAMBIO_RAZON")) != null ? cursor.getString(cursor.getColumnIndex("CAMBIO_RAZON")) : "");
             }catch(Exception e){}
 
+            try {//Campos nuevos para manejo de formulario de consignacion
+                solicitud.put("W_CTE-DATST", cursor.getString(cursor.getColumnIndex("W_CTE-DATST")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DATST")) : "");
+                solicitud.put("W_CTE-DATEN", cursor.getString(cursor.getColumnIndex("W_CTE-DATEN")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DATEN")) : "");
+            }catch(Exception e){}
+
             formList.add(solicitud);
         }
 
@@ -948,6 +955,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
             try {//Campo especifico para colombia para saber si viene de un cliente anterior por cambio de razon social
                 solicitud.put("CAMBIO_RAZON", cursor.getString(cursor.getColumnIndex("CAMBIO_RAZON")) != null ? cursor.getString(cursor.getColumnIndex("CAMBIO_RAZON")) : "");
+            }catch(Exception e){}
+
+            try {//Campos nuevos para manejo de formulario de consignacion
+                solicitud.put("W_CTE-DATST", cursor.getString(cursor.getColumnIndex("W_CTE-DATST")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DATST")) : "");
+                solicitud.put("W_CTE-DATEN", cursor.getString(cursor.getColumnIndex("W_CTE-DATEN")) != null ? cursor.getString(cursor.getColumnIndex("W_CTE-DATEN")) : "");
             }catch(Exception e){}
 
             formList.add(solicitud);
@@ -1427,6 +1439,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     " FROM " + tabla +" a INNER JOIN" +
                     " EX_T_RUTAS_VP AS b ON (trim(a.zone1) = trim(b.zroute_rep) OR trim(a.zone1) = trim(b.zroute_pr)) WHERE trim(zone1) != '' ";
         }
+
+
         //Cadena = cat_zesdvt_00561, Keyaccount = cat_ztmdcmc_00038t
         if(tabla.equals("cat_zesdvt_00561") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F428")){
             String tipoSolicitud  = "";
@@ -1436,6 +1450,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 if (extras != null) {
                     tipoSolicitud = extras.getString("tipoSolicitud");
                 }
+                if(tipoSolicitud == null || tipoSolicitud .equals("")){
+                    tipoSolicitud = SolicitudActivity.tipoSolicitud;
+                }
             }
             if (mContext instanceof SolicitudModificacionActivity) {
                 SolicitudModificacionActivity activity = (SolicitudModificacionActivity) mContext;
@@ -1443,20 +1460,52 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 if (extras != null) {
                     tipoSolicitud = extras.getString("tipoSolicitud");
                 }
+                if(tipoSolicitud == null || tipoSolicitud .equals("")){
+                    tipoSolicitud = SolicitudModificacionActivity.tipoSolicitud;
+                }
             }
-            if(UsaIndirectos() && esDestinoIndirecto(tipoSolicitud)) {
+            if(UsaIndirectos() && (esInclusionIndirecto(tipoSolicitud) || esDestinoIndirecto(tipoSolicitud))) {
                 List<String> listaCadenasInd = getCadenasIndirectos();
                 // Convert list → string for IN clause
                 String inClause =  "'" + TextUtils.join("','", listaCadenasInd) + "'";
 
                 filtros.append(" AND trim(hkunnr) IN (" + inClause + ")");
+
             }
             else {
                 filtros.append(" AND trim(hkunnr) = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_CADENARM", "") + "' AND zzkeyacc = 'CA002'");
             }
         }
         if(tabla.equals("cat_ztmdcmc_00038t") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("1661") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("Z001") && !PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F428")){
-            filtros.append(" AND trim(zkeyacc) = 'CA002'");
+            String tipoSolicitud  = "";
+            if (mContext instanceof SolicitudActivity) {
+                SolicitudActivity activity = (SolicitudActivity) mContext;
+                Bundle extras = activity.getIntent().getExtras();
+                if (extras != null) {
+                    tipoSolicitud = extras.getString("tipoSolicitud");
+                }
+                if(tipoSolicitud == null || tipoSolicitud .equals("")){
+                    tipoSolicitud = SolicitudActivity.tipoSolicitud;
+                }
+            }
+            if (mContext instanceof SolicitudModificacionActivity) {
+                SolicitudModificacionActivity activity = (SolicitudModificacionActivity) mContext;
+                Bundle extras = activity.getIntent().getExtras();
+                if (extras != null) {
+                    tipoSolicitud = extras.getString("tipoSolicitud");
+                }
+                if(tipoSolicitud == null || tipoSolicitud .equals("")){
+                    tipoSolicitud = SolicitudModificacionActivity.tipoSolicitud;
+                }
+            }
+            if(UsaIndirectos() && (esInclusionIndirecto(tipoSolicitud) || esDestinoIndirecto(tipoSolicitud))) {
+                List<String> listaCadenasInd = getCadenasIndirectos();
+                // Convert list → string for IN clause
+                filtros.append(" AND trim(zkeyacc) != 'CA002'");
+
+            }else {
+                filtros.append(" AND trim(zkeyacc) = 'CA002'");
+            }
         }
         if(tabla.equals("cat_ztsdvto_00185")) {
             if(PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS","").trim().equals("F428")) {
@@ -2121,7 +2170,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //Formularios de modificacion permitidos para la HH
     public ArrayList<HashMap<String, String>> getModificacionesPermitidas(){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
-        String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'M' and ind_credito = 0  and ind_tipo_cliente != 'IN' order by orden";
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 and activo = 1 and ind_modelo = 'M' and ind_credito = 0  and ind_tipo_cliente != 'IN' order by orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> flujo = new HashMap<>();
@@ -2135,7 +2184,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<HashMap<String, String>> getModificacionesIndirectosPermitidas(){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
-        String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'M' and ind_credito = 0 and ind_tipo_cliente = 'IN' order by orden";
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 and activo = 1 and ind_modelo = 'M' and ind_credito = 0 and ind_tipo_cliente = 'IN' order by orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> flujo = new HashMap<>();
@@ -2189,7 +2238,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     //Formularios de modificacion permitidos para la HH
     public ArrayList<HashMap<String, String>> getOrdenesServicioPermitidas(){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
-        String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'E' order by orden";
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 and activo = 1 and ind_modelo = 'E' order by orden";
+        Cursor cursor = mDataBase.rawQuery(query,null);
+        while (cursor.moveToNext()){
+            HashMap<String,String> flujo = new HashMap<>();
+            flujo.put("idform",cursor.getString(cursor.getColumnIndex("id_form")).trim());
+            flujo.put("descripcion",cursor.getString(cursor.getColumnIndex("Descripcion")).trim());
+            flujoList.add(flujo);
+        }
+        cursor.close();
+        return  flujoList;
+    }
+    public ArrayList<HashMap<String, String>> getFormulariosRacksPermitidos(){
+        ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 and activo = 1 and ind_modelo = 'W' order by orden";
         Cursor cursor = mDataBase.rawQuery(query,null);
         while (cursor.moveToNext()){
             HashMap<String,String> flujo = new HashMap<>();
@@ -2202,7 +2264,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
     public ArrayList<HashMap<String, String>> getOrdenesServicioPermitidasMonitor(Integer puertas_por_instalar, Integer puertas_instaladas){
         ArrayList<HashMap<String, String>> flujoList = new ArrayList<>();
-        String query = "SELECT * FROM flujo WHERE permitirHH = 1 /*UYand activo = 1*/ and ind_modelo = 'E'";
+        String query = "SELECT * FROM flujo WHERE permitirHH = 1 and activo = 1 and ind_modelo = 'E'";
 
         if(puertas_por_instalar > 0) {
             if (puertas_instaladas == 0)
@@ -2901,7 +2963,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public boolean EsTipodeReparto(String agencia, String tiporuta)
     {
-        String query = "select vwerks, zroute_rep FROM EX_T_RUTAS_VP WHERE bzirk = ? AND vptyp = ?";
+        String query = "select DISTINCT vwerks, zroute_rep FROM EX_T_RUTAS_VP WHERE bzirk = ? AND vptyp = ?";
         Cursor cursor = mDataBase.rawQuery(query, new String[]{agencia, tiporuta});
         boolean retorno = false;
         if (cursor.moveToNext()){
@@ -3295,7 +3357,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         // lo mas general posible para no depender de un tipo de visita especifico para la informacion
         if(preguntasList.size() == 0){
             query = "select vwerks FROM EX_T_RUTAS_VP WHERE bzirk = ? AND vwerks IS NOT NULL AND vwerks != ''";
-            Cursor micursorZat = mDataBase.rawQuery(query,new String[]{bzirk,PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_TIPORUTA", "")});
+            Cursor micursorZat = mDataBase.rawQuery(query,new String[]{bzirk});
             while (micursorZat.moveToNext()){
                 HashMap<String, String> user = new HashMap<>();
                 user.put("VWERK", micursorZat.getString(0).trim());
@@ -4421,11 +4483,41 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         return retorno;
     }
+    public boolean esInclusionIndirecto(String id_form)
+    {
+        boolean retorno = false;
+        try {
+            String query = "select ind_tipo_cliente FROM flujo WHERE id_form = ? AND ind_modelo = 'I'";
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{id_form});
+            if (cursor.moveToNext()) {
+                retorno = cursor.getString(cursor.getColumnIndex("ind_tipo_cliente")).trim().equals("IN") ? true : false;
+            }
+            cursor.close();
+        }catch(Exception e){
+            Toasty.error(mContext,"No se pudo obtener campo Indirecto: "+e.getMessage()).show();
+        }
+        return retorno;
+    }
+    public boolean esModificacionIndirecto(String id_form)
+    {
+        boolean retorno = false;
+        try {
+            String query = "select ind_tipo_cliente FROM flujo WHERE id_form = ? AND ind_modelo = 'M'";
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{id_form});
+            if (cursor.moveToNext()) {
+                retorno = cursor.getString(cursor.getColumnIndex("ind_tipo_cliente")).trim().equals("IN") ? true : false;
+            }
+            cursor.close();
+        }catch(Exception e){
+            Toasty.error(mContext,"No se pudo obtener campo Indirecto: "+e.getMessage()).show();
+        }
+        return retorno;
+    }
     public boolean esDestinoIndirecto(String id_form)
     {
         boolean retorno = false;
         try {
-            String query = "select ind_tipo_cliente_n FROM flujo WHERE id_form = ? ";
+            String query = "select ind_tipo_cliente_n FROM flujo WHERE id_form = ? AND ind_modelo <> 'I'";
             Cursor cursor = mDataBase.rawQuery(query, new String[]{id_form});
             if (cursor.moveToNext()) {
                 retorno = cursor.getString(cursor.getColumnIndex("ind_tipo_cliente_n")).trim().equals("IN") ? true : false;
@@ -4433,6 +4525,21 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             cursor.close();
         }catch(Exception e){
             Toasty.error(mContext,"No se pudo obtener campo Indirecto: "+e.getMessage()).show();
+        }
+        return retorno;
+    }
+    public String getTipoClienteDestino(String id_form)
+    {
+        String retorno = "";
+        try {
+            String query = "select ind_tipo_cliente_n FROM flujo WHERE id_form = ?";
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{id_form});
+            if (cursor.moveToNext()) {
+                retorno = cursor.getString(cursor.getColumnIndex("ind_tipo_cliente_n")).trim();
+            }
+            cursor.close();
+        }catch(Exception e){
+            Toasty.error(mContext,"No se pudo obtener campo ind_tipo_cliente_n: "+e.getMessage()).show();
         }
         return retorno;
     }

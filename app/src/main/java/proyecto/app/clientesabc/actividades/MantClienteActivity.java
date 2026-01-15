@@ -693,6 +693,11 @@ public class MantClienteActivity extends AppCompatActivity {
                                     showDialogFormulariosModificacion(codigoCliente,false, true, false, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
                                     break;
+                                case R.id.racks:
+                                    //EQUIPO FRIO
+                                    showDialogFormulariosRacks(codigoCliente);
+                                    //Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
+                                    break;
                                 case R.id.iniciativas:
                                     //INICIATIVAS, estos formularios son locales y nunca van a SAP
                                     showDialogFormulariosModificacion(codigoCliente,false, false, true, false);
@@ -920,6 +925,75 @@ public class MantClienteActivity extends AppCompatActivity {
                         intent.putExtras(b); //Pase el parametro el Intent
                         startActivity(intent);
                     }
+                }
+            }
+        });
+    }
+
+    private void showDialogFormulariosRacks(final String codigoCliente) {
+        ArrayList<HashMap<String,String>> formulariosPermitidos = null;
+
+        formulariosPermitidos = db.getFormulariosRacksPermitidos();
+
+        String[] idformsTemp = new String[formulariosPermitidos.size()];
+        String[] formsTemp = new String[formulariosPermitidos.size()];
+        for(int x=0; x < formulariosPermitidos.size(); x++){
+            idformsTemp[x] = formulariosPermitidos.get(x).get("idform");
+            formsTemp[x] = formulariosPermitidos.get(x).get("descripcion");
+        }
+        final String[] idforms = idformsTemp;
+        final String[] forms = formsTemp;
+        ContextThemeWrapper cw = new ContextThemeWrapper( this, R.style.AlertDialogTheme );
+        final AlertDialog.Builder builder = new AlertDialog.Builder(cw);
+
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.titlebar, null);
+        builder.setCustomTitle(view);
+        builder.setSingleChoiceItems(forms, -1, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int arg1) {
+                //ListView lw = ((AlertDialog)dialog).getListView();
+                //Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
+            }
+
+        });
+
+        builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                //Solo para crearlo
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        //Sobreescribir handler de click de boton positivo
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                // user clicked OK, so save the mSelectedItems results somewhere
+                // or return them to the component that opened the dialog
+                int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                if(selectedPosition < 0){
+                    Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de modificación!").show();
+                }else {
+                        dialog.dismiss();
+                        Bundle b = new Bundle();
+                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
+                        b.putString("codigoCliente", codigoCliente);
+                        intent = new Intent(getApplicationContext(), SolicitudRacksActivity.class);
+                        intent.putExtras(b); //Pase el parametro el Intent
+                        startActivity(intent);
+
                 }
             }
         });

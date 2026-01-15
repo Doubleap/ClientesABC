@@ -404,7 +404,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         ValidarFlujoClienteServidor v = new ValidarFlujoClienteServidor(weakRefs1, weakRefAs1, codigoCliente, tipoSolicitud, codigoEquipoFrio);
                         v.execute();
                     }
-                    ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoCliente);
+                    ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoCliente, "MERCADO_ABIERTO");
                     if (PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion", "").equals("wifi")) {
                         c.EnableWiFi();
                     } else {

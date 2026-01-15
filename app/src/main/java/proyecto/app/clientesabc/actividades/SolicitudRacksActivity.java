@@ -686,7 +686,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
             } else {
                 //ValidarFlujoClienteServidor v = new ValidarFlujoClienteServidor(weakRefs1, weakRefAs1, codigoCliente, tipoSolicitud, "0");
                 //v.execute();
-                ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoCliente);
+                ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoCliente,"MERCADO_ABIERTO");
                 c.execute();
             }
         }
@@ -1128,7 +1128,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
                         checkbox_old.setEnabled(false);
                         //checkbox.setVisibility(View.GONE);
                     }
-                    fila.addView(checkbox_old);
+                    //fila.addView(checkbox_old);
                     fila.addView(checkbox);
                     ll.addView(fila);
                     if (!campos.get(i).get("modificacion").trim().equals("1")) {

@@ -137,7 +137,7 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
                 messageFlag = mensaje;
             }
             publishProgress("Proceso Terminado...");
-        } catch (IOException e) {
+        } catch (Exception e) {
             xceptionFlag = true;
             messageFlag = e.getMessage();
             e.printStackTrace();
@@ -199,7 +199,10 @@ public class ConsultaCreditoClienteServidor extends AsyncTask<Void,String,ArrayL
             dialog.hide();
         }
         if(xceptionFlag){
-            Toasty.error(context.get(),messageFlag.replaceAll("<br\\>","\n"),Toast.LENGTH_LONG).show();
+            String mensajeerror="Error al obtener datos de Credito!";
+            if(messageFlag != null)
+                messageFlag.replaceAll("<br\\>","\n");
+            Toasty.error(context.get(),mensajeerror,Toast.LENGTH_LONG).show();
             activity.get().finish();
         }
         SolicitudCreditoActivity.LlenarCampos(context.get(), activity.get(), estructuras);

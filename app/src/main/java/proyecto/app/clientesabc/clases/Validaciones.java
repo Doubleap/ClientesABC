@@ -7,6 +7,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -23,6 +24,7 @@ import java.util.regex.Pattern;
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
 
 public class Validaciones {
@@ -352,6 +354,22 @@ public class Validaciones {
                     ((TextInputLayout)label).setHint(configExcepcion.get("descr").trim());
                 if(label instanceof TextView)
                     ((TextView)label).setText(configExcepcion.get("descr").trim());
+            }
+            //Revisar si tiene un catalogo alternativo
+            if (configExcepcion.get("tabla") != null && !configExcepcion.get("tabla").isEmpty() && !configExcepcion.get("tabla").equals("NULL")) {
+                DataBaseHelper mDBHelper = new DataBaseHelper(context);
+                ArrayList<HashMap<String, String>> opciones =  mDBHelper.getDatosCatalogo("cat_"+configExcepcion.get("tabla").trim());
+
+                ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+                for (int j = 0; j < opciones.size(); j++) {
+                    listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+                }
+                ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones);
+                // Drop down layout style - list view with radio button
+                dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+                // attaching data adapter to spinner
+                combo.setAdapter(dataAdapter);
+                dataAdapter.notifyDataSetChanged();
             }
         }
         if(elemento instanceof MaskedEditText)

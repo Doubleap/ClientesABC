@@ -3,6 +3,7 @@ package proyecto.app.clientesabc.actividades;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
@@ -15,6 +16,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -71,6 +73,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.DatePicker;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
@@ -113,6 +116,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -170,7 +174,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
     static ActionBar actionBar;
     final static int alturaFilaTableView = 100;
-    static String tipoSolicitud ="";
+    public static String tipoSolicitud ="";
     static String idSolicitud = "";
     static String codigoCliente = "";
     static String idForm = "";
@@ -255,6 +259,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     public static String[] visitas_permitidas = {"ZPV","ZJV","ZTV","ZRM","ZAT","ZKV","ZDY","ZGE","ZCM","ZCS","ZDI","ZEJ","ZES","ZIN","ZOP","ZPK","ZSP","ZWB","ZWE","ZWJ","ZWP","ZDM","ZMB","ZDP"};
     public static PendingIntent sentPI;
     public static PendingIntent deliveredPI;
+    public static Long startDateMillis = null;
+    public static Long endDateMillis = null;
 
     @SuppressLint("ResourceType")
     @Override
@@ -333,7 +339,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             correoValidado = true;
             cedulaValidada = true;
             idFiscalValidado = true;
-            if(!tipoSolicitud.equals("1") && !tipoSolicitud.equals("6") && !tipoSolicitud.equals("26") && !tipoSolicitud.equals("46") ){
+            if(!tipoSolicitud.equals("1") && !tipoSolicitud.equals("6") && !tipoSolicitud.equals("26") && !tipoSolicitud.equals("46")  && !tipoSolicitud.equals("99")){
                 firma = true;
             }
         }
@@ -622,9 +628,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                         }
                         //Validacion de politica de privacidad firmada por el cliente.
-                        if(!firma && tipoSolicitud.equals("26")){
+                        if(!firma && (tipoSolicitud.equals("26") || tipoSolicitud.equals("99"))){
                             numErrores++;
-                            mensajeError += "- El cliente nuevo debe firmar las políticas de privacidad!\n";
+                            mensajeError += "- El cliente debe firmar las políticas de privacidad!\n";
                         }
                         //Validacion de politica de privacidad firmada por el cliente.
                         if(!firma && tipoSolicitud.equals("46")){
@@ -707,7 +713,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             } else {
                 ValidarFlujoClienteServidor v = new ValidarFlujoClienteServidor(weakRefs1, weakRefAs1, codigoCliente, tipoSolicitud, "0");
                 v.execute();
-                ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoCliente);
+                ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoCliente,"MERCADO_ABIERTO");
                 c.execute();
             }
         }
@@ -1267,6 +1273,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     }
                     ArrayList<HashMap<String, String>> opciones = new ArrayList<>();
                     WeakReference<Activity> weakRefA = new WeakReference<Activity>(getActivity());
+
                     //Si son catalogos de equipo frio debo indicar el indice de las columnas de ID y Descripcion estan en otros indice de columnas
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_causas") || campos.get(i).get("tabla").trim().toLowerCase().equals("ef_prioridades")){
                         opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),3,4,null);
@@ -2136,6 +2143,94 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 }
                             });
                         }
+                    }
+                    if (campos.get(i).get("llamado1").trim().toLowerCase(Locale.ROOT).contains("informacionka") ) {
+
+                        final boolean[] userIsInteracting = {false};
+
+                        combo.setOnTouchListener((v, event) -> {
+                            userIsInteracting[0] = true; // 👈 user touched the spinner
+                            return false; // allow normal behavior (dropdown to open)
+                        });
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                //Traer informacion de Cadena padre para rellenar el formulario de datos
+                                if (userIsInteracting[0]) {
+                                    if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                        setErrorWithTooltipOnTouch(combo, parent.getResources().getString(R.string.error_field_required));
+
+                                    String codigoClienteCadena = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                    if (codigoClienteCadena != null && !codigoClienteCadena.equals("")) {
+                                        WeakReference<Context> weakRefs1 = new WeakReference<Context>(parent.getContext());
+                                        WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+
+                                        if (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("tipo_conexion", "").equals("api")) {
+
+                                            ConsultaClienteAPI c = new ConsultaClienteAPI(weakRefs1, getActivity(), codigoClienteCadena);
+                                            c.execute();
+                                        } else {
+                                            ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoClienteCadena, "CADENA_PADRE");
+                                            c.execute();
+                                        }
+                                    }
+                                    userIsInteracting[0] = false;
+                                }
+                            }
+
+                            private void InformacionKA(AdapterView<?> parent) {
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+
+                    }
+                    if (campos.get(i).get("llamado1").trim().toLowerCase(Locale.ROOT).contains("informacionma") ) {
+
+                        /*final boolean[] userIsInteracting = {false};
+
+                        combo.setOnTouchListener((v, event) -> {
+                            userIsInteracting[0] = true; // 👈 user touched the spinner
+                            return false; // allow normal behavior (dropdown to open)
+                        });*/
+                        combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                //Traer informacion de Cadena padre para rellenar el formulario de datos
+                                //if (userIsInteracting[0]) {
+                                    if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
+                                        setErrorWithTooltipOnTouch(combo, parent.getResources().getString(R.string.error_field_required));
+
+                                    String codigoClienteCadena = ((OpcionSpinner) parent.getSelectedItem()).getId().trim();
+                                    if (codigoClienteCadena != null && !codigoClienteCadena.equals("")) {
+                                        WeakReference<Context> weakRefs1 = new WeakReference<Context>(parent.getContext());
+                                        WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+
+                                        if (PreferenceManager.getDefaultSharedPreferences(parent.getContext()).getString("tipo_conexion", "").equals("api")) {
+
+                                            ConsultaClienteAPI c = new ConsultaClienteAPI(weakRefs1, getActivity(), codigoClienteCadena);
+                                            c.execute();
+                                        } else {
+                                            ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoClienteCadena, "CADENA_PADRE");
+                                            c.execute();
+                                        }
+                                    //}
+                                    //userIsInteracting[0] = false;
+                                }
+                            }
+
+                            private void InformacionKA(AdapterView<?> parent) {
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+
                     }
                     if (campos.get(i).get("llamado1").trim().contains("ReplicarValor")) {
                         String[] split = campos.get(i).get("llamado1").trim().split("'");
@@ -3241,6 +3336,44 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             return true;
                         });
                     }
+
+                    if(campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").toLowerCase().contains("fecha") && modificable){
+                        // 🔴 CRITICAL lines (no double tap)
+                        et.setFocusable(true);
+                        et.setFocusableInTouchMode(true);
+                        et.setClickable(true);
+                        et.setInputType(InputType.TYPE_NULL);
+
+                        // Optional UX polish
+                        et.setCursorVisible(false);
+                        et.setLongClickable(false);
+                        et.setTextIsSelectable(false);
+
+                        if(campos.get(i).get("tipo_input").toLowerCase().contains("ini")){
+                            et.setOnFocusChangeListener((v, hasFocus) -> {
+                                if (hasFocus) {
+                                    pickDate(getActivity(), et, true, true
+                                    );
+                                }
+                            });
+                        }else
+                        if(campos.get(i).get("tipo_input").toLowerCase().contains("fin")){
+                            et.setOnFocusChangeListener((v, hasFocus) -> {
+                                if (hasFocus) {
+                                    pickDate(getActivity(), et, false, true
+                                    );
+                                }
+                            });
+                        }else{
+                            et.setOnFocusChangeListener((v, hasFocus) -> {
+                                if (hasFocus) {
+                                    pickDate(getActivity(), et, false, false
+                                    );
+                                }
+                            });
+                        }
+
+                    }
                     //Le cae encima al valor default por el de la solicitud seleccionada
                     if(solicitudSeleccionada.size() > 0){
                         if(campos.get(i).get("modificacion").trim().equals("1")) {
@@ -3598,7 +3731,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 ll.addView(label);
                 ll.addView(combo);
 
-                if(tipoSolicitud.equals("26")) {
+                if(tipoSolicitud.equals("26") || tipoSolicitud.equals("99")/*Solo obtencion de la firma*/) {
                     //Check Box para la aceptacion de las politicas de privacidad
                     final CheckBox checkbox = new CheckBox(getContext());
                     checkbox.setText("Aceptar Politicas de Privacidad");
@@ -3683,6 +3816,60 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     mapeoCamposDinamicos.put("entregaTarjeta",checkbox);
                 }
             }
+        }
+
+        private void pickDate(
+                Activity activity,
+                MaskedEditText et,
+                boolean isStart,
+                boolean isRange
+        ) {
+            Calendar cal = Calendar.getInstance();
+
+            DatePickerDialog dialog = new DatePickerDialog(
+                    activity,
+                    (view, y, m, d) -> {
+
+                        Calendar selected = Calendar.getInstance();
+                        selected.set(y, m, d, 0, 0, 0);
+                        long selectedMillis = selected.getTimeInMillis();
+
+                        if (isRange) {
+                            if (isStart) {
+                                startDateMillis = selectedMillis;
+                                // re-validate END if it already exists
+                                if (endDateMillis != null && endDateMillis < startDateMillis) {
+                                    et.setError("Fecha Inicial debe ser menor a Fecha Final!");
+                                    et.clearFocus();
+                                    return;
+                                }
+                            } else {
+                                endDateMillis = selectedMillis;
+                            }
+                            // validation
+                            if (startDateMillis != null && endDateMillis != null) {
+                                if (endDateMillis < startDateMillis) {
+                                    et.setError("Fecha Final debe ser mayor a Fecha Inicial!");
+                                    et.clearFocus();
+                                    return;
+                                }
+                            }
+                        }
+                        et.setText(formatDate(selectedMillis));
+                        et.setError(null);
+                        et.clearFocus();
+                    },
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH),
+                    cal.get(Calendar.DAY_OF_MONTH)
+            );
+
+            dialog.show();
+        }
+        private String formatDate(long millis) {
+            SimpleDateFormat sdf =
+                    new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            return sdf.format(new Date(millis));
         }
 
         private void ActualizarAprobadores() {
@@ -4201,7 +4388,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 et.setTag(tipoVisitaActual + "_" + diaLabel[x]);
                                 et.setMaxLines(1);
                                 et.setTextSize(16);
-                                et.setId(Integer.parseInt("1000"+i+x));
+                                et.setId(Integer.parseInt("1000" + i + x));
 
                                 et.setInputType(InputType.TYPE_CLASS_NUMBER);
                                 et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(4)});
@@ -4250,11 +4437,11 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         et.setVisibility(View.GONE);
                                         label.setVisibility(View.GONE);
                                     }
-                                    if(x == 6 && et.getText().length() > 0 ){
+                                    if (x == 6 && et.getText().length() > 0) {
                                         et.setVisibility(View.VISIBLE);
                                         label.setVisibility(View.VISIBLE);
                                     }
-                                }else {
+                                } else {
 
                                     //Esconder el domingo si el tipo NO ES ZDY
                                     if (x == 6 && (!tipoVisitaActual.equals("ZDY") && !tipoVisitaActual.contains("ZW"))) {
@@ -4282,21 +4469,21 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         int indiceReparto = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDD");
                                         int indiceEspecializada = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZJV");
                                         int indiceMixta = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZRM");
-                                    //COLOMBIA
-                                        int indiceZCS = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZCS");
-                                        int indiceZCM = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZCM");
-                                        int indiceZDI = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZDI");
-                                        int indiceZEJ = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZEJ");
-                                        int indiceZES = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZES");
-                                        int indiceZGE = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZGE");
-                                        int indiceZIN = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZIN");
-                                        int indiceZOP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZOP");
-                                        int indiceZPK = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZPK");
-                                        int indiceZSP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZSP");
-                                        int indiceZWB = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZWB");
-                                        int indiceZWE = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZWE");
-                                        int indiceZWJ = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZWJ");
-                                        int indiceZWP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,"ZWP");
+                                        //COLOMBIA
+                                        int indiceZCS = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZCS");
+                                        int indiceZCM = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZCM");
+                                        int indiceZDI = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZDI");
+                                        int indiceZEJ = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZEJ");
+                                        int indiceZES = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZES");
+                                        int indiceZGE = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZGE");
+                                        int indiceZIN = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZIN");
+                                        int indiceZOP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZOP");
+                                        int indiceZPK = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZPK");
+                                        int indiceZSP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZSP");
+                                        int indiceZWB = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZWB");
+                                        int indiceZWE = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZWE");
+                                        int indiceZWJ = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZWJ");
+                                        int indiceZWP = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, "ZWP");
 
                                         final int finalIndicePreventa = indicePreventa;
                                         final int finalIndiceEspecializada = indiceEspecializada;
@@ -4324,9 +4511,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             int diasParaReparto = 1;
                                             Visitas visitaPreventa = null;
 
-                                            for(int x=0;x < visitas_permitidas.length;x++){
-                                                int indice = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud,visitas_permitidas[x]);
-                                                if(indice != -1 && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "").equals(visitas_permitidas[x])) {
+                                            for (int x = 0; x < visitas_permitidas.length; x++) {
+                                                int indice = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, visitas_permitidas[x]);
+                                                if (indice != -1 && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "").equals(visitas_permitidas[x])) {
                                                     visitaPreventa = visitasSolicitud.get(indice);
                                                     if (visitaPreventa.getKvgr4() != null)
                                                         diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));
@@ -4356,7 +4543,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             }
                                             if (!((TextView) v).getText().toString().equals("") && Integer.valueOf(((TextView) v).getText().toString()) > 1339) {
                                                 visitaPreventa.setValorDiaSegunIndice(finalX, getResources().getString(R.string.max_secuencia));
-                                                if(indiceMixta != -1) {
+                                                if (indiceMixta != -1) {
                                                     visitaMixta.setValorDiaSegunIndice(finalX, getResources().getString(R.string.max_secuencia));
                                                 }
 
@@ -4365,7 +4552,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                 }
                                                 ((TextView) v).setText(getResources().getString(R.string.max_secuencia));
                                                 if (indiceMixta != -1) {
-                                                    copiarDia(et, indiceMixta,indicePreventa);
+                                                    copiarDia(et, indiceMixta, indicePreventa);
                                                 }
                                                 if ((finalIndiceZWB != -1 || finalIndiceZWE != -1)) {
                                                     determinarDiasDigitales(et, finalIndiceZWB, finalIndiceZWE);
@@ -4383,7 +4570,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                 }
 
                                                 visitaPreventa.setValorDiaSegunIndice(finalX, "");
-                                                if(indiceMixta != -1) {
+                                                if (indiceMixta != -1) {
                                                     visitaMixta.setValorDiaSegunIndice(finalX, "");
                                                 }
 
@@ -4391,13 +4578,13 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                     visitaReparto.setValorDiaSegunIndice(diaReparto, "");
                                                 }
                                                 if (indiceMixta != -1) {
-                                                    copiarDia(et, indiceMixta,indicePreventa);
+                                                    copiarDia(et, indiceMixta, indicePreventa);
                                                 }
                                             } else {
                                                 String secuenciaSAP = VariablesGlobales.SecuenciaToHora(((TextView) v).getText().toString());
 
                                                 visitaPreventa.setValorDiaSegunIndice(finalX, secuenciaSAP);
-                                                if(indiceMixta != -1) {
+                                                if (indiceMixta != -1) {
                                                     visitaMixta.setValorDiaSegunIndice(finalX, secuenciaSAP);
                                                 }
 
@@ -4405,7 +4592,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                     visitaReparto.setValorDiaSegunIndice(diaReparto, secuenciaSAP);
                                                 }
                                                 if (indiceMixta != -1) {
-                                                    copiarDia(et, indiceMixta,indicePreventa);
+                                                    copiarDia(et, indiceMixta, indicePreventa);
                                                 }
                                             }
 
@@ -4413,56 +4600,56 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                 RecalcularDiasDeReparto(getContext());
                                             }
 
-                                            if(VariablesGlobales.ComentariosAutomaticos()){
-                                                MaskedEditText comentariosAuto = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS"));
-                                                if((indicePreventa != -1 && visitasSolicitud.get(indicePreventa).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indicePreventa)))
-                                                || (indiceTeleventa != -1 && visitasSolicitud.get(indiceTeleventa).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indiceTeleventa)))
-                                                || (indiceEspecializada != -1 && visitasSolicitud.get(indiceEspecializada).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indiceEspecializada)))
-                                                || (indiceMixta != -1 && visitasSolicitud.get(indiceMixta).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indiceMixta)))
-                                                || (indiceAutoventa != -1 && visitasSolicitud.get(indiceAutoventa).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indiceAutoventa)))
-                                                || (indiceReparto != -1 && visitasSolicitud.get(indiceReparto).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indiceReparto)))
-                                                || (indiceZGE != -1 && visitasSolicitud.get(indiceZGE).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indiceZGE)))){
+                                            if (VariablesGlobales.ComentariosAutomaticos()) {
+                                                MaskedEditText comentariosAuto = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-COMENTARIOS"));
+                                                if ((indicePreventa != -1 && visitasSolicitud.get(indicePreventa).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indicePreventa)))
+                                                        || (indiceTeleventa != -1 && visitasSolicitud.get(indiceTeleventa).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indiceTeleventa)))
+                                                        || (indiceEspecializada != -1 && visitasSolicitud.get(indiceEspecializada).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indiceEspecializada)))
+                                                        || (indiceMixta != -1 && visitasSolicitud.get(indiceMixta).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indiceMixta)))
+                                                        || (indiceAutoventa != -1 && visitasSolicitud.get(indiceAutoventa).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indiceAutoventa)))
+                                                        || (indiceReparto != -1 && visitasSolicitud.get(indiceReparto).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indiceReparto)))
+                                                        || (indiceZGE != -1 && visitasSolicitud.get(indiceZGE).DiferenciaDeDiasDeVisita(visitasSolicitud_old.get(indiceZGE)))) {
 
-                                                    if(!comentariosAuto.getText().toString().contains("CAMBIO DIAS DE VISITA")) {
-                                                        if(comentariosAuto.getText().toString().trim().length() > 0)
+                                                    if (!comentariosAuto.getText().toString().contains("CAMBIO DIAS DE VISITA")) {
+                                                        if (comentariosAuto.getText().toString().trim().length() > 0)
                                                             comentariosAuto.append("\nCAMBIO DIAS DE VISITA");
                                                         else
                                                             comentariosAuto.append("CAMBIO DIAS DE VISITA");
                                                     }
-                                                }else{
-                                                    if(comentariosAuto.getText().toString().trim().contains("\nCAMBIO DIAS DE VISITA")){
-                                                        comentariosAuto.setText(comentariosAuto.getText().toString().replace("\nCAMBIO DIAS DE VISITA",""));
-                                                    }else{
-                                                        comentariosAuto.setText(comentariosAuto.getText().toString().replace("CAMBIO DIAS DE VISITA",""));
+                                                } else {
+                                                    if (comentariosAuto.getText().toString().trim().contains("\nCAMBIO DIAS DE VISITA")) {
+                                                        comentariosAuto.setText(comentariosAuto.getText().toString().replace("\nCAMBIO DIAS DE VISITA", ""));
+                                                    } else {
+                                                        comentariosAuto.setText(comentariosAuto.getText().toString().replace("CAMBIO DIAS DE VISITA", ""));
                                                     }
                                                 }
                                             }
                                         }
 
 
-
-
                                     }
+
                                     private void copiarDia(TextInputEditText et, int indPreventa, int indMixta) {
                                         if (et.getTag().toString().contains("ZRM")) {
                                             TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get(et.getTag().toString().replace("ZRM", "ZPV"));
-                                            if(copiar != null)
+                                            if (copiar != null)
                                                 copiar.setText(et.getText());
-                                            if(indPreventa > 0 && indMixta > 0 && visitasSolicitud.size() > 0) {
+                                            if (indPreventa > 0 && indMixta > 0 && visitasSolicitud.size() > 0) {
                                                 String valor = visitasSolicitud.get(indMixta).getValorDiaSegunIndice(finalX);
                                                 visitasSolicitud.get(indPreventa).setValorDiaSegunIndice(finalX, valor);
                                             }
                                         }
                                         if (et.getTag().toString().contains("ZPV") && mDBHelper.ExisteTipoVisita("ZRM")) {
                                             TextInputEditText copiar = (TextInputEditText) mapeoCamposDinamicos.get(et.getTag().toString().replace("ZPV", "ZRM"));
-                                            if(copiar != null)
+                                            if (copiar != null)
                                                 copiar.setText(et.getText());
-                                            if(indPreventa > 0 && indMixta > 0 && visitasSolicitud.size() > 0) {
+                                            if (indPreventa > 0 && indMixta > 0 && visitasSolicitud.size() > 0) {
                                                 String valor = visitasSolicitud.get(indPreventa).getValorDiaSegunIndice(finalX);
                                                 visitasSolicitud.get(indMixta).setValorDiaSegunIndice(finalX, valor);
                                             }
                                         }
                                     }
+
                                     private void determinarDiasDigitales(TextInputEditText et, int finalIndZWB, int finalIndZWE) {
                                         int finalIndPreventa = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", ""));
                                         if (et.getTag().toString().contains(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "")))
@@ -4496,7 +4683,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                             visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(mifinal, "0001");
                                                         }
                                                         int eldia = Solo1DiaAsignado(finalIndPreventa);
-                                                        if(eldia >= 0){
+                                                        if (eldia >= 0) {
                                                             if (eldia == 0)//Preventa Lunes -> Digitales Miércoles
                                                                 copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_M");
                                                             if (eldia == 1)//Preventa Martes -> Digitales Jueves
@@ -4557,7 +4744,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                             visitasSolicitud.get(finalIndZWB).setValorDiaSegunIndice(mifinal, "");
                                                         }
                                                         int eldia = Solo1DiaAsignado(finalIndPreventa);
-                                                        if(eldia >= 0){
+                                                        if (eldia >= 0) {
                                                             if (eldia == 0)//Preventa Lunes -> Digitales Miércoles
                                                                 copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWB_M");
                                                             if (eldia == 1)//Preventa Martes -> Digitales Jueves
@@ -4623,7 +4810,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                         visitasSolicitud.get(finalIndZWE).setValorDiaSegunIndice(finalX + 2, "0001");
                                                     }
                                                     int eldia = Solo1DiaAsignado(finalIndPreventa);
-                                                    if(eldia >= 0){
+                                                    if (eldia >= 0) {
                                                         if (eldia == 0)//Preventa Lunes -> Digitales Miércoles
                                                             copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_M");
                                                         if (eldia == 1)//Preventa Martes -> Digitales Jueves
@@ -4683,7 +4870,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                         visitasSolicitud.get(finalIndZWE).setValorDiaSegunIndice(mifinal, "");
                                                     }
                                                     int eldia = Solo1DiaAsignado(finalIndPreventa);
-                                                    if(eldia >= 0){
+                                                    if (eldia >= 0) {
                                                         if (eldia == 0)//Preventa Lunes -> Digitales Miércoles
                                                             copiar = (TextInputEditText) mapeoCamposDinamicos.get("ZWE_M");
                                                         if (eldia == 1)//Preventa Martes -> Digitales Jueves
@@ -4725,14 +4912,14 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                                 });
 
-                                if(et_anterior != null){
+                                if (et_anterior != null) {
                                     et_anterior.setNextFocusForwardId(et.getId());
                                     et_anterior.setNextFocusRightId(et.getId());
                                     et_anterior.setNextFocusLeftId(et.getId());
                                     et_anterior.setNextFocusUpId(et.getId());
                                     et_anterior.setNextFocusDownId(et.getId());
                                 }
-                                if(x == 6){
+                                if (x == 6) {
                                     et_anterior.setImeOptions(EditorInfo.IME_ACTION_DONE);
                                     et_anterior.setNextFocusForwardId(0);
                                     et_anterior.setNextFocusRightId(0);
@@ -4744,7 +4931,24 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
 
                                 tr.addView(label);
                                 label.addView(et);
-                            }
+
+                                if(visitasSolicitud.size() > 0 && visitasSolicitud.get(i).getRuta().trim().isEmpty()) {
+                                    header_visitas.setVisibility(View.GONE);
+                                    et.setVisibility(View.GONE);
+                                    label.setVisibility(View.GONE);
+                                }else {
+                                    header_visitas.setVisibility(View.VISIBLE);
+                                    et.setVisibility(View.VISIBLE);
+                                    label.setVisibility(View.VISIBLE);
+                                }
+                                //Validar si son ZWE o ZWB para colombia deben salir escondidos
+                                if(tipoVisitaActual.equals("ZWE") || tipoVisitaActual.equals("ZWB")){
+                                    header_visitas.setVisibility(View.GONE);
+                                    label.setVisibility(View.GONE);
+                                    et.setVisibility(View.GONE);
+                                }
+                            }//for de cada dia de MaskedEditText
+
                         }
                         v_ll.addView(tr);
                         if (v_ll.getParent() != null)
@@ -5193,9 +5397,15 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     impuestosSolicitud.remove(seleccionado);
                 Impuesto nuevoImpuesto = new Impuesto();
                 nuevoImpuesto.setTatyp(((OpcionSpinner)claveSpinner.getSelectedItem()).getId());
-                nuevoImpuesto.setVtext(((OpcionSpinner)claveSpinner.getSelectedItem()).getName());
+                String full = ((OpcionSpinner) claveSpinner.getSelectedItem()).getName();
+                String[] parts = full.split(" - ", 2); // split into 2 parts only
+                String result = parts.length > 1 ? parts[1] : full;
+                nuevoImpuesto.setVtext(result);
                 nuevoImpuesto.setTaxkd(((OpcionSpinner)clasiSpinner.getSelectedItem()).getId());
-                nuevoImpuesto.setVtext2(((OpcionSpinner)clasiSpinner.getSelectedItem()).getName());
+                full = ((OpcionSpinner) clasiSpinner.getSelectedItem()).getName();
+                parts = full.split(" - ", 2); // split into 2 parts only
+                result = parts.length > 1 ? parts[1] : full;
+                nuevoImpuesto.setVtext2(result);
                 if(!nuevoImpuesto.validarObligatorios()){
                     Toasty.warning(v.getContext(), "Todos los campos son obligatorios!").show();
                     return;
@@ -6638,6 +6848,14 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         Drawable spinner_back = context.getResources().getDrawable(R.drawable.spinner_background, null);
         fcalidSpinner.setBackground(spinner_back);
         fcalidSpinner.setAdapter(dataAdapter);
+        ArrayAdapter<OpcionSpinner> adapter = (ArrayAdapter<OpcionSpinner>) fcalidSpinner.getAdapter();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            OpcionSpinner item = adapter.getItem(i);
+            if (item != null && seleccionado.getFcalid().equals(item.getId())) {
+                selectedIndex = i;
+                break;
+            }
+        }
         fcalidSpinner.setSelection(selectedIndex);
 
         //SAVE
@@ -6864,7 +7082,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             String secuenciaSAP = h+m;
             switch(diaReparto){
                 case 1:
-                    if(vp_reparto_old == null || vp_reparto_old.getLun_a().trim().length() == 0) {
+                    if(vp_reparto_old == null || vp_reparto_old.getLun_a().trim().length() == 0 || vp_reparto_old.getLun_a().trim().equals("0000")) {
                         vp_reparto.setLun_a(secuenciaSAP);
                         vp_reparto.setLun_de(secuenciaSAP);
                     }else{
@@ -6873,7 +7091,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     }
                     break;
                 case 2:
-                    if(vp_reparto_old == null || vp_reparto_old.getMar_a().trim().length() == 0) {
+                    if(vp_reparto_old == null || vp_reparto_old.getMar_a().trim().length() == 0 || vp_reparto_old.getMar_a().trim().equals("0000")) {
                         vp_reparto.setMar_a(secuenciaSAP);
                         vp_reparto.setMar_de(secuenciaSAP);
                     }else{
@@ -6882,7 +7100,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     }
                     break;
                 case 3:
-                    if(vp_reparto_old == null || vp_reparto_old.getMier_a().trim().length() == 0) {
+                    if(vp_reparto_old == null || vp_reparto_old.getMier_a().trim().length() == 0 || vp_reparto_old.getMier_a().trim().equals("0000")) {
                         vp_reparto.setMier_a(secuenciaSAP);
                         vp_reparto.setMier_de(secuenciaSAP);
                     }
@@ -6892,7 +7110,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     }
                     break;
                 case 4:
-                    if(vp_reparto_old == null || vp_reparto_old.getJue_a().trim().length() == 0) {
+                    if(vp_reparto_old == null || vp_reparto_old.getJue_a().trim().length() == 0 || vp_reparto_old.getJue_a().trim().equals("0000")) {
                         vp_reparto.setJue_a(secuenciaSAP);
                         vp_reparto.setJue_de(secuenciaSAP);
                     }else{
@@ -6901,7 +7119,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     }
                     break;
                 case 5:
-                    if(vp_reparto_old == null || vp_reparto_old.getVie_a().trim().length() == 0) {
+                    if(vp_reparto_old == null || vp_reparto_old.getVie_a().trim().length() == 0 || vp_reparto_old.getVie_a().trim().equals("0000")) {
                         vp_reparto.setVie_a(secuenciaSAP);
                         vp_reparto.setVie_de(secuenciaSAP);
                     }else{
@@ -6910,7 +7128,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     }
                     break;
                 case 6:
-                    if(vp_reparto_old == null || vp_reparto_old.getSab_a().trim().length() == 0) {
+                    if(vp_reparto_old == null || vp_reparto_old.getSab_a().trim().length() == 0 || vp_reparto_old.getSab_a().trim().equals("0000")) {
                         vp_reparto.setSab_a(secuenciaSAP);
                         vp_reparto.setSab_de(secuenciaSAP);
                     }else{
@@ -7605,7 +7823,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         horarios = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Horarios");
 
 
-
+        String tipoClienteDestino = mDBHelper.getTipoClienteDestino(tipoSolicitud);
         Gson gson = new Gson();
         //Si es un cierre de URUGUAY se debe validar el cliente es una cuenta pagadora para que se realice por el formulario correcto ID = 45
         //Para saber si es cuenta pagadora voy a validar el interlocutor RG de SAP
@@ -7761,15 +7979,30 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaFinal.get(i)));
                         if(sp != null) {
                             if (cliente.get(0).getAsJsonObject().get(listaFinal.get(i)) != null) {
-                                //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP.
-                                if (VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()) == -1) {
-                                    ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) sp.getAdapter());
-                                    OpcionSpinner opcionSAP = new OpcionSpinner(cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim(), cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim() + " - " + cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim());
-                                    dataAdapter.add(opcionSAP);
-                                    dataAdapter.notifyDataSetChanged();
+                                //Si el formulario es de cambio de tipo cliente los campos keyaccount y cadena padre
+                                if(!tipoClienteDestino.isEmpty() && (listaFinal.get(i).trim().equals("W_CTE-HKUNNR") || listaFinal.get(i).trim().equals("W_CTE-ZZKEYACC"))) {
+                                    if (tipoClienteDestino.equals("MA")) {
+                                        //Si son cambios de tipo de cliente KA a MA, IND a MA solo debe seleccionar la cadena y keyaccount mercado abierto
+                                        if (listaFinal.get(i).trim().equals("W_CTE-HKUNNR")) {
+                                            sp.setSelection(VariablesGlobales.getIndex(sp, VariablesGlobales.getCadenaRM()));
+                                            sp.setEnabled(false);
+                                        }
+                                        if (listaFinal.get(i).trim().equals("W_CTE-ZZKEYACC")) {
+                                            sp.setSelection(VariablesGlobales.getIndex(sp, "CA002"));
+                                            sp.setEnabled(false);
+                                        }
+                                    }
+                                }else {
+                                    //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP.
+                                    if (VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()) == -1) {
+                                        ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) sp.getAdapter());
+                                        OpcionSpinner opcionSAP = new OpcionSpinner(cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim(), cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim() + " - " + cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim());
+                                        dataAdapter.add(opcionSAP);
+                                        dataAdapter.notifyDataSetChanged();
+                                    }
+                                    //Log.w("Async", "Asigna " + VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
+                                    sp.setSelection(VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
                                 }
-                                Log.w("Async", "Asigna " + VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
-                                sp.setSelection(VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()));
                             }
                             if (listaFinal.get(i).trim().equals("W_CTE-VSBED") && PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_TIPORUTA", "ZPV").toString().equals("ZAT")) {
                                 String condicionExpedicion = mDBHelper.CondicionExpedicionSegunRutaReparto(PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_VKORG", ""), PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_RUTAHH", ""));
@@ -8036,6 +8269,115 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         }
     }
 
+    public void LlenarCamposCadena(Context context, Activity activity, ArrayList<JsonArray> estructurasSAP){
+        if(estructurasSAP.size() == 0){
+            //Toasty.error(context.getApplicationContext(),"No se pudo obtener la informacion de la cadena padre!").show();
+            return;
+        }
+        try {
+            JsonArray cliente = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Cliente");
+
+            //LLenar los campos necesarios de la encuesta.
+            var mensajeCadena = "";
+            String zzent3 = cliente.get(0).getAsJsonObject().get("W_CTE-ZZENT3").getAsString();
+            String zzent4 = cliente.get(0).getAsJsonObject().get("W_CTE-ZZENT4").getAsString();
+            String zzcanal = cliente.get(0).getAsJsonObject().get("W_CTE-ZZCANAL").getAsString();
+            String ztpocanal = cliente.get(0).getAsJsonObject().get("W_CTE-ZTPOCANAL").getAsString();
+            String zgpocanal = cliente.get(0).getAsJsonObject().get("W_CTE-ZGPOCANAL").getAsString();
+            String pson3 = cliente.get(0).getAsJsonObject().get("W_CTE-PSON3").getAsString();
+            //Extras diferente a MA
+            String zzkeyacc = cliente.get(0).getAsJsonObject().get("W_CTE-ZZKEYACC").getAsString();
+            String zzunneg = cliente.get(0).getAsJsonObject().get("W_CTE-ZZUNNEG").getAsString();
+            String zzklabc = cliente.get(0).getAsJsonObject().get("W_CTE-KLABC").getAsString();
+            String zzsubunneg = cliente.get(0).getAsJsonObject().get("W_CTE-ZZSUBUNNEG").getAsString();
+            String zzent5 = cliente.get(0).getAsJsonObject().get("W_CTE-ZZENT5").getAsString();
+            String zzent2 = cliente.get(0).getAsJsonObject().get("W_CTE-ZZENT2").getAsString();
+            String akont = cliente.get(0).getAsJsonObject().get("W_CTE-AKONT").getAsString();
+
+
+            if (zzent3.equals("")) {
+                mensajeCadena += " CANAL ISSCOM, ";
+            }
+            if (zzent4.equals("")) {
+                mensajeCadena += " CANAL PAIS, ";
+            }
+            if (zzcanal.equals("")) {
+                mensajeCadena += " CANAL KOF, ";
+            }
+            if (ztpocanal.equals("")) {
+                mensajeCadena += " TIPO CANAL, ";
+            }
+            if (zgpocanal.equals("")) {
+                mensajeCadena += " GRUPO CANAL, ";
+            }
+                /*if (cliente.get(0).getAsJsonObject().get("W_CTE-PSON3").getAsString().equals("")) {
+                    mensajeCadena += " CLUSTER GVC, ";
+                }*/
+            if (mensajeCadena != "") {
+                mensajeCadena = "La cadena seleccionada no tiene el valor para el campo " + mensajeCadena;
+                Toasty.warning(context, mensajeCadena).show();
+                return;
+            }
+
+            Spinner sp_zzent3 = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZENT3"));
+            if (sp_zzent3 != null)
+                sp_zzent3.setSelection(VariablesGlobales.getIndex(sp_zzent3, zzent3));
+
+            Spinner sp_zzent4 = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZENT4"));
+            if (sp_zzent4 != null)
+                sp_zzent4.setSelection(VariablesGlobales.getIndex(sp_zzent4, zzent4));
+
+            Spinner sp_zzcanal = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZCANAL"));
+            if (sp_zzcanal != null)
+                sp_zzcanal.setSelection(VariablesGlobales.getIndex(sp_zzcanal, zzcanal));
+            //Si no exiiste el valor lo debo obligar a que si lo seleccione?
+
+            Spinner sp_ztpocanal = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZTPOCANAL"));
+            if (sp_ztpocanal != null)
+                sp_ztpocanal.setSelection(VariablesGlobales.getIndex(sp_ztpocanal, ztpocanal));
+
+            Spinner sp_zgpocanal = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZGPOCANAL"));
+            if (sp_zgpocanal != null)
+                sp_zgpocanal.setSelection(VariablesGlobales.getIndex(sp_zgpocanal, zgpocanal));
+
+            Spinner sp_pson3 = ((Spinner) mapeoCamposDinamicos.get("W_CTE-PSON3"));
+            if (sp_pson3 != null)
+                sp_pson3.setSelection(VariablesGlobales.getIndex(sp_pson3, pson3));
+
+            //Extras diferentes a MA
+            Spinner sp_zzkeyacc = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZKEYACC"));
+            if (sp_zzkeyacc != null)
+                sp_zzkeyacc.setSelection(VariablesGlobales.getIndex(sp_zzkeyacc, zzkeyacc));
+
+            Spinner sp_zzklabc = ((Spinner) mapeoCamposDinamicos.get("W_CTE-KLABC"));
+            if (sp_zzklabc != null)
+                sp_zzklabc.setSelection(VariablesGlobales.getIndex(sp_zzklabc, zzklabc));
+
+            Spinner sp_zzunneg = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZUNNEG"));
+            if (sp_zzunneg != null)
+                sp_zzunneg.setSelection(VariablesGlobales.getIndex(sp_zzunneg, zzunneg));
+
+            Spinner sp_zzsubunneg = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZSUBUNNEG"));
+            if (sp_zzsubunneg != null)
+                sp_zzsubunneg.setSelection(VariablesGlobales.getIndex(sp_zzsubunneg, zzsubunneg));
+
+            Spinner sp_zzent2 = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZENT2"));
+            if (sp_zzent2 != null)
+                sp_zzent2.setSelection(VariablesGlobales.getIndex(sp_zzent2, zzent2));
+
+            Spinner sp_zzent5 = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZENT5"));
+            if (sp_zzent5 != null)
+                sp_zzent5.setSelection(VariablesGlobales.getIndex(sp_zzent5, zzent5));
+
+            //Credito
+            Spinner sp_akont = ((Spinner) mapeoCamposDinamicos.get("W_CTE-AKONT"));
+            if (sp_akont != null)
+                sp_akont.setSelection(VariablesGlobales.getIndex(sp_akont, akont));
+        }catch (Exception e){
+            Toasty.warning(context,"Error en los valores de la Cadena Padre: "+e.getMessage()).show();
+        }
+    }
+
     public static void removeNonExistingVisitas(ArrayList<Visitas> visitasList, JsonArray _visitas) {
         // Create an iterator for the ArrayList to avoid ConcurrentModificationException
         Iterator<Visitas> iterator = visitasList.iterator();
@@ -8063,7 +8405,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         if(idSolicitud == null){
             removeNonExistingVisitas(visitasSolicitud, visitas);
             //visitasSolicitud.clear();
-            //visitasSolicitud_old.clear();
+            visitasSolicitud_old.clear();
         }
         Gson gson = new Gson();
         Visitas visita = null;

@@ -73,6 +73,9 @@ public class EditTextDatePicker  implements View.OnClickListener, DatePickerDial
             case "dd-mm-yyyy":
                 _editText.setText(new StringBuilder().append(_day).append("-").append(_month).append("-").append(_birthYear).append(" "));
                 break;
+            case "yyyy-mm-dd":
+                _editText.setText(new StringBuilder().append(_birthYear).append("-").append(_month).append("-").append(_day).append(" "));
+                break;
             default:
                 _editText.setText(new StringBuilder().append(_day).append("/").append(_month).append("/").append(_birthYear).append(" "));
                 break;
