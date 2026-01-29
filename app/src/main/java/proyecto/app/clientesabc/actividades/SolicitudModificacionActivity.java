@@ -4240,7 +4240,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     btnAddBloque.setVisibility(INVISIBLE);
 
                     Button btnRefreshBloque = new Button(getContext());
-                    LinearLayout.LayoutParams tam_btnv = new LinearLayout.LayoutParams(30,30);
+                    LinearLayout.LayoutParams tam_btnv = new LinearLayout.LayoutParams(40,40);
 
                     btnRefreshBloque.setLayoutParams(tam_btnv);
                     btnRefreshBloque.setBackground(getResources().getDrawable(R.drawable.icon_refresh,null));
@@ -7810,6 +7810,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             return;
         }
 
+
         cliente = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Cliente");
         notaEntrega = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("NotaEntrega");
         factura = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Factura");
@@ -7826,6 +7827,12 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
         String tipoClienteDestino = mDBHelper.getTipoClienteDestino(tipoSolicitud);
         Gson gson = new Gson();
         //Si es un cierre de URUGUAY se debe validar el cliente es una cuenta pagadora para que se realice por el formulario correcto ID = 45
+
+        if ((tipoSolicitud.equals("71") && !cliente.get(0).getAsJsonObject().get("W_CTE-ZTERM").getAsString().contains("00"))) {
+            Toasty.error(context.getApplicationContext(),"Cliente no es de contado. No se puede generar consignación.").show();
+            activity.finish();
+            return;
+        }
         //Para saber si es cuenta pagadora voy a validar el interlocutor RG de SAP
         if(interlocutores.size() > 0 && (PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()).equals("1661") || PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD","").equals("Z001"))) {
             Interlocutor interlocutor = null;
@@ -10200,47 +10207,47 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                 mensajeHorarios += "En el dia Domingo, la hora inicial de la mañana no puede ser mayor a la hora final de la tarde!\n";
             }
 
-            if(moab1 != 0 && mobi2 != 0 && mobi1 == 0 && moab2 == 0 && moab1 > 1200){
+            if(moab1 != 0 && mobi2 != 0 && mobi1 == 0 && moab2 == 0 && moab1 > 120000){
                 mensajeHorarios += "En el dia Lunes, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
             }
-            if (diab1 != 0 && dibi2 != 0 && dibi1 == 0 && diab2 == 0 && diab1 > 1200) {
+            if (diab1 != 0 && dibi2 != 0 && dibi1 == 0 && diab2 == 0 && diab1 > 120000) {
                 mensajeHorarios += "En el dia Martes, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
             }
-            if (miab1 != 0 && mibi2 != 0 && mibi1 == 0 && miab2 == 0 && miab1 > 1200) {
+            if (miab1 != 0 && mibi2 != 0 && mibi1 == 0 && miab2 == 0 && miab1 > 120000) {
                 mensajeHorarios += "En el dia Miercoles, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
             }
-            if (doab1 != 0 && dobi2 != 0 && dobi1 == 0 && doab2 == 0 && doab1 > 1200) {
+            if (doab1 != 0 && dobi2 != 0 && dobi1 == 0 && doab2 == 0 && doab1 > 120000) {
                 mensajeHorarios += "En el dia Jueves, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
             }
-            if (frab1 != 0 && frbi2 != 0 && frbi1 == 0 && frab2 == 0 && frab1 > 1200) {
+            if (frab1 != 0 && frbi2 != 0 && frbi1 == 0 && frab2 == 0 && frab1 > 120000) {
                 mensajeHorarios += "En el dia Viernes, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
             }
-            if (saab1 != 0 && sabi2 != 0 && sabi1 == 0 && saab2 == 0 && saab1 > 1200) {
+            if (saab1 != 0 && sabi2 != 0 && sabi1 == 0 && saab2 == 0 && saab1 > 120000) {
                 mensajeHorarios += "En el dia Sabado, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
             }
-            if (soab1 != 0 && sobi2 != 0 && sobi1 == 0 && soab2 == 0 && soab1 > 1200) {
+            if (soab1 != 0 && sobi2 != 0 && sobi1 == 0 && soab2 == 0 && soab1 > 120000) {
                 mensajeHorarios += "En el dia Domingo, la hora inicial de la mañana no puede ser mayor a las 12:00 MD!\n";
             }
 
-            if(moab1 != 0 && mobi2 != 0 && mobi1 == 0 && moab2 == 0 && mobi2 < 1200){
+            if(moab1 != 0 && mobi2 != 0 && mobi1 == 0 && moab2 == 0 && mobi2 < 120000){
                 mensajeHorarios += "En el dia Lunes, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
             }
-            if (diab1 != 0 && dibi2 != 0 && dibi1 == 0 && diab2 == 0 && dibi2 < 1200) {
+            if (diab1 != 0 && dibi2 != 0 && dibi1 == 0 && diab2 == 0 && dibi2 < 120000) {
                 mensajeHorarios += "En el dia Martes, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
             }
-            if (miab1 != 0 && mibi2 != 0 && mibi1 == 0 && miab2 == 0 && mibi2 < 1200) {
+            if (miab1 != 0 && mibi2 != 0 && mibi1 == 0 && miab2 == 0 && mibi2 < 120000) {
                 mensajeHorarios += "En el dia Miercoles, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
             }
-            if (doab1 != 0 && dobi2 != 0 && dobi1 == 0 && doab2 == 0 && dobi2 < 1200) {
+            if (doab1 != 0 && dobi2 != 0 && dobi1 == 0 && doab2 == 0 && dobi2 < 120000) {
                 mensajeHorarios += "En el dia Jueves, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
             }
-            if (frab1 != 0 && frbi2 != 0 && frbi1 == 0 && frab2 == 0 && frbi2 < 1200) {
+            if (frab1 != 0 && frbi2 != 0 && frbi1 == 0 && frab2 == 0 && frbi2 < 120000) {
                 mensajeHorarios += "En el dia Viernes, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
             }
-            if (saab1 != 0 && sabi2 != 0 && sabi1 == 0 && saab2 == 0 && sabi2 < 1200) {
+            if (saab1 != 0 && sabi2 != 0 && sabi1 == 0 && saab2 == 0 && sabi2 < 120000) {
                 mensajeHorarios += "En el dia Sabado, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
             }
-            if (soab1 != 0 && sobi2 != 0 && sobi1 == 0 && soab2 == 0 && sobi2 < 1200) {
+            if (soab1 != 0 && sobi2 != 0 && sobi1 == 0 && soab2 == 0 && sobi2 < 120000) {
                 mensajeHorarios += "En el dia Domingo, la hora final de la tarde no puede ser menor a las 12:00 MD!\n";
             }
 
@@ -10251,19 +10258,6 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             return mensajeHorarios;
         }
         return "";
-    }
-
-    private static boolean ValidarCliente(View v){
-        TextView texto = (TextView)v;
-        String coordenadaY = "^[-]?(([8-9]|[1][0-2])(\\.\\d{3,12}+)?)";
-        Pattern pattern = Pattern.compile(coordenadaY);
-        Matcher matcher = pattern.matcher(texto.getText().toString().trim());
-        if (!matcher.matches()) {
-            texto.setError("Formato Coordenada Y "+texto.getText().toString().trim()+" invalido!");
-            return false;
-        }
-        //Toasty.success(texto.getContext(),"Formato Coordenada Y "+valor+" valido!").show();
-        return true;
     }
 
     /*CORRER EN NUEVO THREAD Para poder mostrar avance o loading image*/

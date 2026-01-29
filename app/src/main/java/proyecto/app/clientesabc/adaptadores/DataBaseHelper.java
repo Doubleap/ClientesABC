@@ -293,7 +293,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             }
             switch (PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "")) {
                 case "F443":
-                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal " +
+                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal, ZTERM as zterm " +
                             ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
                             " FROM SAPDClientes ";
                             if(usaMonitor)
@@ -355,6 +355,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 user.put("canal", cursor.getString(cursor.getColumnIndex("canal")) != null ? cursor.getString(cursor.getColumnIndex("canal")) : "");
                 if (cursor.getColumnIndex("tipo_canal") != -1) {
                     user.put("tipo_canal", cursor.getString(cursor.getColumnIndex("tipo_canal")) != null ? cursor.getString(cursor.getColumnIndex("tipo_canal")) : "");
+                }
+                if (cursor.getColumnIndex("zterm") != -1) {
+                    user.put("zterm", cursor.getString(cursor.getColumnIndex("zterm")) != null ? cursor.getString(cursor.getColumnIndex("zterm")) : "");
                 }
                 clientList.add(user);
             }
@@ -4633,9 +4636,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<HashMap<String, Object>> getListaCoordenadasHabilitador(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, Object>> dataCoordenadas = new ArrayList<>();
-        String query = "SELECT * FROM cat_habilitador h WHERE BZIRK = ? OR BZIRK IS NULL OR BZIRK = ''";
+        String query = "SELECT * FROM cat_habilitador h WHERE (BZIRK = ? OR BZIRK IS NULL OR BZIRK = '') AND ruta_venta = ?";
         try {
-            Cursor cursor = mDataBase.rawQuery(query, new String[]{PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK", "")});
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK", ""),PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH", "")});
 
             while (cursor.moveToNext()) {
                 HashMap<String, Object> solicitud = new HashMap<>();
