@@ -4653,7 +4653,35 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         return  dataCoordenadas;
     }
+    public boolean CorreoValidadoUltimamente(String correo){
+        boolean existe = false;
+        String query = "SELECT correo FROM VerificacionCodigos p WHERE correo = ? AND estado = ? and fecha_mod >= datetime('now', '-3 months')";
+        try {
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{correo,"Verificado"});
+            while (cursor.moveToNext()) {
+                existe = true;
+            }
+            cursor.close();
+        }catch(Exception e){
+            Toasty.warning(mContext,"No se pudo validar el correo: "+e.getMessage()).show();
+        }
+        return  existe;
+    }
+    public boolean NumeroValidadoUltimamente(String celular){
+        boolean existe = false;
+        String query = "SELECT celular FROM VerificacionCodigos p WHERE celular = ? AND estado = ? and fecha_mod >= datetime('now', '-3 months')";
+        try {
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{celular,"Verificado"});
 
+            while (cursor.moveToNext()) {
+                existe = true;
+            }
+            cursor.close();
+        }catch(Exception e){
+            Toasty.warning(mContext,"No se pudo validar el # celular: "+e.getMessage()).show();
+        }
+        return  existe;
+    }
     public boolean rutaEnPavent(String reparto){
         boolean existe = false;
         String query = "SELECT * FROM SAPDCAT_Ruta_Relacion p WHERE route = ? AND zroute = ?";

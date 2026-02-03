@@ -186,9 +186,10 @@ public class LoginActivity extends AppCompatActivity {
                 file.delete();
         }
 
-        File externalStorage = getExternalFilesDir(null);
-        String externalStoragePath = externalStorage.getAbsolutePath();
-        File file = new File(externalStoragePath + File.separator + getPackageName() + File.separator +"configuracion.xml");
+        //File externalStorage = getExternalFilesDir(null);
+        //String externalStoragePath = externalStorage.getAbsolutePath();
+        //File file = new File(externalStoragePath + File.separator + getPackageName() + File.separator +"configuracion.xml");
+        File file = new File(getExternalFilesDir(null), "configuracion.xml");
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder documentBuilder = null;
         try {

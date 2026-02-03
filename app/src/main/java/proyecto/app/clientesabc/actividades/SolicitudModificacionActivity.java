@@ -3213,6 +3213,10 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                 if(solicitudSeleccionada.size() > 0 && correo.toString().equals(solicitudSeleccionada.get(0).get(campos.get(finalI4).get("campo"))) && !finalBtnAyuda1.getTag().toString().equals("Obligatorio")) {
                                     finalBtnAyuda1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.aprobados, null)));
                                 }
+                                //Si se ha validado en menos de 3 meses tambien poner en verde
+                                if(solicitudSeleccionada.size() > 0 && db.CorreoValidadoUltimamente(solicitudSeleccionada.get(0).get(campos.get(finalI4).get("campo"))) && finalBtnAyuda1.getTag().toString().equals("Obligatorio")){
+                                    finalBtnAyuda1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.aprobados, null)));
+                                }
                                 finalBtnAyuda1.setOnClickListener((View.OnClickListener) view -> {
                                     String bukrs = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
                                     String correo_armado = et.getText().toString();
@@ -7930,7 +7934,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         atCorreo.setSelection(VariablesGlobales.getIndex(atCorreo, "Otros"));
                                     }
                                 }
-                                if (verificarCorreo != null  && !cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim().equals("") && !verificarCorreo.getTag().toString().equals("Obligatorio")) {
+                                if (verificarCorreo != null  && !cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim().equals("") && (!verificarCorreo.getTag().toString().equals("Obligatorio") || (verificarCorreo.getTag().toString().equals("Obligatorio") && mDBHelper.CorreoValidadoUltimamente(correo_original.toUpperCase())))) {
                                     verificarCorreo.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(R.color.aprobados, null)));
                                 }
                             }
