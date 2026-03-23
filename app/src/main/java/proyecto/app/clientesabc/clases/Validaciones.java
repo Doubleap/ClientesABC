@@ -295,7 +295,7 @@ public class Validaciones {
         }
     }
 
-    public final static void ejecutarExcepcion(Context context, View elemento,View label, HashMap<String, String> configExcepcion, ArrayList<String> listaCamposObligatorios, HashMap<String, String> campo){
+    public final static void ejecutarExcepcion(Context context, View elemento,View label, HashMap<String, String> configExcepcion, ArrayList<String> listaCamposObligatorios, HashMap<String, String> campo, ArrayList<HashMap<String, String>> solicitud){
         //Posibles tipo de elemento
         if(elemento instanceof CheckBox)
         {
@@ -322,10 +322,10 @@ public class Validaciones {
             }
             if (configExcepcion.get("descr") != null && !configExcepcion.get("descr").isEmpty() && !configExcepcion.get("descr").equals("NULL")) {
                 checkbox.setText(configExcepcion.get("descr"));
+                checkbox.setTag(configExcepcion.get("descr"));
             }
         }
-        if(elemento instanceof SearchableSpinner)
-        {
+        if(elemento instanceof SearchableSpinner) {
             SearchableSpinner combo = (SearchableSpinner) elemento;
             if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
                 combo.setEnabled(false);
@@ -347,18 +347,19 @@ public class Validaciones {
                 listaCamposObligatorios.remove(campo.get("campo").trim());
             }
             if (!configExcepcion.get("dfaul").isEmpty() && !configExcepcion.get("dfaul").equals("NULL")) {
-                combo.setSelection(VariablesGlobales.getIndex(combo,configExcepcion.get("dfaul").trim()));
+                combo.setSelection(VariablesGlobales.getIndex(combo, configExcepcion.get("dfaul").trim()));
             }
             if (configExcepcion.get("descr") != null && !configExcepcion.get("descr").isEmpty() && !configExcepcion.get("descr").equals("NULL")) {
-                if(label instanceof TextInputLayout)
-                    ((TextInputLayout)label).setHint(configExcepcion.get("descr").trim());
-                if(label instanceof TextView)
-                    ((TextView)label).setText(configExcepcion.get("descr").trim());
+                if (label instanceof TextInputLayout)
+                    ((TextInputLayout) label).setHint(configExcepcion.get("descr").trim());
+                if (label instanceof TextView)
+                    ((TextView) label).setText(configExcepcion.get("descr").trim());
+                combo.setTag(configExcepcion.get("descr").trim());
             }
             //Revisar si tiene un catalogo alternativo
             if (configExcepcion.get("tabla") != null && !configExcepcion.get("tabla").isEmpty() && !configExcepcion.get("tabla").equals("NULL")) {
                 DataBaseHelper mDBHelper = new DataBaseHelper(context);
-                ArrayList<HashMap<String, String>> opciones =  mDBHelper.getDatosCatalogo("cat_"+configExcepcion.get("tabla").trim());
+                ArrayList<HashMap<String, String>> opciones = mDBHelper.getDatosCatalogo("cat_" + configExcepcion.get("tabla").trim());
 
                 ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
                 for (int j = 0; j < opciones.size(); j++) {
@@ -369,6 +370,13 @@ public class Validaciones {
                 dataAdapter.setDropDownViewResource(R.layout.spinner_item);
                 // attaching data adapter to spinner
                 combo.setAdapter(dataAdapter);
+                if (solicitud != null && solicitud.size() > 0) {
+                    int indiceseleccionado = VariablesGlobales.getIndex(combo, solicitud.get(0).get(campo.get("campo")));
+                    if (indiceseleccionado != -1)
+                        combo.setSelection(indiceseleccionado);
+                    else
+                        combo.setSelection(0);
+                }
                 dataAdapter.notifyDataSetChanged();
             }
         }
@@ -403,6 +411,7 @@ public class Validaciones {
                     ((TextInputLayout)label).setHint(configExcepcion.get("descr").trim());
                 if(label instanceof TextView)
                     ((TextView)label).setText(configExcepcion.get("descr").trim());
+                et.setTag(configExcepcion.get("descr").trim());
             }
         }
     }
@@ -433,6 +442,10 @@ public class Validaciones {
                     checkbox.setChecked(false);
                 }
             }
+            if (configExcepcion.get("descr") != null && !configExcepcion.get("descr").isEmpty() && !configExcepcion.get("descr").equals("NULL")) {
+                checkbox.setText(configExcepcion.get("descr"));
+                checkbox.setTag(configExcepcion.get("descr"));
+            }
         }
         if(elemento instanceof SearchableSpinner)
         {
@@ -461,6 +474,30 @@ public class Validaciones {
                     combo.setSelection(VariablesGlobales.getIndex(combo, configExcepcion.get("dfaul").trim()));
                 }
             }
+            if (configExcepcion.get("descr") != null && !configExcepcion.get("descr").isEmpty() && !configExcepcion.get("descr").equals("NULL")) {
+                if(label instanceof TextInputLayout)
+                    ((TextInputLayout)label).setHint(configExcepcion.get("descr").trim());
+                if(label instanceof TextView)
+                    ((TextView) label).setText(configExcepcion.get("descr").trim());
+                combo.setTag(configExcepcion.get("descr").trim());
+            }
+            //Revisar si tiene un catalogo alternativo
+            if (configExcepcion.get("tabla") != null && !configExcepcion.get("tabla").isEmpty() && !configExcepcion.get("tabla").equals("NULL")) {
+                DataBaseHelper mDBHelper = new DataBaseHelper(context);
+                ArrayList<HashMap<String, String>> opciones =  mDBHelper.getDatosCatalogo("cat_"+configExcepcion.get("tabla").trim());
+
+                ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+                for (int j = 0; j < opciones.size(); j++) {
+                    listaopciones.add(new OpcionSpinner(opciones.get(j).get("id"), opciones.get(j).get("descripcion")));
+
+                }
+                ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listaopciones);
+                // Drop down layout style - list view with radio button
+                dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+                // attaching data adapter to spinner
+                combo.setAdapter(dataAdapter);
+                dataAdapter.notifyDataSetChanged();
+            }
         }
         if(elemento instanceof MaskedEditText)
         {
@@ -488,6 +525,13 @@ public class Validaciones {
                 if (!configExcepcion.get("dfaul").isEmpty() && !configExcepcion.get("dfaul").equals("NULL")) {
                     et.setText(configExcepcion.get("dfaul").trim());
                 }
+            }
+            if (configExcepcion.get("descr") != null && !configExcepcion.get("descr").isEmpty() && !configExcepcion.get("descr").equals("NULL")) {
+                if(label instanceof TextInputLayout)
+                    ((TextInputLayout)label).setHint(configExcepcion.get("descr").trim());
+                if(label instanceof TextView)
+                    ((TextView)label).setText(configExcepcion.get("descr").trim());
+                et.setTag(configExcepcion.get("descr").trim());
             }
         }
     }

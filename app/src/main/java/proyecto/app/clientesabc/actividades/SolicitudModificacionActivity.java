@@ -109,6 +109,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -403,6 +404,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         if (getCurrentFocus() != null)
                             getCurrentFocus().clearFocus();
                         //Validacion de Datos Obligatorios Automatico
+                        listaCamposObligatorios = new ArrayList<>(new LinkedHashSet<>(listaCamposObligatorios));
                         for (int i = 0; i < listaCamposObligatorios.size(); i++) {
                             try {
                                 MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposObligatorios.get(i)));
@@ -1161,7 +1163,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion,listaCamposObligatorios,campos.get(i));
+                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion,listaCamposObligatorios,campos.get(i),solicitudSeleccionada);
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
@@ -1169,7 +1171,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
+                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),solicitudSeleccionada);
                         }
                     }
                     if(solicitudSeleccionada.size() > 0){
@@ -1624,7 +1626,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         if (solicitudSeleccionada.size() == 0) {
                                             if(!valor_zt.equals("")) {
                                                 //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP.
-                                                if(VariablesGlobales.getIndex(zona_transporte, valor_zt) == -1 ){
+                                                if(VariablesGlobales.getIndex(zona_transporte, valor_zt) == -1  && !tipoSolicitud.equals("71")){
                                                     ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) zona_transporte.getAdapter());
                                                     OpcionSpinner opcionSAP = new OpcionSpinner(valor_zt,valor_zt +" - "+ valor_zt);
                                                     dataAdapter.add(opcionSAP);
@@ -1674,7 +1676,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                     int indiceSel = VariablesGlobales.getIndex(zona_transporte_old, rutaRepartoNuevaOriginal);
                                                     if(indiceSel == -1){
                                                         //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP o del formulario con incidencia
-                                                        if(VariablesGlobales.getIndex(zona_transporte_old, rutaRepartoNuevaOriginal) == -1 ){
+                                                        if(VariablesGlobales.getIndex(zona_transporte_old, rutaRepartoNuevaOriginal) == -1  && !tipoSolicitud.equals("71")){
                                                             ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) zona_transporte_old.getAdapter());
                                                             OpcionSpinner opcionSAP = new OpcionSpinner(rutaRepartoNuevaOriginal,rutaRepartoNuevaOriginal +" - "+ rutaRepartoNuevaOriginal);
                                                             dataAdapter.add(opcionSAP);
@@ -1686,7 +1688,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                                     indiceSel = VariablesGlobales.getIndex(zona_transporte, rutaRepartoNuevaOriginal);
                                                     if(indiceSel == -1){
                                                         //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP o del formulario con incidencia
-                                                        if(VariablesGlobales.getIndex(zona_transporte, rutaRepartoNuevaOriginal) == -1 ){
+                                                        if(VariablesGlobales.getIndex(zona_transporte, rutaRepartoNuevaOriginal) == -1  && !tipoSolicitud.equals("71")){
                                                             ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) zona_transporte.getAdapter());
                                                             OpcionSpinner opcionSAP = new OpcionSpinner(rutaRepartoNuevaOriginal,rutaRepartoNuevaOriginal +" - "+ rutaRepartoNuevaOriginal);
                                                             dataAdapter.add(opcionSAP);
@@ -2552,7 +2554,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                         }
                                         if(solicitudSeleccionada.size() == 0 && !valor_zt.equals("")){
                                             //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP.
-                                            if(VariablesGlobales.getIndex(zona_transporte, valor_zt) == -1 ){
+                                            if(VariablesGlobales.getIndex(zona_transporte, valor_zt) == -1  && !tipoSolicitud.equals("71")){
                                                 ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) zona_transporte.getAdapter());
                                                 OpcionSpinner opcionSAP = new OpcionSpinner(valor_zt,valor_zt +" - "+ valor_zt);
                                                 dataAdapter.add(opcionSAP);
@@ -2684,7 +2686,8 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             }
                         });
                     }
-                    if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
+                    if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0 && !campos.get(i).get("modificacion").equals("1") ){
+                    //if(campos.get(i).get("obl")!= null && campos.get(i).get("obl").trim().length() > 0){
                         listaCamposObligatorios.add(campos.get(i).get("campo").trim());
                         OpcionSpinner op = new OpcionSpinner("","");
                         if(combo.getOnItemSelectedListener() == null){
@@ -2711,7 +2714,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i));
+                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i),solicitudSeleccionada);
 
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
@@ -2720,7 +2723,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
+                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),solicitudSeleccionada);
                         }
                     }
 
@@ -3650,7 +3653,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i));
+                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i),solicitudSeleccionada);
                         int excepcionxAgencia = -1;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null && !((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId().equals(""))
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
@@ -3658,7 +3661,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
+                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),solicitudSeleccionada);
                         }
                     }
                     //if(cliente != null && cliente.get(campos.get(i).get("campo")) != null)
@@ -6807,7 +6810,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             int indiceSel = VariablesGlobales.getIndex(ruta_reparto, seleccionado.getRuta());
             if(indiceSel == -1){
                 //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP o del formulario con incidencia
-                if(VariablesGlobales.getIndex(ruta_reparto, seleccionado.getRuta()) == -1 ){
+                if(VariablesGlobales.getIndex(ruta_reparto, seleccionado.getRuta()) == -1  && !tipoSolicitud.equals("71")){
                     ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) ruta_reparto.getAdapter());
                     OpcionSpinner opcionSAP = new OpcionSpinner(seleccionado.getRuta(),seleccionado.getRuta() +" - "+ seleccionado.getRuta());
                     dataAdapter.add(opcionSAP);
@@ -8005,7 +8008,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                     }
                                 }else {
                                     //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP.
-                                    if (VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()) == -1) {
+                                    if (VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()) == -1 && !tipoSolicitud.equals("71")) {
                                         ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) sp.getAdapter());
                                         OpcionSpinner opcionSAP = new OpcionSpinner(cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim(), cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim() + " - " + cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim());
                                         dataAdapter.add(opcionSAP);
@@ -8025,7 +8028,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         if(sp != null) {
                             //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP.
                             if(cliente.get(0).getAsJsonObject().get(listaFinal.get(i)) != null) {
-                                if (VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()) == -1) {
+                                if (VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()) == -1 && !tipoSolicitud.equals("71")) {
                                     ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) sp.getAdapter());
                                     OpcionSpinner opcionSAP = new OpcionSpinner(cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim(), cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim() + " - " + cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim());
                                     dataAdapter.add(opcionSAP);
@@ -8039,7 +8042,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                         if(sp != null) {
                             //Si no existe la opcion, crear la opcion para garantizar AL MENOS no perder el valor que viene de SAP.
                             if(cliente.get(0).getAsJsonObject().get(listaFinal.get(i)) != null) {
-                                if (VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()) == -1) {
+                                if (VariablesGlobales.getIndex(sp, cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim()) == -1 && !tipoSolicitud.equals("71")) {
                                     ArrayAdapter<OpcionSpinner> dataAdapter = ((ArrayAdapter<OpcionSpinner>) sp.getAdapter());
                                     OpcionSpinner opcionSAP = new OpcionSpinner(cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim(), cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim() + " - " + cliente.get(0).getAsJsonObject().get(listaFinal.get(i)).getAsString().trim());
                                     dataAdapter.add(opcionSAP);

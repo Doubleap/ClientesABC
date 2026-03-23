@@ -138,7 +138,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                     File externalStorage = context.get().getExternalFilesDir(null);
                     if (externalStorage != null) {
                         String externalStoragePath = externalStorage.getAbsolutePath();
-                        tranFileDir = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision");
+                        tranFileDir = new File(externalStoragePath + File.separator + "Transmision");
                         boolean ex = tranFileDir.mkdirs();
                         File transferFile = new File(tranFileDir, "FAWM_ANDROID_2");
                         OutputStream stream = new FileOutputStream(transferFile);
@@ -149,10 +149,10 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                         dos.close();
                         publishProgress("Descomprimiendo datos...");
                         //UNZIP informacion recibida
-                        boolean unzip = FileHelper.unzip(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision/FAWM_ANDROID_2", externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision");
-                        File file = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision/" + PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", "") + ".db");
+                        boolean unzip = FileHelper.unzip(externalStoragePath  + File.separator + "Transmision/FAWM_ANDROID_2", externalStoragePath + File.separator + "Transmision");
+                        File file = new File(externalStoragePath + File.separator + "Transmision/" + PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", "") + ".db");
                         // File (or directory) with new name
-                        File file2 = new File(externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "Transmision/FAWM_ANDROID_2");
+                        File file2 = new File(externalStoragePath + File.separator + "Transmision/FAWM_ANDROID_2");
 
                         if (file2.exists()) {
                             file2.delete();
@@ -160,6 +160,10 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
 
                         // Rename file (or directory)
                         boolean success = file.renameTo(file2);
+
+                        Log.d("ZIP", "Ruta: " + transferFile.getAbsolutePath());
+                        Log.d("ZIP", "Existe: " + transferFile.exists());
+                        Log.d("ZIP", "Tamaño: " + transferFile.length());
 
                         if (!success) {
                             xceptionFlag = true;

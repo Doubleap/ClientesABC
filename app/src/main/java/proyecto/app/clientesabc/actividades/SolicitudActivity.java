@@ -100,6 +100,8 @@ import com.honeywell.aidc.ScannerUnavailableException;
 import com.honeywell.aidc.UnsupportedPropertyException;*/
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 import com.vicmikhailau.maskededittext.MaskedEditText;
@@ -129,6 +131,11 @@ import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
 import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import proyecto.app.clientesabc.animaciones.CubeTransformer;
 
 import proyecto.app.clientesabc.R;
@@ -144,6 +151,7 @@ import proyecto.app.clientesabc.adaptadores.SpinnerAdapter;
 import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
 import proyecto.app.clientesabc.clases.ConsultaClienteAPI;
 import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
+import proyecto.app.clientesabc.clases.ConsultarHaciendaAPI;
 import proyecto.app.clientesabc.clases.DevolverPreSolicitudAPI;
 import proyecto.app.clientesabc.clases.DevolverPreSolicitudServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
@@ -151,6 +159,7 @@ import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionAPI;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionCorreoAPI;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionCorreoServidor;
 import proyecto.app.clientesabc.clases.GenerarCodigoVerificacionServidor;
+import proyecto.app.clientesabc.clases.HaciendaService;
 import proyecto.app.clientesabc.clases.Haversine;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.clases.RechazarPreSolicitudAPI;
@@ -160,10 +169,12 @@ import proyecto.app.clientesabc.clases.Validaciones;
 import proyecto.app.clientesabc.clases.ValidarFlujoClienteAPI;
 import proyecto.app.clientesabc.clases.ValidarFlujoClienteServidor;
 import proyecto.app.clientesabc.clases.ValidarIdConInspektor;
+import proyecto.app.clientesabc.interfaces.HaciendaCallback;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
 import proyecto.app.clientesabc.modelos.Contacto;
+import proyecto.app.clientesabc.modelos.HaciendaResult;
 import proyecto.app.clientesabc.modelos.Horarios;
 import proyecto.app.clientesabc.modelos.Impuesto;
 import proyecto.app.clientesabc.modelos.Interlocutor;
@@ -177,6 +188,10 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
 import static com.google.android.material.tabs.TabLayout.GRAVITY_START;
 import static com.google.android.material.tabs.TabLayout.INDICATOR_GRAVITY_TOP;
+
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class SolicitudActivity extends AppCompatActivity {
 
@@ -251,6 +266,12 @@ public class SolicitudActivity extends AppCompatActivity {
     static boolean suppressRecreateAdapter = false;
     public static PendingIntent sentPI;
     public static PendingIntent deliveredPI;
+
+    private static final OkHttpClient client = new OkHttpClient();
+
+    private static Call currentCall = null;
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private Runnable searchRunnable = null;
 
     @SuppressLint("ResourceType")
     @Override
@@ -767,153 +788,7 @@ public class SolicitudActivity extends AppCompatActivity {
         ll_visitas.setOrientation(LinearLayout.VERTICAL);
         new MostrarFormulario(this).execute();
 
-        if(modificable) {
-            // create the AidcManager providing a Context and an
-            // CreatedCallback implementation.
-            /*AidcManager.create(getBaseContext(), new AidcManager.CreatedCallback() {
-                @Override
-                public void onCreated(AidcManager aidcManager) {
-                    manager = aidcManager;
-                    final String sociedad = PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_BUKRS","");
-                    try {
-                        reader = manager.createBarcodeReader();
-                        if(sociedad.equals("F443")) {
-                            //reader.setProperty(BarcodeReader.PROPERTY_PDF_417_ENABLED, true);
-                            reader.setProperty(BarcodeReader.PROPERTY_OCR_MODE, BarcodeReader.POSTAL_OCR_MODE_NORMAL);
-                            reader.setProperty(BarcodeReader.PROPERTY_OCR_ACTIVE_TEMPLATE, 2);
-                        }else
-                        if(sociedad.equals("F445")) {
-                            reader.setProperty(BarcodeReader.PROPERTY_PDF_417_ENABLED, true);
-                        }else
-                        if(sociedad.equals("F446")) {
-                            reader.setProperty(BarcodeReader.PROPERTY_OCR_MODE, BarcodeReader.POSTAL_OCR_MODE_NORMAL);
-                            reader.setProperty(BarcodeReader.PROPERTY_OCR_ACTIVE_TEMPLATE, 2);
-                        }
-                        BarcodeReader.BarcodeListener barcodeListener = new BarcodeReader.BarcodeListener() {
-                            @Override
-                            public void onBarcodeEvent(final BarcodeReadEvent barcodeReadEvent) {
-                                // update UI to reflect the data
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if ((barcodeReadEvent.getAimId().substring(1, 2).equals("L") && (sociedad.equals("F443") || sociedad.equals("F445") || sociedad.equals("F451"))) //Cedula Fisica Costa Rica
-                                                || (barcodeReadEvent.getAimId().substring(1, 2).equals("o") && (sociedad.equals("F443") || sociedad.equals("F446") || sociedad.equals("1657") || sociedad.equals("1658")))) {//DPI guatemala
-                                            String lecturaCedula = barcodeReadEvent.getBarcodeData();
-                                            try {
-                                                reader.softwareTrigger(false);
-                                            } catch (ScannerNotClaimedException e) {
-                                                e.printStackTrace();
-                                            } catch (ScannerUnavailableException e) {
-                                                e.printStackTrace();
-                                            }
-                                            Spinner spinner_tipo = (Spinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
-                                            MaskedEditText editText_cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD1");
-                                            MaskedEditText editText_name3 = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NAME3");
-                                            MaskedEditText editText_name4 = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NAME4");
-
-                                            if (spinner_tipo != null) {
-                                                spinner_tipo.setSelection(VariablesGlobales.getIndex(spinner_tipo, "C1"));
-                                            }
-                                            String datosCedula = "";
-                                            String codigo = "";
-                                            String cedula = "";
-                                            String nombre = "";
-                                            String apellido1 = "";
-                                            String apellido2 = "";
-                                            switch (sociedad) {
-                                                case "F443":
-                                                case "F445":
-                                                case "F451":
-                                                    codigo = datosCedula;
-                                                    codigo = lecturaCedula;
-                                                    cedula = codigo.substring(5, 18).trim();
-                                                    String[] nombreCompleto1 = codigo.substring(60, 90).split("<<");
-                                                    nombre = nombreCompleto1[0].replace("<", " ");
-                                                    apellido1 = nombreCompleto1[1].replace("<", " ");
-                                                    if (editText_cedula != null) {
-                                                        editText_cedula.setMask("0#-####-####-00");
-                                                        editText_cedula.setText(cedula);
-                                                        ValidarCedula(editText_cedula, ((OpcionSpinner) spinner_tipo.getSelectedItem()).getId());
-                                                    }
-                                                    break;
-                                                case "F446":
-                                                case "1657":
-                                                case "1658":
-                                                    editText_cedula = (MaskedEditText) mapeoCamposDinamicos.get("W_CTE-STCD3");
-                                                    codigo = lecturaCedula;
-                                                    cedula = codigo.substring(5, 18).trim();
-                                                    String[] nombreCompleto = codigo.substring(60, 90).split("<<");
-                                                    nombre = nombreCompleto[0].replace("<", " ");
-                                                    apellido1 = nombreCompleto[1].replace("<", " ");
-                                                    if (editText_cedula != null) {
-                                                        editText_cedula.setText(cedula);
-                                                        ValidarCedula(editText_cedula, ((OpcionSpinner) spinner_tipo.getSelectedItem()).getId());
-                                                    }
-                                                    break;
-                                            }
-
-                                            if (editText_name3 != null) {
-                                                String nombre_completo = nombre + " " + apellido1 + " " + apellido2;
-                                                if (nombre_completo.length() <= 35)
-                                                    editText_name3.setText(nombre_completo);
-                                                else {
-                                                    editText_name3.setText(nombre_completo.substring(0, 35));
-                                                    if (editText_name4 != null) {
-                                                        editText_name3.setText(nombre_completo.substring(35, 70));
-                                                    }
-                                                }
-                                            }
-                                        } else if (barcodeReadEvent.getAimId().substring(1, 2).equals("A") && sociedad.equals("F443")) {//Cedula Extranjera Costa rica
-                                            Spinner spinner_tipo = (Spinner) mapeoCamposDinamicos.get("W_CTE-KATR3");
-                                            if (spinner_tipo != null) {
-                                                spinner_tipo.setSelection(VariablesGlobales.getIndex(spinner_tipo, "C3"));
-                                            }
-                                            Toasty.warning(getBaseContext(), "ID y nombre no presentes en la lectura!", Toasty.LENGTH_SHORT).show();
-                                        } else {
-                                            Toasty.warning(getBaseContext(), "Codigo leido no reconocido!", Toasty.LENGTH_SHORT).show();
-                                        }
-                                    }
-
-                                    private String decodificarLecturaPDF417(String lecturaCedula) {
-                                        byte[] raw = new byte[0];
-                                        try {
-                                            raw = lecturaCedula.getBytes("ISO-8859-1");
-                                        } catch (UnsupportedEncodingException e) {
-                                            e.printStackTrace();
-                                        }
-                                        //Intento de decodificar el valor de la cedula en PDF417 con encriptacion XOR cypher
-                                        String d = "";
-                                        int j = 0;
-                                        for (int i = 0; i < raw.length; i++) {
-                                            if (j == 17) {
-                                                j = 0;
-                                            }
-                                            char c = (char) (keysArray[j] ^ ((char) (raw[i])));
-                                            if ((c + "").matches("^[a-zA-Z0-9]*$")) {
-                                                d += c;
-                                            } else {
-                                                d += c;
-                                            }
-                                            j++;
-                                        }
-                                        return d;
-                                    }
-                                });
-                            }
-                            @Override
-                            public void onFailureEvent(BarcodeFailureEvent barcodeFailureEvent) {
-                                //Toasty.warning(getBaseContext(), "no se leyó el código", Toast.LENGTH_SHORT).show();
-                            }
-                        };
-                        reader.addBarcodeListener(barcodeListener);
-                    } catch (InvalidScannerNameException e) {
-                        e.printStackTrace();
-                    } catch (UnsupportedPropertyException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });*/
-        }else if(!tipoSolicitud.equals("70")){
+        if(!modificable && !tipoSolicitud.equals("70")){
             LinearLayout ll = findViewById(R.id.LinearLayoutMain);
             DrawerLayout.LayoutParams h = new DrawerLayout.LayoutParams(MATCH_PARENT,MATCH_PARENT);
 
@@ -1462,12 +1337,12 @@ public class SolicitudActivity extends AppCompatActivity {
                         int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                         if (excepcion >= 0) {
                             HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion,listaCamposObligatorios, campos.get(i));
+                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion,listaCamposObligatorios, campos.get(i),(ArrayList<HashMap<String,String>>) null);
 
                             int excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((SearchableSpinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                             if (excepcionxAgencia >= 0) {
                                 HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                                Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios, campos.get(i));
+                                Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios, campos.get(i),(ArrayList<HashMap<String,String>>) null);
                             }
                         }
                         if (solicitudSeleccionada.size() > 0) {
@@ -1709,9 +1584,9 @@ public class SolicitudActivity extends AppCompatActivity {
                                             @Override
                                             public void onFocusChange(View v, boolean hasFocus) {
                                                 if (!hasFocus) {
-                                                    ValidarCedula(v, opcion.getId());
+                                                    ValidarCedula(getActivity(),v, opcion.getId());
                                                     TextView texto = (TextView) v;
-                                                    if(!texto.getText().toString().trim().equals("")){
+                                                    /*if(!texto.getText().toString().trim().equals("")){
                                                         if(db.ConfiguracionxSociedad("verificar_cedula_api").toString().equals("1")){
                                                             WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                                                             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
@@ -1723,7 +1598,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                                                 inspektor.execute();
                                                             }
                                                         }
-                                                    }
+                                                    }*/
                                                 }
                                             }
                                         });
@@ -2150,7 +2025,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                         @Override
                                         public void onFocusChange(View v, boolean hasFocus) {
                                             if (!hasFocus) {
-                                                ValidarCedula(v, opcion.getId());
+                                                ValidarCedula(getActivity(),v, opcion.getId());
                                             }
                                         }
                                     });
@@ -2188,7 +2063,7 @@ public class SolicitudActivity extends AppCompatActivity {
                                     if (parent.getSelectedView() != null && position == 0 && campos.get(finalI).get("obl") != null && campos.get(finalI).get("obl").trim().length() > 0)
                                         setErrorWithTooltipOnTouch(combo, parent.getResources().getString(R.string.error_field_required));
 
-                                    ValidarCedula(((View) mapeoCamposDinamicos.get("W_CTE-STCD1")),opcion.getId());
+                                    ValidarCedula(getActivity(),((View) mapeoCamposDinamicos.get("W_CTE-STCD1")),opcion.getId());
                                 }
 
                                 @Override
@@ -2554,12 +2429,12 @@ public class SolicitudActivity extends AppCompatActivity {
                         int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                         if (excepcion >= 0) {
                             HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios, campos.get(i));
+                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios, campos.get(i),(ArrayList<HashMap<String,String>>) null);
 
                             int excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                             if (excepcionxAgencia >= 0) {
                                 HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                                Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios, campos.get(i));
+                                Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios, campos.get(i),(ArrayList<HashMap<String,String>>) null);
                             }
                         }
                     } else {
@@ -3377,14 +3252,14 @@ public class SolicitudActivity extends AppCompatActivity {
                         int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                         if (excepcion >= 0 && !campos.get(i).get("campo").trim().equals("W_CTE-RUTAHH")) {
                             HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i));
+                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i),(ArrayList<HashMap<String,String>>) null);
 
                             int excepcionxAgencia = -1;
                             if(mapeoCamposDinamicos.get("W_CTE-BZIRK") != null)
                                 excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                             if (excepcionxAgencia >= 0) {
                                 HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                                Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
+                                Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),(ArrayList<HashMap<String,String>>) null);
                             }
                         }
                     }
@@ -8207,7 +8082,7 @@ public class SolicitudActivity extends AppCompatActivity {
         if(hasta != null)
             hasta.setSelection(VariablesGlobales.getIndex(hasta,valorSeleccioando));
     }
-    private static boolean ValidarCedula(View v, String tipoCedula) {
+    private static boolean ValidarCedula(Activity activity, View v, String tipoCedula) {
         TextView texto = (TextView) v;
         String cedula = "";
         Pattern pattern;
@@ -8252,8 +8127,17 @@ public class SolicitudActivity extends AppCompatActivity {
                     else
                         idfiscal.setText(cedulaDigitada.replaceFirst("^0+(?!$)", "").replace("-", ""));
                     idfiscal.setError(null);
-                    idfiscal.clearFocus();
-                    Toasty.success(texto.getContext(), "Formato Regimen " + tipoCedula + " valido!", Toasty.LENGTH_SHORT).show();
+                    //idfiscal.clearFocus();
+
+                    WeakReference<Context> weakRefs1 = new WeakReference<Context>(v.getContext());
+                    WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(activity);
+
+                    if (PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("tipo_conexion", "").equals("api")) {
+                        ConsultarHaciendaAPI c = new ConsultarHaciendaAPI(weakRefs1, weakRefAs1,PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS", ""), idfiscal.getText().toString());
+                        c.execute();
+                    } else {
+
+                    }
                 }
                 break;
             case "F445"://Nicaragua
@@ -8555,6 +8439,28 @@ public class SolicitudActivity extends AppCompatActivity {
         }
         return true;
     }
+
+    public static String[] dividirNombre(String nombre, int maxLen) {
+
+        if (nombre == null) return new String[]{"", ""};
+
+        nombre = nombre.trim().replaceAll("\\s+", " ");
+
+        if (nombre.length() <= maxLen)
+            return new String[]{nombre, ""};
+
+        int corte = nombre.lastIndexOf(' ', maxLen);
+
+        // If no space found (very rare: single long word)
+        if (corte == -1)
+            corte = maxLen;
+
+        String linea1 = nombre.substring(0, corte).trim();
+        String linea2 = nombre.substring(corte).trim();
+
+        return new String[]{linea1, linea2};
+    }
+
     private static void setOrUpdateMaxLength(MaskedEditText editText, int maxLength) {
         InputFilter[] oldFilters = editText.getFilters();
         InputFilter[] updatedFilters = Arrays.copyOf(oldFilters, oldFilters.length);
@@ -8908,6 +8814,69 @@ public class SolicitudActivity extends AppCompatActivity {
         }
         return "";
     }
+
+    public static void ActualizarRespuestaHacienda(Context context, Activity activity, JsonObject respuesta){
+        MaskedEditText nombre3 = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NAME3"));
+        MaskedEditText nombre4 = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NAME4"));
+        Spinner cnae = ((Spinner) mapeoCamposDinamicos.get("W_CTE-ZZCNAE"));
+        if(respuesta.size() == 0){
+            if(nombre3 != null) {
+                nombre3.setText("");
+                nombre3.setEnabled(true);
+            }
+            if(nombre4 != null) {
+                nombre4.setText("");
+                nombre4.setEnabled(true);
+            }
+            if(cnae != null) {
+                cnae.setSelection(0);
+                cnae.setEnabled(true);
+            }
+            return;
+        }
+
+        String codigoPrincipal = "";
+        String nombre = respuesta.has("nombre") && !respuesta.get("nombre").isJsonNull() ? respuesta.get("nombre").getAsString() : "";
+
+        String[] nombres = dividirNombre(nombre,35);
+
+        if(nombre3 != null) {
+            nombre3.setText(nombres[0]);
+            nombre3.setEnabled(false);
+        }
+        if(nombre4 != null) {
+            nombre4.setText(nombres[1]);
+            nombre4.setEnabled(false);
+        }
+
+        if (respuesta.has("actividades") && respuesta.get("actividades").isJsonArray()) {
+            JsonArray actividades = respuesta.getAsJsonArray("actividades");
+
+            for (JsonElement e : actividades) {
+                JsonObject actividad = e.getAsJsonObject();
+                String tipo = actividad.has("tipo") ? actividad.get("tipo").getAsString() : "";
+                if ("P".equals(tipo)) {
+                    codigoPrincipal = actividad.has("codigo") ? actividad.get("codigo").getAsString() : "";
+                    break;
+                }
+            }
+            int indice = VariablesGlobales.getIndex(cnae, codigoPrincipal);
+
+            if (indice != -1 && codigoPrincipal != "") {
+                cnae.setSelection(indice);
+                cnae.setEnabled(false);
+            }else {
+                cnae.setSelection(0);
+                cnae.setEnabled(true);
+            }
+        }else{//No tiene actividad principal
+            if(cnae != null){
+                cnae.setSelection(0);
+                cnae.setEnabled(true);
+            }
+        }
+    }
+
     /*CORRER EN NUEVO THREAD Para poder mostrar avance o loading image*/
     private class MostrarFormulario extends AsyncTask<String, Integer, Void> {
 
@@ -9011,7 +8980,6 @@ public class SolicitudActivity extends AppCompatActivity {
                 return i;
             }
         }
-
         return -1;
     }
     /*@Override

@@ -1944,7 +1944,7 @@ public class SolicitudCreditoActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
+                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),(ArrayList<HashMap<String,String>>) null);
                         }
                     }
                 }

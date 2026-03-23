@@ -187,9 +187,9 @@ public class MonitorEquipoFrioActivity extends AppCompatActivity implements Loca
             mToolTipsManager.show(builder.build());
             return true;
         });
-        gec.setText(formList.get(0).get("desc_gec").toString() + " (" + formList.get(0).get("cajas_monitor_ef").toString() + " " + getResources().getString(R.string.unidad_caja_monitor) + ")");
-        tipo_canal.setText(formList.get(0).get("desc_tipo_canal").toString());
-        venta_actual.setText(formList.get(0).get("venta_actual").toString() + " " + getResources().getString(R.string.unidad_caja_monitor) + "");
+        gec.setText(formList.get(0).get("desc_gec").trim() + " (" + formList.get(0).get("cajas_monitor_ef").trim() + " " + getResources().getString(R.string.unidad_caja_monitor) + ")");
+        tipo_canal.setText(formList.get(0).get("desc_tipo_canal").trim());
+        venta_actual.setText(formList.get(0).get("venta_actual").trim() + " " + getResources().getString(R.string.unidad_caja_monitor) + "");
         txt_num_puertas.setText(formList.get(0).get("puertas_objetivo").toString());
 
         txt_num_puertas.setOnFocusChangeListener(new View.OnFocusChangeListener() {

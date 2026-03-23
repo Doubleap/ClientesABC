@@ -1138,7 +1138,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
                     //Excepciones de visualizacion y configuracion de campos dados por la tabla ConfigCampos
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion,listaCamposObligatorios,campos.get(i));
+                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion,listaCamposObligatorios,campos.get(i),solicitudSeleccionada);
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
@@ -1146,7 +1146,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
+                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),solicitudSeleccionada);
                         }
                     }
                     if(solicitudSeleccionada.size() > 0){
@@ -2605,7 +2605,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
                     //int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i));
+                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i),solicitudSeleccionada);
 
                         int excepcionxAgencia = 0;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
@@ -2614,7 +2614,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
+                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),solicitudSeleccionada);
                         }
                     }
 
@@ -3409,7 +3409,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
                     //int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i));
+                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i),solicitudSeleccionada);
                         int excepcionxAgencia = -1;
                         if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null && !((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId().equals(""))
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
@@ -3417,7 +3417,7 @@ public class SolicitudRacksActivity extends AppCompatActivity {
                             excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
                         if (excepcionxAgencia >= 0) {
                             HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
-                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i));
+                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),solicitudSeleccionada);
                         }
                     }
                     //if(cliente != null && cliente.get(campos.get(i).get("campo")) != null)

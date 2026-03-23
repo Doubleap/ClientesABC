@@ -166,7 +166,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String externalStoragePath;
         if (externalStorage != null) {
             externalStoragePath = externalStorage.getAbsolutePath();
-            tranFileDir = new File(externalStoragePath + File.separator + mContext.getPackageName() + File.separator + "Transmision"+ File.separator +"FAWM_ANDROID_2");
+            tranFileDir = new File(externalStoragePath + File.separator + "Transmision"+ File.separator +"FAWM_ANDROID_2");
         }
         InputStream mInput = null;
         if (tranFileDir != null) {
@@ -192,7 +192,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String externalStoragePath;
         if (externalStorage != null) {
             externalStoragePath = externalStorage.getAbsolutePath();
-            tranFileDir = new File(externalStoragePath + File.separator + mContext.getPackageName() + File.separator + "Transmision"+ File.separator +"FAWM_ANDROID_2");
+            tranFileDir = new File(externalStoragePath + File.separator + "Transmision"+ File.separator +"FAWM_ANDROID_2");
         }
         InputStream mInput = null;
         if (tranFileDir != null) {
@@ -2117,7 +2117,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_ORGVENTAS", cursor.getString(cursor.getColumnIndex("vkorg"))).apply();
             PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("CONFIG_LAND1", vkorgToLand1(cursor.getString(cursor.getColumnIndex("vkorg")))).apply();
 
-            if (!cursor.getString(cursor.getColumnIndex("vwerks")).isEmpty()) {
+            if (!cursor.getString(cursor.getColumnIndex("vwerks")).trim().isEmpty()) {
                 PreferenceManager.getDefaultSharedPreferences(mContext).edit().putString("W_CTE_VWERK", cursor.getString(cursor.getColumnIndex("vwerks"))).apply();
             } else {
                 ArrayList<HashMap<String, String>> valores = getValoresKOFSegunZonaVentas(cursor.getString(cursor.getColumnIndex("bzirk")));

@@ -98,4 +98,8 @@ public interface InterfaceApi {
     @Streaming
     @GET("api"+ftp+"/DevolverPreSolicitud/{bukrs}/{ruta}/{idform}/{estado}/{comentario}")
     Call<ResponseBody> DevolverPreSolicitud(@Path("bukrs") String bukrs,@Path("ruta") String ruta,@Path("idform") String idform,@Path("estado") String estado,@Path("comentario") String comentario);
+
+    @Streaming
+    @POST("api"+ftp+"/ConsultarHacienda/{bukrs}/{cedula}")
+    Call<ResponseBody> ConsultarHacienda(@Path("bukrs") String bukrs, @Path("cedula") String cedula);
 }
