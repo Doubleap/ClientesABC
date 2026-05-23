@@ -106,10 +106,14 @@ import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 import proyecto.app.clientesabc.adaptadores.SpinnerImageAdapter;
 import proyecto.app.clientesabc.clases.ConsultaClienteAPI;
 import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
+import proyecto.app.clientesabc.clases.DevolverPreSolicitudAPI;
+import proyecto.app.clientesabc.clases.DevolverPreSolicitudServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
+import proyecto.app.clientesabc.clases.TraerEquipoDisponibleAPI;
 import proyecto.app.clientesabc.clases.TraerEquipoDisponibleServidor;
+import proyecto.app.clientesabc.clases.TransmisionAPI;
 import proyecto.app.clientesabc.clases.TransmisionServidor;
 import proyecto.app.clientesabc.clases.Validaciones;
 import proyecto.app.clientesabc.clases.ValidarFlujoClienteAPI;
@@ -275,6 +279,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
         configExcepciones.clear();
         listaCamposDinamicos.clear();
+        listaCamposDinamicosEnca.clear();
         listaCamposBloque.clear();
         listaCamposObligatorios.clear();
 
@@ -780,8 +785,15 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
                             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
 
-                            TraerEquipoDisponibleServidor v = new TraerEquipoDisponibleServidor(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(requireContext()).getString("W_CTE_VWERK", ""), tipoFormulario, numPuertas);
-                            v.execute();
+                            if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion", "").equals("api")) {
+                                TraerEquipoDisponibleAPI v = new TraerEquipoDisponibleAPI(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(requireContext()).getString("W_CTE_VWERK", ""), tipoFormulario, numPuertas);
+                                v.execute();
+                            } else {
+                                TraerEquipoDisponibleServidor v = new TraerEquipoDisponibleServidor(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(requireContext()).getString("W_CTE_VWERK", ""), tipoFormulario, numPuertas);
+                                v.execute();
+                            }
+
+
 
                             combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
@@ -2029,8 +2041,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                                 WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudAvisosEquipoFrioActivity.this);
                                 //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
                                 if (PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("tipo_conexion","").equals("api")) {
-                                    //TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",NextId);
-                                    //f.execute();
+                                    TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",NextId);
+                                    f.execute();
                                 } else {
                                     TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "",NextId);
                                     f.execute();

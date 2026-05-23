@@ -36,13 +36,13 @@
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/ip"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:hint= "Dirección IP">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/ipEditTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:singleLine="true"
-                android:hint= "Dirección IP"
                 android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.textfield.TextInputLayout

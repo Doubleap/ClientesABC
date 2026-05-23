@@ -161,29 +161,45 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     private void copyDBFile() throws IOException {
-        File tranFileDir = null;
         File externalStorage = mContext.getExternalFilesDir(null);
-        String externalStoragePath;
-        if (externalStorage != null) {
-            externalStoragePath = externalStorage.getAbsolutePath();
-            tranFileDir = new File(externalStoragePath + File.separator + "Transmision"+ File.separator +"FAWM_ANDROID_2");
+        if (externalStorage == null) {
+            throw new IOException("externalStorage es null");
         }
-        InputStream mInput = null;
-        if (tranFileDir != null) {
-            mInput = new FileInputStream(tranFileDir);
-        }
+
+        String sourcePath = externalStorage.getAbsolutePath()
+                + File.separator + "Transmision"
+                + File.separator + "FAWM_ANDROID_2";
+
+        File sourceFile = new File(sourcePath);
+
+        System.out.println("DB_PATH destino: " + DB_PATH + DB_NAME);
+        System.out.println("SOURCE PATH: " + sourcePath);
+        System.out.println("SOURCE EXISTS: " + sourceFile.exists());
+        System.out.println("SOURCE LENGTH: " + sourceFile.length());
+
+        FileInputStream fis = new FileInputStream(sourceFile);
+        byte[] header = new byte[16];
+        int read = fis.read(header);
+        fis.close();
+
+        System.out.println("HEADER: " + new String(header));
+
+        InputStream mInput = new FileInputStream(sourceFile);
         OutputStream mOutput = new FileOutputStream(DB_PATH + DB_NAME);
+
         byte[] mBuffer = new byte[1024];
         int mLength;
-        if (mInput != null) {
-            while ((mLength = mInput.read(mBuffer)) > 0)
-                mOutput.write(mBuffer, 0, mLength);
+        while ((mLength = mInput.read(mBuffer)) > 0) {
+            mOutput.write(mBuffer, 0, mLength);
         }
+
         mOutput.flush();
         mOutput.close();
-        if (mInput != null) {
-            mInput.close();
-        }
+        mInput.close();
+
+        File finalDb = new File(DB_PATH + DB_NAME);
+        System.out.println("FINAL DB EXISTS: " + finalDb.exists());
+        System.out.println("FINAL DB LENGTH: " + finalDb.length());
     }
 
     private void copyDataBaseFromBackUp() throws IOException {
@@ -221,9 +237,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             {
                 String externalStoragePath = externalStorage.getAbsolutePath();
                 if(getActivity(mContext) != null)
-                    bkFileDir = new File(externalStoragePath + File.separator + getActivity(mContext).getPackageName()); //$NON-NLS-1$
+                    bkFileDir = new File(externalStoragePath + File.separator); //$NON-NLS-1$
                 else
-                    bkFileDir = new File(externalStoragePath + File.separator + mContext.getPackageName());
+                    bkFileDir = new File(externalStoragePath + File.separator);
                 boolean ex = bkFileDir.mkdirs();
                 File bkFile = new File(bkFileDir,DB_NAME+"_BACKUP");
                 File dbFile = new File(DB_PATH + DB_NAME);
@@ -1321,7 +1337,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             }
             cursor.close();
         }else{
-            whereVigencia = " AND c.fecini <= datetime('now') AND c.fecfin >= datetime('now')";
+            whereVigencia = " AND c.fecini <= datetime('now', 'localtime') AND c.fecfin >= datetime('now', 'localtime')";
         }
         String query = "SELECT * FROM (" +
                 "SELECT DISTINCT c.bukrs, c.panta, s.orden_hh as orden_seccion, c.orden_hh, c.campo, c.nombre, c.tipo_input, c.id_seccion_hh, c.modificacion as modificacion, s.desc_seccion as seccion, cc.descr as descr, cc.tabla as tabla, cc.dfaul as dfaul, cc.sup as sup, cc.obl as obl, cc.vis as vis, cc.opc as opc, c.tabla_local as tabla_local, c.evento1, c.llamado1 , t.desc_tooltip as tooltip, m.DATA_TYPE, m.CHARACTER_MAXIMUM_LENGTH, m.NUMERIC_PRECISION, c.sufijo, c.comentario_auto " +
@@ -1394,7 +1410,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         // Select All Query
         String selectQuery = "select DISTINCT p.orden, c.panta, p.desc_panta from configuracion c " +
                 " join Pantalla p ON (p.id_panta = c.panta) " +
-                " where id_formulario = "+id_formulario+" AND c.fecini <= datetime('now') AND c.fecfin >= datetime('now')" +
+                " where id_formulario = "+id_formulario+" AND c.fecini <= datetime('now', 'localtime') AND c.fecfin >= datetime('now', 'localtime')" +
                 " order by p.orden, c.panta, p.desc_panta";
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
@@ -2729,7 +2745,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public HashMap<String, String> getEquipoFrioDatosMonitor(String num_equipo){
         HashMap<String, String> equipo = new HashMap<>();
         String query = "SELECT * FROM eq_inventario WHERE num_equipo = ?";
-        Cursor cursor = mDataBase.rawQuery(query,new String[]{String.format("%1$18s", num_equipo).replace(' ', '0')});
+        Cursor cursor = mDataBase.rawQuery(query,new String[]{num_equipo});
         while (cursor.moveToNext()){
             equipo.put("sociedad",cursor.getString(cursor.getColumnIndex("sociedad"))!=null?cursor.getString(cursor.getColumnIndex("sociedad")).trim():"");
             equipo.put("num_equipo",cursor.getString(cursor.getColumnIndex("num_equipo"))!=null?cursor.getString(cursor.getColumnIndex("num_equipo")).trim():"");
@@ -2973,7 +2989,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             retorno = !cursor.getString(cursor.getColumnIndex("vwerks")).isEmpty() && !cursor.getString(cursor.getColumnIndex("vwerks")).trim().equals("") && !cursor.getString(cursor.getColumnIndex("zroute_rep")).trim().equals("");
         }
         cursor.close();
-        //Caso exclusivo para tipos de visita autoventa, donde la preventa y el reparto son lo mismo.
+        //Caso exclusivo para tipos de visita autoventa, donde la preventa y el reparto son lo mismo. (En colombia pueden NO ser lo mismo)
         if(tiporuta.contains("ZAT") || tiporuta.contains("ZAH") || tiporuta.contains("ZAI") || tiporuta.contains("ZAN") || tiporuta.contains("ZAP")
         || tiporuta.contains("ZDI") || tiporuta.contains("ZCM") || tiporuta.contains("ZDM") || tiporuta.contains("ZDP") || tiporuta.contains("ZMB") || tiporuta.contains("ZMY")){
             retorno = false;
@@ -4633,6 +4649,22 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return retorno;
     }
 
+    public ArrayList<String> getTiposVisitasPermitidas() {
+       ArrayList<String> retorno = new ArrayList<>();
+        try {
+            String sociedad = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "");
+            String query = "SELECT vpore FROM cat_ztsdvto_00185_x WHERE (vpore NOT IN ('ZDD')) AND vkorg = ? GROUP BY vpore";
+            Cursor cursor = mDataBase.rawQuery(query, new String[]{VariablesGlobales.getOrgvta()});
+            while (cursor.moveToNext()){
+                retorno.add(cursor.getString(cursor.getColumnIndex("vpore")).trim());
+            }
+            cursor.close();
+        }catch(Exception e){
+            Toasty.error(mContext,"Error obteniendo tipos de visitas permitidas: "+e.getMessage()).show();
+        }
+        return retorno;
+    }
+
     public ArrayList<HashMap<String, Object>> getListaCoordenadasHabilitador(){
         //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<HashMap<String, Object>> dataCoordenadas = new ArrayList<>();
@@ -4772,7 +4804,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public boolean censoEquipoFrioVigente(){
         boolean existe = false;
-        String query = "SELECT * FROM cat_bukrs c WHERE c.fecha_inicio_censo <= datetime('now') AND c.fecha_fin_censo >= datetime('now')";
+        String query = "SELECT * FROM cat_bukrs c WHERE c.fecha_inicio_censo <= datetime('now', 'localtime') AND c.fecha_fin_censo >= datetime('now', 'localtime')";
         try {
             Cursor cursor = mDataBase.rawQuery(query, new String[]{});
 
@@ -4792,7 +4824,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ruta = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH", "");
         String bzirk = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK", "");
 
-        String sql_encuesta ="SELECT e.id_encuesta,nombre ,descripcion ,id_bukrs ,fecha_inicio,fecha_fin,fecha_creacion,fecha_modificacion, gvc FROM encuesta_cabecera e where fecha_inicio<=datetime('now') and fecha_fin>=datetime('now')";
+        String sql_encuesta ="SELECT e.id_encuesta,nombre ,descripcion ,id_bukrs ,fecha_inicio,fecha_fin,fecha_creacion,fecha_modificacion, gvc FROM encuesta_cabecera e where fecha_inicio<=datetime('now', 'localtime') and fecha_fin>=datetime('now', 'localtime')";
 
         try {
             Cursor cursor = mDataBase.rawQuery(sql_encuesta, null);

@@ -141,6 +141,17 @@ public class LoginActivity extends AppCompatActivity {
         mUserView.setFilters(newFilters);
         mUserView.setAllCaps(true);
 
+        mUserView.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                String user = mUserView.getText().toString();
+
+                PreferenceManager.getDefaultSharedPreferences(v.getContext())
+                        .edit()
+                        .putString("user", user)
+                        .apply();
+            }
+        });
+
         mCheckbox = findViewById(R.id.guardar_contrasena);
         mPasswordView = findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -153,7 +164,16 @@ public class LoginActivity extends AppCompatActivity {
                 return false;
             }
         });
+        mPasswordView.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                String password = mPasswordView.getText().toString();
 
+                PreferenceManager.getDefaultSharedPreferences(v.getContext())
+                        .edit()
+                        .putString("password", password)
+                        .apply();
+            }
+        });
         mUserView.setText(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("user",""));
         mPasswordView.setText(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("password",""));
         mCheckbox.setChecked(PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getBoolean("guardar_contrasena",false));
@@ -614,6 +634,17 @@ public class LoginActivity extends AppCompatActivity {
     protected void onPause(){
         super.onPause();
         this.unregisterReceiver(this.myReceiver);
+        String user = mUserView.getText().toString().trim();
+        String password = mPasswordView.getText().toString().trim();
+
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .edit()
+                .putString("user", user)
+                .apply();
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .edit()
+                .putString("password", password)
+                .apply();
     }
 
     private void createNotificationChannel() {

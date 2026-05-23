@@ -46,6 +46,7 @@ import proyecto.app.clientesabc.clases.KeyPairBoolData;
 import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
 import proyecto.app.clientesabc.clases.MultiSpinnerListener;
 import proyecto.app.clientesabc.clases.MultiSpinnerSearch;
+import proyecto.app.clientesabc.clases.TraerEquipoDisponibleAPI;
 import proyecto.app.clientesabc.clases.TraerEquipoDisponibleServidor;
 import proyecto.app.clientesabc.modelos.Adjuntos;
 
@@ -92,8 +93,14 @@ public class EquipoDisponibleActivity extends AppCompatActivity{
 
         WeakReference<Context> weakRefs1 = new WeakReference<Context>(this);
         WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(EquipoDisponibleActivity.this);
-        TraerEquipoDisponibleServidor v = new TraerEquipoDisponibleServidor(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("W_CTE_VWERK",""), "39","0");
-        v.execute();
+
+        if (PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion", "").equals("api")) {
+            TraerEquipoDisponibleAPI v = new TraerEquipoDisponibleAPI(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(this).getString("W_CTE_VWERK", ""), "39", "0");
+            v.execute();
+        } else {
+            TraerEquipoDisponibleServidor v = new TraerEquipoDisponibleServidor(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(this).getString("W_CTE_VWERK", ""), "39", "0");
+            v.execute();
+        }
 
         Drawable d = getResources().getDrawable(R.drawable.header_curved_cc5,null);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -128,7 +135,7 @@ public class EquipoDisponibleActivity extends AppCompatActivity{
                 opcion.put("desc_centro_suministro",jsonOpcion.get("desc_centro_suministro").getAsString());
                 opcion.put("estado",jsonOpcion.get("estado").getAsString());
                 opcion.put("emplazamiento",jsonOpcion.get("emplazamiento").getAsString());
-                if(!jsonOpcion.get("material").isJsonNull())
+                if(!jsonOpcion.get("num_puertas").isJsonNull())
                     opcion.put("num_puertas",jsonOpcion.get("num_puertas").getAsString());
                 else
                     opcion.put("num_puertas","0");

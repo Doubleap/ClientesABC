@@ -17,7 +17,7 @@ public class ServiceGenerator {
     //Para Pruebas locales
     //public static final String API_BASE_URL = "http://10.0.2.2:51123/";
     //Para Pruebas en ambiente calidad
-    public static final String API_BASE_URL = VariablesGlobales.getUrlApi();
+    public static String API_BASE_URL = VariablesGlobales.getUrlApi();
     private static WeakReference<Context> c;
     private static WeakReference<Activity> a;
 
@@ -37,6 +37,8 @@ public class ServiceGenerator {
     }
 
     public static <S> S createService(WeakReference<Context> context, WeakReference<Activity> activity,Class<S> serviceClass, final String authToken) {
+        API_BASE_URL = VariablesGlobales.getUrlApi();
+        builder.baseUrl(API_BASE_URL);
         c = context;
         a = activity;
         Retrofit retrofit=null;

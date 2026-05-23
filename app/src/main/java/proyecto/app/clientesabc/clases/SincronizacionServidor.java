@@ -179,7 +179,7 @@ public class SincronizacionServidor extends AsyncTask<Void,String,Void> {
                                     publishProgress("Recuperando informacion...");
                                     SQLiteDatabase mDataBase = SQLiteDatabase.openDatabase(mDBHelper.DB_PATH + "FAWM_ANDROID_2", null, SQLiteDatabase.OPEN_READWRITE);
                                     //Copiar nuevamente los formularios que tenga nuevos
-                                    String sqlAttach = "ATTACH DATABASE '" + externalStoragePath + File.separator + context.get().getPackageName() + File.separator + "FAWM_ANDROID_2_BACKUP' AS fromDB";
+                                    String sqlAttach = "ATTACH DATABASE '" + externalStoragePath + File.separator + "FAWM_ANDROID_2_BACKUP' AS fromDB";
                                     mDataBase.execSQL(sqlAttach);
 
                                     //Validar que tenga tablas la base attachada

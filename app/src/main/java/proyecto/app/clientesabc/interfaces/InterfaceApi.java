@@ -102,4 +102,8 @@ public interface InterfaceApi {
     @Streaming
     @POST("api"+ftp+"/ConsultarHacienda/{bukrs}/{cedula}")
     Call<ResponseBody> ConsultarHacienda(@Path("bukrs") String bukrs, @Path("cedula") String cedula);
+
+    @Streaming
+    @GET("api"+ftp+"/TraerEquipoDisponible/{bukrs}/{ruta}/{version}/{centro}/{tipoformulario}/{numpuertas}")
+    Call<ResponseBody> TraerEquipoDisponible(@Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("version") String version, @Path("centro") String centro, @Path("tipoformulario") String tipoformulario, @Path("numpuertas") String numpuertas);
 }

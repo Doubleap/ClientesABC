@@ -257,7 +257,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
     private static LinearLayout ll_visitas;
     private ActivityResultLauncher<CropImageContractOptions> cropImage;
     public static ManejadorAdjuntos manejadorAdjuntos;
-    public static String[] visitas_permitidas = {"ZPV","ZJV","ZTV","ZRM","ZAT","ZKV","ZDY","ZGE","ZCM","ZCS","ZDI","ZEJ","ZES","ZIN","ZOP","ZPK","ZSP","ZWB","ZWE","ZWJ","ZWP","ZDM","ZMB","ZDP"};
+    public static ArrayList<String> visitas_permitidas = new ArrayList<String>();
     public static PendingIntent sentPI;
     public static PendingIntent deliveredPI;
     public static Long startDateMillis = null;
@@ -322,6 +322,7 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             getSupportActionBar().setSubtitle(descripcion);
         }
+        visitas_permitidas = mDBHelper.getTiposVisitasPermitidas();
         minAdjuntos = mDBHelper.CantidadAdjuntosMinima(tipoSolicitud);
         if(solicitudSeleccionada.size() > 0) {
             firma = true;
@@ -4338,12 +4339,12 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                     int totalvp_preventa = visitasSolicitud.size();
 
                     if(visitasSolicitud.size() == 0){
-                        totalvp_preventa = visitas_permitidas.length;
+                        totalvp_preventa = visitas_permitidas.size();
                     }
                     String tipoVisitaActual = tipoVisita;
                     for (int i = 0; i < totalvp_preventa; i++) {
                         if(visitasSolicitud.size() == 0) {
-                            tipoVisitaActual = visitas_permitidas[i];
+                            tipoVisitaActual = visitas_permitidas.get(i);
                         }else{
                             tipoVisitaActual = visitasSolicitud.get(i).getVptyp().trim();
                             if(tipoVisitaActual.equals("ZDD") || tipoVisitaActual.equals("ZDA")){
@@ -4518,9 +4519,9 @@ public class SolicitudModificacionActivity extends AppCompatActivity {
                                             int diasParaReparto = 1;
                                             Visitas visitaPreventa = null;
 
-                                            for (int x = 0; x < visitas_permitidas.length; x++) {
-                                                int indice = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, visitas_permitidas[x]);
-                                                if (indice != -1 && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "").equals(visitas_permitidas[x])) {
+                                            for (int x = 0; x < visitas_permitidas.size(); x++) {
+                                                int indice = VariablesGlobales.getIndiceTipoVisita(visitasSolicitud, visitas_permitidas.get(x));
+                                                if (indice != -1 && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_TIPORUTA", "").equals(visitas_permitidas.get(x))) {
                                                     visitaPreventa = visitasSolicitud.get(indice);
                                                     if (visitaPreventa.getKvgr4() != null)
                                                         diasParaReparto = Integer.valueOf(visitaPreventa.getKvgr4().replace("DA", ""));

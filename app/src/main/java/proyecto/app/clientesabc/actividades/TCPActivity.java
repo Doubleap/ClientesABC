@@ -32,6 +32,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.bottomnavigation.BottomNavigationMenuView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -45,6 +46,8 @@ import java.util.ArrayList;
 
 import de.codecrafters.tableview.listeners.TableDataClickListener;
 import de.codecrafters.tableview.listeners.TableDataLongClickListener;
+import de.codecrafters.tableview.model.TableColumnModel;
+import de.codecrafters.tableview.model.TableColumnWeightModel;
 import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
 import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
@@ -116,7 +119,7 @@ public class TCPActivity extends AppCompatActivity
         ArrayList<OpcionSpinner> listatipos = new ArrayList<>();
         OpcionSpinner opWifi = new OpcionSpinner("wifi","WiFi");
         OpcionSpinner opGPRS = new OpcionSpinner("gprs","GPRS");
-        OpcionSpinner opAPI = new OpcionSpinner("api","REST API");
+        OpcionSpinner opAPI = new OpcionSpinner("api","API");
         //OpcionSpinner opLocal = new OpcionSpinner("local","Local");
         listatipos.add(opWifi);
         listatipos.add(opGPRS);
@@ -174,6 +177,7 @@ public class TCPActivity extends AppCompatActivity
         int height = 75;
         list_conexiones = getConexionesFromSharedPreferences(TCPActivity.this);
 
+
         if(list_conexiones == null) {
             list_conexiones = new ArrayList<Conexion>();
         }
@@ -181,6 +185,15 @@ public class TCPActivity extends AppCompatActivity
             stda.setPaddings(5, 20, 5, 20);
             stda.setGravity(GRAVITY_CENTER);
             tv_conexiones.setDataAdapter(stda);
+
+            TableColumnWeightModel columnModel = new TableColumnWeightModel(4);
+
+            columnModel.setColumnWeight(0, 3); // IP / URL
+            columnModel.setColumnWeight(1, 1); // Puerto
+            columnModel.setColumnWeight(2, 1); // Tipo
+            columnModel.setColumnWeight(3, 1); // Actions
+
+            tv_conexiones.setColumnModel(columnModel);
             //tv_conexiones.getLayoutParams().height = tv_conexiones.getLayoutParams().height + (list_conexiones.size() * (75));
 
             String[] headers = ((ConexionTableAdapter)tv_conexiones.getDataAdapter()).getHeaders();
@@ -355,9 +368,11 @@ public class TCPActivity extends AppCompatActivity
         ArrayList<OpcionSpinner> listatipos = new ArrayList<>();
         OpcionSpinner opWifi = new OpcionSpinner("wifi","WiFi");
         OpcionSpinner opGPRS = new OpcionSpinner("gprs","GPRS");
+        OpcionSpinner opAPI = new OpcionSpinner("api","API");
         //OpcionSpinner opLocal = new OpcionSpinner("local","Local");
         listatipos.add(opWifi);
         listatipos.add(opGPRS);
+        listatipos.add(opAPI);
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(this, R.layout.simple_spinner_item, listatipos);
         // Drop down layout style - list view with radio button
@@ -367,21 +382,65 @@ public class TCPActivity extends AppCompatActivity
         tipo.setBackground(spinner_back);
         tipo.setAdapter(dataAdapter);
 
+        tipo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                OpcionSpinner selected = (OpcionSpinner) parent.getSelectedItem();
+                if (selected.getId().equalsIgnoreCase("api")) {
+                    // Hide puerto
+                    puerto.setVisibility(View.GONE);
+                    TextInputLayout puertoLayout = (TextInputLayout) puerto.getParent().getParent();
+                    if(puertoLayout != null) {
+                        puertoLayout.setVisibility(View.GONE);
+                    }
+                    TextInputLayout ipLayout = (TextInputLayout) ip.getParent().getParent();
+                    if(ipLayout != null) {
+                        ipLayout.setHint("URL API");
+                    }
+                } else {
+                    // Show puerto again
+                    puerto.setVisibility(View.VISIBLE);
+                    TextInputLayout puertoLayout = (TextInputLayout) puerto.getParent().getParent();
+                    if(puertoLayout != null) {
+                        puertoLayout.setVisibility(View.VISIBLE);
+                    }
+                    TextInputLayout ipLayout = (TextInputLayout) ip.getParent().getParent();
+                    if(ipLayout != null) {
+                        ipLayout.setHint("Dirección IP");
+                    }
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
 // Set up the buttons
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!ip.getText().toString().trim().isEmpty() && !puerto.getText().toString().trim().isEmpty() && !tipo.getSelectedItem().toString().trim().isEmpty()) {
+                OpcionSpinner selected = (OpcionSpinner) tipo.getSelectedItem();
+                String tipoValor = selected.getId();
+
+                boolean esApi = tipoValor.equalsIgnoreCase("api");
+
+                boolean camposValidos =
+                        !ip.getText().toString().trim().isEmpty()
+                                && !tipoValor.trim().isEmpty()
+                                && (esApi || !puerto.getText().toString().trim().isEmpty());
+
+                if (camposValidos) {
                     Conexion nuevaConexion = new Conexion();
-                    nuevaConexion.setIp(ip.getText().toString());
-                    nuevaConexion.setPuerto(puerto.getText().toString());
-                    nuevaConexion.setTipo(tipo.getSelectedItem().toString());
+                    nuevaConexion.setIp(ip.getText().toString().trim());
+                    nuevaConexion.setPuerto(esApi ? "" : puerto.getText().toString().trim());
+                    nuevaConexion.setTipo(tipoValor);
+
                     AgregarNuevaConexion(TCPActivity.this, nuevaConexion);
                     tv_conexiones.setDataAdapter(new ConexionTableAdapter(v.getContext(), list_conexiones));
-                    //tv_conexiones.getLayoutParams().height = tv_conexiones.getLayoutParams().height + (75);
+
                     d.dismiss();
-                    Toasty.info(TCPActivity.this, "Se han guardado las preferencias de conexion", Toast.LENGTH_SHORT).show();
-                }else{
+                    Toasty.info(TCPActivity.this, "Se han guardado las preferencias de conexión", Toast.LENGTH_SHORT).show();
+                } else {
                     Toasty.warning(TCPActivity.this, "Todos los campos son obligatorios para la conexión.", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -404,9 +463,11 @@ public class TCPActivity extends AppCompatActivity
         ArrayList<OpcionSpinner> listatipos = new ArrayList<>();
         OpcionSpinner opWifi = new OpcionSpinner("wifi","WiFi");
         OpcionSpinner opGPRS = new OpcionSpinner("gprs","GPRS");
+        OpcionSpinner opAPI = new OpcionSpinner("api","API");
         //OpcionSpinner opLocal = new OpcionSpinner("local","Local");
         listatipos.add(opWifi);
         listatipos.add(opGPRS);
+        listatipos.add(opAPI);
         // Creando el adaptador(opciones) para el comboBox deseado
         ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(context, R.layout.simple_spinner_item, listatipos);
         // Drop down layout style - list view with radio button
@@ -416,6 +477,38 @@ public class TCPActivity extends AppCompatActivity
         tipo.setBackground(spinner_back);
         tipo.setAdapter(dataAdapter);
 
+        tipo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                OpcionSpinner selected = (OpcionSpinner) parent.getSelectedItem();
+                if (selected.getId().equalsIgnoreCase("api")) {
+                    // Hide puerto
+                    puerto.setVisibility(View.GONE);
+                    TextInputLayout puertoLayout = (TextInputLayout) puerto.getParent().getParent();
+                    if(puertoLayout != null) {
+                        puertoLayout.setVisibility(View.GONE);
+                    }
+                    TextInputLayout ipLayout = (TextInputLayout) ip.getParent().getParent();
+                    if(ipLayout != null) {
+                        ipLayout.setHint("URL API");
+                    }
+                } else {
+                    // Show puerto again
+                    puerto.setVisibility(View.VISIBLE);
+                    TextInputLayout puertoLayout = (TextInputLayout) puerto.getParent().getParent();
+                    if(puertoLayout != null) {
+                        puertoLayout.setVisibility(View.VISIBLE);
+                    }
+                    TextInputLayout ipLayout = (TextInputLayout) ip.getParent().getParent();
+                    if(ipLayout != null) {
+                        ipLayout.setHint("Dirección IP");
+                    }
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
 //Setear valores de la conexion seleccionado
         tipo.setSelection(VariablesGlobales.getIndex(tipo,conexion.getTipo()));
         ip.setText(conexion.getIp());
@@ -425,17 +518,28 @@ public class TCPActivity extends AppCompatActivity
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!ip.getText().toString().trim().isEmpty() && !puerto.getText().toString().trim().isEmpty() && !tipo.getSelectedItem().toString().trim().isEmpty()) {
-                    //Conexion nuevaConexion = new Conexion();
-                    conexion.setIp(ip.getText().toString());
-                    conexion.setPuerto(puerto.getText().toString());
-                    conexion.setTipo(tipo.getSelectedItem().toString());
-                    //AgregarNuevaConexion(context, nuevaConexion);
+                OpcionSpinner selected = (OpcionSpinner) tipo.getSelectedItem();
+                String tipoValor = selected.getId();
+
+                boolean esApi = tipoValor.equalsIgnoreCase("api");
+
+                boolean camposValidos =
+                        !ip.getText().toString().trim().isEmpty()
+                                && !tipoValor.trim().isEmpty()
+                                && (esApi || !puerto.getText().toString().trim().isEmpty());
+
+                if (camposValidos) {
+                    Conexion nuevaConexion = new Conexion();
+                    nuevaConexion.setIp(ip.getText().toString().trim());
+                    nuevaConexion.setPuerto(esApi ? "" : puerto.getText().toString().trim());
+                    nuevaConexion.setTipo(tipoValor);
+
+                    AgregarNuevaConexion(context, nuevaConexion);
                     tv_conexiones.setDataAdapter(new ConexionTableAdapter(v.getContext(), list_conexiones));
-                    //tv_conexiones.getLayoutParams().height = tv_conexiones.getLayoutParams().height + (75);
+
                     d.dismiss();
-                    Toasty.info(context, "Se han guardado las preferencias de conexion", Toast.LENGTH_SHORT).show();
-                }else{
+                    Toasty.info(context, "Se han guardado las preferencias de conexión", Toast.LENGTH_SHORT).show();
+                } else {
                     Toasty.warning(context, "Todos los campos son obligatorios para la conexión.", Toast.LENGTH_SHORT).show();
                 }
             }

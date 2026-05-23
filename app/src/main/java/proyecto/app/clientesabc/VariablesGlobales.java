@@ -29,7 +29,7 @@ public class VariablesGlobales extends Application {
     }
 
     private static String urlApiHaciendaCR = "https://api.hacienda.go.cr/fe/ae?identificacion=";//Ambiente produccion CA APPService
-    private static String urlApi = "https://appmclientesprd01.azurewebsites.net/";//Ambiente produccion CA APPService
+    private static String urlApi = "https://clientesabccam.kof.com";//Ambiente produccion CA APPService
     //private static String urlApi = "https://kofcrazapl01.na.kof.ccf/MaestroClientes/";//Ambiente produccion CA VM
     //private static String urlApi = "https://kofcoazcli01.sa.kof.ccf/MaestroClientes/";//Ambiente produccion COL
     //private static String urlApi = "http://10.0.2.2:51123/";//Local host
@@ -39,12 +39,12 @@ public class VariablesGlobales extends Application {
     private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.56.71/FAWM_HVKOF;instance=MSSQLSERVER;user=maestro_clientes;password=kofcrmcli$;";//Ambiente PRODUCCION CAM
     //private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.152.69/FAWM_HVKOF;instance=MSSQLSERVER;user=maestro_clientes;password=kofcrmcli$;";//Ambiente CALIDAD CAM
     //private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.38.137/FAWM_HVKOF;instance=MSSQLSERVER;user=COSQLSOLPEP1;password=LLE2o0d1j2UxP8ln6p;";//Ambiente PROD COLOMBIA
-    private static String nombrePais = "Costa Rica";
-    private static String sociedad = "F443";
-    private static String orgvta = "0443";
-    private static String land1 = "CR";
-    private static String cadenaRM = "0000160000";
-    private static String ktokd = "RCMA";
+    private static String nombrePais = "Colombia";
+    private static String sociedad = "F428";
+    private static String orgvta = "0428";
+    private static String land1 = "CO";
+    private static String cadenaRM = "0000220334";
+    private static String ktokd = "CODE";
 
     /*
     private static String nombrePais = "Costa Rica";
