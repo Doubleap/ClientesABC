@@ -72,6 +72,11 @@ public interface InterfaceApi {
     Call<ResponseBody> TransmisionLecturaCenso(@Part("description") RequestBody description, @Part MultipartBody.Part file, @Path("bukrs") String bukrs, @Path("ruta") String ruta, @Path("version") String version);
 
     @Streaming
+    @GET("api"+ftp+"/DesactivarRegistroCenso/{bukrs}/{ruta}/{id}")
+    Call<ResponseBody> DesactivarRegistroCenso(@Path("bukrs") String bukrs,@Path("ruta") String ruta,@Path("id") String id);
+
+
+    @Streaming
     @GET("api"+ftp+"/ConfiguracionPais/{bukrs}")
     Call<ResponseBody> ConfiguracionPais(@Path("bukrs") String bukrs);
 

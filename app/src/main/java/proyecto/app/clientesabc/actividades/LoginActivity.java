@@ -733,11 +733,12 @@ public class LoginActivity extends AppCompatActivity {
             Bundle b = new Bundle();
             //TODO seleccionar el tipo de solicitud por el UI
             b.putBoolean("deshabilitarTransmision", true); //id de solicitud
-            if(!PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("api")) {
+            intent = new Intent(LoginActivity.this, TCPActivity.class);
+            /*if(!PreferenceManager.getDefaultSharedPreferences(LoginActivity.this).getString("tipo_conexion","").equals("api")) {
                 intent = new Intent(LoginActivity.this, TCPActivity.class);
             }else{
                 intent = new Intent(LoginActivity.this, APIConfigActivity.class);
-            }
+            }*/
             intent.putExtras(b);
             startActivity(intent);
             return;

@@ -9,7 +9,7 @@ import proyecto.app.clientesabc.adaptadores.BaseInstaladaAdapter;
 
 public class DialogHandler {
     public Runnable ans_true = null;
-    public BaseInstaladaAdapter.DesactivarRegistroCenso mithread = null;
+    public DesactivarRegistroCensoAPI mithread = null;
     // Dialog. --------------------------------------------------------------
 
     public boolean Confirm(Activity act, String Title, String ConfirmText,
@@ -42,7 +42,7 @@ public class DialogHandler {
     }
 
     public boolean Confirm(Activity act, String Title, String ConfirmText,
-                           String CancelBtn, String OkBtn, BaseInstaladaAdapter.DesactivarRegistroCenso aProcedure) {
+                           String CancelBtn, String OkBtn, DesactivarRegistroCensoAPI aProcedure) {
         mithread = aProcedure;
         AlertDialog dialog = new AlertDialog.Builder(act).create();
         dialog.setTitle(Title);

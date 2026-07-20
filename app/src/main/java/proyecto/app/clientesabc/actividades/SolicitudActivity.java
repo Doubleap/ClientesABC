@@ -318,8 +318,9 @@ public class SolicitudActivity extends AppCompatActivity {
             if(solicitudSeleccionada.get(0).get("TIPFORM").equals("70")){
                 Menu menu = bottomNavigation.getMenu();
                 menu.clear();
+                menu.add(Menu.NONE, R.id.cancel_action, Menu.NONE, "Cancelar").setIcon(R.drawable.cancel);
                 menu.add(Menu.NONE, R.id.action_devolver, Menu.NONE, "Devolver").setIcon(R.drawable.ic_rotate_left_24);
-                menu.add(Menu.NONE, R.id.action_rechazar, Menu.NONE, "Rechazar").setIcon(R.drawable.icon_reject);
+                //menu.add(Menu.NONE, R.id.action_rechazar, Menu.NONE, "Rechazar").setIcon(R.drawable.icon_reject);
                 menu.add(Menu.NONE, R.id.action_aprobar, Menu.NONE, "Aprobar").setIcon(R.drawable.icon_approve);
                 bottomNavigation.setSelectedItemId(menu.getItem(menu.size()-1).getItemId());
             }
@@ -414,7 +415,6 @@ public class SolicitudActivity extends AppCompatActivity {
                             displayDialogMessageInputDevolver(SolicitudActivity.this,"Motivo de devolución obligatorio:");
                             return true;
                         }
-
                         return true;
                     case R.id.action_rechazar:
                         comentarios = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-COMENTARIOS"));
@@ -423,6 +423,9 @@ public class SolicitudActivity extends AppCompatActivity {
                             return true;
                         }
 
+                        return true;
+                    case R.id.cancel_action:
+                        finish();
                         return true;
                     case R.id.action_aprobar:
                         finish();
@@ -483,6 +486,12 @@ public class SolicitudActivity extends AppCompatActivity {
                                             Drawable leftIcon = getResources().getDrawable(R.drawable.icon_location, null);
                                             tv.setCompoundDrawablesWithIntrinsicBounds(leftIcon, null, rightIconLocation, null);
                                         }
+                                    }
+                                }
+                                if(listaCamposObligatorios.get(i).contains("W_CTE-ALTKN") ){
+                                    if (!valor.matches("\\d{10}")) {
+                                        tv.setError("Debe ingresar exactamente 10 dígitos.");
+                                        mensajeError += "- CTA. Anterior debe ser exactamente de 10 digitos!\n";
                                     }
                                 }
                             }catch(Exception e){
@@ -1308,6 +1317,24 @@ public class SolicitudActivity extends AppCompatActivity {
                                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                                     MaskedEditText cliente_anterior = ((MaskedEditText)mapeoCamposDinamicos.get("W_CTE-ALTKN"));
                                     if(cliente_anterior != null) {
+                                        cliente_anterior.setInputType(InputType.TYPE_CLASS_NUMBER);
+                                        cliente_anterior.setFilters(new InputFilter[]{
+                                                new InputFilter.LengthFilter(10)
+                                        });
+                                        cliente_anterior.addTextChangedListener(new TextWatcher() {
+                                            @Override
+                                            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+                                            @Override
+                                            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                                if (s.length() == 10) {
+                                                    cliente_anterior.setError(null);
+                                                } else {
+                                                    cliente_anterior.setError("Debe contener 10 dígitos.");
+                                                }
+                                            }
+                                            @Override
+                                            public void afterTextChanged(Editable s) { }
+                                        });
                                         TextInputLayout milabel = getTextInputLayoutFromEditText(cliente_anterior);
                                         if(milabel != null) {
                                             if (isChecked) {

@@ -43,6 +43,7 @@ import org.json.JSONObject;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import de.codecrafters.tableview.listeners.TableDataClickListener;
 import de.codecrafters.tableview.listeners.TableDataLongClickListener;
@@ -181,7 +182,7 @@ public class TCPActivity extends AppCompatActivity
         if(list_conexiones == null) {
             list_conexiones = new ArrayList<Conexion>();
         }
-            ConexionTableAdapter stda = new ConexionTableAdapter(this, list_conexiones);
+            ConexionTableAdapter stda = new ConexionTableAdapter(TCPActivity.this, list_conexiones);
             stda.setPaddings(5, 20, 5, 20);
             stda.setGravity(GRAVITY_CENTER);
             tv_conexiones.setDataAdapter(stda);
@@ -436,7 +437,7 @@ public class TCPActivity extends AppCompatActivity
                     nuevaConexion.setTipo(tipoValor);
 
                     AgregarNuevaConexion(TCPActivity.this, nuevaConexion);
-                    tv_conexiones.setDataAdapter(new ConexionTableAdapter(v.getContext(), list_conexiones));
+                    tv_conexiones.setDataAdapter(new ConexionTableAdapter(TCPActivity.this, list_conexiones));
 
                     d.dismiss();
                     Toasty.info(TCPActivity.this, "Se han guardado las preferencias de conexión", Toast.LENGTH_SHORT).show();
@@ -448,7 +449,7 @@ public class TCPActivity extends AppCompatActivity
         d.show();
     }
 //Modificacion de conexion
-    public static void showInputDialog(final Context context, final Conexion conexion) {
+    public static void showInputDialog(final Context context, final Conexion conexion, int position) {
         final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setContentView(R.layout.edit_conexion_layout);
 
@@ -529,14 +530,13 @@ public class TCPActivity extends AppCompatActivity
                                 && (esApi || !puerto.getText().toString().trim().isEmpty());
 
                 if (camposValidos) {
-                    Conexion nuevaConexion = new Conexion();
+                    Conexion nuevaConexion = conexion;
                     nuevaConexion.setIp(ip.getText().toString().trim());
                     nuevaConexion.setPuerto(esApi ? "" : puerto.getText().toString().trim());
                     nuevaConexion.setTipo(tipoValor);
-
-                    AgregarNuevaConexion(context, nuevaConexion);
+                    list_conexiones.set(position,conexion);
                     tv_conexiones.setDataAdapter(new ConexionTableAdapter(v.getContext(), list_conexiones));
-
+                    setConexionesFromSharedPreferences(list_conexiones, context);
                     d.dismiss();
                     Toasty.info(context, "Se han guardado las preferencias de conexión", Toast.LENGTH_SHORT).show();
                 } else {
@@ -560,15 +560,23 @@ public class TCPActivity extends AppCompatActivity
         return productFromShared;
     }
 
-    private void setConexionesFromSharedPreferences(Conexion curConexion){
+    public static void setConexionesFromSharedPreferences(Conexion curConexion,Context context){
         Gson gson = new Gson();
         String jsonCurProduct = gson.toJson(curConexion);
 
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(TCPActivity.this);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPref.edit();
 
         editor.putString("Conexiones", jsonCurProduct);
         editor.commit();
+    }
+    public static void setConexionesFromSharedPreferences(ArrayList<Conexion> conexiones, Context context) {
+        Gson gson = new Gson();
+        String json = gson.toJson(conexiones);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("Conexiones", json);
+        editor.apply();
     }
 
     public static void AgregarNuevaConexion(Context context, Conexion conexion){
@@ -599,15 +607,20 @@ public class TCPActivity extends AppCompatActivity
             editor.commit();
         }
     }
-
+    public static boolean equalsWithoutName(Conexion old, Conexion mod) {
+        if (mod == null) {
+            return false;
+        }
+        return Objects.equals(old.getTipo(), mod.getTipo()) && Objects.equals(old.getIp(), mod.getIp())
+                && Objects.equals(old.getPuerto(), mod.getPuerto());
+    }
     private static boolean ConexionDuplicada(Context context, Conexion n) {
         ArrayList<Conexion> listaPreferencia = getConexionesFromSharedPreferences(context);
         boolean retorno = false;
         if(listaPreferencia != null) {
             for (int x = 0; x < listaPreferencia.size(); x++) {
-                if (((Conexion) listaPreferencia.get(x)).equals(n)) {
-                    retorno = true;
-                    break;
+                if ( equalsWithoutName(((Conexion) listaPreferencia.get(x)), n) ) {
+                    return true;
                 }
             }
         }
@@ -633,7 +646,7 @@ public class TCPActivity extends AppCompatActivity
             String salida = seleccionado.getIp() + ":" + seleccionado.getPuerto()+" ha sido eliminado.";
             list_conexiones = getConexionesFromSharedPreferences(TCPActivity.this);
             list_conexiones.remove(rowIndex);
-            tv_conexiones.setDataAdapter(new ConexionTableAdapter(getBaseContext(), list_conexiones));
+            tv_conexiones.setDataAdapter(new ConexionTableAdapter(TCPActivity.this, list_conexiones));
 
 
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(TCPActivity.this);

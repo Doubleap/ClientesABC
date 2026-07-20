@@ -4,6 +4,7 @@ import static androidx.core.content.ContextCompat.startActivity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -32,6 +33,7 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import proyecto.app.clientesabc.BuildConfig;
+import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
 import proyecto.app.clientesabc.interfaces.InterfaceApi;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
@@ -212,6 +214,16 @@ public class TransmisionLecturaCensoAPI extends AsyncTask<Void,String,Void> {
             Toasty.success(context.get(),"Transmision Finalizada Correctamente!",Toast.LENGTH_LONG).show();
             //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
             mDBHelper.ActualizarEstadosSolicitudesTransmitidas(solicitudes_procesadas);
+
+            Toasty.success(context.get(),"Transmisión exitosa de "+equipoFrio.getEstado()+"!",Toast.LENGTH_LONG).show();
+            //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put("transmitido","1");
+            long update = db.update("CensoEquipoFrio",values,"trim(kunnr_censo) = ? AND trim(num_placa) = ? AND fecha_lectura = ? AND transmitido = '0'",new String[]{equipoFrio.getKunnrCenso(),equipoFrio.getSerge(),equipoFrio.getFechaLectura()});
+            if(update <= 0){
+                Toasty.success(context.get(),"No se actualizo el estado de transmision de la lectura!",Toast.LENGTH_LONG).show();
+            }
         }
         try {
             dialog.dismiss();
@@ -223,12 +235,16 @@ public class TransmisionLecturaCensoAPI extends AsyncTask<Void,String,Void> {
         if(dialog.isShowing())
             dialog.hide();
         //activity.get().recreate();
-        Intent intent = activity.get().getIntent();
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        activity.get().finish();
-        activity.get().overridePendingTransition(0, 0);
-        startActivity(context.get(), intent, null);
-        activity.get().overridePendingTransition(0, 0);
+        if(!activity.get().isFinishing()) {
+            Intent intent = activity.get().getIntent();
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            activity.get().finish();
+            if (activity.get() instanceof BaseInstaladaActivity) {
+                activity.get().overridePendingTransition(0, 0);
+                startActivity(context.get(), intent, null);
+                activity.get().overridePendingTransition(0, 0);
+            }
+        }
     }
 
     public void EnableWiFi(){

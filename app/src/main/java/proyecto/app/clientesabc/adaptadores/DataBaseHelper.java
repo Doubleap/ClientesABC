@@ -62,6 +62,8 @@ import proyecto.app.clientesabc.modelos.OpcionSpinner;
 import proyecto.app.clientesabc.modelos.OpcionesRespuesta;
 import proyecto.app.clientesabc.modelos.PreguntasEncuesta;
 import proyecto.app.clientesabc.modelos.RespuestaPregunta;
+import proyecto.app.clientesabc.modelos.ResumenCliente;
+import proyecto.app.clientesabc.modelos.ResumenEncuestaCliente;
 import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Range")
@@ -309,7 +311,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             }
             switch (PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BUKRS", "")) {
                 case "F443":
-                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal, ZTERM as zterm " +
+                    query = "SELECT SapDCLIENTES.KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD3 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal, ZTERM as zterm " +
                             ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
                             " FROM SAPDClientes ";
                             if(usaMonitor)
@@ -317,7 +319,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     break;
                 case "F445":
                 case "F451":
-                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal " +
+                    query = "SELECT SapDCLIENTES.KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal " +
                             ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
                             " FROM SAPDClientes ";
                         if(usaMonitor)
@@ -326,55 +328,88 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 case "1657":
                 case "1658":
                 case "F446":
-                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal " +
-                            ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
-                            " FROM SAPDClientes";
+                    query = "SELECT SapDCLIENTES.KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal " +
+                            //", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
+                            ", COALESCE(bi.cant_base_instalada,0) as cant_base_instalada" + columnas_monitor +
+                            " FROM SAPDClientes"+
+                            " LEFT JOIN ( " +
+                                    "     SELECT kunnr, COUNT(*) AS cant_base_instalada " +
+                                    "     FROM SAPDBaseInstalada " +
+                                    "     GROUP BY kunnr " +
+                                    " ) bi ON bi.kunnr = SAPDClientes.KUNNR ";
                     if(usaMonitor)
                         query += " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
                     break;
                 case "1661":
                 case "Z001":
-                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, STRAS as direccion, 'Estado' as estado, KLABC as klabc, stcd1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
+                    query = "SELECT SapDCLIENTES.KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, STRAS as direccion, 'Estado' as estado, KLABC as klabc, stcd1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal " +
                             ", (SELECT count(*) FROM SAPDBaseInstalada WHERE kunnr = SAPDClientes.KUNNR) as cant_base_instalada" + columnas_monitor +
                             " FROM SAPDClientes";
                     if(usaMonitor)
                         query += " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
                     break;
                 case "F428":
-                    query = "SELECT KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal " +
+                    query = "SELECT cp.cupo, SapDCLIENTES.KUNNR as codigo, NAME1_E as nombre, NAME2 as razonSocial, NAME_CO as direccion, 'Estado' as estado, KLABC as klabc, STCD1 as stcd3, STREET as street, STR_SUPPL1 as str_suppl1, SMTP_ADDR as smtp_addr, ZZCRMA_LAT as latitud, ZZCRMA_LONG as longitud, ZCANAL as canal, ZZTPOCANAL as tipo_canal " +
                             ", 0 as cant_base_instalada" + columnas_monitor +
                             " FROM SAPDClientes ";
                     if(usaMonitor)
                         query += " LEFT JOIN VistaMonitorEquipoFrio v ON (v.codigo_cliente = SapDCLIENTES.KUNNR)";
+
+                        query += " LEFT JOIN creditosPreaprobados cp ON (cp.codigo_cliente = SapDCLIENTES.KUNNR)";
                     break;
             }
 
             Cursor cursor = mDataBase.rawQuery(query, null);
+            int idxCupo = cursor.getColumnIndex("cupo");
+            int idxCodigo = cursor.getColumnIndex("codigo");
+            int idxNombre = cursor.getColumnIndex("nombre");
+            int idxRazonSocial = cursor.getColumnIndex("razonSocial");
+            int idxDireccion = cursor.getColumnIndex("direccion");
+            int idxEstado = cursor.getColumnIndex("estado");
+            int idxKlabc = cursor.getColumnIndex("klabc");
+            int idxStcd3 = cursor.getColumnIndex("stcd3");
+            int idxStreet = cursor.getColumnIndex("street");
+            int idxStrSuppl1 = cursor.getColumnIndex("str_suppl1");
+            int idxCorreo = cursor.getColumnIndex("smtp_addr");
+            int idxLatitud = cursor.getColumnIndex("latitud");
+            int idxLongitud = cursor.getColumnIndex("longitud");
+            int idxCantBase = cursor.getColumnIndex("cant_base_instalada");
+            int idxPuertas = cursor.getColumnIndex("puertas_por_instalar");
+            int idxCanal = cursor.getColumnIndex("canal");
+            int idxTipoCanal = cursor.getColumnIndex("tipo_canal");
+            int idxZterm = cursor.getColumnIndex("zterm");
             while (cursor.moveToNext()) {
                 HashMap<String, String> user = new HashMap<>();
-                user.put("codigo", cursor.getString(0) != null ? cursor.getString(0) : "");
-                user.put("nombre", cursor.getString(1) != null ? cursor.getString(1) : "");
-                user.put("razonSocial", cursor.getString(2) != null ? cursor.getString(2) : "");
-                user.put("direccion", cursor.getString(3) != null ? cursor.getString(3) : "");
-                user.put("estado", cursor.getString(4) != null ? cursor.getString(4) : "");
-                user.put("klabc", cursor.getString(cursor.getColumnIndex("klabc")) != null ? cursor.getString(cursor.getColumnIndex("klabc")) : "");
-                user.put("idfiscal", cursor.getString(cursor.getColumnIndex("stcd3")) != null ? cursor.getString(cursor.getColumnIndex("stcd3")) : "");
-                user.put("ubicacion", cursor.getString(cursor.getColumnIndex("street")) != null ? cursor.getString(cursor.getColumnIndex("street")) : "");
-                user.put("direccion", cursor.getString(cursor.getColumnIndex("str_suppl1")) != null ? cursor.getString(cursor.getColumnIndex("str_suppl1")) : "");
-                user.put("correo", cursor.getString(cursor.getColumnIndex("smtp_addr")) != null ? cursor.getString(cursor.getColumnIndex("smtp_addr")) : "");
-                user.put("latitud", cursor.getString(cursor.getColumnIndex("latitud")) != null ? cursor.getString(cursor.getColumnIndex("latitud")) : "");
-                user.put("longitud", cursor.getString(cursor.getColumnIndex("longitud")) != null ? cursor.getString(cursor.getColumnIndex("longitud")) : "");
-                user.put("cant_base_instalada", cursor.getString(cursor.getColumnIndex("cant_base_instalada")) != null ? cursor.getString(cursor.getColumnIndex("cant_base_instalada")) : "");
-                if (cursor.getColumnIndex("puertas_por_instalar") != -1) {
-                    user.put("puertas_por_instalar", cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) != null ? cursor.getString(cursor.getColumnIndex("puertas_por_instalar")) : "");
+
+                if(idxCupo != -1)
+                    user.put("cupo", getCursorString(cursor, idxCupo));
+                user.put("codigo", getCursorString(cursor, idxCodigo));
+                user.put("nombre", getCursorString(cursor, idxNombre));
+                user.put("razonSocial", getCursorString(cursor, idxRazonSocial));
+                user.put("direccion", getCursorString(cursor, idxDireccion));
+                user.put("estado", getCursorString(cursor, idxEstado));
+                user.put("klabc", getCursorString(cursor, idxKlabc));
+                user.put("idfiscal", getCursorString(cursor, idxStcd3));
+                user.put("ubicacion", getCursorString(cursor, idxStreet));
+                user.put("direccion", getCursorString(cursor, idxStrSuppl1));
+                user.put("correo", getCursorString(cursor, idxCorreo));
+                user.put("latitud", getCursorString(cursor, idxLatitud));
+                user.put("longitud", getCursorString(cursor, idxLongitud));
+                user.put("cant_base_instalada", getCursorString(cursor, idxCantBase));
+                user.put("canal", getCursorString(cursor, idxCanal));
+
+                if (idxPuertas != -1) {
+                    user.put("puertas_por_instalar", getCursorString(cursor, idxPuertas));
                 }
-                user.put("canal", cursor.getString(cursor.getColumnIndex("canal")) != null ? cursor.getString(cursor.getColumnIndex("canal")) : "");
-                if (cursor.getColumnIndex("tipo_canal") != -1) {
-                    user.put("tipo_canal", cursor.getString(cursor.getColumnIndex("tipo_canal")) != null ? cursor.getString(cursor.getColumnIndex("tipo_canal")) : "");
+
+                if (idxTipoCanal != -1) {
+                    user.put("tipo_canal", getCursorString(cursor, idxTipoCanal));
                 }
-                if (cursor.getColumnIndex("zterm") != -1) {
-                    user.put("zterm", cursor.getString(cursor.getColumnIndex("zterm")) != null ? cursor.getString(cursor.getColumnIndex("zterm")) : "");
+
+                if (idxZterm != -1) {
+                    user.put("zterm", getCursorString(cursor, idxZterm));
                 }
+
                 clientList.add(user);
             }
             cursor.close();
@@ -385,7 +420,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         return  clientList;
     }
+    private String getCursorString(Cursor cursor, int index) {
+        if (index == -1) {
+            return "";
+        }
 
+        String value = cursor.getString(index);
+
+        if (value == null) {
+            return "";
+        }
+
+        return value;
+    }
     public ArrayList<HashMap<String, String>> getValidaCreditos(String tipo, String clasicxc){
         if(clasicxc.equals("ABC")){
             clasicxc = "F"; //Para la RFC de SAP solo existe formal o informal.
@@ -1489,7 +1536,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 String inClause =  "'" + TextUtils.join("','", listaCadenasInd) + "'";
 
                 filtros.append(" AND trim(hkunnr) IN (" + inClause + ")");
-
             }
             else {
                 filtros.append(" AND trim(hkunnr) = '" + PreferenceManager.getDefaultSharedPreferences(mContext).getString("CONFIG_CADENARM", "") + "' AND zzkeyacc = 'CA002'");
@@ -1578,7 +1624,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             listaCatalogo.add(seleccione);
             // looping through all rows and adding to list
             if (cursor.moveToFirst()) {
-
                 do {
                     HashMap<String,String> lista = new HashMap<>();
                     lista.put("id",cursor.getString(0).trim());//1era columna del query
@@ -1661,7 +1706,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         try {
             //SQLiteDatabase db = this.getReadableDatabase();
-
             Cursor cursor = mDataBase.rawQuery(selectQuery + filtros, null);//selectQuery,selectedArguments
             HashMap<String,String> seleccione = new HashMap<>();
             seleccione.put("id","");
@@ -1677,7 +1721,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     }else{
                         lista.put("descripcion",cursor.getString(0).trim() + " - " + cursor.getString(1).trim());//1era y 2da columna del query
                     }
-
                     listaCatalogo.add(lista);
                 } while (cursor.moveToNext());
             }
@@ -4744,7 +4787,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         return  centro;
     }
-
     public int CantidadVerificados(String codigoCliente) {
         int cantidad = 0;
         try {
@@ -4818,9 +4860,57 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return  existe;
     }
 
-    public List<EncuestaCabecera> getEncuestasCabecera(String ruta) {
-        List<EncuestaCabecera> encuestasCabeceras = new ArrayList<>();
-        List<EncuestaCabecera> encuestasCabecerasFiltrado = new ArrayList<>();
+    public HashMap<String, ResumenCliente> getResumenCensoEquipoFrioPorCliente() {
+        HashMap<String, ResumenCliente> map = new HashMap<>();
+
+        String sql =
+                "SELECT " +
+                        "    c.kunnr_censo AS codigoCliente, " +
+                        "    SUM(CASE " +
+                        "        WHEN TRIM(c.estado) = 'Verificado' " +
+                        "        AND c.num_placa IN ( " +
+                        "            SELECT s.SERGE " +
+                        "            FROM SapDBaseInstalada s " +
+                        "            WHERE s.kunnr = c.kunnr_censo " +
+                        "        ) " +
+                        "        THEN 1 ELSE 0 END) AS cantVerificados, " +
+                        "    SUM(CASE WHEN TRIM(c.estado) = 'Hallazgo' THEN 1 ELSE 0 END) AS cantHallazgos, " +
+                        "    SUM(CASE WHEN TRIM(c.estado) = 'Anomalia' THEN 1 ELSE 0 END) AS cantAnomalias, " +
+                        "    SUM(CASE WHEN TRIM(c.estado) = 'Alerta' THEN 1 ELSE 0 END) AS cantAlertas " +
+                        "FROM CensoEquipoFrio c " +
+                        "WHERE c.activo = 1 " +
+                        "GROUP BY c.kunnr_censo";
+
+        Cursor cursor = null;
+
+        try {
+            cursor = mDataBase.rawQuery(sql, null);
+
+            while (cursor.moveToNext()) {
+                String codigoCliente = cursor.getString(cursor.getColumnIndexOrThrow("codigoCliente"));
+
+                ResumenCliente resumen = new ResumenCliente();
+
+                resumen.cantVerificados = cursor.getInt(cursor.getColumnIndexOrThrow("cantVerificados"));
+                resumen.cantHallazgos = cursor.getInt(cursor.getColumnIndexOrThrow("cantHallazgos"));
+                resumen.cantAnomalias = cursor.getInt(cursor.getColumnIndexOrThrow("cantAnomalias"));
+                resumen.cantAlertas = cursor.getInt(cursor.getColumnIndexOrThrow("cantAlertas"));
+
+                map.put(codigoCliente, resumen);
+            }
+        } catch (SQLiteException e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        return map;
+    }
+    public ArrayList<EncuestaCabecera> getEncuestasCabecera(String ruta) {
+        ArrayList<EncuestaCabecera> encuestasCabeceras = new ArrayList<>();
+        ArrayList<EncuestaCabecera> encuestasCabecerasFiltrado = new ArrayList<>();
         ruta = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_RUTAHH", "");
         String bzirk = PreferenceManager.getDefaultSharedPreferences(mContext).getString("W_CTE_BZIRK", "");
 
@@ -4832,7 +4922,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             if (!(cursor.moveToFirst()) || cursor.getCount() == 0) {
                 //cursor is empty
             } else {
-                encuestasCabeceras = uOrm.listFromCursor(cursor, EncuestaCabecera.class);
+                encuestasCabeceras = (ArrayList<EncuestaCabecera>) uOrm.listFromCursor(cursor, EncuestaCabecera.class);
             }
             cursor.close();
             for (EncuestaCabecera encuestaCabecera : encuestasCabeceras) {
@@ -4926,7 +5016,75 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         return  pendiente;
     }
+    public HashMap<String, ResumenEncuestaCliente> getResumenEncuestasPorCliente(
+            ArrayList<HashMap<String, String>> clientes,
+            ArrayList<EncuestaCabecera> encuestas
+    ) {
+        HashMap<String, ResumenEncuestaCliente> map = new HashMap<>();
 
+        int totalEncuestas = encuestas.size();
+
+        for (HashMap<String, String> cliente : clientes) {
+            String codigoCliente = cliente.get("codigo");
+
+            ResumenEncuestaCliente resumen = new ResumenEncuestaCliente();
+
+            resumen.pendientes = totalEncuestas;
+
+            map.put(codigoCliente, resumen);
+        }
+
+        if (totalEncuestas == 0) {
+            return map;
+        }
+
+        String sql =
+                "SELECT " +
+                        "    r.codigo_cliente, " +
+                        "    COUNT(DISTINCT r.id_encuesta) AS ejecutadas, " +
+                        "    MAX(CASE WHEN r.estado = 'pendiente' THEN 1 ELSE 0 END) AS pendienteTransferir " +
+                        "FROM respuesta_pregunta r " +
+                        "JOIN encuesta_cabecera e ON e.id_encuesta = r.id_encuesta " +
+                        "WHERE r.fecha_ejecucion BETWEEN e.fecha_inicio AND e.fecha_fin " +
+                        "AND r.estado != 'cerrado' " +
+                        "GROUP BY r.codigo_cliente";
+
+        Cursor cursor = null;
+
+        try {
+            cursor = mDataBase.rawQuery(sql, null);
+
+            while (cursor.moveToNext()) {
+                String codigoCliente = cursor.getString(0);
+
+                int ejecutadas = cursor.getInt(1);
+
+                boolean pendienteTransferir = cursor.getInt(2) == 1;
+
+                ResumenEncuestaCliente resumen = map.get(codigoCliente);
+
+                if (resumen == null) {
+                    resumen = new ResumenEncuestaCliente();
+
+                    map.put(codigoCliente, resumen);
+                }
+
+                resumen.pendientes = totalEncuestas - ejecutadas;
+
+                if (resumen.pendientes < 0) {
+                    resumen.pendientes = 0;
+                }
+
+                resumen.pendienteTransferir = pendienteTransferir;
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        return map;
+    }
     public List<RespuestaPregunta> getRespuestasEncuestaCliente(String codigo_cliente,String id_encuesta){
         List<RespuestaPregunta> respuestaPreguntas = new ArrayList<>();
         String sql_encuesta = "select * from respuesta_pregunta r join encuesta_cabecera e on e.id_encuesta=r.id_encuesta where r.id_encuesta = '"+id_encuesta+"'        and r.codigo_cliente = '"+codigo_cliente+"' and fecha_ejecucion between e.fecha_inicio and e.fecha_fin";

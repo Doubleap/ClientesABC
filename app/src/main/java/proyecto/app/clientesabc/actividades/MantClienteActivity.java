@@ -33,6 +33,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -75,6 +76,8 @@ import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.TransmisionEncuestaServidor;
 import proyecto.app.clientesabc.modelos.EncuestaCabecera;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
+import proyecto.app.clientesabc.modelos.ResumenCliente;
+import proyecto.app.clientesabc.modelos.ResumenEncuestaCliente;
 
 
 public class MantClienteActivity extends AppCompatActivity {
@@ -88,17 +91,57 @@ public class MantClienteActivity extends AppCompatActivity {
     private FloatingActionButton fab1;
     private FloatingActionButton fab2;
     List<EncuestaCabecera> encuestaCabeceras;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detalle);
-        db = new DataBaseHelper(this);
-        ArrayList<HashMap<String, String>> clientList = db.getClientes();
         RecyclerView rv = findViewById(R.id.user_list);
 
-        mAdapter = new MyAdapter(clientList);
+        long t0 = System.currentTimeMillis();
+
+        db = new DataBaseHelper(this);
+        asegurarIndices();
+        Log.d("PERF", "DB helper: " + (System.currentTimeMillis() - t0));
+
+        long t1 = System.currentTimeMillis();
+
+        ArrayList<HashMap<String, String>> clientList = db.getClientes();
+
+        Log.d("PERF", "getClientes: " + (System.currentTimeMillis() - t1));
+
+        long t2 = System.currentTimeMillis();
+
+        HashMap<String, ResumenCliente> resumenMap = db.getResumenCensoEquipoFrioPorCliente();
+
+        Log.d("PERF", "getResumenCenso: " + (System.currentTimeMillis() - t2));
+
+        long t3 = System.currentTimeMillis();
+
+        ArrayList<EncuestaCabecera> encuestaCabecerasTemp = db.getEncuestasCabecera("");
+
+        Log.d("PERF", "getEncuestasCabecera: " + (System.currentTimeMillis() - t3));
+
+        long t4 = System.currentTimeMillis();
+
+        HashMap<String, ResumenEncuestaCliente> resumenEncuestaMap = db.getResumenEncuestasPorCliente(
+                clientList,
+                encuestaCabecerasTemp
+        );
+
+        Log.d("PERF", "getResumenEncuestas: " + (System.currentTimeMillis() - t4));
+
+        long t5 = System.currentTimeMillis();
+        final boolean usaMonitorEquipoFrio = db.UsaMonitorEquipoFrio();
+        final boolean usaIndirectos = db.UsaIndirectos();
+
+        mAdapter = new MyAdapter(clientList, resumenMap, encuestaCabecerasTemp, resumenEncuestaMap,usaIndirectos,usaMonitorEquipoFrio);//mAdapter = new MyAdapter(clientList);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
+
+        Log.d("PERF", "setAdapter: " + (System.currentTimeMillis() - t5));
+
+        Log.d("PERF", "TOTAL onCreate load: " + (System.currentTimeMillis() - t0));
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
 
         fab1 = findViewById(R.id.filterBtn);
@@ -213,16 +256,33 @@ public class MantClienteActivity extends AppCompatActivity {
         /**/
 
     }
-
+    private void asegurarIndices() {
+        try {
+            db.getWritableDatabase().execSQL(
+                    "CREATE INDEX IF NOT EXISTS idx_sapdbaseinstalada_kunnr ON SAPDBaseInstalada(kunnr)"
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     @Override
     protected void onResume() {
         super.onResume();
         RecyclerView rv = findViewById(R.id.user_list);
         ArrayList<HashMap<String, String>> clientList = db.getClientes();
-        mAdapter = new MyAdapter(clientList);
+        HashMap<String, ResumenCliente> resumenMap = db.getResumenCensoEquipoFrioPorCliente();
+        ArrayList<EncuestaCabecera> encuestaCabecerasTemp = db.getEncuestasCabecera("");
+        HashMap<String, ResumenEncuestaCliente> resumenEncuestaMap = db.getResumenEncuestasPorCliente(
+                clientList,
+                encuestaCabecerasTemp
+        );
+        final boolean usaMonitorEquipoFrio = db.UsaMonitorEquipoFrio();
+        final boolean usaIndirectos = db.UsaIndirectos();
+        mAdapter = new MyAdapter(clientList, resumenMap, encuestaCabecerasTemp, resumenEncuestaMap,usaIndirectos,usaMonitorEquipoFrio);
+        //mAdapter = new MyAdapter(clientList);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
-        rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
+
         FloatingActionButton fab = findViewById(R.id.fabBtn);
         if (fab != null) {
             fab.setEnabled(true);
@@ -278,6 +338,11 @@ public class MantClienteActivity extends AppCompatActivity {
     public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder>  implements Filterable {
         private ArrayList<HashMap<String, String>> mDataset;
         private ArrayList<HashMap<String, String>> formListFiltered;
+        private HashMap<String, ResumenCliente> resumenMap;
+        private ArrayList<EncuestaCabecera> encuestasMap;
+        private HashMap<String, ResumenEncuestaCliente> resumenEncuestaMap;
+        private boolean usaIndirectos;
+        private boolean usaMonitorEquipoFrio;
         // Provide a reference to the views for each data item
         // Complex data items may need more than one view per item, and
         // you provide access to all the views for a data item in a view holder
@@ -291,8 +356,13 @@ public class MantClienteActivity extends AppCompatActivity {
         }
 
         // Constructor de Adaptador HashMap
-        private MyAdapter(Object myDataset) {
+        private MyAdapter(Object myDataset, HashMap<String, ResumenCliente> resumenMap, ArrayList<EncuestaCabecera> encuestasMap, HashMap<String, ResumenEncuestaCliente> resumenEncuestaMap, boolean usaIndirectos, boolean usaMonitorEquipoFrio) {
             mDataset = (ArrayList<HashMap<String, String>>) myDataset;
+            this.resumenMap = resumenMap;
+            this.encuestasMap = encuestasMap;
+            this.resumenEncuestaMap = resumenEncuestaMap;
+            this.usaIndirectos = usaIndirectos;
+            this.usaMonitorEquipoFrio = usaMonitorEquipoFrio;
             formListFiltered = mDataset;
         }
 
@@ -308,6 +378,7 @@ public class MantClienteActivity extends AppCompatActivity {
         // Reemplazar el contenido del View. Para ListView se llama solo, pero para RecyclerView hay que llamar al setLayoutManager
         @Override
         public void onBindViewHolder(@NonNull final MyViewHolder holder, int position) {
+            long t0 = System.currentTimeMillis();
             ColorStateList colorStateListOk = new ColorStateList(
                     new int[][]{
                             new int[]{}
@@ -376,16 +447,39 @@ public class MantClienteActivity extends AppCompatActivity {
                 indirecto.setVisibility(View.INVISIBLE);
             }
 
+            com.rey.material.widget.LinearLayout  credito_preaprobado_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.credito_preaprobado_layout);
+            final String cupoPreaprobado = formListFiltered.get(position).get("cupo") == null?"":formListFiltered.get(position).get("cupo").trim();
+
+            if(cupoPreaprobado != null && credito_preaprobado_layout != null){
+                credito_preaprobado_layout.setVisibility(View.VISIBLE);
+                ImageView  imagen_credito_preaprobado = (ImageView)holder.listView.findViewById(R.id.imagen_credito_preaprobado);
+                if(imagen_credito_preaprobado != null){
+                    imagen_credito_preaprobado.setTooltipText("Crédito Pre-Aprobado por "+cupoPreaprobado+".");
+                }
+            }else if (credito_preaprobado_layout != null){
+                credito_preaprobado_layout.setVisibility(View.GONE);
+            }
+
 
             final String codigoCliente = codigo.getText().toString().trim();
             final String nombreCliente = nombre.getText().toString().trim();
             final String canalCliente = formListFiltered.get(position).get("canal").trim();
             final String correoCliente = correo.getText().toString().trim();
 
-            int cantVerificados = db.CantidadVerificados(codigoCliente);
+
+            ResumenCliente resumen = resumenMap.get(codigoCliente);
+            if (resumen == null) {
+                resumen = new ResumenCliente();
+            }
+
+            int cantVerificados = resumen.cantVerificados;
+            int cantHallazgos = resumen.cantHallazgos;
+            int cantAnomalias = resumen.cantAnomalias;
+            int cantAlertas = resumen.cantAlertas;
+            /*int cantVerificados = db.CantidadVerificados(codigoCliente);
             int cantHallazgos = db.CantidadHallazgos(codigoCliente);
             int cantAnomalias = db.CantidadAnomalias(codigoCliente);
-            int cantAlertas = db.CantidadAlertas(codigoCliente);
+            int cantAlertas = db.CantidadAlertas(codigoCliente);*/
 
             if(formListFiltered.get(holder.getAdapterPosition()).get("correo") == null || formListFiltered.get(position).get("correo").equals("")){
                 //correo.setVisibility(View.GONE);
@@ -452,8 +546,16 @@ public class MantClienteActivity extends AppCompatActivity {
             //ENCUESTA GEC
             long encuestaCreada=0;
 
-            encuestaCabeceras = db.getEncuestasCabecera("");
-            int pendientes =0;
+            encuestaCabeceras = encuestasMap;
+
+            ResumenEncuestaCliente resumenEncuesta = resumenEncuestaMap.get(codigoCliente);
+            int pendientes = 0;
+            boolean pendienteTransferir = false;
+            if (resumenEncuesta != null) {
+                pendientes = resumenEncuesta.pendientes;
+                pendienteTransferir = resumenEncuesta.pendienteTransferir;
+            }
+            /*int pendientes =0;
             boolean pendienteTransferir = false;
             for(EncuestaCabecera encuestaCabecera : encuestaCabeceras){
                 if(!db.getValidacionEncuestaClientePendiente(String.valueOf(encuestaCabecera.getId()),codigoCliente)){
@@ -466,7 +568,7 @@ public class MantClienteActivity extends AppCompatActivity {
                         pendienteTransferir=true;
                     }
                 }
-            }
+            }*/
             com.rey.material.widget.LinearLayout  encuesta_gec_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.encuesta_gec_layout);
             ImageView imagen_encuesta_gec = (ImageView)holder.listView.findViewById(R.id.imagen_encuesta_gec);
             TextView label_cantidad_encuestas_pendientes= (TextView) holder.listView.findViewById(R.id.label_cantidad_encuestas_pendientes);
@@ -523,7 +625,7 @@ public class MantClienteActivity extends AppCompatActivity {
             TextView label_cantidad_puertas_por_instalar = (TextView)holder.listView.findViewById(R.id.label_cantidad_puertas_por_instalar);
             if((formListFiltered.get(holder.getAdapterPosition()).get("puertas_por_instalar") == null || formListFiltered.get(holder.getAdapterPosition()).get("puertas_por_instalar").equals(""))){
                 puertas_por_instalar_layout.setVisibility(View.GONE);
-            }else if(db.UsaMonitorEquipoFrio()){
+            }else if(usaMonitorEquipoFrio){
                 puertas_por_instalar_layout.setVisibility(View.VISIBLE);
                 Integer puertas = formListFiltered.get(position).get("puertas_por_instalar") != null ? Integer.parseInt(formListFiltered.get(position).get("puertas_por_instalar").toString()) : 0;
                 label_cantidad_puertas_por_instalar.setText(puertas.toString());
@@ -643,6 +745,9 @@ public class MantClienteActivity extends AppCompatActivity {
                     if(!db.ExistenIniciativas()){
                         MenuItem menuItem = (MenuItem)popup.getMenu().getItem(6).setVisible(false);
                     }
+                    if(cupoPreaprobado != null){
+
+                    }
 
                     popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         @Override
@@ -670,7 +775,7 @@ public class MantClienteActivity extends AppCompatActivity {
                                     break;
                                 case R.id.cierre:
                                     Bundle bc = new Bundle();
-                                    if(db.UsaIndirectos() && tipo_canal.equals("60")) {
+                                    if(usaIndirectos && tipo_canal.equals("60")) {
                                         bc.putString("tipoSolicitud", "504"); //id de solicitud
                                     }else{
                                         bc.putString("tipoSolicitud", "5"); //id de solicitud
@@ -754,6 +859,12 @@ public class MantClienteActivity extends AppCompatActivity {
                 }
             };
             holder.listView.setOnClickListener(mOnClickListener);*/
+
+            long elapsed = System.currentTimeMillis() - t0;
+
+            if (elapsed > 20) {
+                Log.d("PERF_BIND", "position " + position + " took " + elapsed + " ms");
+            }
         }
 
         // Return the size of your dataset (invoked by the layout manager)

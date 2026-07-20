@@ -1,5 +1,7 @@
 package proyecto.app.clientesabc.modelos;
 
+import java.util.UUID;
+
 public class Conexion {
     private String nombre;
     private String sociedad;

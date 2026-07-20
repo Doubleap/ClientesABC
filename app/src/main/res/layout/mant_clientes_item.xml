@@ -264,6 +264,26 @@
 
 
                 </com.rey.material.widget.LinearLayout>
+
+                <!--CREDITOS PREAPROBADOS-->
+                <com.rey.material.widget.LinearLayout
+                    android:id="@+id/credito_preaprobado_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignBottom="@id/correo_layout"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/imagen_credito_preaprobado"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:background="@drawable/icon_credit"
+                        android:tooltipText="Credito Pre-Aprobado"
+                        android:visibility="gone"/>
+                </com.rey.material.widget.LinearLayout>
+
             </com.rey.material.widget.LinearLayout>
             <!--<TextView
                 android:id="@+id/ubicacion"

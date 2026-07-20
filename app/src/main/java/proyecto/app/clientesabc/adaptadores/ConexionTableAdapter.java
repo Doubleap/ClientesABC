@@ -48,7 +48,7 @@ public class ConexionTableAdapter extends TableDataAdapter<Conexion> {
             accion_editar.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    TCPActivity.showInputDialog(context, data.get(rowIndex));
+                    TCPActivity.showInputDialog(context, data.get(rowIndex), rowIndex);
                 }
             });
             return accion_editar;

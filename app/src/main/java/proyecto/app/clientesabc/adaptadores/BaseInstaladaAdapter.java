@@ -63,6 +63,7 @@ import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.actividades.LocacionGPSActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
+import proyecto.app.clientesabc.clases.DesactivarRegistroCensoAPI;
 import proyecto.app.clientesabc.clases.DialogHandler;
 import proyecto.app.clientesabc.clases.SearchableSpinner;
 import proyecto.app.clientesabc.clases.TransmisionLecturaCensoAPI;
@@ -256,8 +257,18 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
                     eliminar.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
+                            String bukrs = PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
+                            WeakReference<Context> c = new WeakReference<Context>(context);
+                            WeakReference<Activity> a = new WeakReference<Activity>((Activity) context);
                             DialogHandler appdialog = new DialogHandler();
-                            appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaAdapter.DesactivarRegistroCenso(context,activity,formListFiltered.get(position)));
+                            appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si",
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    new DesactivarRegistroCensoAPI(c, a, bukrs, formListFiltered.get(position).getId()
+                                    ).execute();
+                                }
+                            });
                         }
                     });
                 }
@@ -358,16 +369,42 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
             card_view.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    DialogHandler appdialog = new DialogHandler();
+                    /*DialogHandler appdialog = new DialogHandler();
                     appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaAdapter.DesactivarRegistroCenso(context,activity,formListFiltered.get(position)));
+                    return false;*/
+                    String bukrs = PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
+                    WeakReference<Context> c = new WeakReference<Context>(context);
+                    WeakReference<Activity> a = new WeakReference<Activity>((Activity) context);
+                    DialogHandler appdialog = new DialogHandler();
+                    appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si",
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    new DesactivarRegistroCensoAPI(c, a, bukrs, formListFiltered.get(position).getId()
+                                    ).execute();
+                                }
+                            });
                     return false;
                 }
             });
             eliminar.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    //DialogHandler appdialog = new DialogHandler();
+                    //appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaAdapter.DesactivarRegistroCenso(context,activity,formListFiltered.get(position)));
+
+                    String bukrs = PreferenceManager.getDefaultSharedPreferences(context).getString("CONFIG_SOCIEDAD", VariablesGlobales.getSociedad());
+                    WeakReference<Context> c = new WeakReference<Context>(context);
+                    WeakReference<Activity> a = new WeakReference<Activity>((Activity) context);
                     DialogHandler appdialog = new DialogHandler();
-                    appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si", new BaseInstaladaAdapter.DesactivarRegistroCenso(context,activity,formListFiltered.get(position)));
+                    appdialog.Confirm(activity, "Confirmar Eliminación", "Esta seguro que desea eliminar el registro?", "No", "Si",
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    new DesactivarRegistroCensoAPI(c, a, bukrs, formListFiltered.get(position).getId()
+                                    ).execute();
+                                }
+                            });
                 }
             });
         }
@@ -885,37 +922,10 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
             ContentValues updateValues = new ContentValues();
             updateValues.put("activo", 0);
 
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-            try {
-                Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            try {
-                Connection conn = DriverManager.getConnection(VariablesGlobales.getConexionSQLServer());
-                Statement comm;
-                try {
-                    // create command to read data
-                    comm = conn.createStatement();
-                    String comando = "UPDATE CensoEquipoFrio SET activo = 0 WHERE id = ?";
-                    PreparedStatement stmt = conn.prepareStatement(comando);
-                    stmt.setString(1,equipoFrio.getId());
-                    //stmt.setString(2,equipoFrio.getEstado());
-                    //stmt.setString(3,equipoFrio.getId());
-                    stmt.executeUpdate();
-                } catch (SQLException e) {
-                    Toasty.error(context,e.getMessage()).show();
-                }
+            //Modifico la BD remota por API
 
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
 
+            //modifico en local SQLITE
             long modifico = mDb.update("CensoEquipoFrio", updateValues, "id = ?",new String[]{equipoFrio.getId()});
 
             if(modifico > 0){
@@ -960,104 +970,4 @@ public class BaseInstaladaAdapter extends RecyclerView.Adapter<BaseInstaladaAdap
 
         }
     }
-
-    public static class EliminarRegistroCenso implements Runnable  {
-        Context context;
-        Activity activity;
-        EquipoFrio equipoFrio;
-        public EliminarRegistroCenso(Context context, Activity activity, EquipoFrio equipoFrio) {
-            this.context = context;
-            this.activity = activity;
-            this.equipoFrio = equipoFrio;
-        }
-
-        @Override
-        public void run() {
-            ContentValues updateValues = new ContentValues();
-            updateValues.put("activo", 0);
-
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-            try {
-                Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            try {
-                Connection conn = DriverManager.getConnection(VariablesGlobales.getConexionSQLServer());
-                Statement comm;
-                try {
-                    // create command to read data
-                    comm = conn.createStatement();
-                    String comando = "UPDATE CensoEquipoFrio SET activo = 0 WHERE num_placa = ? and estado = 'Hallazgo'";
-                    PreparedStatement stmt = conn.prepareStatement(comando);
-                    stmt.setString(1,equipoFrio.getNumPlaca());
-                    stmt.executeUpdate();
-                } catch (SQLException e) {
-                    Toasty.error(context,e.getMessage()).show();
-                }
-
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-
-            long modifico = mDb.update("CensoEquipoFrio", updateValues, "num_placa = ? and estado = 'Hallazgo'",new String[]{equipoFrio.getNumPlaca()});
-
-            if(modifico > 0){
-                Intent intent = activity.getIntent();
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                activity.finish();
-                activity.overridePendingTransition(0, 0);
-                activity.startActivity(intent);
-                activity.overridePendingTransition(0, 0);
-                Toasty.success(context,"Registro Eliminado!").show();
-            }
-
-        }
-    }
-    /*public Filter getMultiFilter() {
-        return new Filter() {
-            @Override
-            protected FilterResults performFiltering(CharSequence charSequence) {
-                String[] charString = charSequence.toString().split(",");
-                FilterResults filterResults = new FilterResults();
-                ArrayList<HashMap<String, String>> filteredList = new ArrayList<>();
-                for(int x=0; x < charString.length; x++) {
-                    if (charString[x].isEmpty()) {
-                        formListFiltered = mDataset;
-                    } else {
-                        for (EquipoFrio row : mDataset) {
-                            if (row.get("estado") != null && row.get("estado").trim().contains(charString[x]))
-                                filteredList.add(row);
-                            else if (row.get("tipo_solicitud") != null && row.get("tipo_solicitud").trim().contains(charString[x])) {
-                                filteredList.add(row);
-                            }
-                        }
-                        formListFiltered = filteredList;
-                    }
-
-                    filterResults.values = formListFiltered;
-                }
-                activity.runOnUiThread(new Runnable() {
-                    public void run() {
-                        Toolbar toolbar = (Toolbar) activity.findViewById(R.id.toolbar);
-                        if(toolbar != null)
-                            toolbar.setTitle("Mis Solicitudes ("+formListFiltered.size()+" de "+mDataset.size()+")");
-                    }
-                });
-                return filterResults;
-            }
-            @SuppressWarnings("unchecked")
-            @Override
-            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
-                formListFiltered = (ArrayList<HashMap<String, String>>) filterResults.values;
-                // refresh the list with filtered data
-                notifyDataSetChanged();
-            }
-        };
-    }*/
 }

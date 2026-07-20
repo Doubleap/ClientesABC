@@ -50,4 +50,10 @@
         android:title="Base Instalada"
         app:showAsAction="never|withText"
         android:visible="@bool/habilita_base_instalada"/>
+    <item
+        android:id="@+id/creditpPreaprobado"
+        android:icon="@drawable/icon_credit"
+        android:title="Credito Preaprobado"
+        app:showAsAction="never|withText"
+        android:visible="@bool/habilita_credito_preaprobado"/>
 </menu>
