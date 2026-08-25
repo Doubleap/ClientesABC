@@ -3,6 +3,7 @@ package proyecto.app.clientesabc.modelos;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -50,6 +51,13 @@ public class EditTextDatePicker  implements View.OnClickListener, DatePickerDial
         DatePickerDialog dialog = new DatePickerDialog(_context, this,
                 calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH));
+        dialog.setButton(DialogInterface.BUTTON_NEUTRAL, "Limpiar",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        _editText.setText("");
+                    }
+                });
         dialog.show();
     }
 
@@ -64,6 +72,9 @@ public class EditTextDatePicker  implements View.OnClickListener, DatePickerDial
                 break;
             case "dd-mm-yyyy":
                 _editText.setText(new StringBuilder().append(_day).append("-").append(_month).append("-").append(_birthYear).append(" "));
+                break;
+            case "yyyy-mm-dd":
+                _editText.setText(new StringBuilder().append(_birthYear).append("-").append(_month).append("-").append(_day).append(" "));
                 break;
             default:
                 _editText.setText(new StringBuilder().append(_day).append("/").append(_month).append("/").append(_birthYear).append(" "));

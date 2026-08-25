@@ -15,11 +15,102 @@ import proyecto.app.clientesabc.modelos.Visitas;
 
 @SuppressLint("Registered")
 public class VariablesGlobales extends Application {
+    //private static boolean usarAPI = false;
+    //public static boolean UsarAPI() {
+        //return usarAPI;
+    //}
+    private static boolean aceptarVisitaCero = false;
+    public static boolean AceptarVisitaCero() {
+        return aceptarVisitaCero;
+    }
+    private static boolean comentariosAutomaticos = false;
+    public static boolean ComentariosAutomaticos() {
+        return comentariosAutomaticos;
+    }
 
+    private static String urlApiHaciendaCR = "https://api.hacienda.go.cr/fe/ae?identificacion=";//Ambiente produccion CA APPService
+    private static String urlApi = "https://clientesabccam.kof.com";//Ambiente produccion CA APPService
+    //private static String urlApi = "https://kofcrazapl01.na.kof.ccf/MaestroClientes/";//Ambiente produccion CA VM
+    //private static String urlApi = "https://kofcoazcli01.sa.kof.ccf/MaestroClientes/";//Ambiente produccion COL
+    //private static String urlApi = "http://10.0.2.2:51123/";//Local host
+    //private static String urlApi = "http://10.153.58.132/";//Servidor produccion para BD, pero ambiente calidad en VM uruguay(El ambiente de produccion es el appservice en azure), ocupa VPN
+    //private static String urlApi = "http://10.153.152.69:90/MaestroClientes/"; //URL CAM CALIDAD
+    //private static String urlApi = "https://kofwebapp-maestroclientes.azurewebsites.net/"; //URL UY Productivo para llamados al API en el app service azureprivate static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.56.71/FAWM_HVKOF;instance=MSSQLSERVER;user=maestro_clientes;password=kofcrmcli$;";//Se usa en beta para inactivar lectura de censo de equipo frio. Ambient PRODUCCION CAM
+    private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.56.71/FAWM_HVKOF;instance=MSSQLSERVER;user=maestro_clientes;password=kofcrmcli$;";//Ambiente PRODUCCION CAM
+    //private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.152.69/FAWM_HVKOF;instance=MSSQLSERVER;user=maestro_clientes;password=kofcrmcli$;";//Ambiente CALIDAD CAM
+    //private static String conexionSQLServer = "jdbc:jtds:sqlserver://10.153.38.137/FAWM_HVKOF;instance=MSSQLSERVER;user=COSQLSOLPEP1;password=LLE2o0d1j2UxP8ln6p;";//Ambiente PROD COLOMBIA
+    private static String nombrePais = "Costa Rica";
     private static String sociedad = "F443";
     private static String orgvta = "0443";
     private static String land1 = "CR";
     private static String cadenaRM = "0000160000";
+    private static String ktokd = "RCMA";
+
+    /*
+    private static String nombrePais = "Costa Rica";
+    private static String sociedad = "F443";
+    private static String orgvta = "0443";
+    private static String land1 = "CR";
+    private static String cadenaRM = "0000160000";
+    private static String ktokd = "RCMA";
+
+    private static String nombrePais = "Guatemala Embocen";
+    private static String sociedad = "F446";
+    private static String orgvta = "0446";
+    private static String land1 = "GT";
+    private static String cadenaRM = "0000170027";
+    private static String ktokd = "GCMA";
+
+    private static String nombrePais = "Guatemala Volcanes";
+    private static String sociedad = "1657";
+    private static String orgvta = "0657";
+    private static String land1 = "GT";
+    private static String cadenaRM = "0000210027";
+    private static String ktokd = "GCMC";
+
+    private static String nombrePais = "Guatemala Abasa";
+    private static String sociedad = "1658";
+    private static String orgvta = "0658";
+    private static String land1 = "GT";
+    private static String cadenaRM = "0000190027";
+    private static String ktokd = "GCMB";
+
+    private static String nombrePais = "Nicaragua";
+    private static String sociedad = "F445";
+    private static String orgvta = "0445";
+    private static String land1 = "NI";
+    private static String cadenaRM = "0000180000";
+    private static String ktokd = "NCMA";
+
+    private static String nombrePais = "Panamá";
+    private static String sociedad = "F451";
+    private static String orgvta = "0451";
+    private static String land1 = "PA";
+    private static String cadenaRM = "0000200000";
+    private static String ktokd = "PCMA";
+
+    private static String nombrePais = "Uruguay Monresa";
+    private static String sociedad = "1661";
+    private static String orgvta = "0661";
+    private static String land1 = "UY";
+    private static String cadenaRM = "0000240000";
+    private static String ktokd = "UYDE";
+
+    private static String nombrePais = "Uruguay Distribuidores";
+    private static String sociedad = "Z001";
+    private static String orgvta = "Z001";
+    private static String land1 = "UY";
+    private static String cadenaRM = "0000245000";
+    private static String ktokd = "UYDD";
+
+    private static String nombrePais = "Colombia";
+    private static String sociedad = "F428";
+    private static String orgvta = "0428";
+    private static String land1 = "CO";
+    private static String cadenaRM = "0000220334";
+    private static String ktokd = "CODE";
+    */
+
     private static String TABLA_BLOQUE_CONTACTO_HH = "grid_contacto_solicitud";
     private static String TABLA_BLOQUE_BANCO_HH = "grid_bancos_solicitud";
     private static String TABLA_BLOQUE_IMPUESTO_HH = "grid_impuestos_solicitud";
@@ -28,6 +119,31 @@ public class VariablesGlobales extends Application {
     private static String TABLA_ADJUNTOS_SOLICITUD = "adjuntos_solicitud";
     private static String TABLA_ENCUESTA_SOLICITUD = "encuesta_solicitud";
     private static String TABLA_ENCUESTA_GEC_SOLICITUD = "encuesta_gec_solicitud";
+    private static String TABLA_ENCUESTA_OCASION_CONSUMO_SOLICITUD = "encuesta_occons_solicitud";
+
+    public static int ESCANEO_OCR = 2;
+    public static int ESCANEO_TARJETA = 10;
+    public static int ESCANEO_EQUIPO_FRIO = 20;
+    public static int ESCANEO_ARCHIVO = 30;
+    public static int REQUEST_CODE_MAP = 123;
+
+    public static String getTablaHorariosSolicitud() {
+        return TABLA_HORARIOS_SOLICITUD;
+    }
+
+    public static void setTablaHorariosSolicitud(String tablaHorariosSolicitud) {
+        TABLA_HORARIOS_SOLICITUD = tablaHorariosSolicitud;
+    }
+
+    public static String getTablaHorariosOldSolicitud() {
+        return TABLA_HORARIOS_OLD_SOLICITUD;
+    }
+
+    public static void setTablaHorariosOldSolicitud(String tablaHorariosOldSolicitud) {
+        TABLA_HORARIOS_OLD_SOLICITUD = tablaHorariosOldSolicitud;
+    }
+
+    private static String TABLA_HORARIOS_SOLICITUD = "grid_horarios_solicitud";
 
     private static String TABLA_BLOQUE_CONTACTO_OLD_HH = "grid_contacto_old_solicitud";
     private static String TABLA_BLOQUE_BANCO_OLD_HH = "grid_bancos_old_solicitud";
@@ -36,6 +152,8 @@ public class VariablesGlobales extends Application {
     private static String TABLA_BLOQUE_VISITA_OLD_HH = "grid_visitas_old_solicitud";
     private static String TABLA_ENCUESTA_OLD_SOLICITUD = "encuesta_old_solicitud";
     private static String TABLA_ENCUESTA_OLD_GEC_SOLICITUD = "encuesta_gec_old_solicitud";
+    private static String TABLA_HORARIOS_OLD_SOLICITUD = "grid_horarios_old_solicitud";
+    private static String TABLA_ENCUESTA_OLD_OCASION_CONSUMO_SOLICITUD = "encuesta_occons_old_solicitud";
 
     public static String getTablaEncuestaSolicitud() {
         return TABLA_ENCUESTA_SOLICITUD;
@@ -43,6 +161,9 @@ public class VariablesGlobales extends Application {
 
     public static String getTablaEncuestaGecSolicitud() {
         return TABLA_ENCUESTA_GEC_SOLICITUD;
+    }
+    public static String getTablaEncuestaOcasionConsumoSolicitud() {
+        return TABLA_ENCUESTA_OCASION_CONSUMO_SOLICITUD;
     }
 
     public static String getTABLA_BLOQUE_CONTACTO_HH() {
@@ -69,12 +190,14 @@ public class VariablesGlobales extends Application {
     }
 
     //Get IndexOf by value ID on some Spinner
-    public static int getIndex(Spinner spinner, String valorId){
-        int pos=-1;
-        for (int i=0;i<spinner.getCount();i++){
-            if (((OpcionSpinner)spinner.getItemAtPosition(i)).getId().equals(valorId)){
-                pos = i;
-                break;
+    public static int getIndex(Spinner spinner, String valorId) {
+        int pos = -1;
+        if (spinner != null) {
+            for (int i = 0; i < spinner.getCount(); i++) {
+                if (((OpcionSpinner) spinner.getItemAtPosition(i)).getId().toLowerCase().equals(valorId.toLowerCase())) {
+                    pos = i;
+                    break;
+                }
             }
         }
         return pos;
@@ -95,25 +218,36 @@ public class VariablesGlobales extends Application {
     }
 
     public static String SecuenciaToHora(String secuencia) {
-        int hours = Integer.valueOf(secuencia) / 60;
-        int minutes = Integer.valueOf(secuencia) % 60;
-        String h = String.format(Locale.getDefault(),"%02d", hours);
-        String m = String.format(Locale.getDefault(),"%02d", minutes);
-        String secuenciaSAP = h+m;
+        String secuenciaSAP="";
+        try {
+            int hours = Integer.valueOf(secuencia) / 60;
+            int minutes = Integer.valueOf(secuencia) % 60;
+            String h = String.format(Locale.getDefault(), "%02d", hours);
+            String m = String.format(Locale.getDefault(), "%02d", minutes);
+            secuenciaSAP = h + m;
+        }catch(Exception e){
+            secuenciaSAP="";
+        }
         return secuenciaSAP;
     }
 
     public static String HoraToSecuencia(String hora) {
         String secuencia = "";
-        hora = String.format("%1$" + 4 + "s", hora).replace(' ', '0');
+        try{
+                hora = String.format("%1$" + 4 + "s", hora).replace(' ', '0');
+                if ((hora != null && !hora.equals("null")) && !hora.equals("0999") && hora.length() == 4) {
+                    String h = hora.substring(0, 2);
+                    String m = hora.substring(2, 4);
+                    secuencia = String.valueOf(Integer.valueOf(h) * 60 + Integer.valueOf(m));
+                }
 
-        if((hora != null && !hora.equals("null")) && !hora.equals("0999") && hora.length() == 4) {
-            String h = hora.substring(0, 2);
-            String m = hora.substring(2, 4);
-            secuencia = String.valueOf(Integer.valueOf(h) * 60 + Integer.valueOf(m));
+        }catch(Exception e){
+            secuencia = "";
         }
-
-        return secuencia;
+        if(VariablesGlobales.AceptarVisitaCero())
+            return secuencia;
+        else
+            return secuencia.equals("0")?"":secuencia;
     }
 
     public static String validarConexionDePreferencia(Context context){
@@ -121,16 +255,20 @@ public class VariablesGlobales extends Application {
         String IP_REGEXP = zeroTo255 + "\\." + zeroTo255 + "\\." + zeroTo255 + "\\." + zeroTo255;
         Pattern IP_PATTERN = Pattern.compile(IP_REGEXP);
         String retorno = "";
-        try {
-            if(!IP_PATTERN.matcher(PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()).matches())
-                return "La IP '"+PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()+"' es inválida. Revise los datos de comunicación.";
-        }catch (Exception e){
-            return "La IP '"+PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()+"' es inválida. Revise los datos de comunicación.";
-        }
-        try {
-            Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto","").trim());
-        }catch (Exception e){
-            return "El puerto '"+PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto","").trim()+"' es inválido. Revise los datos de comunicación.";
+        if(!PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("api")) {
+            try {
+                if (!IP_PATTERN.matcher(PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim()).matches())
+                    return "La IP '" + PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim() + "' es inválida. Revise los datos de comunicación.";
+            } catch (Exception e) {
+                return "La IP '" + PreferenceManager.getDefaultSharedPreferences(context).getString("Ip", "").trim() + "' es inválida. Revise los datos de comunicación.";
+            }
+            try {
+                Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto", "").trim());
+            } catch (Exception e) {
+                return "El puerto '" + PreferenceManager.getDefaultSharedPreferences(context).getString("Puerto", "").trim() + "' es inválido. Revise los datos de comunicación.";
+            }
+        }else{
+
         }
 
         return retorno;
@@ -152,13 +290,21 @@ public class VariablesGlobales extends Application {
         VariablesGlobales.orgvta = orgvta;
     }
 
+    public static String getUrlApi() {
+        return urlApi;
+    }
+
+    public static void setUrlApi(String urlApi) {
+        VariablesGlobales.urlApi = urlApi;
+    }
+
     public static String UsuarioHH2UsuarioMC(Context context, String usuarioHH) {
         String usuarioMC = "";
         String padded = "";
         try {
             Integer.parseInt(usuarioHH);
             padded = "00000000".substring(usuarioHH.length()) + usuarioHH;
-            usuarioMC = PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_LAND1",getLand1())+padded;
+            usuarioMC = getLand1()+padded;
         }catch (NumberFormatException ne){
             usuarioMC = usuarioHH;
         }
@@ -172,8 +318,12 @@ public class VariablesGlobales extends Application {
             numero = Integer.parseInt(usuarioMC);
         }catch (NumberFormatException ne){
             try {
-                numero = Integer.parseInt(usuarioMC.substring(2, usuarioMC.length()));
-                usuarioHH = String.valueOf(numero);
+                if(usuarioMC.length() == 10) {
+                    numero = Integer.parseInt(usuarioMC.substring(2, usuarioMC.length()));
+                    usuarioHH = String.valueOf(numero);
+                }else{
+                    usuarioHH = usuarioMC;
+                }
             }catch (NumberFormatException nex){
                 usuarioHH = usuarioMC;
             }
@@ -244,6 +394,13 @@ public class VariablesGlobales extends Application {
     public static void setTABLA_ENCUESTA_OLD_GEC_SOLICITUD(String tablaEncuestaOldGecSolicitud) {
         TABLA_ENCUESTA_OLD_GEC_SOLICITUD = tablaEncuestaOldGecSolicitud;
     }
+    public static String getTABLA_ENCUESTA_OLD_OCASION_CONSUMO_SOLICITUD() {
+        return TABLA_ENCUESTA_OLD_OCASION_CONSUMO_SOLICITUD;
+    }
+
+    public static void setTABLA_ENCUESTA_OLD_OCASION_CONSUMO_SOLICITUD(String tablaEncuestaOldOcasionConsumoSolicitud) {
+        TABLA_ENCUESTA_OLD_OCASION_CONSUMO_SOLICITUD = tablaEncuestaOldOcasionConsumoSolicitud;
+    }
 
     public static String getCadenaRM() {
         return cadenaRM;
@@ -251,5 +408,37 @@ public class VariablesGlobales extends Application {
 
     public static void setCadenaRM(String cadenaRM) {
         VariablesGlobales.cadenaRM = cadenaRM;
+    }
+
+    public static String getKtokd() {
+        return ktokd;
+    }
+
+    public static void setKtokd(String ktokd) {
+        VariablesGlobales.ktokd = ktokd;
+    }
+
+    public static String getNombrePais() {
+        return nombrePais;
+    }
+
+    public static void setNombrePais(String nombrePais) {
+        VariablesGlobales.nombrePais = nombrePais;
+    }
+
+    public static String getConexionSQLServer() {
+        return conexionSQLServer;
+    }
+
+    public static void setConexionSQLServer(String conexionSQLServer) {
+        VariablesGlobales.conexionSQLServer = conexionSQLServer;
+    }
+
+    public static String getUrlApiHaciendaCR() {
+        return urlApiHaciendaCR;
+    }
+
+    public static void setUrlApiHaciendaCR(String urlApiHaciendaCR) {
+        VariablesGlobales.urlApiHaciendaCR = urlApiHaciendaCR;
     }
 }

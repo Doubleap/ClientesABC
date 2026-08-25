@@ -28,14 +28,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.actividades.BaseInstaladaActivity;
+import proyecto.app.clientesabc.actividades.PanelActivity;
+import proyecto.app.clientesabc.actividades.SolicitudesActivity;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
 
-import static android.support.v4.content.ContextCompat.startActivity;
+import static androidx.core.content.ContextCompat.startActivity;
 
 public class TransmisionServidor extends AsyncTask<Void,String,Void> {
 
@@ -43,7 +47,6 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
     private WeakReference<ListView> listView;
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
-    private String destinationAddress="192.168.0.10";
     private String filePath;
     private String wholePath;
     private String id_solicitud;
@@ -61,7 +64,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
         this.filePath = path;
         this.wholePath = fullPath;
         this.id_solicitud = id_solicitud;
-        mDBHelper = new DataBaseHelper(context.get());
+        mDBHelper = new DataBaseHelper(this.context.get());
     }
 
     @Override
@@ -79,13 +82,14 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
         errorFlag = "Transmision NO pudo realizarse.";
 
         try {
-            //Validar si existen solicitudes para indicar que no ya todas las solicitudes sen transmitido con exito
+            //Validar si existen solicitudes para indicar que no ya todas las solicitudes se han transmitido con exito
             //mDBHelper.RestaurarEstadosSolicitudesTransmitidas();
             int cantidad = mDBHelper.CantidadSolicitudesTransmision();
+            int cantidad_censos = mDBHelper.CantidadCensosTransmision();
             //int cantidad = 1;
-            if(cantidad <= 0){
+            if(cantidad <= 0 && cantidad_censos <= 0){
                 xceptionFlag = true;
-                errorFlag = "Hay "+cantidad+" solicitudes nuevas para transmitir.";
+                errorFlag = "No hay solicitudes ni censos nuevos para transmitir!";
             }else {
                 publishProgress("Estableciendo comunicación...");
                 String mensaje = VariablesGlobales.validarConexionDePreferencia(context.get());
@@ -95,13 +99,13 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                     //File myFile = new File("/data/user/0/proyecto.app.clientesabc/databases/", "FAWM_ANDROID_2");
                     //files.add(myFile);
 
-                    SQLiteDatabase mDataBase = SQLiteDatabase.openDatabase("/data/user/0/proyecto.app.clientesabc/databases/TRANSMISION_" + PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), null, SQLiteDatabase.CREATE_IF_NECESSARY);
+                    SQLiteDatabase mDataBase = SQLiteDatabase.openDatabase(context.get().getDatabasePath("TRANSMISION_").getPath() + PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""), null, SQLiteDatabase.CREATE_IF_NECESSARY);
 
                     //Crear una base de datos solo para los datos que deben ser transmitidos
                     publishProgress("Extrayendo datos...");
                     String sqlDrop = "DROP TABLE IF EXISTS 'FormHvKof_solicitud';DROP TABLE IF EXISTS 'FormHvKof_old_solicitud';DROP TABLE IF EXISTS 'encuesta_solicitud';DROP TABLE IF EXISTS 'encuesta_gec_solicitud';DROP TABLE IF EXISTS 'grid_contacto_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_solicitud';DROP TABLE IF EXISTS 'grid_bancos_solicitud';DROP TABLE IF EXISTS 'grid_visitas_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_solicitud';DROP TABLE IF EXISTS 'adjuntos_solicitud';" +
-                            "DROP TABLE IF EXISTS 'grid_contacto_old_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_old_solicitud';DROP TABLE IF EXISTS 'grid_bancos_old_solicitud';DROP TABLE IF EXISTS 'grid_visitas_old_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_old_solicitud';";
-                    String sqlAttach = "ATTACH DATABASE '/data/user/0/proyecto.app.clientesabc/databases/FAWM_ANDROID_2' AS fromDB";
+                            "DROP TABLE IF EXISTS 'grid_contacto_old_solicitud';DROP TABLE IF EXISTS 'grid_impuestos_old_solicitud';DROP TABLE IF EXISTS 'grid_bancos_old_solicitud';DROP TABLE IF EXISTS 'grid_visitas_old_solicitud';DROP TABLE IF EXISTS 'grid_interlocutor_old_solicitud';DROP TABLE IF EXISTS 'CensoEquipoFrio';";
+                    String sqlAttach = "ATTACH DATABASE '"+context.get().getDatabasePath("FAWM_ANDROID_2").getPath()+"' AS fromDB";
                     String[] droptables = sqlDrop.split(";");
                     for (String query : droptables) {
                         mDataBase.execSQL(query);
@@ -110,7 +114,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
 
                     String filtroUnicaSolicitud = "";
                     if (id_solicitud.trim().length() > 0) {
-                        filtroUnicaSolicitud = " AND id_solicitud = '" + id_solicitud.trim() + "'";
+                        filtroUnicaSolicitud = " AND trim(id_solicitud) = '" + id_solicitud.trim() + "'";
                     }
                     //Comenzar a crear las tablas segun lo que existe actualmente en la base de datos
                     String sqlCreate = "CREATE TABLE FormHvKof_solicitud AS SELECT * FROM fromDB.FormHvKof_solicitud WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud;
@@ -150,6 +154,9 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                     sqlCreate = "CREATE TABLE grid_interlocutor_old_solicitud AS SELECT * FROM fromDB.grid_interlocutor_old_solicitud WHERE id_solicitud IN (Select id_solicitud FROM fromDB.FormHvKof_solicitud  WHERE trim(estado) IN ('Nuevo','Modificado')" + filtroUnicaSolicitud + ")";
                     mDataBase.execSQL(sqlCreate);
 
+                    //Tabla de CensoEquipoFrio nueva a partir de del año 2024
+                    sqlCreate = "CREATE TABLE CensoEquipoFrio AS SELECT * FROM fromDB.CensoEquipoFrio WHERE transmitido = 0 or transmitido IS NULL or transmitido = null";
+                    mDataBase.execSQL(sqlCreate);
 
                     publishProgress("Empaquetando datos...");
                     String pathFileToZip = context.get().getApplicationInfo().dataDir + "/databases/";
@@ -170,21 +177,22 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
 
                     publishProgress("Enviando datos...");
                     //Enviar Pais de procedencia
-                    /*dos.writeUTF(VariablesGlobales.getSociedad());
+                    dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()));
                     dos.flush();
                     //Version con la que quiere transmitir
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    dateFormat.setTimeZone(TimeZone.getTimeZone("GMT-6"));
                     dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
                     dos.flush();
                     //Enviar Ruta que se quiere sincronizar
                     dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
-                    dos.flush();*/
+                    dos.flush();
                     //Comando String que indicara que se queire realizar Sincronizacion/Transmision
                     dos.writeUTF("Transmision");
                     dos.flush();
                     //Enviar Ruta que se quiere transmitir
-                    dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
-                    dos.flush();
+                    /*dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
+                    dos.flush();*/
 
                     //cantidad de archivos a enviar al servidor
                     dos.writeInt(files.size());
@@ -232,18 +240,39 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                         dis.readFully(e);
                         String error = new String(e);
                         xceptionFlag = true;
-                        errorFlag = "Error: " + error;
+                        errorFlag = "Transmisión Fallida. Error: " + error;
                     } else {
                         publishProgress("Respuesta recibida...");
                         byte[] r = new byte[(int) s];
                         int offset = 0;
                         int bytesRead;
-                        while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
+                        /*while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
                             offset += bytesRead;
                             publishProgress("Descargando..." + String.format("%.02f", (100f / (s / 1024f)) * (offset / 1024f)) + "%");
+                        }*/
+                        while (offset < s) {
+                            bytesRead = dis.read(r, offset, r.length - offset);
+                            if (bytesRead == -1) {
+                                throw new IOException("Unexpected end of stream at offset " + offset + " of " + s);
+                            }
+                            if (bytesRead == 0) {
+                                Thread.sleep(10); // brief wait before retrying; avoid tight loop
+                                continue;
+                            }
+
+                            offset += bytesRead;
+
+                            publishProgress("Descargando..." + String.format("%.02f", (100f * offset / s)) + "% ("+String.format("%.2f", (offset/1000000.0))+" de "+String.format("%.2f", (s/1000000.0))+")");
                         }
+                        dos.writeUTF("END");
+                        dos.flush();
                         publishProgress("Actualizando solicitudes...");
                         solicitudes_procesadas = new String(r, Charset.defaultCharset());
+                    }
+
+                    if(solicitudes_procesadas == null || solicitudes_procesadas.trim().isEmpty()){
+                        xceptionFlag = true;
+                        errorFlag = "No se pudo procesar ningun formulario. Por favor consulte el error con el administrador del sistema.";
                     }
 
                     //O cerrarlo aqui estara bien?
@@ -254,7 +283,7 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
                 }
             }
             publishProgress("Transmision Finalizada...");
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             xceptionFlag = true;
             errorFlag = e.getMessage();
             e.printStackTrace();
@@ -289,7 +318,9 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
         });
         builder.setView(R.layout.layout_loading_dialog);
         dialog = builder.create();
-        dialog.show();
+        if(!activity.get().isFinishing()) {
+            dialog.show();
+        }
 
     }
     @Override
@@ -302,20 +333,32 @@ public class TransmisionServidor extends AsyncTask<Void,String,Void> {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             Date date = new Date();
             PreferenceManager.getDefaultSharedPreferences(context.get()).edit().putString("ultimaTransmision", dateFormat.format(date)).apply();
-            Toasty.success(context.get(),"Transmision Finalizada Correctamente!!",Toast.LENGTH_LONG).show();
+            Toasty.success(context.get(),"Transmision Finalizada Correctamente!",Toast.LENGTH_LONG).show();
             //Adicionalmente se debe actualizar el estado de las solicitudes enviadas para que no se dupliquen.
             mDBHelper.ActualizarEstadosSolicitudesTransmitidas(solicitudes_procesadas);
+            mDBHelper.ActualizarEstadosCensosTransmitidos();
         }
-        dialog.dismiss();
+        try {
+            dialog.dismiss();
+        } catch (final IllegalArgumentException e) {
+            // Do nothing.
+        } catch (final Exception e) {
+            // Do nothing.
+        }
         if(dialog.isShowing())
             dialog.hide();
         //activity.get().recreate();
-        Intent intent = activity.get().getIntent();
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        activity.get().finish();
-        activity.get().overridePendingTransition(0, 0);
-        startActivity(context.get(), intent, null);
-        activity.get().overridePendingTransition(0, 0);
+        if(!activity.get().isFinishing()) {
+            Intent intent = activity.get().getIntent();
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            activity.get().finish();
+
+            if (activity.get() instanceof BaseInstaladaActivity || activity.get() instanceof PanelActivity || activity.get() instanceof SolicitudesActivity) {
+                activity.get().overridePendingTransition(0, 0);
+                startActivity(context.get(), intent, null);
+                activity.get().overridePendingTransition(0, 0);
+            }
+        }
     }
 
     public void EnableWiFi(){

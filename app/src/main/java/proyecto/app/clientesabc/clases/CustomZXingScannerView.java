@@ -19,7 +19,7 @@ public class CustomZXingScannerView extends View implements IViewFinder {
     private Rect mFramingRect;
 
     private static final float PORTRAIT_WIDTH_RATIO = 6f/6;
-    private static final float PORTRAIT_WIDTH_HEIGHT_RATIO = 0.45f;
+    private static final float PORTRAIT_WIDTH_HEIGHT_RATIO = 0.55f;
 
     private static final float LANDSCAPE_HEIGHT_RATIO = 6f/7;
     private static final float LANDSCAPE_WIDTH_HEIGHT_RATIO = 2f;

@@ -14,78 +14,74 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.TabLayout;
-import android.support.design.widget.TextInputEditText;
-import android.support.design.widget.TextInputLayout;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.CompoundButtonCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.TooltipCompat;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.cardview.widget.CardView;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.widget.CompoundButtonCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.Gravity;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
-import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.canhub.cropper.CropImageContract;
+import com.canhub.cropper.CropImageContractOptions;
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
+import com.tomergoldst.tooltips.ToolTip;
+import com.tomergoldst.tooltips.ToolTipsManager;
 import com.vicmikhailau.maskededittext.MaskedEditText;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -96,49 +92,42 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import de.codecrafters.tableview.TableView;
-import de.codecrafters.tableview.listeners.TableDataClickListener;
-import de.codecrafters.tableview.listeners.TableDataLongClickListener;
 import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
 import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import es.dmoral.toasty.Toasty;
+import proyecto.app.clientesabc.animaciones.CubeTransformer;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.AdjuntoTableAdapter;
-import proyecto.app.clientesabc.adaptadores.BancoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.ComentarioTableAdapter;
-import proyecto.app.clientesabc.adaptadores.ContactoTableAdapter;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
-import proyecto.app.clientesabc.adaptadores.ImpuestoTableAdapter;
-import proyecto.app.clientesabc.adaptadores.InterlocutorTableAdapter;
-import proyecto.app.clientesabc.adaptadores.VisitasTableAdapter;
-import proyecto.app.clientesabc.clases.AdjuntoServidor;
+import proyecto.app.clientesabc.adaptadores.SpinnerImageAdapter;
+import proyecto.app.clientesabc.clases.ConsultaClienteAPI;
 import proyecto.app.clientesabc.clases.ConsultaClienteServidor;
+import proyecto.app.clientesabc.clases.DevolverPreSolicitudAPI;
+import proyecto.app.clientesabc.clases.DevolverPreSolicitudServidor;
 import proyecto.app.clientesabc.clases.DialogHandler;
-import proyecto.app.clientesabc.clases.FileHelper;
+import proyecto.app.clientesabc.clases.ManejadorAdjuntos;
+import proyecto.app.clientesabc.clases.SearchableSpinner;
+import proyecto.app.clientesabc.clases.TraerEquipoDisponibleAPI;
+import proyecto.app.clientesabc.clases.TraerEquipoDisponibleServidor;
+import proyecto.app.clientesabc.clases.TransmisionAPI;
+import proyecto.app.clientesabc.clases.TransmisionServidor;
+import proyecto.app.clientesabc.clases.Validaciones;
+import proyecto.app.clientesabc.clases.ValidarFlujoClienteAPI;
+import proyecto.app.clientesabc.clases.ValidarFlujoClienteServidor;
 import proyecto.app.clientesabc.modelos.Adjuntos;
-import proyecto.app.clientesabc.modelos.Banco;
 import proyecto.app.clientesabc.modelos.Comentario;
-import proyecto.app.clientesabc.modelos.Contacto;
-import proyecto.app.clientesabc.modelos.EditTextDatePicker;
 import proyecto.app.clientesabc.modelos.EquipoFrio;
-import proyecto.app.clientesabc.modelos.Impuesto;
-import proyecto.app.clientesabc.modelos.Interlocutor;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
-import proyecto.app.clientesabc.modelos.Visitas;
 
-import static android.support.design.widget.TabLayout.GRAVITY_CENTER;
-import static android.support.design.widget.TabLayout.INDICATOR_GRAVITY_TOP;
-import static android.support.design.widget.TabLayout.INVISIBLE;
-import static android.support.design.widget.TabLayout.OnClickListener;
-import static android.support.design.widget.TabLayout.OnFocusChangeListener;
-import static android.support.design.widget.TabLayout.OnTouchListener;
-import static android.support.design.widget.TabLayout.TEXT_ALIGNMENT_CENTER;
+import static android.view.View.TEXT_ALIGNMENT_CENTER;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+import static com.google.android.material.tabs.TabLayout.GRAVITY_CENTER;
+import static com.google.android.material.tabs.TabLayout.GRAVITY_FILL;
+import static com.google.android.material.tabs.TabLayout.INDICATOR_GRAVITY_TOP;
 
 public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
@@ -147,7 +136,12 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     static String idSolicitud = "";
     static String codigoCliente = "";
     static String codigoEquipoFrio = "";
+    static String monitor = "";
+    static String numPuertas = "";
     static String idForm = "";
+    static String tituloMonitor ="";
+    static ArrayList<HashMap<String, String>> datosMonitor;
+    static int minAdjuntos = 0;
     @SuppressLint("StaticFieldLeak")
     private static DataBaseHelper mDBHelper;
     private static SQLiteDatabase mDb;
@@ -164,7 +158,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     static  ArrayList<HashMap<String, String>> solicitudSeleccionadaOld = new ArrayList<>();
     private static String GUID;
     private ProgressBar progressBar;
-    static boolean firma;
+    public static boolean firma;
     static boolean modificable;
     static boolean correoValidado;
     static boolean cedulaValidada;
@@ -192,6 +186,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
     private static JsonArray impuestos;
     private static JsonArray bancos;
     private static JsonArray visitas;
+    private ActivityResultLauncher<CropImageContractOptions> cropImage;
+    public static ManejadorAdjuntos manejadorAdjuntos;
 
     @SuppressLint("ResourceType")
     @Override
@@ -202,14 +198,22 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         modificable = true;
         correoValidado = true;
         cedulaValidada = true;
-
+        FrameLayout f = findViewById(R.id.background);
+        //f.getBackground().setAlpha(40);
         Bundle b = getIntent().getExtras();
         if(b != null) {
             tipoSolicitud = b.getString("tipoSolicitud");
             idSolicitud = b.getString("idSolicitud");
-            codigoCliente = b.getString("codigoCliente");
+            codigoCliente = String.format("%1$10s", b.getString("codigoCliente")).replace(' ', '0');
             codigoEquipoFrio = b.getString("codigoEquipoFrio");
+            monitor = b.getString("monitor");
+            numPuertas  = b.getString("numPuertas");
         }
+        tituloMonitor = "";
+        if(monitor != null && monitor.equals("1"))
+            tituloMonitor = " (Monitor)";
+
+
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setMax(10);
 
@@ -217,16 +221,25 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         mDBHelper = new DataBaseHelper(this);
         mDb = mDBHelper.getWritableDatabase();
 
+        datosMonitor = mDBHelper.getDatosVistaMonitorEquipoFrioDB(codigoCliente);
+
         getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.botella_coca_header_der,null));
 
-
+        cliente = null;
         if(idSolicitud != null){
             setTitle("Solicitud");
+            solicitudSeleccionada.clear();
+            solicitudSeleccionadaOld.clear();
+            mapeoCamposDinamicos.clear();
+            mapeoCamposDinamicosEnca.clear();
+            mapeoVisitas.clear();
+            mapeoCamposDinamicosOld.clear();
             solicitudSeleccionada = mDBHelper.getSolicitud(idSolicitud);
             solicitudSeleccionadaOld = mDBHelper.getSolicitudOld(idSolicitud);
             tipoSolicitud = solicitudSeleccionada.get(0).get("TIPFORM");
             GUID = solicitudSeleccionada.get(0).get("id_solicitud").trim();
             idForm = solicitudSeleccionada.get(0).get("IDFORM");
+            numPuertas = solicitudSeleccionada.get(0).get("W_CTE-NUM_PUERTAS_MODELO");
             setTitle(GUID);
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
             getSupportActionBar().setSubtitle(descripcion +" - "+ solicitudSeleccionada.get(0).get("ESTADO").trim());
@@ -241,8 +254,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             mapeoCamposDinamicosOld.clear();
             setTitle(codigoCliente+"-");
             String descripcion = mDBHelper.getDescripcionSolicitud(tipoSolicitud);
-            getSupportActionBar().setSubtitle(descripcion);
+            getSupportActionBar().setSubtitle(descripcion + tituloMonitor);
         }
+        minAdjuntos = mDBHelper.CantidadAdjuntosMinima(tipoSolicitud);
         if(solicitudSeleccionada.size() > 0) {
             firma = true;
             correoValidado = true;
@@ -251,6 +265,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     ||solicitudSeleccionada.get(0).get("ESTADO").equals("Rechazado")
                     ||solicitudSeleccionada.get(0).get("ESTADO").equals("Aprobado")){
                 modificable = false;
+            }
+            if(solicitudSeleccionadaOld.size() == 0){
+                Toasty.error(this,"No se encontraron los datos de encabezado.").show();
             }
         }else{
             correoValidado = true;
@@ -262,9 +279,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
         configExcepciones.clear();
         listaCamposDinamicos.clear();
+        listaCamposDinamicosEnca.clear();
         listaCamposBloque.clear();
         listaCamposObligatorios.clear();
-
 
         configExcepciones = mDBHelper.getConfigExcepciones(tipoSolicitud);
 
@@ -281,7 +298,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
                         try {
                             startActivityForResult(intent, 1);
-
                         } catch (ActivityNotFoundException e) {
                             Log.e("tag", getResources().getString(R.string.no_activity));
                         }
@@ -300,6 +316,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     case R.id.action_save:
                         int numErrores = 0;
                         String mensajeError="";
+                        if(getCurrentFocus() != null)
+                            getCurrentFocus().clearFocus();
                         //Validacion de Datos Obligatorios Automatico
                         for(int i=0; i < listaCamposObligatorios.size(); i++) {
                             try{
@@ -324,7 +342,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                                     }
                                 }else{
                                     TextView error = (TextView)combo.getSelectedView();
-                                    error.setError("El campo es obligatorio!");
+                                    if(error != null) {
+                                        error.setError("El campo es obligatorio!");
+                                    }
                                     numErrores++;
                                     mensajeError += "- "+combo.getTag()+"\n";
                                 }
@@ -334,6 +354,10 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         if(!firma){
                             numErrores++;
                             mensajeError += "- El cliente debe firmar la constancia de solicitud de Instalacion!\n";
+                        }
+                        if(minAdjuntos > adjuntosSolicitud.size()){
+                            numErrores++;
+                            mensajeError += "- Debe adjuntar al menos "+minAdjuntos+" documentos a la solicitud!\n";
                         }
                         //Validacion de siguiente aprobador seleccionado
                         Spinner combo = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
@@ -368,13 +392,34 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         if(solicitudSeleccionada.size() == 0 ) {
             WeakReference<Context> weakRefs1 = new WeakReference<Context>(this);
             WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(this);
-            ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoCliente);
-            c.execute();
+
+
+                if (PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("tipo_conexion", "").equals("api")) {
+                    if(!tipoSolicitud.equals("39")) {
+                        ValidarFlujoClienteAPI v = new ValidarFlujoClienteAPI(weakRefs1, weakRefAs1, codigoCliente, tipoSolicitud, codigoEquipoFrio);
+                        v.execute();
+                    }
+                    ConsultaClienteAPI c = new ConsultaClienteAPI(weakRefs1, this, codigoCliente);
+                    if (PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion", "").equals("wifi")) {
+                        c.EnableWiFi();
+                    }
+                    c.execute();
+                } else {
+                    if(!tipoSolicitud.equals("39")) {
+                        ValidarFlujoClienteServidor v = new ValidarFlujoClienteServidor(weakRefs1, weakRefAs1, codigoCliente, tipoSolicitud, codigoEquipoFrio);
+                        v.execute();
+                    }
+                    ConsultaClienteServidor c = new ConsultaClienteServidor(weakRefs1, weakRefAs1, codigoCliente, "MERCADO_ABIERTO");
+                    if (PreferenceManager.getDefaultSharedPreferences(this).getString("tipo_conexion", "").equals("wifi")) {
+                        c.EnableWiFi();
+                    } else {
+                        c.DisableWiFi();
+                    }
+                    c.execute();
+                }
         }
-        //cliente = c.execute().get();
 
         if(!modificable) {
-            //bottomNavigation.setVisibility(INVISIBLE);
             LinearLayout ll = findViewById(R.id.LinearLayoutMain);
             DrawerLayout.LayoutParams h = new DrawerLayout.LayoutParams(MATCH_PARENT,MATCH_PARENT);
 
@@ -384,11 +429,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             bottomNavigation.animate().translationY(150);
         }
 
-        //View title = getWindow().findViewById(android.R.id.title);
-        //View titleBar = (View) title.getParent();
-        //titleBar.setBackground(gd);
         Drawable d=getResources().getDrawable(R.drawable.botella_coca_header_der,null);
-        //Objects.requireNonNull(getSupportActionBar()).setBackgroundDrawable(d);
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 0);
             //return;
@@ -402,7 +444,13 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         comentarios = new ArrayList<>();
         //notificantesSolicitud = new ArrayList<Adjuntos>();
         adjuntosSolicitud_old = new ArrayList<>();
-
+        cropImage = this.registerForActivityResult(new CropImageContract(), result -> {
+            if (result.isSuccessful()) {
+                manejadorAdjuntos.setUri(result.getUriContent());
+                manejadorAdjuntos.AgregarAdjunto(result.getUriContent());
+            }
+        });
+        manejadorAdjuntos = new ManejadorAdjuntos(mPhotoUri, mDBHelper, adjuntosSolicitud, modificable, firma, GUID, tb_adjuntos, mapeoCamposDinamicos,  getApplicationContext(),SolicitudAvisosEquipoFrioActivity.this,cropImage);
     }
 
     @Override
@@ -433,239 +481,27 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
     //Se dispara al escoger el documento que se quiere relacionar a la solicitud
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case 1:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if(uri == null){
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        ContentResolver cR =  getContentResolver();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        File file = null;
-                        try {
-                            file = new File( Environment.getExternalStorageDirectory().getAbsolutePath());
-                            if (!file.exists()) {
-                                file.createNewFile();
-                            }
-                            FileOutputStream fos = new FileOutputStream(file+"//"+name);
-                            fos.write(inputData);
-                            fos.close();
-                        } catch (Exception e) {
-                            Log.e("thumbnail", e.getMessage());
-                        }
-                        File file2 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
-
-
-                        BitmapFactory.Options options = new BitmapFactory.Options();
-                        options.inJustDecodeBounds = true;
-
-                        BitmapFactory.decodeFile(file2.getAbsolutePath(), options);
-                        int imageHeight = options.outHeight;
-                        int imageWidth = options.outWidth;
-                        /*CROP*/
-                        try {
-                            // call the standard crop action intent (the user device may not
-                            // support it)
-                            Intent cropIntent = new Intent("com.android.camera.action.CROP");
-                            // indicate image type and Uri
-                            cropIntent.setDataAndType(mPhotoUri, "image/*");
-                            // set crop properties
-                            cropIntent.putExtra("crop", true);
-                            // indicate aspect of desired crop
-                            cropIntent.putExtra("aspectX", 1);
-                            cropIntent.putExtra("aspectY", 1.33);
-                            // indicate output X and Y
-                            //cropIntent.putExtra("outputX", imageWidth);
-                            //cropIntent.putExtra("outputY", imageHeight);
-                            // retrieve data on return
-                            cropIntent.putExtra("return-data", true);
-                            // start the activity - we handle returning in onActivityResult
-                            startActivityForResult(cropIntent, 200);
-                        }
-                        // respond to users whose devices do not support the crop action
-                        catch (ActivityNotFoundException anfe) {
-                            Toast toast = Toast
-                                    .makeText(this, "This device doesn't support the crop action!", Toast.LENGTH_SHORT);
-                            toast.show();
-                        }
-                        /*END CROP*/
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-                }
-                break;
-            case 2:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if(uri == null){
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        ContentResolver cR =  getContentResolver();
-                        MimeTypeMap mime = MimeTypeMap.getSingleton();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        mDBHelper.addAdjuntoSolicitud(type, name, inputData);
-                        Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(),"Error al adjuntar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-
-                }
-                break;
-            case 100:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if (uri == null) {
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    //Agregar al tableView del UI
-                    try {
-                        byte[] inputData = getBytes(iStream);
-                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, data.getType(), data.getExtras().getString("ImageName"), inputData);
-
-                        adjuntosSolicitud.add(nuevoAdjunto);
-                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
-                        tb_adjuntos.setDataAdapter(stda);
-
-                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudAvisosEquipoFrioActivity.this);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    CheckBox constancia = (CheckBox) mapeoCamposDinamicos.get("constancia");
-                    constancia.setChecked(true);
-                    firma = true;
-                    constancia.setEnabled(false);
-                    Toasty.success(getBaseContext(), "Documento asociado correctamente.").show();
-                }
-                break;
-            case 200:
-                if (resultCode == RESULT_OK) {
-                    Uri uri = null;
-                    if (data != null)
-                        uri = data.getData();
-                    if(uri == null){
-                        uri = mPhotoUri;
-                    }
-                    InputStream iStream = null;
-                    try {
-                        iStream = getContentResolver().openInputStream(uri);
-                        //Bitmap yourSelectedImage = BitmapFactory.decodeStream(iStream);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        ContentResolver cR =  getContentResolver();
-                        String type = cR.getType(uri);
-                        String name = getFileName(cR, uri);
-                        byte[] inputData = getBytes(iStream);
-                        File file = null;
-                        try {
-                            file = new File( Environment.getExternalStorageDirectory().getAbsolutePath());
-                            if (!file.exists()) {
-                                file.createNewFile();
-                            }
-                            FileOutputStream fos = new FileOutputStream(file+"//"+name);
-                            fos.write(inputData);
-                            fos.close();
-                        } catch (Exception e) {
-                            Log.e("thumbnail", e.getMessage());
-                        }
-                        File file2 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//"+name);
-                        file2 = FileHelper.saveBitmapToFile(file2);
-
-                        byte[] bytesArray = new byte[(int) file2.length()];
-
-                        FileInputStream fis = new FileInputStream(file2);
-                        fis.read(bytesArray); //read file into bytes[]
-                        fis.close();
-                        file2.delete();
-                        //Agregar al tableView del UI
-                        Adjuntos nuevoAdjunto = new Adjuntos(GUID, type, name, bytesArray);
-
-                        adjuntosSolicitud.add(nuevoAdjunto);
-                        AdjuntoTableAdapter stda = new AdjuntoTableAdapter(getBaseContext(), adjuntosSolicitud);
-                        stda.setPaddings(10, 5, 10, 5);
-                        stda.setTextSize(10);
-                        stda.setGravity(GRAVITY_CENTER);
-                        //tb_adjuntos.getLayoutParams().height = tb_adjuntos.getLayoutParams().height+(adjuntosSolicitud.size()*(alturaFilaTableView-20));
-                        tb_adjuntos.setDataAdapter(stda);
-
-                        HorizontalScrollView hsvn = (HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos");
-                        MostrarGaleriaAdjuntosHorizontal(hsvn, hsvn.getContext(), SolicitudAvisosEquipoFrioActivity.this);
-
-                        //Intento de borrar el archivo que se guarda automatico en Pictures
-                        File file3 = new File( Environment.getExternalStorageDirectory().getAbsolutePath()+"//Pictures//"+name);
-                        file3.delete();
-
-                        Toasty.success(getBaseContext(),"Documento asociado correctamente.").show();
-                    } catch (IOException e) {
-                        Toasty.error(getBaseContext(),"Error al asociar el documento a la solicitud").show();
-                        e.printStackTrace();
-                    }
-                }
-                break;
+        super.onActivityResult(requestCode, resultCode, data);
+        WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudAvisosEquipoFrioActivity.this);
+        try {
+            manejadorAdjuntos.setUri(mPhotoUri);
+            manejadorAdjuntos.ActivityResult(requestCode, resultCode, data);
+            //ManejadorAdjuntos.ActivityResult(requestCode, resultCode, data, getApplicationContext(),weakRefA.get(), mPhotoUri, mDBHelper,  adjuntosSolicitud,  modificable,  firma,  GUID, tb_adjuntos, mapeoCamposDinamicos);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-    }
-
-    public byte[] getBytes(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
-        int bufferSize = 1024;
-        byte[] buffer = new byte[bufferSize];
-
-        int len;
-        while ((len = inputStream.read(buffer)) != -1) {
-            byteBuffer.write(buffer, 0, len);
-        }
-        return byteBuffer.toByteArray();
     }
 
     public static class ViewPagerAdapter extends FragmentPagerAdapter {
 
         private ArrayList<String> title = new ArrayList<>();
+        private Context context;
 
-        private ViewPagerAdapter(FragmentManager manager) {
+        private ViewPagerAdapter(FragmentManager manager, Context c) {
             super(manager);
             List<String> pestanas = mDBHelper.getPestanasFormulario(tipoSolicitud);
             title.addAll(pestanas);
+            context = c;
         }
 
         @Override
@@ -710,30 +546,36 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             // Inflate the layout for this fragment
             View view = inflater.inflate(R.layout.pagina_formulario, container, false);
+            ViewPager viewPager = (ViewPager) container;
             LinearLayout ll = view.findViewById(R.id.miPagina);
             String nombre = Objects.requireNonNull(Objects.requireNonNull(((ViewPager) container).getAdapter()).getPageTitle(position)).toString().trim();
 
             if(nombre.equals("Datos Generales") || nombre.equals("Informacion General")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"D");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"D", idSolicitud);
 
             }else
             if(nombre.equals("Facturación")|| nombre.equals("Facturacion")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"F");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"F", idSolicitud);
             }else
             if(nombre.equals("Ventas")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"V");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"V", idSolicitud);
             }else
             if(nombre.equals("Marketing")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"M");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"M", idSolicitud);
             }else
             if(nombre.equals("Creditos") || nombre.equals("Créditos")  || nombre.equals("Crédito")  || nombre.equals("Credito")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"C");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"C", idSolicitud);
             }else
             if(nombre.equals("Adjuntos") || nombre.equals("Adicionales")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"Z");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"Z", idSolicitud);
             }else
             if(nombre.toLowerCase().contains("equipo") || nombre.toLowerCase().contains("frio")|| nombre.toLowerCase().contains("eq.")) {
-                LlenarPestana(mDBHelper, ll, tipoSolicitud,"E");
+                LlenarPestana(mDBHelper, ll, tipoSolicitud,"E", idSolicitud);
+            }
+            try {
+                viewPager.setPageTransformer(true, (ViewPager.PageTransformer) new CubeTransformer());
+            }catch(Exception e){
+
             }
             return view;
         }
@@ -744,12 +586,12 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         }
         //LLenado Automatico de campos x pestana.
         @SuppressLint("ClickableViewAccessibility")
-        public void LlenarPestana(DataBaseHelper db, View _ll, String tipoFormulario, String pestana) {
+        public void LlenarPestana(DataBaseHelper db, View _ll, String tipoFormulario, String pestana, String idSolicitud) {
             //View view = inflater.inflate(R.layout.pagina_formulario, container, false);
             String seccionAnterior = "";
             LinearLayout ll = (LinearLayout)_ll;
             //DataBaseHelper db = new DataBaseHelper(getContext());
-            final ArrayList<HashMap<String, String>> campos = db.getCamposPestana(tipoFormulario, pestana);
+            final ArrayList<HashMap<String, String>> campos = db.getCamposPestana(tipoFormulario, pestana, idSolicitud);
 
             LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
 
@@ -757,7 +599,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 ImageView btnAyuda = null;
                 //Creacion de seccion
                 if(!seccionAnterior.equals(campos.get(i).get("id_seccion").trim()) && !campos.get(i).get("id_seccion").trim().equals("99")) {
-                    CardView seccion_layout = new CardView(Objects.requireNonNull(getContext()));
+                    CardView seccion_layout = new CardView(requireContext());
 
                     TextView seccion_header = new TextView(getContext());
                     seccion_header.setAllCaps(true);
@@ -794,7 +636,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         listaCamposBloque.add(campos.get(i).get("campo").trim());
                     }
                 }else
-                if (campos.get(i).get("tipo_input")!= null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("checkbox")) {
+                if (campos.get(i).get("tipo_input") != null && campos.get(i).get("tipo_input").trim().toLowerCase().equals("checkbox")) {
                     //Tipo CHECKBOX
                     TableRow fila = new TableRow(getContext());
                     fila.setOrientation(TableRow.HORIZONTAL);
@@ -804,11 +646,11 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
                     CheckBox checkbox_old = new CheckBox(getContext());
                     checkbox_old.setLayoutParams(lp_old);
-                    if(campos.get(i).get("modificacion").trim().equals("2") && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
                         checkbox_old.setEnabled(false);
                         mapeoCamposDinamicosOld.put(campos.get(i).get("campo").trim(), checkbox_old);
                     }
-
+                    lp.setMargins(0,20,0,0);
                     CheckBox checkbox = new CheckBox(getContext());
                     checkbox.setLayoutParams(lp);
                     checkbox.setText(campos.get(i).get("descr"));
@@ -819,11 +661,27 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         checkbox.setEnabled(false);
                         //checkbox.setVisibility(View.GONE);
                     }
-                    fila.addView(checkbox_old);
+                    //fila.addView(checkbox_old);
                     fila.addView(checkbox);
                     ll.addView(fila);
                     listaCamposDinamicos.add(campos.get(i).get("campo").trim());
                     mapeoCamposDinamicos.put(campos.get(i).get("campo").trim(), checkbox);
+
+                    //Excepciones de visualizacion y configuracion de campos dados por la tabla ConfigCampos
+                    int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
+                    if(excepcion >= 0) {
+                        HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
+                        Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcion, listaCamposObligatorios, campos.get(i),(ArrayList<HashMap<String,String>>) null);
+                        int excepcionxAgencia = 0;
+                        if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
+                            excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
+                        if(((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")) != null)
+                            excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
+                        if (excepcionxAgencia >= 0) {
+                            HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
+                            Validaciones.ejecutarExcepcion(getContext(),checkbox,null,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),(ArrayList<HashMap<String,String>>) null);
+                        }
+                    }
 
                     if(solicitudSeleccionada.size() > 0){
                         if(solicitudSeleccionada.get(0).get(campos.get(i).get("campo").trim()).trim().length() > 0)
@@ -834,7 +692,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             checkbox.setEnabled(false);
                         }
                     }
-                }else if (campos.get(i).get("tabla")!= null && campos.get(i).get("tabla").trim().length() > 0) {
+                }else if (campos.get(i).get("tabla")!= null && campos.get(i).get("tabla").replace(" ","").trim().length() > 0) {
                     //Tipo ComboBox/SelectBox/Spinner
                     TableRow fila = new TableRow(getContext());
                     fila.setOrientation(TableRow.HORIZONTAL);
@@ -849,7 +707,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     label.setPadding(0,0,0,0);
                     label.setLayoutParams(lpl);
 
-                    final SearchableSpinner combo = new SearchableSpinner(getContext(), null);
+                    final SearchableSpinner combo = new SearchableSpinner(getContext(), "TAG_"+campos.get(i).get("campo"));
                     combo.setTitle("Buscar");
                     combo.setPositiveButton("Cerrar");
                     combo.setTag(campos.get(i).get("descr"));
@@ -873,6 +731,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
                     //Si son catalogos de equipo frio debo las columnas de ID y Descripcion estan en otros indice de columnas
                     ArrayList<HashMap<String, String>> opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim());
+
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("ef_causas") || campos.get(i).get("tabla").trim().toLowerCase().equals("ef_prioridades")){
                         opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),3,4,null);
                         if(campos.get(i).get("campo").trim().toLowerCase().equals("w_cte-im_cause_codegrp")){
@@ -887,6 +746,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     }
                     if(campos.get(i).get("tabla").trim().toLowerCase().equals("sapdmateriales_pde")){
                         opciones = db.getDatosCatalogo(campos.get(i).get("tabla").trim(),1,4,null);
+                    }
+                    if(campos.get(i).get("tabla").trim().toLowerCase().equals("loc_motivo_no_scan_ef")){
+                        opciones = db.getDatosCatalogo("cat_"+campos.get(i).get("tabla").trim(),"genera_formulario = 1");
                     }
                     ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
                     int selectedIndex = 0;
@@ -914,15 +776,90 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                                 combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
                             }
                         }
-
                     }
+                    ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, listaopciones);
+                    SpinnerImageAdapter dataAdapter2;
                     // Creando el adaptador(opciones) para el comboBox deseado
-                    ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, listaopciones);
-                    // Drop down layout style - list view with radio button
-                    dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-                    // attaching data adapter to spinner
-                    combo.setAdapter(dataAdapter);
-                    combo.setSelection(selectedIndex);
+                    if(campos.get(i).get("campo").trim().contains("IM_DESCRIPT")) {
+                        if (db.UsaMonitorEquipoFrio()) {
+                            WeakReference<Context> weakRefs1 = new WeakReference<Context>(getContext());
+                            WeakReference<Activity> weakRefAs1 = new WeakReference<Activity>(getActivity());
+
+                            if (PreferenceManager.getDefaultSharedPreferences(getContext()).getString("tipo_conexion", "").equals("api")) {
+                                TraerEquipoDisponibleAPI v = new TraerEquipoDisponibleAPI(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(requireContext()).getString("W_CTE_VWERK", ""), tipoFormulario, numPuertas);
+                                v.execute();
+                            } else {
+                                TraerEquipoDisponibleServidor v = new TraerEquipoDisponibleServidor(weakRefs1, weakRefAs1, PreferenceManager.getDefaultSharedPreferences(requireContext()).getString("W_CTE_VWERK", ""), tipoFormulario, numPuertas);
+                                v.execute();
+                            }
+
+
+
+                            combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                    final OpcionSpinner opcion = (OpcionSpinner) parent.getSelectedItem();
+                                    if (opcion.getRel1() != null)
+                                        Toasty.info(getContext(), opcion.getRel1() + " puerta(s)").show();
+                                    //Calcular lo que la falatria de cajas para comprar si instala mas puertas de lo sugerido
+                                    Double puertas_seleccionadas = opcion.getRel1() != null ? Double.parseDouble(opcion.getRel1()) : 0.0;
+                                    Double venta_comprometida = 0.0;
+                                    Double numPuertasActual = 0.0;
+                                    Double numPuertas = 0.0;
+                                    if (datosMonitor.size() > 0) {
+                                        if(tipoFormulario.equals("39"))//INSTALACION
+                                            numPuertas = (puertas_seleccionadas+Double.parseDouble(datosMonitor.get(0).get("puertas_instaladas")));
+                                        else if(tipoFormulario.equals("41")) {//CAMBIO
+                                            if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NUM_PUERTAS_ACTUAL")) != null) {
+                                                numPuertasActual = Double.parseDouble(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NUM_PUERTAS_ACTUAL")).getText().toString());
+                                            }
+                                            numPuertas = (puertas_seleccionadas - (Double.parseDouble(datosMonitor.get(0).get("puertas_instaladas")) - numPuertasActual));
+                                        }
+                                        else if (tipoFormulario.equals("42"))//RETIRO
+                                            numPuertas = (Double.parseDouble(datosMonitor.get(0).get("puertas_instaladas"))-puertas_seleccionadas);
+
+                                        venta_comprometida = ((numPuertas) * Double.parseDouble(datosMonitor.get(0).get("cajas_monitor_ef").replaceAll("[A-Z]", ""))) - Double.parseDouble(datosMonitor.get(0).get("venta_actual").toString().replaceAll("[A-Z]", ""));
+                                        if (((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")) != null)
+                                            ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")).setText(String.format(Locale.US, "%.2f", venta_comprometida) + " " + getResources().getString(R.string.unidad_caja_monitor) + "");
+                                        if (((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NUM_PUERTAS_MODELO")) != null)
+                                            ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NUM_PUERTAS_MODELO")).setText(puertas_seleccionadas.toString());
+                                    }
+                                    if(venta_comprometida <= 0.0){
+                                        if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")) != null) {
+                                            ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")).setVisibility(View.GONE);
+                                            ((TextInputLayout) ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")).getParent().getParent()).setVisibility(View.GONE);
+                                        }
+                                    }else {
+                                        if(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")) != null) {
+                                            ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")).setVisibility(View.VISIBLE);
+                                            ((TextInputLayout) ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-VENTA_COMPROMETIDA")).getParent().getParent()).setVisibility(View.VISIBLE);
+                                        }
+                                    }
+                                    if (position == 0)
+                                        ((TextView) parent.getSelectedView()).setError("El campo es obligatorio!");
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
+
+                                }
+                            });
+                        }else{
+                            dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, listaopciones);
+                            // Drop down layout style - list view with radio button
+                            dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+                            // attaching data adapter to spinner
+                            combo.setAdapter(dataAdapter);
+                            combo.setSelection(selectedIndex);
+                        }
+                    }else {
+                        dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, listaopciones);
+                        // Drop down layout style - list view with radio button
+                        dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+                        // attaching data adapter to spinner
+                        combo.setAdapter(dataAdapter);
+                        combo.setSelection(selectedIndex);
+                    }
 
                     //Campo de regimen fiscal, se debe cambiar el formato de cedula segun el tipo de cedula
                     if(campos.get(i).get("campo").trim().equals("W_CTE-KATR3")){
@@ -1048,7 +985,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     final Spinner combo_old = new Spinner(getContext(), Spinner.MODE_DROPDOWN);
                     combo_old.setVisibility(View.GONE);
                     combo_old.setEnabled(false);
-                    if(campos.get(i).get("modificacion").trim().equals("2") && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
                         Button btnAyudai=null;
                         TableRow.LayoutParams textolp2 = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f);
                         TableRow.LayoutParams btnlp2 = new TableRow.LayoutParams(75, 75,1f);
@@ -1064,7 +1001,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         btnAyudai.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                         btnAyudai.setForegroundGravity(GRAVITY_CENTER);
 
-                        btnAyudai.setOnTouchListener(new OnTouchListener()
+                        btnAyudai.setOnTouchListener(new View.OnTouchListener()
                         {
                             @Override
                             public boolean onTouch(View v, MotionEvent event)
@@ -1106,7 +1043,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         mapeoCamposDinamicosOld.put(campos.get(i).get("campo").trim(),combo_old);
                     }
 
-                    if(combo_old != null && campos.get(i).get("modificacion").trim().equals("2")) {
+                    if(combo_old != null && (campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10"))) {
                         ll.addView(label);
                         fila.addView(combo);
                         fila.addView(combo_old);
@@ -1184,7 +1121,11 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             combo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    final TextView opcion = (TextView) parent.getSelectedView();
+                                    TextView opcion = null;
+                                    if(parent.getSelectedView() instanceof TextView)
+                                        opcion = (TextView) parent.getSelectedView();
+                                    else if(parent.getSelectedView() instanceof RelativeLayout)
+                                        opcion = ((TextView)((RelativeLayout)parent.getSelectedView()).findViewById(R.id.nombre));
                                     if(position == 0 && opcion != null)
                                         opcion.setError("El campo es obligatorio!");
                                 }
@@ -1200,17 +1141,16 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
-                            combo.setEnabled(false);
-                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background_disabled, null));
-                        }else if(configExcepcion.get("vis") != null){
-                            combo.setEnabled(true);
-                            combo.setBackground(getResources().getDrawable(R.drawable.spinner_background, null));
-                        }
-                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X") || campos.get(i).get("modificacion").trim().equals("3") || campos.get(i).get("modificacion").trim().equals("4") || campos.get(i).get("modificacion").trim().equals("5")) {
-                            combo.setVisibility(View.GONE);
-                        }else if(configExcepcion.get("sup") != null){
-                            combo.setVisibility(View.VISIBLE);
+                        Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcion,listaCamposObligatorios,campos.get(i),(ArrayList<HashMap<String,String>>) null);
+
+                        int excepcionxAgencia = -1;
+                        if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
+                            excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
+                        if(((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")) != null)
+                            excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
+                        if (excepcionxAgencia >= 0) {
+                            HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
+                            Validaciones.ejecutarExcepcion(getContext(),combo,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),(ArrayList<HashMap<String,String>>) null);
                         }
                     }
                 } else {
@@ -1220,8 +1160,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     fila.setWeightSum(10);
                     fila.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,10f));
 
-                    final TextInputLayout label = new TextInputLayout(Objects.requireNonNull(getContext()));
+                    final TextInputLayout label = new TextInputLayout(requireContext());
                     label.setHint(campos.get(i).get("descr"));
+                    label.setDefaultHintTextColor(ColorStateList.valueOf(getResources().getColor(R.color.colorTextView,null)));
                     label.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
                     label.setErrorTextAppearance(R.style.AppTheme_TextErrorAppearance);
 
@@ -1251,14 +1192,25 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     }
                     et.setMaxLines(1);
 
-                    if(campos.get(i).get("datatype").equals("char")) {
-
-                        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( Integer.valueOf(campos.get(i).get("maxlength")) ) });
+                    if(campos.get(i).get("datatype").contains("char")) {
                         if(campos.get(i).get("campo").trim().equals("W_CTE-STCD3")){
                             et.setInputType(InputType.TYPE_CLASS_NUMBER);
                             et.setFilters(new InputFilter[] { new InputFilter.LengthFilter( 18 ) });
                         }else{
                             et.setInputType(InputType.TYPE_CLASS_TEXT);
+                        }
+                        if (Integer.valueOf(campos.get(i).get("maxlength")) > 0) {
+                            et.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Integer.valueOf(campos.get(i).get("maxlength")))});
+                            if(Integer.valueOf(campos.get(i).get("maxlength")) >= 40){
+                                et.setSingleLine(false);
+                                et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                                et.setMinLines(1);
+                                et.setMaxLines(5);
+                                et.setVerticalScrollBarEnabled(true);
+                                et.setMovementMethod(ScrollingMovementMethod.getInstance());
+                                et.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
+                                et.setGravity(INDICATOR_GRAVITY_TOP);
+                            }
                         }
                     }else if(campos.get(i).get("datatype").equals("decimal")) {
                         et.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -1284,7 +1236,17 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         btnAyuda.setLayoutParams(btnlp);
                         btnAyuda.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                         btnAyuda.setForegroundGravity(GRAVITY_CENTER);
-                        TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                        //TooltipCompat.setTooltipText(btnAyuda, campos.get(i).get("tooltip"));
+                        ToolTipsManager mToolTipsManager = new ToolTipsManager();
+                        ToolTip.Builder builder = new ToolTip.Builder(getContext(), et, (RelativeLayout)_ll.getParent() ,  campos.get(i).get("tooltip").toString(), ToolTip.POSITION_ABOVE);
+                        builder.setAlign(ToolTip.ALIGN_LEFT);
+                        //builder.setBackgroundColor(getResources().getColor(R.color.gray,null));
+                        builder.setGravity(ToolTip.GRAVITY_LEFT);
+                        builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+                        btnAyuda.setOnLongClickListener((View.OnLongClickListener) view -> {
+                            mToolTipsManager.show(builder.build());
+                            return true;
+                        });
                     }
                     if (campos.get(i).get("dfaul").trim().length() > 0) {
                         et.setText(campos.get(i).get("dfaul").trim());
@@ -1307,7 +1269,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             split = campos.get(i).get("llamado1").trim().split("\"");
                         final String campoAReplicar = split[1];
                         if(!campos.get(i).get("campo").trim().equals("W_CTE-NAME1") && !campos.get(i).get("campo").trim().equals("W_CTE-NAME2") && !campos.get(i).get("campo").trim().equals("W_CTE-HOUSE_NUM1")) {
-                            et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                            et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                                 @Override
                                 public void onFocusChange(View v, boolean hasFocus) {
                                     if (!hasFocus) {
@@ -1325,7 +1287,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         mapeoCamposDinamicosEnca.put(campos.get(i).get("campo").trim(),et);
                     }
 
-                    final TextInputLayout label_old = new TextInputLayout(Objects.requireNonNull(getContext()));
+                    final TextInputLayout label_old = new TextInputLayout(requireContext());
                     label_old.setVisibility(View.GONE);
                     label_old.setHint(campos.get(i).get("descr")+" Actual");
                     label_old.setHintTextAppearance(R.style.TextAppearance_App_TextInputLayout);
@@ -1335,7 +1297,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     et_old.setEnabled(false);
 
                     //Crear campo para valor viejo exclusivo.
-                    if(campos.get(i).get("modificacion").trim().equals("2") && campos.get(i).get("sup").trim().length() == 0){
+                    if((campos.get(i).get("modificacion").trim().equals("2") || campos.get(i).get("modificacion").trim().equals("10")) && campos.get(i).get("sup").trim().length() == 0){
                         //textbox de valor viejo
                         TableRow.LayoutParams lp_old = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f);
                         lp_old.setMargins(0, 15, 0, 15);
@@ -1358,7 +1320,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             btnAyudai.setTextAlignment(TEXT_ALIGNMENT_CENTER);
                             btnAyudai.setForegroundGravity(GRAVITY_CENTER);
 
-                        btnAyudai.setOnTouchListener(new OnTouchListener()
+                        btnAyudai.setOnTouchListener(new View.OnTouchListener()
                             {
                                 @Override
                                 public boolean onTouch(View v, MotionEvent event)
@@ -1418,7 +1380,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         et.setCompoundDrawablePadding(16);
                         et.setInputType(InputType.TYPE_NUMBER_FLAG_SIGNED|InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
-                        et.setOnTouchListener(new OnTouchListener() {
+                        et.setOnTouchListener(new View.OnTouchListener() {
                             @Override
                             public boolean onTouch(View v, MotionEvent event) {
                                 final int DRAWABLE_LEFT = 0;
@@ -1487,7 +1449,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             final List<View> tocables = tb_comentarios.getFocusables(View.FOCUS_FORWARD);
                             for(int x=0; x < tocables.size(); x++) {
                                 final int finalX = x;
-                                tocables.get(x).setOnTouchListener(new OnTouchListener() {
+                                tocables.get(x).setOnTouchListener(new View.OnTouchListener() {
                                     @Override
                                     public boolean onTouch(View v, MotionEvent event) {
                                         v.getParent().requestDisallowInterceptTouchEvent(true);
@@ -1508,7 +1470,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         et.setText(fechaSistema);
                     }
                     if(campos.get(i).get("campo").trim().equals("W_CTE-SMTP_ADDR")) {
-                        et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                        et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                             @Override
                             public void onFocusChange(View v, boolean hasFocus) {
                                 if (!hasFocus) {
@@ -1533,23 +1495,21 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                     if(excepcion >= 0) {
                         HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
-                        if (configExcepcion.get("vis").equals("1") || configExcepcion.get("vis").equals("X")) {
-                            et.setEnabled(false);
-                            et.setBackground(getResources().getDrawable(R.drawable.textbackground_disabled, null));
-                        }else if(configExcepcion.get("vis") != null){
-                            et.setEnabled(true);
-                            et.setBackground(getResources().getDrawable(R.drawable.textbackground, null));
-                        }
-                        if (configExcepcion.get("sup").equals("1") || configExcepcion.get("sup").equals("X") || campos.get(i).get("modificacion").trim().equals("3") || campos.get(i).get("modificacion").trim().equals("4") || campos.get(i).get("modificacion").trim().equals("5")) {
-                            et.setVisibility(View.GONE);
-                        }else if(configExcepcion.get("sup") != null){
-                            et.setVisibility(View.VISIBLE);
+                        Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcion,listaCamposObligatorios,campos.get(i),(ArrayList<HashMap<String,String>>) null);
+                        int excepcionxAgencia = 0;
+                        if(((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")) != null)
+                            excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicos.get("W_CTE-BZIRK")).getSelectedItem()).getId());
+                        if(((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")) != null)
+                            excepcionxAgencia = getIndexConfigCampo(campos.get(i).get("campo").trim(),((OpcionSpinner)((Spinner)mapeoCamposDinamicosEnca.get("W_CTE-BZIRK")).getSelectedItem()).getId());
+                        if (excepcionxAgencia >= 0) {
+                            HashMap<String, String> configExcepcionxAgencia = configExcepciones.get(excepcionxAgencia);
+                            Validaciones.ejecutarExcepcion(getContext(),et,label,configExcepcionxAgencia,listaCamposObligatorios,campos.get(i),(ArrayList<HashMap<String,String>>) null);
                         }
                     }
                     //if(cliente != null && cliente.get(campos.get(i).get("campo")) != null)
                         //et.setText(cliente.get(campos.get(i).get("campo").trim()).getAsString());
                 }
-                int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
+                /*int excepcion = getIndexConfigCampo(campos.get(i).get("campo").trim());
                 if(excepcion >= 0) {
                     HashMap<String, String> configExcepcion = configExcepciones.get(excepcion);
                     if (configExcepcion.get("opc").equals("1") || configExcepcion.get("opc").equals("X")) {
@@ -1564,7 +1524,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         }
                         listaCamposObligatorios.remove(campos.get(i).get("campo").trim());
                     }
-                }
+                }*/
 
                 seccionAnterior = campos.get(i).get("id_seccion").trim();
 
@@ -1595,10 +1555,12 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 combo.setLayoutParams(lp);
                 combo.setPopupBackgroundResource(R.drawable.menu_item);
 
-                ArrayList<OpcionSpinner> opciones = db.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_Flujo = "+tipoSolicitud);
+                String id_flujo = db.getIdFlujoDeTipoSolicitud(tipoSolicitud);
+
+                ArrayList<OpcionSpinner> opciones = db.getDatosCatalogoParaSpinner("aprobadores"," fxp.id_Flujo = "+id_flujo);
 
                 // Creando el adaptador(opciones) para el comboBox deseado
-                ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.simple_spinner_item, opciones);
+                ArrayAdapter<OpcionSpinner> dataAdapter = new ArrayAdapter<>(requireContext(), R.layout.simple_spinner_item, opciones);
                 // Drop down layout style - list view with radio button
                 dataAdapter.setDropDownViewResource(R.layout.spinner_item);
                 // attaching data adapter to spinner
@@ -1636,7 +1598,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     checkbox.setLayoutParams(clp);
                     checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null,getResources().getDrawable(R.drawable.icon_privacy,null), null);
                     ll.addView(checkbox);
-                    checkbox.setOnClickListener(new OnClickListener() {
+                    checkbox.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             Aceptacion(v);
@@ -1665,8 +1627,24 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         }
 
         private void Aceptacion(View v) {
-            Intent intent = new Intent(getContext(),FirmaT4Activity.class);
-            getActivity().startActivityForResult(intent,100);
+            Intent intent;
+            switch (PreferenceManager.getDefaultSharedPreferences(v.getContext()).getString("W_CTE_BUKRS","")){
+                case "F443":
+                    intent = new Intent(getContext(),FirmaT4Activity.class);
+                    getActivity().startActivityForResult(intent,100);
+                    break;
+                case "F445":
+                    intent = new Intent(getContext(),FirmaT4Activity.class);
+                    getActivity().startActivityForResult(intent,100);
+                    break;
+                case "F451":
+                    intent = new Intent(getContext(),FirmaT4Activity.class);
+                    getActivity().startActivityForResult(intent,100);
+                    break;
+                default:
+                    intent = new Intent(getContext(),FirmaT4Activity.class);
+                    getActivity().startActivityForResult(intent,100);
+            }
         }
 
         public void DesplegarBloque(DataBaseHelper db, View _ll, HashMap<String, String> campo) {
@@ -1682,7 +1660,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             String[] headers;
             SimpleTableHeaderAdapter sta;
 
-            CardView seccion_layout = new CardView(Objects.requireNonNull(getContext()));
+            CardView seccion_layout = new CardView(requireContext());
 
             TextView seccion_header = new TextView(getContext());
             seccion_header.setAllCaps(true);
@@ -1726,14 +1704,17 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
                     tb_adjuntos.setLayoutParams(hlp);
 
-                    if(solicitudSeleccionada.size() > 0){
-                        if((idForm == null || idForm.equals("")) || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia")|| solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Modificado"))
+                    if(solicitudSeleccionada.size() > 0) {
+                        if ((idForm == null || idForm.equals("")) || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Incidencia") || solicitudSeleccionada.get(0).get("ESTADO").trim().equals("Modificado")) {
                             adjuntosSolicitud = mDBHelper.getAdjuntosDB(idSolicitud);
-                        else
+                            manejadorAdjuntos.setAdjuntosSolicitud(adjuntosSolicitud);
+                        } else {
                             adjuntosSolicitud = mDBHelper.getAdjuntosServidor(idForm);
+                            manejadorAdjuntos.setAdjuntosSolicitud(adjuntosSolicitud);
+                        }
                     }
                     if(modificable) {
-                        btnAddBloque.setOnClickListener(new OnClickListener() {
+                        btnAddBloque.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
 
@@ -1774,7 +1755,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
                     //Horizontal View de adjuntos
                     HorizontalScrollView hsv = new HorizontalScrollView(getContext());
-                    MostrarGaleriaAdjuntosHorizontal(hsv, getContext(), getActivity());
+                    ManejadorAdjuntos.MostrarGaleriaAdjuntosHorizontal(hsv, getContext(), getActivity(),adjuntosSolicitud, modificable, firma, tb_adjuntos, mapeoCamposDinamicos);
 
                     rl.addView(hsv);
                     ll.addView(rl);
@@ -1787,84 +1768,9 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
     }
 
-    public static void MostrarGaleriaAdjuntosHorizontal(HorizontalScrollView hsv, final Context context, final Activity activity) {
-        hsv.removeAllViews();
-        hsv.setBackground(context.getResources().getDrawable(R.drawable.squared_textbackground,null));
-        hsv.setLayoutParams(new RelativeLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
-        LinearLayout myGallery = new LinearLayout(context);
-        myGallery.setLayoutParams(new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
-        myGallery.setPadding(10,10,10,10);
-        for(int x=0; x < adjuntosSolicitud.size(); x++){
-            LinearLayout layout = new LinearLayout(context);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
-            lp.setMargins(0,0,5,0);
-            layout.setLayoutParams(lp);
-            layout.setGravity(Gravity.CENTER);
-
-
-            final ImageView adjunto_image = new ImageView(context);
-            adjunto_image.setLayoutParams(new LinearLayout.LayoutParams(150, 150));
-            adjunto_image.setScaleType(ImageView.ScaleType.FIT_XY);
-            adjunto_image.setPadding(5,5,5,5);
-
-
-
-            final String nombre_adjunto = adjuntosSolicitud.get(x).getName();
-            //Bitmap _bitmap = null;
-
-            if(adjuntosSolicitud.get(x).getImage() != null) {
-                byte[] image = adjuntosSolicitud.get(x).getImage();
-                //_bitmap.compress(Bitmap.CompressFormat.PNG, 50, image);
-                BitmapFactory.Options o = new BitmapFactory.Options();
-                o.inSampleSize = 1;
-                if (image.length > 200000)
-                    o.inSampleSize = 2;
-                if (image.length > 400000)
-                    o.inSampleSize = 4;
-                if (image.length > 500000)
-                    o.inSampleSize = 8;
-                Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length, o);
-
-                adjunto_image.setImageBitmap(imagen);
-                adjunto_image.setBackground(context.getResources().getDrawable(R.drawable.border, null));
-
-                final int finalX = x;
-                adjunto_image.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mostrarAdjunto(v.getContext(), adjuntosSolicitud.get(finalX));
-                        //mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
-                    }
-                });
-                if (modificable) {
-                    adjunto_image.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View v) {
-                            DialogHandler appdialog = new DialogHandler();
-                            appdialog.Confirm((Activity) context, "Confirmación Borrado", "Esta seguro que quiere eliminar el archivo adjunto #" + finalX + "?", "Cancelar", "Eliminar", new EliminarAdjunto(context, activity, finalX));
-                            return false;
-                        }
-                    });
-                }
-            }else{
-                adjunto_image.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.icon_about));
-                final int finalX = x;
-                adjunto_image.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mostrarAdjuntoServidor(v.getContext(), activity, adjuntosSolicitud.get(finalX));
-                    }
-                });
-            }
-            layout.addView(adjunto_image);
-            myGallery.addView(layout);
-        }
-        hsv.addView(myGallery);
-    }
-
     //Pruebas para seccion de bloques
     public static void displayDialogMessage(Context context, String mensaje) {
-        final Dialog d=new Dialog(context);
+        final Dialog d=new Dialog(context, R.style.MyAlertDialogTheme);
         d.setContentView(R.layout.message_dialog_layout);
         //INITIALIZE VIEWS
         final TextView title = d.findViewById(R.id.title);
@@ -1874,13 +1780,13 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         title.setText("Mensaje de sistema");
         message.setText(mensaje);
         //SAVE
-        saveBtn.setOnClickListener(new OnClickListener() {
+        saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 d.dismiss();
             }
         });
-        cancelBtn.setOnClickListener(new OnClickListener() {
+        cancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 d.dismiss();
@@ -1894,75 +1800,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         }
     }
-    public static void mostrarAdjunto(Context context, Adjuntos adjunto) {
-        final Dialog d = new Dialog(context);
-        d.setContentView(R.layout.adjunto_layout);
-        ImageView adjunto_img = d.findViewById(R.id.imagen);
-        TextView adjunto_txt = d.findViewById(R.id.nombre);
-        final String nombre_adjunto = adjunto.getName();
-        byte[] image = adjunto.getImage();
-        Bitmap imagen = BitmapFactory.decodeByteArray(image, 0, image.length);
-        adjunto_img.setImageBitmap(imagen);
-        adjunto_txt.setText(adjunto.getName());
-        //SHOW DIALOG
-        d.show();
-        Window window = d.getWindow();
-        if(window != null) {
-            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        }
-    }
-
-    public static void mostrarAdjuntoServidor(Context context, Activity activity, Adjuntos adjunto) {
-        final Dialog d = new Dialog(context);
-        d.setContentView(R.layout.adjunto_layout);
-        ImageView adjunto_img = d.findViewById(R.id.imagen);
-        TextView adjunto_txt = d.findViewById(R.id.nombre);
-        adjunto_txt.setText(adjunto.getName());
-        if(!adjunto.getName().toLowerCase().contains(".pdf")) {
-            //SHOW DIALOG
-            d.show();
-            Window window = d.getWindow();
-            if (window != null) {
-                window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            }
-        }
-        //Realizar la transmision de lo que se necesita (Db o txt)
-        WeakReference<Context> weakRefs = new WeakReference<Context>(context);
-        WeakReference<Activity> weakRefAs = new WeakReference<Activity>(activity);
-        //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
-        AdjuntoServidor s = new AdjuntoServidor(weakRefs, weakRefAs, adjunto_img, adjunto_txt);
-        if(PreferenceManager.getDefaultSharedPreferences(context).getString("tipo_conexion","").equals("wifi")){
-            s.EnableWiFi();
-        }else{
-            s.DisableWiFi();
-        }
-        s.execute();
-
-    }
-
-    public static class EliminarAdjunto implements Runnable {
-        private Context context;
-        private Activity activity;
-        private int rowIndex;
-        public EliminarAdjunto(Context context, Activity activity, int rowIndex) {
-            this.context = context;
-            this.activity = activity;
-            this.rowIndex = rowIndex;
-        }
-        public void run() {
-            if(adjuntosSolicitud.get(rowIndex).getName().contains("Constancia")) {
-                CheckBox constancia = (CheckBox) mapeoCamposDinamicos.get("constancia");
-                constancia.setChecked(false);
-                constancia.setEnabled(true);
-                firma = false;
-            }
-            adjuntosSolicitud.remove(rowIndex);
-            tb_adjuntos.setDataAdapter(new AdjuntoTableAdapter(context, adjuntosSolicitud));
-            MostrarGaleriaAdjuntosHorizontal((HorizontalScrollView) mapeoCamposDinamicos.get("GaleriaAdjuntos"),context, activity);
-
-            Toasty.info(context, "Se ha eliminado el adjunto!", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     public class GuardarFormulario implements Runnable {
         private Context context;
@@ -1973,87 +1810,91 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             String NextId = GUID;
             ContentValues insertValues = new ContentValues();
             ContentValues insertValuesOld = new ContentValues();
-            boolean cambioRealizado = false;
-            for (int i = 0; i < listaCamposDinamicos.size(); i++) {
-                if(!listaCamposBloque.contains(listaCamposDinamicos.get(i).trim()) && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
+            ArrayList<String> listaFinal = (ArrayList<String>)listaCamposDinamicos.clone();
+            boolean prueba  = listaFinal.addAll(listaCamposDinamicosEnca);
+            for (int i = 0; i < listaFinal.size(); i++) {
+                if(!listaCamposBloque.contains(listaFinal.get(i).trim()) && !listaFinal.get(i).equals("W_CTE-ENCUESTA") && !listaFinal.get(i).equals("W_CTE-ENCUESTA_GEC")) {
                     try {
-                        MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                        MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get(listaFinal.get(i)));
                         String valor = "";
                         if(tv != null) {
                             valor = tv.getText().toString();
                         }
-                        if(!listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA") && !listaCamposDinamicos.get(i).equals("W_CTE-ENCUESTA_GEC")) {
-                            insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
-                            tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
+                        if(!listaFinal.get(i).equals("W_CTE-ENCUESTA") && !listaFinal.get(i).equals("W_CTE-ENCUESTA_GEC")) {
+                            insertValues.put("[" + listaFinal.get(i) + "]", valor);
+                            tv = ((MaskedEditText) mapeoCamposDinamicosOld.get(listaFinal.get(i)));
                             if(tv != null){
                                 valor = tv.getText().toString();
-                                insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
                             }
-                            tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i)));
+                            tv = ((MaskedEditText) mapeoCamposDinamicosEnca.get(listaFinal.get(i)));
                             if(tv != null){
                                 valor = tv.getText().toString();
-                                insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
                             }
-                            if(listaCamposDinamicos.get(i).equals("W_CTE-COMENTARIOS")) {
+                            if(listaFinal.get(i).equals("W_CTE-COMENTARIOS")) {
                                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
                                 Date date = new Date();
                                 if(comentarios.size() == 0)
-                                    insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                    insertValues.put("[" + listaFinal.get(i) + "]", valor);
                                 else
-                                    insertValues.put("[" + listaCamposDinamicos.get(i) + "]", comentarios.get(0).getComentario()+"("+dateFormat.format(date)+"): "+valor);
+                                    insertValues.put("[" + listaFinal.get(i) + "]", comentarios.get(0).getComentario()+"("+dateFormat.format(date)+"): "+valor);
                             }
                         }
 
                     } catch (Exception e) {
                         try {
-                            Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                            Spinner sp = ((Spinner) mapeoCamposDinamicos.get(listaFinal.get(i)));
                             String valor="";
                             if(sp != null) {
                                 valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
-                                insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                insertValues.put("[" + listaFinal.get(i) + "]", valor);
                             }
-                            sp = ((Spinner) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
+                            sp = ((Spinner) mapeoCamposDinamicosOld.get(listaFinal.get(i)));
                             if(sp != null) {
                                 valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
-                                insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
                             }
-                            sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i)));
+                            sp = ((Spinner) mapeoCamposDinamicosEnca.get(listaFinal.get(i)));
                             if(sp != null) {
                                 valor = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
-                                insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
+                                if(listaFinal.get(i).trim().equals("W_CTE-BZIRK") && !insertValues.containsKey("[W_CTE-BZIRK]")){
+                                    insertValues.put("[W_CTE-BZIRK]", valor);
+                                }
                             }
                         } catch (Exception e2) {
                             try {
-                                CheckBox check = ((CheckBox) mapeoCamposDinamicos.get(listaCamposDinamicos.get(i)));
+                                CheckBox check = ((CheckBox) mapeoCamposDinamicos.get(listaFinal.get(i)));
                                 String valor = "";
                                 if (check.isChecked()) {
                                     valor = "X";
                                 }
-                                insertValues.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                insertValues.put("[" + listaFinal.get(i) + "]", valor);
 
-                                check = ((CheckBox) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
+                                check = ((CheckBox) mapeoCamposDinamicosOld.get(listaFinal.get(i)));
                                 if(check != null){
                                     valor = "";
                                     if (check.isChecked()) {
                                         valor = "X";
                                     }
-                                    insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                    insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
                                 }
-                                check = ((CheckBox) mapeoCamposDinamicosEnca.get(listaCamposDinamicos.get(i)));
+                                check = ((CheckBox) mapeoCamposDinamicosEnca.get(listaFinal.get(i)));
                                 if(check != null){
                                     valor = "";
                                     if (check.isChecked()) {
                                         valor = "X";
                                     }
-                                    insertValuesOld.put("[" + listaCamposDinamicos.get(i) + "]", valor);
+                                    insertValuesOld.put("[" + listaFinal.get(i) + "]", valor);
                                 }
                             }catch(Exception e3){
-                                Toasty.error(getBaseContext(),"No se pudo obtener el valor del campo "+listaCamposDinamicos.get(i)).show();
+                                Toasty.error(getBaseContext(),"No se pudo obtener el valor del campo "+listaFinal.get(i)).show();
                             }
                         }
                     }
                 }else{//Revisar que tipo de bloque es para guardarlo en el lugar correcto.
-                    switch(listaCamposDinamicos.get(i)){
+                    switch(listaFinal.get(i)){
                         case "W_CTE-ADJUNTOS":
                             ContentValues adjuntoValues = new ContentValues();
                             try {
@@ -2078,12 +1919,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             }
             try {
                 //Datos que siemrpe deben ir cuando se crea por primera vez.
-                //TODO seccionar par pais el grupo de cuentas, talvez sacar de una tabla
-                if(tipoSolicitud.equals("1"))
-                    insertValues.put("[W_CTE-KTOKD]", "RCMA");
-                else{
-                    insertValues.put("[W_CTE-KTOKD]", "RCMA");
-                }
+                insertValues.put("[W_CTE-KTOKD]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_KTOKD",""));
                 Spinner sp = ((Spinner) mapeoCamposDinamicos.get("SIGUIENTE_APROBADOR"));
                 String id_aprobador = ((OpcionSpinner) sp.getSelectedItem()).getId().trim();
                 insertValues.put("[W_CTE-KUNNR]", codigoCliente);
@@ -2093,6 +1929,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 insertValues.put("[W_CTE-VKORG]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("W_CTE_VKORG",""));
                 insertValues.put("[id_solicitud]", NextId);
                 insertValues.put("[tipform]", tipoSolicitud);
+                if (mDBHelper.UsaMonitorEquipoFrio())
+                    insertValues.put("[W_CTE-MONITOR]", monitor);
                 insertValues.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("userMC",""));
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
                 Date date = new Date();
@@ -2100,6 +1938,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                 if(solicitudSeleccionada.size() > 0){
                     if(solicitudSeleccionada.get(0).get("ESTADO").equals("Incidencia")) {
                         insertValues.put("[estado]", "Modificado");
+                        insertValuesOld.put("[estado]", "Modificado");
                     }
                     long modifico = mDb.update("FormHvKof_solicitud", insertValues, "id_solicitud = ?", new String[]{solicitudSeleccionada.get(0).get("id_solicitud")});
                     if(solicitudSeleccionadaOld.size() > 0) {
@@ -2121,19 +1960,258 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                     insertValuesOld.put("[ususol]", PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("userMC",""));
                     insertValuesOld.put("[FECCRE]", dateFormat.format(date));
                     long insertoOld = mDb.insertOrThrow("FormHvKof_old_solicitud", null, insertValuesOld);
-                    //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
-                    Intent sol = getIntent();
-                    sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    SolicitudAvisosEquipoFrioActivity.this.finish();
-                    //Bundle par = new Bundle();
-                    //par.putString("tipo_solicitud",tipoSolicitud);
-                    //SolicitudActivity.this.startActivity(sol);
-                    Toasty.success(getApplicationContext(), "Solicitud de Modificación Creada", Toast.LENGTH_LONG).show();
+
+                    if(tipoSolicitud.equals("200")){
+                        //Guardar la alerta del equipo que no es posible escanear en el momento
+                        EquipoFrio eq = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, false);
+                        //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                        //Date date = new Date();
+                        ContentValues insertValuesA = new ContentValues();
+                        insertValuesA.put("id_solicitud", NextId);
+                        insertValuesA.put("bukrs", PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BUKRS",""));
+                        insertValuesA.put("bzirk", PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_BZIRK",""));
+                        insertValuesA.put("ruta", PreferenceManager.getDefaultSharedPreferences(context).getString("W_CTE_RUTAHH",""));
+                        insertValuesA.put("estado","Anomalia");
+                        insertValuesA.put("kunnr_censo",codigoCliente);
+                        insertValuesA.put("nombre_cliente",((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-NAME1")).getText().toString());
+                        insertValuesA.put("num_placa",codigoEquipoFrio);
+                        insertValuesA.put("coordenada_x", ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT")).getText().toString());
+                        insertValuesA.put("coordenada_y", ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG")).getText().toString());
+                        insertValuesA.put("activo", "1");
+                        insertValuesA.put("transmitido", "0");
+                        insertValuesA.put("fecha_lectura", dateFormat.format(date));
+                        insertValuesA.put("num_activo", eq.getSernr());
+                        insertValuesA.put("num_equipo", eq.getEqunr());
+                        insertValuesA.put("modelo_equipo", eq.getMatnr());
+                        insertValuesA.put("canal", ((OpcionSpinner)((Spinner) mapeoCamposDinamicosEnca.get("W_CTE-ZZCANAL")).getSelectedItem()).getId().trim() );
+                        insertValuesA.put("correo", ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-SMTP_ADDR")).getText().toString());
+                        insertValuesA.put("creado_por", PreferenceManager.getDefaultSharedPreferences(context).getString("userMC",""));
+                        insertValuesA.put("comentario", ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-COMENTARIOS")).getText().toString());
+                        Spinner motivo = ((Spinner) mapeoCamposDinamicos.get("W_CTE-CE_MOTIVO_ALERTA"));
+                        String id_motivo = ((OpcionSpinner) motivo.getSelectedItem()).getId().trim();
+                        insertValuesA.put("id_motivo_alerta", id_motivo);
+
+                        if(Objects.requireNonNull(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LAT")).getText()).toString().replace("0","").replace(".","").replace(",","").trim().length() == 0 && Objects.requireNonNull(((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-ZZCRMA_LONG")).getText()).toString().replace("0","").replace(".","").replace(",","").trim().length() == 0){
+                            AlertDialog.Builder builder = new AlertDialog.Builder(SolicitudAvisosEquipoFrioActivity.this);
+                            builder.setIcon(R.drawable.icon_info_title);
+                            builder.setTitle("Coordenadas No capturadas!");
+                            builder.setCancelable(false);
+                            builder.setMessage("Desea continuar de todas maneras?");
+                            builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //if user pressed "yes", continue with execution
+                                    var inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValuesA);
+
+                                    if(inserto == -1){
+                                        Toasty.info(context, "No se pudo guardar la anomalía de equipo frio!").show();
+                                    }else{
+                                        //Enviar la anomalia de una vez a la base de datos de SQL Server
+                                        WeakReference<Context> weakRef = new WeakReference<Context>(SolicitudAvisosEquipoFrioActivity.this);
+                                        WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudAvisosEquipoFrioActivity.this);
+                                        //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
+                                        if (PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("tipo_conexion","").equals("api")) {
+                                            //TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",NextId);
+                                            //f.execute();
+                                        } else {
+                                            TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "",NextId);
+                                            f.execute();
+                                        }
+                                    }
+                                    Toasty.success(getApplicationContext(), "Anomalía Creada", Toast.LENGTH_LONG).show();
+                                }
+                            });
+                            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //if user select "No", just cancel this dialog and continue with app
+                                    dialog.cancel();
+                                }
+                            });
+                            AlertDialog alert = builder.create();
+                            alert.show();
+                        }else{
+                            inserto = mDb.insertOrThrow("CensoEquipoFrio", null, insertValuesA);
+
+                            if(inserto == -1){
+                                Toasty.info(context, "No se pudo guardar la anomalía de equipo frio!").show();
+                            }else{
+                                //Enviar la anomalia de una vez a la base de datos de SQL Server
+                                WeakReference<Context> weakRef = new WeakReference<Context>(SolicitudAvisosEquipoFrioActivity.this);
+                                WeakReference<Activity> weakRefA = new WeakReference<Activity>(SolicitudAvisosEquipoFrioActivity.this);
+                                //PreferenceManager.getDefaultSharedPreferences(PanelActivity.this).getString("W_CTE_RUTAHH","");
+                                if (PreferenceManager.getDefaultSharedPreferences(SolicitudAvisosEquipoFrioActivity.this).getString("tipo_conexion","").equals("api")) {
+                                    TransmisionAPI f = new TransmisionAPI(weakRef, weakRefA, "", "",NextId);
+                                    f.execute();
+                                } else {
+                                    TransmisionServidor f = new TransmisionServidor(weakRef, weakRefA, "", "",NextId);
+                                    f.execute();
+                                }
+                            }
+                            Toasty.success(getApplicationContext(), "Anomalía Creada", Toast.LENGTH_LONG).show();
+                        }
+                    }else {
+                        Toasty.success(getApplicationContext(), "Solicitud de Equipo Frio Creada", Toast.LENGTH_LONG).show();
+                        //Una vez finalizado el proceso de guardado, se limpia la solicitud para una nueva.
+                        Intent sol = getIntent();
+                        sol.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        SolicitudAvisosEquipoFrioActivity.this.finish();
+                        //Bundle par = new Bundle();
+                        //par.putString("tipo_solicitud",tipoSolicitud);
+                        //SolicitudActivity.this.startActivity(sol);
+
+                    }
                 }
             } catch (Exception e) {
                 Toasty.error(getApplicationContext(), "Error Insertando Solicitud."+e.getMessage(), Toast.LENGTH_LONG).show();
             }
+        }
+    }
 
+    public static void SolicitudPermitida(Context context, Activity activity, ArrayList<JsonArray> mensajes) {
+        String mensaje="";
+        if(mensajes.size() > 0 && mensajes.get(0)  != null){
+            mensaje = mensajes.get(0).getAsJsonArray().get(0).getAsJsonObject().get("mensaje").getAsString();
+            if(!mensaje.isEmpty()) {
+                Toasty.error(context.getApplicationContext(), mensaje,Toasty.LENGTH_LONG).show();
+                //Deshabilitar el menu para que no pueda guardar el formulario pero si pueda ver la informacion del cliente.
+                LinearLayout ll = activity.findViewById(R.id.LinearLayoutMain);
+                DrawerLayout.LayoutParams h = new DrawerLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT);
+
+                h.setMargins(0, 0, 0, 0);
+                ll.setLayoutParams(h);
+                bottomNavigation.setVisibility(View.GONE);
+                bottomNavigation.animate().translationY(150);
+
+                LinearLayout v = new LinearLayout(context.getApplicationContext());
+                v.setOrientation(LinearLayout.VERTICAL);
+                TextView title = new TextView(context.getApplicationContext());
+                TextView subTitle = new TextView(context.getApplicationContext());
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, // Width of TextView
+                        LinearLayout.LayoutParams.WRAP_CONTENT); // Height of TextView
+                title.setLayoutParams(lp);
+                title.setText(mensaje);
+                title.setTextColor(Color.WHITE);
+                title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+                subTitle.setLayoutParams(lp);
+                subTitle.setText("No se puede generar la solicitud de "+((AppCompatActivity)activity).getSupportActionBar().getSubtitle()+" en estos momentos.");
+                subTitle.setTextColor(Color.WHITE);
+                subTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
+
+                v.addView(title);
+                v.addView(subTitle);
+
+                ((AppCompatActivity)activity).getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+                ((AppCompatActivity)activity).getSupportActionBar().setCustomView(v);
+            }
+        }
+    }
+
+    public static void ActualizarEquiposDisponibles(Context context, Activity activity, ArrayList<JsonArray> mensajes) {
+        String mensaje="";
+        int selectedIndex = 0;
+        ArrayList<OpcionSpinner> listaopciones = new ArrayList<>();
+        listaopciones.add(new OpcionSpinner("","Modelo : Stock(Reservado) # Puertas",false));
+        if(mensajes.size() > 0 && mensajes.get(0)  != null && mensajes.get(0).size() > 0){
+            for(int x = 0; x < mensajes.get(0).getAsJsonArray().size() ; x++){
+                JsonObject opcion = mensajes.get(0).getAsJsonArray().get(x).getAsJsonObject();
+                String material = "";
+                String modelo = "";
+                if(!opcion.get("material").isJsonNull()) {
+                    material = " ("+opcion.get("material").getAsString()+")";
+                    modelo = opcion.get("modelo").getAsString();
+                }else{
+                    material = " ";
+                    modelo = opcion.get("modelo").getAsString();
+                }
+                OpcionSpinner opcionSpinner = new OpcionSpinner(modelo.replaceFirst("^0+", ""),modelo+material.replaceFirst("^0+", "")+" : " +opcion.get("stock").getAsString() +"(" + opcion.get("reservado").getAsString()+") "+opcion.get("num_puertas")+" Puertas");
+                if( (Integer.parseInt(opcion.get("stock").getAsString()) - Integer.parseInt(opcion.get("reservado").getAsString())) == 0 || opcion.get("num_puertas").isJsonNull() ) {
+                    opcionSpinner.setEnabled(false);
+                    opcionSpinner.setRel1("0");
+                }
+                if(!opcion.get("num_puertas").isJsonNull())
+                    opcionSpinner.setRel1(opcion.get("num_puertas").getAsString());
+                if(solicitudSeleccionada.size() > 0 && opcion.get("modelo").getAsString().equals(solicitudSeleccionada.get(0).get("W_CTE-IM_DESCRIPT")))
+                    selectedIndex = (x+1);
+                else if(solicitudSeleccionada.size() == 0 && codigoEquipoFrio != null){
+                    EquipoFrio equipofrio = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
+                    if(material.replaceFirst("^0+", "").equals(equipofrio.getMatnr())){
+                        selectedIndex = (x+1);
+                    }
+                }
+
+                listaopciones.add(opcionSpinner);
+            }
+            Spinner modelos = (Spinner)mapeoCamposDinamicos.get("W_CTE-IM_DESCRIPT");
+            //Se es retiro, muy probable no exista modelo disponible, si no existe se debe ingresar al combo de seleccion para que quede registrado en el formulario el numero de puertas del retiro
+            if((tipoSolicitud.equals("42")) && selectedIndex == 0){
+                HashMap<String, String> equipo = mDBHelper.getEquipoFrioDatosMonitor(codigoEquipoFrio);
+
+                String material = equipo.get("material");
+                if(material == null)
+                    material = equipo.get("modelo");
+                if(material == null || material.equals("")) {
+                    EquipoFrio equipofrio = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
+                    material = equipofrio.getEqktx();
+
+
+                    OpcionSpinner opcionSpinner = new OpcionSpinner(material, material + " Puertas Desconocido");
+                    opcionSpinner.setRel1("0");
+                    listaopciones.add(opcionSpinner);
+                    selectedIndex = listaopciones.size() - 1;
+                    modelos.setEnabled(false);
+                }else {
+                    OpcionSpinner opcionSpinner = new OpcionSpinner(material, material + " " + equipo.get("num_puertas") + " Puertas");
+                    opcionSpinner.setRel1(equipo.get("num_puertas"));
+                    opcionSpinner.setRel2(equipo.get("modelo"));
+                    listaopciones.add(opcionSpinner);
+                    selectedIndex = listaopciones.size() - 1;
+                    modelos.setEnabled(false);
+                }
+            }
+
+            ArrayAdapter dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
+
+            // attaching data adapter to spinner
+            modelos.setAdapter(dataAdapter);
+            modelos.setSelection(selectedIndex);
+        }else{
+            Spinner modelos = (Spinner)mapeoCamposDinamicos.get("W_CTE-IM_DESCRIPT");
+            //Se es retiro, muy probable no exista modelo disponible, si no existe se debe ingresar al combo de seleccion para que quede registrado en el formulario el numero de puertas del retiro
+            if(tipoSolicitud.equals("42") && selectedIndex == 0){
+                HashMap<String, String> equipo = mDBHelper.getEquipoFrioDatosMonitor(codigoEquipoFrio);
+
+                String material = equipo.get("material");
+                if(material == null)
+                    material = equipo.get("modelo");
+                if(material == null || material.equals("")) {
+                    EquipoFrio equipofrio = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
+                    material = equipofrio.getEqktx();
+
+                    OpcionSpinner opcionSpinner = new OpcionSpinner(material, material + " Puertas Desconocido");
+                    opcionSpinner.setRel1("0");
+                    listaopciones.add(opcionSpinner);
+                    selectedIndex = listaopciones.size() - 1;
+                    modelos.setEnabled(false);
+                    ArrayAdapter dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
+                    // attaching data adapter to spinner
+                    modelos.setAdapter(dataAdapter);
+                    modelos.setSelection(selectedIndex);
+                }else {
+                    OpcionSpinner opcionSpinner = new OpcionSpinner(material,material+ " "+equipo.get("num_puertas")+" Puertas");
+                    opcionSpinner.setRel1(equipo.get("num_puertas"));
+                    opcionSpinner.setRel2(equipo.get("modelo"));
+                    listaopciones.add(opcionSpinner);
+                    selectedIndex = listaopciones.size()-1;
+                    modelos.setEnabled(false);
+                    ArrayAdapter dataAdapter = new ArrayAdapter<OpcionSpinner>(context, R.layout.simple_spinner_item, listaopciones);
+                    // attaching data adapter to spinner
+                    modelos.setAdapter(dataAdapter);
+                    modelos.setSelection(selectedIndex);
+                }
+
+            }
         }
     }
 
@@ -2143,7 +2221,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             activity.finish();
             return;
         }
-
         cliente = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Cliente");
         notaEntrega = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("NotaEntrega");
         factura = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Factura");;
@@ -2155,27 +2232,70 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         bancos = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Bancos");
         visitas = estructurasSAP.get(0).getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("Visitas");
 
+        if(mDBHelper.UsaMonitorEquipoFrio()) {
+            if(datosMonitor.size() > 0) {
+                cliente.get(0).getAsJsonObject().addProperty("W_CTE-PUERTAS_SUGERIDAS", datosMonitor.get(0).get("puertas_sugeridas"));
+                cliente.get(0).getAsJsonObject().addProperty("W_CTE-PUERTAS_INSTALADAS", datosMonitor.get(0).get("puertas_instaladas"));
+                cliente.get(0).getAsJsonObject().addProperty("W_CTE-PUERTAS_OBJETIVO", datosMonitor.get(0).get("puertas_objetivo"));
+                cliente.get(0).getAsJsonObject().addProperty("W_CTE-NUM_PUERTAS_MODELO", datosMonitor.get(0).get("puertas_por_instalar"));
+                cliente.get(0).getAsJsonObject().addProperty("W_CTE-IM_PRIORITY", datosMonitor.get(0).get("prioridad"));
+            }else{
+                Toasty.warning(context,"Cliente no tiene datos en el monitor de EF.",Toasty.LENGTH_SHORT).show();
+            }
+        }
+
         if(codigoEquipoFrio != null) {
             EquipoFrio equipo = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, true);
+            if(equipo == null)
+                equipo = mDBHelper.getEquipoFrioDB(codigoCliente, codigoEquipoFrio, false);
+
             MaskedEditText tv = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_EQUIPMENT"));
-            tv.setText(codigoEquipoFrio);
+            if(tv != null)
+                tv.setText(codigoEquipoFrio);
             MaskedEditText tvs = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_SERIALNO"));
-            tvs.setText(equipo.getSernr());
-            SearchableSpinner tvm = ((SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-IM_MATERIAL"));
-            tvm.setSelection(VariablesGlobales.getIndex(tvm, equipo.getMatnr()));
+            if(equipo != null && tvs != null)
+                tvs.setText(equipo.getSernr());
+            try {
+                SearchableSpinner tvm = ((SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-IM_MATERIAL"));
+                if(equipo != null && tvm != null)
+                    tvm.setSelection(VariablesGlobales.getIndex(tvm, equipo.getMatnr()));
+            }catch(Exception e){
+                MaskedEditText tvm = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_MATERIAL"));
+                if(equipo != null && tvm != null)
+                    tvm.setText(equipo.getMatnr());
+            }
             MaskedEditText tvp = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-IM_PARTNER"));
-            tvp.setText(codigoCliente);
+            if (tvp != null)
+                tvp.setText(codigoCliente);
+
+            MaskedEditText puertas_actual = ((MaskedEditText) mapeoCamposDinamicos.get("W_CTE-NUM_PUERTAS_ACTUAL"));
+            if (puertas_actual != null) {
+                HashMap<String, String> ef = mDBHelper.getEquipoFrioDatosMonitor(codigoEquipoFrio);
+                puertas_actual.setText(ef.get("num_puertas"));
+            }
+            if(mDBHelper.UsaMonitorEquipoFrio()){
+                SearchableSpinner tvm = ((SearchableSpinner) mapeoCamposDinamicos.get("W_CTE-IM_DESCRIPT"));
+                HashMap<String, String> ef = mDBHelper.getEquipoFrioDatosMonitor(codigoEquipoFrio);
+                if(ef.size() > 0)
+                    tvm.setSelection(VariablesGlobales.getIndex(tvm, ef.get("modelo")));
+            }
 
             //Valores Enca si estan presentes
             MaskedEditText tve = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_EQUIPMENT"));
             if (tve != null)
                 tve.setText(codigoEquipoFrio);
             MaskedEditText tvse = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_SERIALNO"));
-            if (tvse != null)
+            if (tvse != null && equipo != null)
                 tvse.setText(equipo.getSernr());
-            SearchableSpinner tvme = ((SearchableSpinner) mapeoCamposDinamicosEnca.get("W_CTE-IM_MATERIAL"));
-            if (tvme != null)
-                tvme.setSelection(VariablesGlobales.getIndex(tvme, equipo.getMatnr()));
+            try{
+                SearchableSpinner tvme = ((SearchableSpinner) mapeoCamposDinamicosEnca.get("W_CTE-IM_MATERIAL"));
+                if (tvme != null && equipo != null)
+                    tvme.setSelection(VariablesGlobales.getIndex(tvme, equipo.getMatnr()));
+            }catch(Exception e){
+                MaskedEditText tvm = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_MATERIAL"));
+                if(tvm != null && equipo != null)
+                    tvm.setText(equipo.getMatnr());
+            }
             MaskedEditText tvpe = ((MaskedEditText) mapeoCamposDinamicosEnca.get("W_CTE-IM_PARTNER"));
             if (tvpe != null)
                 tvpe.setText(codigoCliente);
@@ -2243,8 +2363,6 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                         }
                         if (listaCamposDinamicos.get(i).equals("W_CTE-IM_SHORT_TEXT")) {
                             tv.setText(((SolicitudAvisosEquipoFrioActivity) activity).getSupportActionBar().getSubtitle());
-                            tv.setSingleLine(false);
-                            tv.setEnabled(false);
                         }
                         if (listaCamposDinamicos.get(i).equals("W_CTE-IM_PARTNER")) {
                             tv.setText(codigoCliente);
@@ -2294,6 +2412,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
                             }
                             sp.setEnabled(false);
                         }
+
 
                         sp = ((Spinner) mapeoCamposDinamicosOld.get(listaCamposDinamicos.get(i)));
                         if(sp != null)
@@ -2494,8 +2613,8 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         public MostrarFormulario(Context context) {
             contextRef = new WeakReference<>(context);
             viewPager = new ViewPager(context);
-            misTabs = new TabLayout(context);
-            adapter = new ViewPagerAdapter(getSupportFragmentManager());
+            misTabs = new TabLayout(new ContextThemeWrapper(context, R.style.MyTabs),null,0);
+            adapter = new ViewPagerAdapter(getSupportFragmentManager(), context);
         }
         @SuppressLint("ResourceType")
         @Override
@@ -2508,7 +2627,10 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             //Traer primero las pestanas
             publishProgress(2);
             misTabs.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            misTabs.setBackgroundColor(getResources().getColor(R.color.colorPrimary,null));
             misTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
+            misTabs.setTabGravity(GRAVITY_FILL);
+            misTabs.setTabTextColors(getResources().getColor(R.color.white,null), getResources().getColor(R.color.black,null));
             //final ViewPager viewPager = new ViewPager(context);
             publishProgress(4);
             viewPager.setId(1);
@@ -2534,7 +2656,7 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
             });
             misTabs.setupWithViewPager(viewPager);
             publishProgress(9);
-
+            allotEachTabWithEqualWidth();
             publishProgress(10);
             return null;
         }
@@ -2548,8 +2670,28 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
 
             progressBar.setVisibility(View.GONE);
         }
-
+        private void allotEachTabWithEqualWidth() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ViewGroup slidingTabStrip = (ViewGroup) misTabs.getChildAt(0);
+                    try {
+                        int tamxpestana = (slidingTabStrip.getWidth()) / misTabs.getTabCount();
+                        for (int i = 0; i < misTabs.getTabCount(); i++) {
+                            View tab = slidingTabStrip.getChildAt(i);
+                            tab.setMinimumWidth(tamxpestana);
+                            LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) tab.getLayoutParams();
+                            tab.setLayoutParams(layoutParams);
+                        }
+                    }catch(ArithmeticException e){
+                        Toasty.error(getBaseContext(),"No se generó ningun tab de informacion.").show();
+                        finish();
+                    }
+                }
+            });
+        }
     }
+
 
     public final static boolean isValidEmail(View v) {
         TextView correo = (TextView)v;
@@ -2569,6 +2711,15 @@ public class SolicitudAvisosEquipoFrioActivity extends AppCompatActivity {
         for (int i = 0; i < configExcepciones.size(); i++) {
             HashMap<String, String> map = configExcepciones.get(i);
             if (map.containsValue(campo)) { // Or map.getOrDefault("songTitle", "").equals(songName);
+                return i;
+            }
+        }
+        return -1; // Not found.
+    }
+    public static int getIndexConfigCampo(String campo, String agencia) {
+        for (int i = 0; i < configExcepciones.size(); i++) {
+            HashMap<String, String> map = configExcepciones.get(i);
+            if (map.containsValue(campo) && map.containsValue(agencia)) {
                 return i;
             }
         }

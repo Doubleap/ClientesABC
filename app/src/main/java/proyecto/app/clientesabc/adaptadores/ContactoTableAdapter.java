@@ -26,7 +26,7 @@ public class ContactoTableAdapter extends TableDataAdapter<Contacto> {
     private int textSize = 10;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
-    private int gravity = Gravity.START;
+    private int gravity = Gravity.CENTER;
 
     public ContactoTableAdapter(Context context, ArrayList<Contacto> data) {
         super(context, data);

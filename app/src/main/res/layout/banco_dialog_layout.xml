@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal" android:layout_width="match_parent"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_margin="5dp"
@@ -22,7 +22,7 @@
             android:textColor="@color/white"
             android:textSize="20dp" />
         <!--INPUT VIEWS-->
-        <android.support.v7.widget.AppCompatTextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Banco"
@@ -34,7 +34,7 @@
             android:layout_margin="5dp"
             >
         </android.widget.Spinner>
-        <android.support.v7.widget.AppCompatTextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Pais"
@@ -45,12 +45,14 @@
             android:layout_width="match_parent"
             android:layout_margin="5dp">
         </android.widget.Spinner>
-        <android.support.design.widget.TextInputLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/destLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            card_view:hintTextAppearance="@style/TextAppearance.App.TextInputLayout"
+            android:textColorHint="@color/colorTextView"
             >
-            <android.support.design.widget.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/cuentaEditTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -58,12 +60,14 @@
                 android:maxLength="18"
                 android:inputType="text"
                 android:hint= "No. de Cuenta" />
-        </android.support.design.widget.TextInputLayout>
-        <android.support.design.widget.TextInputLayout
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/claveLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <android.support.design.widget.TextInputEditText
+            android:layout_height="wrap_content"
+            card_view:hintTextAppearance="@style/TextAppearance.App.TextInputLayout"
+            android:textColorHint="@color/colorTextView">
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/claveEditTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -71,12 +75,14 @@
                 android:maxLength="2"
                 android:inputType="text"
                 android:hint= "Clave de control" />
-        </android.support.design.widget.TextInputLayout>
-        <android.support.design.widget.TextInputLayout
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/titularLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <android.support.design.widget.TextInputEditText
+            android:layout_height="wrap_content"
+            card_view:hintTextAppearance="@style/TextAppearance.App.TextInputLayout"
+            android:textColorHint="@color/colorTextView">
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/titularEditTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -84,12 +90,14 @@
                 android:maxLength="60"
                 android:inputType="text"
                 android:hint= "Titular de la cuenta" />
-        </android.support.design.widget.TextInputLayout>
-        <android.support.design.widget.TextInputLayout
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tipoLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <android.support.design.widget.TextInputEditText
+            android:layout_height="wrap_content"
+            card_view:hintTextAppearance="@style/TextAppearance.App.TextInputLayout"
+            android:textColorHint="@color/colorTextView">
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/tipoEditTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -97,12 +105,14 @@
                 android:maxLength="4"
                 android:inputType="text"
                 android:hint= "Tipo de banco" />
-        </android.support.design.widget.TextInputLayout>
-        <android.support.design.widget.TextInputLayout
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/montoMaximoLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <android.support.design.widget.TextInputEditText
+            android:layout_height="wrap_content"
+            card_view:hintTextAppearance="@style/TextAppearance.App.TextInputLayout"
+            android:textColorHint="@color/colorTextView">
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/montoMaximoEditTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -111,7 +121,7 @@
                 android:inputType="number"
                 android:hint= "Monto maximo de cheque"
                 />
-        </android.support.design.widget.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
         <!--BUTTON-->
         <Button android:id="@+id/saveBtn"
             android:layout_width="match_parent"
@@ -122,4 +132,4 @@
             android:background="@color/colorPrimary"
             android:layout_marginTop="1dp"/>
     </LinearLayout>
-</android.support.v7.widget.CardView>
+</androidx.cardview.widget.CardView>

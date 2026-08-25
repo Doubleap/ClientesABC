@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="5dp"
+    card_view:cardElevation="20dp"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="5dp"
+            android:paddingBottom="8dp"
+            android:background="@drawable/header_curved_cc5"
+            android:text="Generar Alerta"
+            android:textColor="@color/white"
+            android:textSize="20dp"
+            android:gravity="center"/>
+        <!--INPUT VIEWS-->
+        <androidx.appcompat.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Motivo de Alerta"
+            android:paddingLeft="5dp"/>
+        <proyecto.app.clientesabc.clases.SearchableSpinner
+            android:id="@+id/motivoSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            />
+        <androidx.appcompat.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Comentario"
+            android:paddingLeft="5dp"/>
+        <com.vicmikhailau.maskededittext.MaskedEditText
+            android:id="@+id/comentario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/textbackground"
+            android:lines="8">
+
+        </com.vicmikhailau.maskededittext.MaskedEditText>
+        <!--BUTTON-->
+        <Button android:id="@+id/saveBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Aceptar"
+            android:textColor="@color/white"
+            android:clickable="true"
+            android:background="@color/colorPrimary"
+            android:layout_marginTop="1dp"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

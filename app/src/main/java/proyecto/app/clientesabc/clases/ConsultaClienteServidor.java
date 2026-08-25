@@ -26,28 +26,34 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.actividades.ConsultaClienteTotalActivity;
+import proyecto.app.clientesabc.actividades.SolicitudActivity;
 import proyecto.app.clientesabc.actividades.SolicitudAvisosEquipoFrioActivity;
 import proyecto.app.clientesabc.actividades.SolicitudModificacionActivity;
+import proyecto.app.clientesabc.actividades.SolicitudRacksActivity;
 
 public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<JsonArray>> {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
     private String codigoCliente;
+    private String tipoCliente = "";
     private boolean xceptionFlag = false;
     private String messageFlag = "";
     private ServerSocket ss;
     private Socket socket;
     ArrayList<JsonObject> estructuras;
     AlertDialog dialog;
-    public ConsultaClienteServidor(WeakReference<Context> c, WeakReference<Activity> a, String codigoCliente){
+    public ConsultaClienteServidor(WeakReference<Context> c, WeakReference<Activity> a, String codigoCliente, String tipoCliente){
         this.context = c;
         this.activity = a;
         this.codigoCliente = codigoCliente;
+        this.tipoCliente = tipoCliente;
     }
 
     @Override
@@ -68,15 +74,16 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                 //Comando String que indicara que se quiere realizar una Sincronizacion
                 publishProgress("Comunicacion establecida...");
                 //Enviar Pais de procedencia
-                /*dos.writeUTF(VariablesGlobales.getSociedad());
+                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()));
                 dos.flush();
                 //Version con la que quiere transmitir
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                dateFormat.setTimeZone(TimeZone.getTimeZone("GMT-6"));
                 dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
                 dos.flush();
                 //Enviar Ruta que se quiere sincronizar
                 dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
-                dos.flush();*/
+                dos.flush();
 
                 dos.writeUTF("ConsultaCliente");
                 dos.flush();
@@ -98,7 +105,6 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                     xceptionFlag = true;
                     messageFlag = "Error: " + error;
                 } else {
-                    publishProgress("Procesando datos recibidos...");
                 /*ORDEN DE ESTRUCTURAS SAP RECIBIDAS
                         String jsonCliente = 0;
                         String jsonNotaEntrega = 1;
@@ -116,10 +122,26 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                     byte[] r = new byte[(int) s];
                     int offset = 0;
                     int bytesRead;
-                    while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
+                    /*while ((bytesRead = dis.read(r, offset, r.length - offset)) > -1 && offset != s) {
                         offset += bytesRead;
                         publishProgress("Descargando..." + String.format("%.02f", (100f / (s / 1024f)) * (offset / 1024f)) + "%");
+                    }*/
+                    while (offset < s) {
+                        bytesRead = dis.read(r, offset, r.length - offset);
+                        if (bytesRead == -1) {
+                            throw new IOException("Unexpected end of stream at offset " + offset + " of " + s);
+                        }
+                        if (bytesRead == 0) {
+                            Thread.sleep(10); // brief wait before retrying; avoid tight loop
+                            continue;
+                        }
+
+                        offset += bytesRead;
+
+                        publishProgress("Descargando..." + String.format("%.02f", (100f * offset / s)) + "% ("+String.format("%.2f", (offset/1000000.0))+" de "+String.format("%.2f", (s/1000000.0))+")");
                     }
+                    dos.writeUTF("END");
+                    dos.flush();
                     publishProgress("Procesando datos recibidos...");
 
                     String jsoncliente = new String(r);
@@ -133,7 +155,7 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
                 messageFlag = mensaje;
             }
             publishProgress("Proceso Terminado...");
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             xceptionFlag = true;
             messageFlag = e.getMessage();
             e.printStackTrace();
@@ -158,42 +180,71 @@ public class ConsultaClienteServidor extends AsyncTask<Void,String,ArrayList<Jso
     @Override
     protected void onProgressUpdate(String... progress) {
         super.onProgressUpdate(progress);
-        TextView v = (TextView) dialog.findViewById(R.id.mensaje_espera);
-        v.setText(progress[0]);
+        if (dialog != null) {
+            TextView v = dialog.findViewById(R.id.mensaje_espera);
+            if (v != null) {
+                v.setText(progress[0]);
+            }
+        }
+        //TextView v = (TextView) dialog.findViewById(R.id.mensaje_espera);
+        //v.setText(progress[0]);
     }
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
         AlertDialog.Builder builder = new AlertDialog.Builder(context.get());
-        builder.setCancelable(true); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
+        builder.setCancelable(false); // Si quiere que el usuario espere por el proceso completo por obligacion poner en false
         builder.setView(R.layout.layout_loading_dialog);
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
                 messageFlag = "Proceso cancelado por el usuario.";
                 cancel(true);
-                activity.get().finish();
                 Toasty.error(context.get(),messageFlag,Toast.LENGTH_LONG).show();
+                activity.get().finish();
+
             }
         });
         dialog = builder.create();
-        dialog.show();
+        if(activity.get() != null && !activity.get().isFinishing()) {
+            dialog.show();
+        }
     }
     @Override
     protected void onPostExecute(ArrayList<JsonArray> estructuras) {
         super.onPostExecute(estructuras);
-        dialog.dismiss();
-        if(dialog.isShowing()) {
+        try {
+            dialog.dismiss();
+        } catch (final IllegalArgumentException e) {
+            // Do nothing.
+        } catch (final Exception e) {
+            // Do nothing.
+        }
+        if (dialog.isShowing()) {
             dialog.hide();
         }
-        if(xceptionFlag){
+        if (xceptionFlag) {
+            Toasty.error(context.get(), "No se pudo consultar el cliente: " + messageFlag, Toast.LENGTH_LONG).show();
             activity.get().finish();
-            Toasty.error(context.get(),"No se pudo consultar el cliente: "+messageFlag,Toast.LENGTH_LONG).show();
         }
-        if(context.get().getClass().getSimpleName().equals("SolicitudModificacionActivity"))
-            SolicitudModificacionActivity.LlenarCampos(context.get(), activity.get(), estructuras);
-        else if(context.get().getClass().getSimpleName().equals("SolicitudAvisosEquipoFrioActivity"))
-            SolicitudAvisosEquipoFrioActivity.LlenarCampos(context.get(), activity.get(), estructuras);
+        //if (context.get().getClass().getSimpleName().equals("SolicitudModificacionActivity"))
+            //SolicitudModificacionActivity.LlenarCampos(context.get(), activity.get(), estructuras);
+            Activity act = activity.get();
+            if (act instanceof SolicitudModificacionActivity) {
+                if(tipoCliente.equals("MERCADO_ABIERTO"))
+                    ((SolicitudModificacionActivity) act).LlenarCampos(context.get(), act, estructuras);
+                else if(tipoCliente.equals("CADENA_PADRE"))
+                    ((SolicitudModificacionActivity) act).LlenarCamposCadena(context.get(), act, estructuras);
+                else
+                    ((SolicitudModificacionActivity) act).LlenarCampos(context.get(), act, estructuras);
+            } else if (context.get().getClass().getSimpleName().equals("SolicitudAvisosEquipoFrioActivity"))
+                SolicitudAvisosEquipoFrioActivity.LlenarCampos(context.get(), activity.get(), estructuras);
+            else if (context.get().getClass().getSimpleName().equals("ConsultaClienteTotalActivity"))
+                ConsultaClienteTotalActivity.LlenarCampos(context.get(), activity.get(), estructuras);
+            else if (context.get().getClass().getSimpleName().equals("SolicitudRacksActivity"))
+                ((SolicitudRacksActivity) act).LlenarCampos(context.get(), activity.get(), estructuras);
+            else if (context.get().getClass().getSimpleName().equals("SolicitudActivity"))
+                ((SolicitudActivity) act).LlenarCamposCadena(context.get(), activity.get(), estructuras);
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

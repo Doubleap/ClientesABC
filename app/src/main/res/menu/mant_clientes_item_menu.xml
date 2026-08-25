@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
     <menu xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -16,7 +15,7 @@
     <item
         android:id="@+id/cierre"
         android:icon="@drawable/icon_close"
-        android:title="Solicitud de Cierre"
+        android:title="Solicitud de Baja"
         app:showAsAction="never|withText"/>
     <item
         android:id="@+id/credito"
@@ -29,8 +28,32 @@
         android:title="Solicitud de Equipo Frío"
         app:showAsAction="never|withText"/>
     <item
+        android:id="@+id/racks"
+        android:icon="@drawable/icon_racks"
+        android:title="Solicitud de Racks"
+        app:showAsAction="never|withText"/>
+    <item
+        android:id="@+id/iniciativas"
+        android:icon="@drawable/icon_iniciative"
+        android:title="Iniciativas"
+        app:showAsAction="never|withText"
+        android:visible="true"/>
+    <item
         android:id="@+id/comollegar"
         android:icon="@drawable/icon_location"
         android:title="Como llegar"
-        app:showAsAction="never|withText"/>
+        app:showAsAction="never|withText"
+        android:visible="@bool/habilita_como_llegar"/>
+    <item
+        android:id="@+id/baseinstalada"
+        android:icon="@drawable/icon_refrigerator"
+        android:title="Base Instalada"
+        app:showAsAction="never|withText"
+        android:visible="@bool/habilita_base_instalada"/>
+    <item
+        android:id="@+id/creditpPreaprobado"
+        android:icon="@drawable/icon_credit"
+        android:title="Credito Preaprobado"
+        app:showAsAction="never|withText"
+        android:visible="@bool/habilita_credito_preaprobado"/>
 </menu>

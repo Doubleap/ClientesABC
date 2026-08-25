@@ -3,6 +3,8 @@ package proyecto.app.clientesabc.modelos;
 import com.google.gson.annotations.SerializedName;
 
 public class EquipoFrio implements Cloneable{
+    @SerializedName("id")
+    private String id;
     @SerializedName("VKORG")
     private String vkorg;
     @SerializedName("KDGRP")
@@ -11,6 +13,8 @@ public class EquipoFrio implements Cloneable{
     private String bzirk;
     @SerializedName("KUNNR")
     private String kunnr;
+    @SerializedName("KUNNR_CENSO")
+    private String kunnr_censo;
     @SerializedName("IBASE")
     private String ibase;
     @SerializedName("INSTANCE")
@@ -33,10 +37,49 @@ public class EquipoFrio implements Cloneable{
     private String spras;
     @SerializedName("MATKL")
     private String matkl;
+    @SerializedName("MAKTX")
+    private String maktx;
     @SerializedName("SERGE")
     private String serge;
     @SerializedName("SERNR")
     private String sernr;
+    @SerializedName("ESTADO")
+    private String estado;
+    @SerializedName("FECHA_LECTURA")
+    private String fecha_lectura;
+    @SerializedName("NUM_PLACA")
+    private String num_placa;
+    @SerializedName("ACTIVO")
+    private String activo;
+    @SerializedName("COMENTARIO")
+    private String comentario;
+    @SerializedName("TRANSMITIDO")
+    private String transmitido;
+    @SerializedName("ID_SOLICITUD")
+    private String id_solicitud;
+    @SerializedName("FUENTE")
+    private String fuente;
+
+
+
+    @SerializedName("ULTIMA_LECTURA")
+    private String ultima_lectura;
+
+    public String getIdSolicitud() {
+        return id_solicitud;
+    }
+
+    public void setIdSolicitud(String id_solicitud) {
+        this.id_solicitud = id_solicitud;
+    }
+
+    public String getUltima_lectura() {
+        return ultima_lectura;
+    }
+
+    public void setUltima_lectura(String ultima_lectura) {
+        this.ultima_lectura = ultima_lectura;
+    }
 
     public EquipoFrio() { }
     public EquipoFrio(String vkorg, String kdgrp, String bzirk, String kunnr, String ibase, String instance, String objecttyp, String objnr, String equnr, String matnr, String eqart, String herst, String eqktx, String spras, String matkl, String serge, String sernr) {
@@ -57,6 +100,7 @@ public class EquipoFrio implements Cloneable{
         this.matkl = matkl;
         this.serge = serge;
         this.sernr = sernr;
+        this.estado = "Pendiente";
     }
 
 
@@ -123,7 +167,13 @@ public class EquipoFrio implements Cloneable{
     public void setKunnr(String kunnr) {
         this.kunnr = kunnr;
     }
+    public String getKunnrCenso() {
+        return kunnr_censo;
+    }
 
+    public void setKunnrCenso(String kunnr_censo) {
+        this.kunnr_censo = kunnr_censo;
+    }
     public String getIbase() {
         return ibase;
     }
@@ -211,7 +261,13 @@ public class EquipoFrio implements Cloneable{
     public void setMatkl(String matkl) {
         this.matkl = matkl;
     }
+    public String getMaktx() {
+        return maktx;
+    }
 
+    public void setMaktx(String maktx) {
+        this.maktx = maktx;
+    }
     public String getSerge() {
         return serge;
     }
@@ -226,5 +282,69 @@ public class EquipoFrio implements Cloneable{
 
     public void setSernr(String sernr) {
         this.sernr = sernr;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public String getFechaLectura() {
+        return fecha_lectura;
+    }
+
+    public void setFechaLectura(String fecha_lectura) {
+        this.fecha_lectura = fecha_lectura;
+    }
+
+    public String getNumPlaca() {
+        return num_placa;
+    }
+
+    public void setNumPlaca(String num_placa) {
+        this.num_placa = num_placa;
+    }
+
+    public String getActivo() {
+        return activo;
+    }
+
+    public void setActivo(String activo) {
+        this.activo = activo;
+    }
+
+    public String getComentario() {
+        return comentario;
+    }
+
+    public void setComentario(String comentario) {
+        this.comentario = comentario;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getTransmitido() {
+        return transmitido;
+    }
+
+    public void setTransmitido(String transmitido) {
+        this.transmitido = transmitido;
+    }
+
+    public String getFuente() {
+        return fuente;
+    }
+
+    public void setFuente(String fuente) {
+        this.fuente = fuente;
     }
 }

@@ -19,6 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
--dontwarn com.mikelau.croperino.**
--keep class com.mikelau.croperino.** { *; }
--keep interface com.mikelau.croperino.** { *; }
+#-dontwarn com.mikelau.croperino.**
+#-keep class com.mikelau.croperino.** { *; }
+#-keep interface com.mikelau.croperino.** { *; }
+-keep class androidx.appcompat.widget.** { *; }

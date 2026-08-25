@@ -1,17 +1,27 @@
 package proyecto.app.clientesabc.adaptadores;
 
+import android.app.Activity;
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.tomergoldst.tooltips.ToolTip;
+import com.tomergoldst.tooltips.ToolTipsManager;
 
 import java.util.ArrayList;
 
 import de.codecrafters.tableview.TableDataAdapter;
+import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.actividades.SolicitudActivity;
 import proyecto.app.clientesabc.modelos.Visitas;
 
 public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
@@ -26,10 +36,24 @@ public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
     private int textSize = 12;
     private int typeface = Typeface.NORMAL;
     private int textColor = 0x99000000;
-    private int gravity = Gravity.START;
+    private int gravity = Gravity.CENTER;
+    ArrayList<Visitas> visitasArray;
+    Context context;
+    Activity activity;
+    boolean modificable;
+
 
     public VisitasTableAdapter(Context context, ArrayList<Visitas> data) {
         super(context, data);
+        visitasArray = data;
+        this.context = context;
+    }
+    public VisitasTableAdapter(Context context, Activity activity, ArrayList<Visitas> data, boolean modificable) {
+        super(context, data);
+        visitasArray = data;
+        this.context = context;
+        this.activity = activity;
+        this.modificable = modificable;
     }
 
     @Override
@@ -46,10 +70,55 @@ public class VisitasTableAdapter extends TableDataAdapter<Visitas> {
             //final String textToShow = getItem(rowIndex)[columnIndex];
             Visitas visita = getRowData(rowIndex);
             final String textToShow = visita.getValueFromColumn(columnIndex+2);
+
+
+            if(columnIndex+1 == 3){
+                DataBaseHelper mDBHelper = new DataBaseHelper(context);
+                SQLiteDatabase mDb = mDBHelper.getWritableDatabase();
+                if(mDBHelper.EsTipodeReparto(PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BZIRK",""), visita.getVptyp())
+                && PreferenceManager.getDefaultSharedPreferences(getContext()).getString("W_CTE_BUKRS","").equals("F428") && modificable) {
+                    LinearLayout celda = new LinearLayout(getContext());
+                    final ImageView accion_calcular = new ImageView(getContext());
+                    accion_calcular.setImageDrawable(getResources().getDrawable(R.drawable.icon_habilitador, null));
+                    accion_calcular.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            if(activity != null)
+                                activity.runOnUiThread(new SolicitudActivity.CalcularRepartoConHabilitador(context, activity));
+                        }
+                    });
+
+                    ToolTipsManager mToolTipsManager = new ToolTipsManager();
+                    final ToolTip.Builder builder = new ToolTip.Builder(getContext(), accion_calcular, parentView ,  "Calcula Ruta de Reparto VP según habilitador", ToolTip.POSITION_ABOVE);
+                    builder.setAlign(ToolTip.ALIGN_LEFT);
+
+                    builder.setGravity(ToolTip.GRAVITY_LEFT);
+                    builder.setTextAppearance(R.style.TooltipTextAppearance); // from `styles.xml`
+                    accion_calcular.setOnLongClickListener(view -> {
+                        mToolTipsManager.show(builder.build());
+                        return true;
+                    });
+
+
+                    if(getContext().getClass().getName().contains("ConsultaClienteTotalActivity"))
+                        textView.setTextColor(getResources().getColor(R.color.pendientes,null));
+                    textView.setText(textToShow);
+                    textView.setGravity(gravity);
+
+                    celda.setGravity(gravity);
+                    celda.addView(textView);
+                    celda.addView(accion_calcular);
+
+                    return celda;
+                }
+            }
+
+            if(getContext().getClass().getName().contains("ConsultaClienteTotalActivity"))
+                textView.setTextColor(getResources().getColor(R.color.pendientes,null));
             textView.setText(textToShow);
             textView.setGravity(gravity);
         } catch (final IndexOutOfBoundsException e) {
-            Log.w(LOG_TAG, "No Sting given for row " + rowIndex + ", column " + columnIndex + ". "
+            Log.w(LOG_TAG, "No String given for row " + rowIndex + ", column " + columnIndex + ". "
                     + "Caught exception: " + e.toString());
             // Show no text
         }

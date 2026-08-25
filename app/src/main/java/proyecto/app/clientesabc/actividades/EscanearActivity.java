@@ -3,8 +3,14 @@ package proyecto.app.clientesabc.actividades;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.ToggleButton;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
@@ -13,16 +19,33 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import es.dmoral.toasty.Toasty;
 import me.dm7.barcodescanner.core.IViewFinder;
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 import proyecto.app.clientesabc.clases.CustomZXingScannerView;
 
 public class EscanearActivity extends AppCompatActivity implements ZXingScannerView.ResultHandler {
     private ZXingScannerView escanerZXing;
-
+    private String campoEscaneo;
+    private int requestCode;
+    private boolean flash;
+    private CameraManager mCameraManager;
+    private String mCameraId;
     @Override
     public void onCreate(Bundle state) {
         super.onCreate(state);
+        Bundle b = getIntent().getExtras();
+        if(b != null) {
+            campoEscaneo = b.getString("campoEscaneo");
+            requestCode = b.getInt("requestCode");
+            flash = b.getBoolean("flash");
+        }
+        mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try {
+            mCameraId = mCameraManager.getCameraIdList()[0];
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
         //escanerZXing = new ZXingScannerView(this);
         escanerZXing = new ZXingScannerView(this) {
             @Override
@@ -32,12 +55,28 @@ public class EscanearActivity extends AppCompatActivity implements ZXingScannerV
 
         };    // Programmatically initialize the scanner view
         List<BarcodeFormat> formato = new ArrayList<BarcodeFormat>();
-        formato.add(BarcodeFormat.PDF_417);
+        formato.add(BarcodeFormat.CODE_128);
+        formato.add(BarcodeFormat.EAN_13);
         escanerZXing.setFormats(formato);
         escanerZXing.setMinimumWidth(5000);
         escanerZXing.setMinimumHeight(500);
+        escanerZXing.setFlash(flash);
+        ToggleButton toggleButton = new ToggleButton(this);
+        toggleButton.setTextOff("Encender Luz");
+        toggleButton.setTextOn("Apagar Luz");
+        toggleButton.setChecked(flash);
+        toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                escanerZXing.setFlash(isChecked);
+            }
+        });
+        //escanerZXing.addView(toggleButton);
+
         // Hacer que el contenido de la actividad sea el escaner
-        setContentView(escanerZXing);
+        addContentView(toggleButton,new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+        addContentView(escanerZXing,new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT));
+        //setContentView(toggleButton);
     }
 
     @Override
@@ -61,8 +100,9 @@ public class EscanearActivity extends AppCompatActivity implements ZXingScannerV
         // Si quieres que se siga escaneando después de haber leído el código, descomenta lo siguiente:
         // Si la descomentas no recomiendo que llames a finish
 //        escanerZXing.resumeCameraPreview(this);
-        // Obener código/texto leído
+        // Obtener código/texto leído
         String codigo = resultado.getText();
+        Toasty.warning(this, "Codigo leido: "+codigo, Toasty.LENGTH_SHORT).show();
         byte[] raw = new byte[0];
         try {
             raw = codigo.getBytes("ISO-8859-1");
@@ -87,9 +127,12 @@ public class EscanearActivity extends AppCompatActivity implements ZXingScannerV
 
         // Preparar un Intent para regresar datos a la actividad que nos llamó
         Intent intentRegreso = new Intent();
-        intentRegreso.putExtra("codigo", d);
+
+        intentRegreso.putExtra("codigo", codigo);
+        intentRegreso.putExtra("campoEscaneo", campoEscaneo);
+        intentRegreso.putExtra("requestCode", requestCode);
         setResult(Activity.RESULT_OK, intentRegreso);
-        // Cerrar la actividad. Ahora mira onActivityResult de MainActivity
+        // Cerrar la actividad. Ahora mira onActivityResult de
         finish();
     }
     private static byte[] keysArray = new byte[]{

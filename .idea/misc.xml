@@ -1,5 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_equipo.xml" value="0.18" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_iniciative.xml" value="0.2845" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_location.xml" value="0.186" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_refrigerator.xml" value="0.2155" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/icon_scan_code.xml" value="0.186" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable-anydpi/spinner_background_pre.xml" value="0.149" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/PedidosContingencia_background.xml" value="0.213" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/barcode_scanner-24px.xml" value="0.2155" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/barcode_scanner.xml" value="0.15" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/bottom_item_bg.xml" value="0.2155" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/button_drawable.xml" value="0.2155" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/curved_background.xml" value="0.2155" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/ic_barcode_off.xml" value="0.2155" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/ic_barcode_scanner.xml" value="0.1965" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/menu_item.xml" value="0.176" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/spinner_background.xml" value="0.1995" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/spinner_background_cont.xml" value="0.1995" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/spinner_underlined.xml" value="0.1995" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/squared_orange_border.xml" value="0.1875" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/squared_textbackground.xml" value="0.1875" />
+        <entry key="..\:/ClientesABC/app/src/main/res/drawable/textbackground_old.xml" value="0.195" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/acercade_dialog_layout.xml" value="0.18072916666666666" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_api_config.xml" value="0.17760416666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_base_instalada.xml" value="0.20677083333333332" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_configuracion_general.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_equipo_disponible.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_firma.xml" value="0.2203125" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_firma_tarjeta.xml" value="0.33" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_login.xml" value="0.2557291666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_mant_clientes.xml" value="0.20677083333333332" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_monitor_equipo_frio.xml" value="0.22" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_osm_picker.xml" value="0.17916666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_panel2.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_scan_ocr.xml" value="0.1796875" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_solicitud.xml" value="0.20677083333333332" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_solicitudes.xml" value="0.20677083333333332" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_tcp.xml" value="0.2557291666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/activity_verify_phone_number.xml" value="0.17604166666666668" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/adjunto_layout.xml" value="0.18802083333333333" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/adjunto_layout_zoom.xml" value="0.18802083333333333" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/app_bar_main.xml" value="0.20677083333333332" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/base_instalada.xml" value="0.19270833333333334" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/base_instalada_item.xml" value="0.5" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/bottom_navigation.xml" value="0.1671875" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/bottom_navigation_monitor_equipo_frio.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/bottom_navigation_panel.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/contacto_dialog_layout.xml" value="0.16927083333333334" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/content_verify_phone_number.xml" value="0.17604166666666668" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/detalle.xml" value="0.17604166666666668" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/detalle_modelo_dialog_layout.xml" value="0.25" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/digitar_equipo_frio_dialog_layout.xml" value="0.18854166666666666" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/edit_conexion_layout.xml" value="0.2203125" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_cabecera_dialog_layout.xml" value="0.23802083333333332" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_cabecera_item.xml" value="0.23802083333333332" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_canales_dialog_layout.xml" value="0.18333333333333332" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_gec_dialog_layout.xml" value="0.184375" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_gec_layout.xml" value="0.184375" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_image_item.xml" value="0.184375" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_multiple_item.xml" value="0.25" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_numerico_item.xml" value="0.17916666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_seleccion_item.xml" value="0.17916666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/encuesta_texto_item.xml" value="0.17916666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/equipo_disponible_item.xml" value="0.25" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/file_path.xml" value="0.1796875" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/generar_alerta_dialog_layout.xml" value="0.18854166666666666" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/item_listview_multiple.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/item_listview_single.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/layout_loading_dialog.xml" value="0.1859375" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/list_item_checkbox.xml" value="0.20677083333333332" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/mant_clientes_item.xml" value="0.5" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/message_dialog_layout.xml" value="0.33" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/message_input_dialog_layout.xml" value="0.5" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/new_conexion_layout.xml" value="0.21197916666666666" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/pagina_formulario.xml" value="0.18072916666666666" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/searchable_list_dialog.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/seleccionar_equipo_frio_dialog_layout.xml" value="0.18854166666666666" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/simple_spinner_item.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/simple_spinner_item_mini.xml" value="0.67" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/solicitudes_item.xml" value="0.20677083333333332" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/spinner_item.xml" value="0.21603260869565216" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/spinner_with_image_item.xml" value="0.17916666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/splash.xml" value="0.21603260869565216" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/titlebar.xml" value="0.18802083333333333" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/verificar_codigo_dialog_layout.xml" value="0.18489583333333334" />
+        <entry key="..\:/ClientesABC/app/src/main/res/layout/visita_dialog_layout.xml" value="0.22395833333333334" />
+        <entry key="..\:/ClientesABC/app/src/main/res/menu/bottom_menu_monitor_equipo_frio.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/menu/bottom_menu_panel.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/menu/bottom_menu_solicitud.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/menu/bottom_menu_tcp.xml" value="0.21041666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/menu/main_drawer.xml" value="0.18125" />
+        <entry key="..\:/ClientesABC/app/src/main/res/menu/main_drawer_login.xml" value="0.18125" />
+        <entry key="..\:/ClientesABC/app/src/main/res/menu/main_menu.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/menu/mant_clientes_item_menu.xml" value="0.171875" />
+        <entry key="..\:/ClientesABC/app/src/main/res/menu/menu_min.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/menu/opciones_adjuntos.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/menu/solicitudes_item_menu.xml" value="0.18541666666666667" />
+        <entry key="..\:/ClientesABC/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.1845" />
+      </map>
+    </option>
+  </component>
   <component name="Kotlin2JsCompilerArguments">
     <option name="sourceMapEmbedSources" />
     <option name="sourceMapPrefix" />
@@ -9,7 +112,7 @@
     <option name="myDefaultNotNull" value="android.support.annotation.NonNull" />
     <option name="myNullables">
       <value>
-        <list size="12">
+        <list size="13">
           <item index="0" class="java.lang.String" itemvalue="org.jetbrains.annotations.Nullable" />
           <item index="1" class="java.lang.String" itemvalue="javax.annotation.Nullable" />
           <item index="2" class="java.lang.String" itemvalue="javax.annotation.CheckForNull" />
@@ -22,12 +125,13 @@
           <item index="9" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.compatqual.NullableDecl" />
           <item index="10" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.compatqual.NullableType" />
           <item index="11" class="java.lang.String" itemvalue="com.android.annotations.Nullable" />
+          <item index="12" class="java.lang.String" itemvalue="org.eclipse.jdt.annotation.Nullable" />
         </list>
       </value>
     </option>
     <option name="myNotNulls">
       <value>
-        <list size="11">
+        <list size="12">
           <item index="0" class="java.lang.String" itemvalue="org.jetbrains.annotations.NotNull" />
           <item index="1" class="java.lang.String" itemvalue="javax.annotation.Nonnull" />
           <item index="2" class="java.lang.String" itemvalue="edu.umd.cs.findbugs.annotations.NonNull" />
@@ -39,11 +143,12 @@
           <item index="8" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.compatqual.NonNullDecl" />
           <item index="9" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.compatqual.NonNullType" />
           <item index="10" class="java.lang.String" itemvalue="com.android.annotations.NonNull" />
+          <item index="11" class="java.lang.String" itemvalue="org.eclipse.jdt.annotation.NonNull" />
         </list>
       </value>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_7" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

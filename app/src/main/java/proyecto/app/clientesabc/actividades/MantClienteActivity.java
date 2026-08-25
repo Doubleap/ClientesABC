@@ -1,33 +1,40 @@
 package proyecto.app.clientesabc.actividades;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.SearchManager;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.ContextThemeWrapper;
-import android.support.v7.view.menu.MenuBuilder;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -44,25 +51,33 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.honeywell.aidc.AidcManager;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+/*import com.honeywell.aidc.AidcManager;
 import com.honeywell.aidc.BarcodeFailureEvent;
 import com.honeywell.aidc.BarcodeReadEvent;
 import com.honeywell.aidc.BarcodeReader;
 import com.honeywell.aidc.InvalidScannerNameException;
 import com.honeywell.aidc.ScannerNotClaimedException;
 import com.honeywell.aidc.ScannerUnavailableException;
-import com.honeywell.aidc.UnsupportedPropertyException;
-import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
+import com.honeywell.aidc.UnsupportedPropertyException;*/
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.R;
+import proyecto.app.clientesabc.VariablesGlobales;
 import proyecto.app.clientesabc.adaptadores.DataBaseHelper;
-import proyecto.app.clientesabc.modelos.EquipoFrio;
+import proyecto.app.clientesabc.clases.MovableFloatingActionButton;
+import proyecto.app.clientesabc.clases.SearchableSpinner;
+import proyecto.app.clientesabc.clases.TransmisionEncuestaServidor;
+import proyecto.app.clientesabc.modelos.EncuestaCabecera;
 import proyecto.app.clientesabc.modelos.OpcionSpinner;
-
+import proyecto.app.clientesabc.modelos.ResumenCliente;
+import proyecto.app.clientesabc.modelos.ResumenEncuestaCliente;
 
 
 public class MantClienteActivity extends AppCompatActivity {
@@ -70,38 +85,90 @@ public class MantClienteActivity extends AppCompatActivity {
     private SearchView searchView;
     private MyAdapter mAdapter;
     private DataBaseHelper db;
-    private AidcManager manager;
-    private BarcodeReader reader;
+    //private AidcManager manager;
+    //private BarcodeReader reader;
+    private MovableFloatingActionButton fab;
+    private FloatingActionButton fab1;
+    private FloatingActionButton fab2;
+    List<EncuestaCabecera> encuestaCabeceras;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detalle);
-        db = new DataBaseHelper(this);
-        ArrayList<HashMap<String, String>> clientList = db.getClientes();
         RecyclerView rv = findViewById(R.id.user_list);
 
-        mAdapter = new MyAdapter(clientList);
+        long t0 = System.currentTimeMillis();
+
+        db = new DataBaseHelper(this);
+        asegurarIndices();
+        Log.d("PERF", "DB helper: " + (System.currentTimeMillis() - t0));
+
+        long t1 = System.currentTimeMillis();
+
+        ArrayList<HashMap<String, String>> clientList = db.getClientes();
+
+        Log.d("PERF", "getClientes: " + (System.currentTimeMillis() - t1));
+
+        long t2 = System.currentTimeMillis();
+
+        HashMap<String, ResumenCliente> resumenMap = db.getResumenCensoEquipoFrioPorCliente();
+
+        Log.d("PERF", "getResumenCenso: " + (System.currentTimeMillis() - t2));
+
+        long t3 = System.currentTimeMillis();
+
+        ArrayList<EncuestaCabecera> encuestaCabecerasTemp = db.getEncuestasCabecera("");
+
+        Log.d("PERF", "getEncuestasCabecera: " + (System.currentTimeMillis() - t3));
+
+        long t4 = System.currentTimeMillis();
+
+        HashMap<String, ResumenEncuestaCliente> resumenEncuestaMap = db.getResumenEncuestasPorCliente(
+                clientList,
+                encuestaCabecerasTemp
+        );
+
+        Log.d("PERF", "getResumenEncuestas: " + (System.currentTimeMillis() - t4));
+
+        long t5 = System.currentTimeMillis();
+        final boolean usaMonitorEquipoFrio = db.UsaMonitorEquipoFrio();
+        final boolean usaIndirectos = db.UsaIndirectos();
+
+        mAdapter = new MyAdapter(clientList, resumenMap, encuestaCabecerasTemp, resumenEncuestaMap,usaIndirectos,usaMonitorEquipoFrio);//mAdapter = new MyAdapter(clientList);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(mAdapter);
+
+        Log.d("PERF", "setAdapter: " + (System.currentTimeMillis() - t5));
+
+        Log.d("PERF", "TOTAL onCreate load: " + (System.currentTimeMillis() - t0));
         rv.addItemDecoration(new DividerItemDecoration(this.getBaseContext(), DividerItemDecoration.VERTICAL));
 
-        FloatingActionButton fab = findViewById(R.id.addBtn);
+        fab1 = findViewById(R.id.filterBtn);
+        fab2 = findViewById(R.id.addBtn);
+        fab1.hide();fab2.hide();
+        fab = findViewById(R.id.fabBtn);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Bundle b = new Bundle();
-                //TODO seleccionar el tipo de solicitud por el UI
-                b.putString("tipoSolicitud", "1"); //id de solicitud
-                Intent intent = new Intent(view.getContext(),SolicitudActivity.class);
-                intent.putExtras(b); //Pase el parametro el Intent
-                startActivity(intent);
+                if(db.UsaIndirectos()) {
+                    mostrarDialogoSeleccionTipoCliente(MantClienteActivity.this, VariablesGlobales.getSociedad());
+                }else {
+                    view.setEnabled(false);
+                    Bundle b = new Bundle();
+                    //TODO seleccionar el tipo de solicitud por el UI
+                    b.putString("tipoSolicitud", "1"); //id de solicitud
+                    Intent intent = new Intent(view.getContext(),SolicitudActivity.class);
+                    intent.putExtras(b); //Pase el parametro el Intent
+                    startActivity(intent);
+                }
             }
         });
 
         /**/
         Drawable d = getResources().getDrawable(R.drawable.header_curved_cc5,null);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("Mis Clientes");
+        toolbar.setTitle("Mis Clientes ("+clientList.size()+")");
         //toolbar.setSubtitle("");
         toolbar.setBackground(d);
         toolbar.setSubtitleTextColor(getResources().getColor(R.color.white,null));
@@ -111,12 +178,12 @@ public class MantClienteActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         toggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.white,null));
         drawer.addDrawerListener(toggle);
 
         toggle.syncState();
+
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
@@ -134,7 +201,13 @@ public class MantClienteActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.comunicacion:
-                        intent = new Intent(getBaseContext(),TCPActivity.class);
+                        intent = new Intent(getBaseContext(), TCPActivity.class);
+                        /*PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("tipo_conexion","").equals("api")
+                        if(!PreferenceManager.getDefaultSharedPreferences(MantClienteActivity.this).getString("tipo_conexion","").equals("api")) {
+                            intent = new Intent(getBaseContext(), TCPActivity.class);
+                        }else{
+                            intent = new Intent(getBaseContext(), APIConfigActivity.class);
+                        }*/
                         startActivity(intent);
                         break;
                     case R.id.clientes:
@@ -144,6 +217,22 @@ public class MantClienteActivity extends AppCompatActivity {
                     case R.id.solicitudes:
                         intent = new Intent(getBaseContext(),SolicitudesActivity.class);
                         startActivity(intent);
+                        break;
+                    case R.id.enviar_encuestas_pendientes:
+                        if(db.getValidacionEncuestaPendiente()){
+                            WeakReference<Context> weakRef = new WeakReference<Context>(MantClienteActivity.this);
+                            WeakReference<Activity> weakRefA = new WeakReference<Activity>(MantClienteActivity.this);
+                            TransmisionEncuestaServidor f = new TransmisionEncuestaServidor(weakRef,weakRefA,"",true);
+                            if (PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("tipo_conexion", "").equals("wifi")) {
+                                f.EnableWiFi();
+                            } else {
+                                f.DisableWiFi();
+                            }
+                            f.execute();
+                        }else{
+                            Toasty.info(getBaseContext(),"No hay encuestas pendientes.").show();
+                        }
+
                         break;
                     case R.id.coordenadas:
                         intent = new Intent(getBaseContext(),LocacionGPSActivity.class);
@@ -161,18 +250,47 @@ public class MantClienteActivity extends AppCompatActivity {
                         Toasty.info(getBaseContext(),"Opcion no encontrada!").show();
                 }
 
-                /*Bundle b = new Bundle();
-                //TODO seleccionar el tipo de solicitud por el UI
-                b.putString("tipoSolicitud", "1"); //id de solicitud
-
-                intent = new Intent(getBaseContext(),SolicitudActivity.class);
-                intent.putExtras(b); //Pase el parametro el Intent
-                startActivity(intent);*/
                 return false;
             }
         });
         /**/
 
+    }
+    private void asegurarIndices() {
+        try {
+            db.getWritableDatabase().execSQL(
+                    "CREATE INDEX IF NOT EXISTS idx_sapdbaseinstalada_kunnr ON SAPDBaseInstalada(kunnr)"
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        RecyclerView rv = findViewById(R.id.user_list);
+        ArrayList<HashMap<String, String>> clientList = db.getClientes();
+        HashMap<String, ResumenCliente> resumenMap = db.getResumenCensoEquipoFrioPorCliente();
+        ArrayList<EncuestaCabecera> encuestaCabecerasTemp = db.getEncuestasCabecera("");
+        HashMap<String, ResumenEncuestaCliente> resumenEncuestaMap = db.getResumenEncuestasPorCliente(
+                clientList,
+                encuestaCabecerasTemp
+        );
+        final boolean usaMonitorEquipoFrio = db.UsaMonitorEquipoFrio();
+        final boolean usaIndirectos = db.UsaIndirectos();
+        mAdapter = new MyAdapter(clientList, resumenMap, encuestaCabecerasTemp, resumenEncuestaMap,usaIndirectos,usaMonitorEquipoFrio);
+        //mAdapter = new MyAdapter(clientList);
+        rv.setLayoutManager(new LinearLayoutManager(this));
+        rv.setAdapter(mAdapter);
+
+        FloatingActionButton fab = findViewById(R.id.fabBtn);
+        if (fab != null) {
+            fab.setEnabled(true);
+        }
+        actualizarEncuestaDialog();
+        if (searchView != null && searchView.getQuery() != null) {
+            mAdapter.getFilter().filter(searchView.getQuery());
+        }
     }
 
     @Override
@@ -206,10 +324,10 @@ public class MantClienteActivity extends AppCompatActivity {
                     return false;
                 }
             });
-            searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
-            TextView textView = searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
-            ImageView searchBtn = searchView.findViewById(android.support.v7.appcompat.R.id.search_button);
-            ImageView searchCloseBtn = searchView.findViewById(android.support.v7.appcompat.R.id.search_close_btn);
+            searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+            TextView textView = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+            ImageView searchBtn = searchView.findViewById(androidx.appcompat.R.id.search_button);
+            ImageView searchCloseBtn = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
             textView.setTextColor(getResources().getColor(R.color.white,null));
             searchBtn.setColorFilter(getResources().getColor(R.color.white,null));
             searchCloseBtn.setColorFilter(getResources().getColor(R.color.white,null));
@@ -220,6 +338,11 @@ public class MantClienteActivity extends AppCompatActivity {
     public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder>  implements Filterable {
         private ArrayList<HashMap<String, String>> mDataset;
         private ArrayList<HashMap<String, String>> formListFiltered;
+        private HashMap<String, ResumenCliente> resumenMap;
+        private ArrayList<EncuestaCabecera> encuestasMap;
+        private HashMap<String, ResumenEncuestaCliente> resumenEncuestaMap;
+        private boolean usaIndirectos;
+        private boolean usaMonitorEquipoFrio;
         // Provide a reference to the views for each data item
         // Complex data items may need more than one view per item, and
         // you provide access to all the views for a data item in a view holder
@@ -233,8 +356,13 @@ public class MantClienteActivity extends AppCompatActivity {
         }
 
         // Constructor de Adaptador HashMap
-        private MyAdapter(ArrayList<HashMap<String, String>> myDataset) {
-            mDataset = myDataset;
+        private MyAdapter(Object myDataset, HashMap<String, ResumenCliente> resumenMap, ArrayList<EncuestaCabecera> encuestasMap, HashMap<String, ResumenEncuestaCliente> resumenEncuestaMap, boolean usaIndirectos, boolean usaMonitorEquipoFrio) {
+            mDataset = (ArrayList<HashMap<String, String>>) myDataset;
+            this.resumenMap = resumenMap;
+            this.encuestasMap = encuestasMap;
+            this.resumenEncuestaMap = resumenEncuestaMap;
+            this.usaIndirectos = usaIndirectos;
+            this.usaMonitorEquipoFrio = usaMonitorEquipoFrio;
             formListFiltered = mDataset;
         }
 
@@ -250,8 +378,58 @@ public class MantClienteActivity extends AppCompatActivity {
         // Reemplazar el contenido del View. Para ListView se llama solo, pero para RecyclerView hay que llamar al setLayoutManager
         @Override
         public void onBindViewHolder(@NonNull final MyViewHolder holder, int position) {
+            long t0 = System.currentTimeMillis();
+            ColorStateList colorStateListOk = new ColorStateList(
+                    new int[][]{
+                            new int[]{}
+                    },
+                    new int[]{
+                            Color.parseColor(getApplicationContext().getResources().getString(R.color.sinFormularios))
+                    }
+            );
+            ColorStateList colorStateListAprobado = new ColorStateList(
+                    new int[][]{
+                            new int[]{}
+                    },
+                    new int[]{
+                            Color.parseColor(getApplicationContext().getResources().getString(R.color.aprobados))
+                    }
+            );
+            ColorStateList colorStateListRechazado = new ColorStateList(
+                    new int[][]{
+                            new int[]{}
+                    },
+                    new int[]{
+                            Color.parseColor(getApplicationContext().getResources().getString(R.color.rechazado))
+                    }
+            );
+            ColorStateList colorStateListHallazgo = new ColorStateList(
+                    new int[][]{
+                            new int[]{}
+                    },
+                    new int[]{
+                            Color.parseColor(getApplicationContext().getResources().getString(R.color.modificado))
+                    }
+            );
+            ColorStateList colorStateListAlerta = new ColorStateList(
+                    new int[][]{
+                            new int[]{}
+                    },
+                    new int[]{
+                            Color.parseColor(getApplicationContext().getResources().getString(R.color.devuelto))
+                    }
+            );
+            ColorStateList colorStateListDefault = new ColorStateList(
+                    new int[][]{
+                            new int[]{}
+                    },
+                    new int[]{
+                            Color.parseColor(getApplicationContext().getResources().getString(R.color.black))
+                    }
+            );
             // - Obtener Elemento del data set en esta position
             // - Reemplazar aqui cualquier contenido dinamico dependiendo de algun valor de l dataset creado y o el contenido del dataset
+
             TextView codigo = holder.listView.findViewById(R.id.textViewHead);
             codigo.setText(formListFiltered.get(position).get("codigo") == null?"":formListFiltered.get(position).get("codigo").trim());
             TextView nombre = holder.listView.findViewById(R.id.textViewDesc);
@@ -261,6 +439,229 @@ public class MantClienteActivity extends AppCompatActivity {
             idfiscal.setText(formListFiltered.get(position).get("idfiscal") == null?"":formListFiltered.get(position).get("idfiscal").trim());
             TextView correo = holder.listView.findViewById(R.id.correo);
             correo.setText(formListFiltered.get(position).get("correo") == null?"":formListFiltered.get(position).get("correo").trim());
+            TextView indirecto = holder.listView.findViewById(R.id.indirecto);
+            final String tipo_canal = formListFiltered.get(position).get("tipo_canal") != null?formListFiltered.get(position).get("tipo_canal"):"";
+            if(db.UsaIndirectos() && tipo_canal.equals("60")){
+                indirecto.setVisibility(View.VISIBLE);
+            }else{
+                indirecto.setVisibility(View.INVISIBLE);
+            }
+
+            com.rey.material.widget.LinearLayout  credito_preaprobado_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.credito_preaprobado_layout);
+            final String cupoPreaprobado = formListFiltered.get(position).get("cupo") == null?"":formListFiltered.get(position).get("cupo").trim();
+
+            if(cupoPreaprobado != null && credito_preaprobado_layout != null){
+                credito_preaprobado_layout.setVisibility(View.VISIBLE);
+                ImageView  imagen_credito_preaprobado = (ImageView)holder.listView.findViewById(R.id.imagen_credito_preaprobado);
+                if(imagen_credito_preaprobado != null){
+                    imagen_credito_preaprobado.setTooltipText("Crédito Pre-Aprobado por "+cupoPreaprobado+".");
+                }
+            }else if (credito_preaprobado_layout != null){
+                credito_preaprobado_layout.setVisibility(View.GONE);
+            }
+
+
+            final String codigoCliente = codigo.getText().toString().trim();
+            final String nombreCliente = nombre.getText().toString().trim();
+            final String canalCliente = formListFiltered.get(position).get("canal").trim();
+            final String correoCliente = correo.getText().toString().trim();
+
+
+            ResumenCliente resumen = resumenMap.get(codigoCliente);
+            if (resumen == null) {
+                resumen = new ResumenCliente();
+            }
+
+            int cantVerificados = resumen.cantVerificados;
+            int cantHallazgos = resumen.cantHallazgos;
+            int cantAnomalias = resumen.cantAnomalias;
+            int cantAlertas = resumen.cantAlertas;
+            /*int cantVerificados = db.CantidadVerificados(codigoCliente);
+            int cantHallazgos = db.CantidadHallazgos(codigoCliente);
+            int cantAnomalias = db.CantidadAnomalias(codigoCliente);
+            int cantAlertas = db.CantidadAlertas(codigoCliente);*/
+
+            if(formListFiltered.get(holder.getAdapterPosition()).get("correo") == null || formListFiltered.get(position).get("correo").equals("")){
+                //correo.setVisibility(View.GONE);
+            }else{
+                correo.setVisibility(View.VISIBLE);
+            }
+            TextView razonSocial = holder.listView.findViewById(R.id.textRazonSocial);
+            razonSocial.setText(formListFiltered.get(position).get("razonSocial") == null?"":formListFiltered.get(position).get("razonSocial").trim());
+            if(formListFiltered.get(holder.getAdapterPosition()).get("razonSocial") == null){
+                razonSocial.setVisibility(View.GONE);
+            }else{
+                razonSocial.setVisibility(View.VISIBLE);
+            }
+            com.rey.material.widget.LinearLayout  base_instalada_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.base_instalada_layout);
+            ImageView imagen_base_instalada = (ImageView)holder.listView.findViewById(R.id.imagen_base_instalada);
+            imagen_base_instalada.setBackgroundTintList(colorStateListDefault);
+            TextView label_cantidad_base_instalada = (TextView)holder.listView.findViewById(R.id.label_cantidad_base_instalada);
+            if(formListFiltered.get(holder.getAdapterPosition()).get("cant_base_instalada") == null || formListFiltered.get(holder.getAdapterPosition()).get("cant_base_instalada").equals("") || formListFiltered.get(holder.getAdapterPosition()).get("cant_base_instalada").equals("0")){
+                base_instalada_layout.setVisibility(View.GONE);
+            }else{
+                base_instalada_layout.setVisibility(View.VISIBLE);
+                label_cantidad_base_instalada.setText(formListFiltered.get(position).get("cant_base_instalada"));
+                imagen_base_instalada.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Bundle bc = new Bundle();
+                        bc.putString("codigo_cliente", codigoCliente);
+                        bc.putString("nombre_cliente", nombreCliente);
+                        bc.putString("canal_cliente", canalCliente);
+                        bc.putString("correo_cliente", correoCliente);
+                        intent = new Intent(getApplicationContext(),BaseInstaladaActivity.class);
+                        intent.putExtras(bc); //Pase el parametro el Intent
+                        startActivity(intent);
+                    }
+                });
+                FloatingActionButton cantidad_alertas = holder.listView.findViewById(R.id.cantidad_alertas);
+
+                if(Integer.parseInt(formListFiltered.get(position).get("cant_base_instalada")) == cantVerificados){
+                    cantidad_alertas.setBackgroundTintList(colorStateListAprobado);
+                    cantidad_alertas.setTooltipText("Todos los equipos han sido verificados");
+                }
+                if(Integer.parseInt(formListFiltered.get(position).get("cant_base_instalada")) > cantVerificados && cantVerificados == 0){
+                    cantidad_alertas.setBackgroundTintList(colorStateListRechazado);
+                    cantidad_alertas.setTooltipText("No se ha verificado ningun equipo");
+                }
+                if(Integer.parseInt(formListFiltered.get(position).get("cant_base_instalada")) > cantVerificados && cantVerificados > 0){
+                    cantidad_alertas.setBackgroundTintList(colorStateListOk);
+                    cantidad_alertas.setTooltipText("Falta al menos 1 equipo para verificar");
+                }
+                if(cantHallazgos > 0){
+                    imagen_base_instalada.setBackgroundTintList(colorStateListHallazgo);
+                    imagen_base_instalada.setTooltipText("Existe al menos 1 hallazgo en este cliente!");
+                }
+                if(cantAlertas > 0){
+                    imagen_base_instalada.setBackgroundTintList(colorStateListAlerta);
+                    imagen_base_instalada.setTooltipText("Existe al menos 1 alerta en este cliente!");
+                }
+                if(cantAnomalias > 0){
+                    imagen_base_instalada.setBackgroundTintList(colorStateListRechazado);
+                    imagen_base_instalada.setTooltipText("Existe al menos 1 anomalía en este cliente!");
+                }
+            }
+
+            //ENCUESTA GEC
+            long encuestaCreada=0;
+
+            encuestaCabeceras = encuestasMap;
+
+            ResumenEncuestaCliente resumenEncuesta = resumenEncuestaMap.get(codigoCliente);
+            int pendientes = 0;
+            boolean pendienteTransferir = false;
+            if (resumenEncuesta != null) {
+                pendientes = resumenEncuesta.pendientes;
+                pendienteTransferir = resumenEncuesta.pendienteTransferir;
+            }
+            /*int pendientes =0;
+            boolean pendienteTransferir = false;
+            for(EncuestaCabecera encuestaCabecera : encuestaCabeceras){
+                if(!db.getValidacionEncuestaClientePendiente(String.valueOf(encuestaCabecera.getId()),codigoCliente)){
+                    pendientes++;
+                }
+                String GUIDactual = db.getGUIDEncuestaActualCliente(String.valueOf(encuestaCabecera.getId()),codigoCliente);
+                if(GUIDactual.length()>0){
+                    String estado= db.getEstadoRespuestaEnviada(GUIDactual);
+                    if (estado!=null && estado.equals("pendiente")){
+                        pendienteTransferir=true;
+                    }
+                }
+            }*/
+            com.rey.material.widget.LinearLayout  encuesta_gec_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.encuesta_gec_layout);
+            ImageView imagen_encuesta_gec = (ImageView)holder.listView.findViewById(R.id.imagen_encuesta_gec);
+            TextView label_cantidad_encuestas_pendientes= (TextView) holder.listView.findViewById(R.id.label_cantidad_encuestas_pendientes);
+            if(pendientes>0){
+                imagen_encuesta_gec.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.black,null)));
+                label_cantidad_encuestas_pendientes.setText(String.valueOf(pendientes));
+                label_cantidad_encuestas_pendientes.setVisibility(View.VISIBLE);
+                FloatingActionButton cantidad_encuestas_pendientes= (FloatingActionButton) holder.listView.findViewById(R.id.cantidad_encuestas_pendientes);
+                cantidad_encuestas_pendientes.setVisibility(View.VISIBLE);
+            }else{
+                imagen_encuesta_gec.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.aprobados,null)));
+                label_cantidad_encuestas_pendientes.setVisibility(View.GONE);
+                FloatingActionButton cantidad_encuestas_pendientes= (FloatingActionButton) holder.listView.findViewById(R.id.cantidad_encuestas_pendientes);
+                cantidad_encuestas_pendientes.setVisibility(View.GONE);
+                if(encuestaCabeceras.size() == 0)
+                    imagen_encuesta_gec.setVisibility(View.GONE);
+            }
+            if(pendienteTransferir){
+                ImageView warningPendientes= holder.listView.findViewById(R.id.warningPendientes);
+                warningPendientes.setVisibility(View.VISIBLE);
+                imagen_encuesta_gec.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.colorBackground,null)));
+            }else{
+                ImageView warningPendientes= holder.listView.findViewById(R.id.warningPendientes);
+                warningPendientes.setVisibility(View.INVISIBLE);
+            }
+
+            imagen_encuesta_gec.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Bundle bc = new Bundle();
+                    bc.putString("codigo_cliente", codigoCliente);
+                    bc.putString("nombre_cliente", nombreCliente);
+                    bc.putString("canal_cliente", canalCliente);
+                    bc.putString("correo_cliente", correoCliente);
+                    bc.putString("tipo_encuesta","GVC");
+                    EncuestaCabeceraDialog listDialog = new EncuestaCabeceraDialog(getBaseContext(),MantClienteActivity.this, encuestaCabeceras);
+                    // Remove previous instance if exists
+                    FragmentManager fm = getSupportFragmentManager();
+                    Fragment prev = fm.findFragmentByTag("EncuestaCabeceraDialog");
+                    if (prev != null) {
+                        fm.beginTransaction().remove(prev).commit();
+                    }
+                    // Show the dialog
+                    listDialog.setArguments(bc);
+                    listDialog.show(fm,"EncuestaCabeceraDialog");
+                }
+            });
+            //ENCUESTA GEC
+
+
+
+            com.rey.material.widget.LinearLayout  puertas_por_instalar_layout = (com.rey.material.widget.LinearLayout)holder.listView.findViewById(R.id.puertas_por_instalar_layout);
+            ImageView imagen_puertas_por_instalar = (ImageView)holder.listView.findViewById(R.id.imagen_puertas_por_instalar);
+            TextView label_cantidad_puertas_por_instalar = (TextView)holder.listView.findViewById(R.id.label_cantidad_puertas_por_instalar);
+            if((formListFiltered.get(holder.getAdapterPosition()).get("puertas_por_instalar") == null || formListFiltered.get(holder.getAdapterPosition()).get("puertas_por_instalar").equals(""))){
+                puertas_por_instalar_layout.setVisibility(View.GONE);
+            }else if(usaMonitorEquipoFrio){
+                puertas_por_instalar_layout.setVisibility(View.VISIBLE);
+                Integer puertas = formListFiltered.get(position).get("puertas_por_instalar") != null ? Integer.parseInt(formListFiltered.get(position).get("puertas_por_instalar").toString()) : 0;
+                label_cantidad_puertas_por_instalar.setText(puertas.toString());
+                FloatingActionButton cantidad_puertas_por_instalar =  (FloatingActionButton)holder.listView.findViewById(R.id.cantidad_puertas_por_instalar);
+
+
+                if(puertas == 0){
+                    cantidad_puertas_por_instalar.setBackgroundTintList(colorStateListOk);
+                    cantidad_puertas_por_instalar.setTooltipText("Base instalada igual al sugerido");
+                }else if(puertas > 0){
+                    cantidad_puertas_por_instalar.setBackgroundTintList(colorStateListAprobado);
+                    cantidad_puertas_por_instalar.setTooltipText("Oportunidad para instalar equipo en el cliente");
+                }else if(puertas < 0){
+                    cantidad_puertas_por_instalar.setBackgroundTintList(colorStateListRechazado);
+                    cantidad_puertas_por_instalar.setTooltipText("Oportunidad para retirar equipo no productivo en el cliente");
+                }
+
+                imagen_puertas_por_instalar.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //Toasty.info(v.getContext(),"Ingresar a ver datos del cliente de monitor de equipo frio").show();
+                        Bundle bc = new Bundle();
+                        bc.putString("codigo_cliente", codigoCliente);
+                        bc.putString("nombre_cliente", nombreCliente);
+                        bc.putString("canal_cliente", canalCliente);
+                        bc.putString("correo_cliente", correoCliente);
+                        intent = new Intent(getApplicationContext(),MonitorEquipoFrioActivity.class);
+                        intent.putExtras(bc); //Pase el parametro el Intent
+                        startActivity(intent);
+                    }
+                });
+            }else{//no usa monitor
+                label_cantidad_puertas_por_instalar.setVisibility(View.GONE);
+                imagen_puertas_por_instalar.setVisibility(View.GONE);
+            }
+
             /*TextView ubicacion = holder.listView.findViewById(R.id.ubicacion);
             ubicacion.setText(formListFiltered.get(position).get("ubicacion"));
             TextView direccion = holder.listView.findViewById(R.id.direccion);
@@ -273,6 +674,8 @@ public class MantClienteActivity extends AppCompatActivity {
             String klabc = formListFiltered.get(position).get("klabc").toString();
             final String latitud = formListFiltered.get(position).get("latitud").toString();
             final String longitud = formListFiltered.get(position).get("longitud").toString();
+
+
 
             switch(klabc) {
                 case "00":
@@ -308,14 +711,14 @@ public class MantClienteActivity extends AppCompatActivity {
             codigo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Bundle b = new Bundle();
-                    b.putString("idCliente", ((TextView)v).getText().toString()); //id de solicitud
-                    Intent intent = new Intent(v.getContext(),ClienteActivity.class);
-                    intent.putExtras(b); //Pase el parametro el Intent
+                    Bundle cc = new Bundle();
+                    cc.putString("tipoSolicitud", getResources().getString(R.string.ID_FORM_CONSULTA_CLIENTE)); //id de solicitud
+                    cc.putString("codigoCliente", codigoCliente);
+                    intent = new Intent(getApplicationContext(), ConsultaClienteTotalActivity.class);
+                    intent.putExtras(cc); //Pase el parametro el Intent
                     startActivity(intent);
                 }
             });
-            final String codigoCliente = codigo.getText().toString().trim();
             textViewOptions.setOnClickListener(new View.OnClickListener() {
                 @SuppressLint("RestrictedApi")
                 @Override
@@ -330,39 +733,79 @@ public class MantClienteActivity extends AppCompatActivity {
                     //inflating menu from xml resource
                     popup.inflate(R.menu.mant_clientes_item_menu);
                     //adding click listener
+                    if(!db.ExistenFormulariosCredito()){
+                        MenuItem menuItem = (MenuItem)popup.getMenu().getItem(3).setVisible(false);
+                    }
+                    if(!db.ExistenFormulariosEquipoFrio() || !db.AccesoEquipoFrioLibre()){
+                        MenuItem menuItem = (MenuItem)popup.getMenu().getItem(4).setVisible(false);
+                    }
+                    if(!db.ExistenFormulariosRacks()){
+                        MenuItem menuItem = (MenuItem)popup.getMenu().getItem(5).setVisible(false);
+                    }
+                    if(!db.ExistenIniciativas()){
+                        MenuItem menuItem = (MenuItem)popup.getMenu().getItem(6).setVisible(false);
+                    }
+                    if(cupoPreaprobado != null){
+
+                    }
 
                     popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         @Override
                         public boolean onMenuItemClick(MenuItem item) {
                             switch (item.getItemId()) {
                                 case R.id.detalle:
-                                    Bundle b = new Bundle();
+                                    /*Bundle b = new Bundle();
                                     b.putString("idCliente", codigoCliente); //id de solicitud
-                                    Intent intent = new Intent(getBaseContext(),ClienteActivity.class);
+                                    Intent intent = new Intent(getBaseContext(),ConsultaClienteTotalActivity.class);
                                     intent.putExtras(b); //Pase el parametro el Intent
+                                    startActivity(intent);*/
+                                    Bundle cc = new Bundle();
+                                    cc.putString("tipoSolicitud", getResources().getString(R.string.ID_FORM_CONSULTA_CLIENTE)); //id de solicitud
+                                    cc.putString("codigoCliente", codigoCliente);
+                                    intent = new Intent(getApplicationContext(), ConsultaClienteTotalActivity.class);
+                                    intent.putExtras(cc); //Pase el parametro el Intent
                                     startActivity(intent);
                                     break;
                                 case R.id.modificar:
-                                    showDialogFormulariosModificacion(codigoCliente,false, false);
+                                    if(tipo_canal.equals("60"))
+                                        showDialogFormulariosModificacion(codigoCliente,false, false, false, true);
+                                    else
+                                        showDialogFormulariosModificacion(codigoCliente,false, false, false, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Modificaciones NO disponible de momento.").show();
                                     break;
                                 case R.id.cierre:
                                     Bundle bc = new Bundle();
-                                    bc.putString("tipoSolicitud", "5"); //id de solicitud
+                                    if(usaIndirectos && tipo_canal.equals("60")) {
+                                        bc.putString("tipoSolicitud", "504"); //id de solicitud
+                                    }else{
+                                        bc.putString("tipoSolicitud", "5"); //id de solicitud
+                                    }
                                     bc.putString("codigoCliente", codigoCliente);
-                                    intent = new Intent(getApplicationContext(),SolicitudModificacionActivity.class);
+                                    intent = new Intent(getApplicationContext(), SolicitudModificacionActivity.class);
                                     intent.putExtras(bc); //Pase el parametro el Intent
                                     startActivity(intent);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Cierre NO disponible de momento.").show();
                                     break;
                                 case R.id.credito:
-                                    showDialogFormulariosModificacion(codigoCliente,true, false);
+                                    if(tipo_canal.equals("60"))
+                                        showDialogFormulariosModificacion(codigoCliente,true, false, false, true);
+                                    else
+                                        showDialogFormulariosModificacion(codigoCliente,true, false, false, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Credito NO disponible de momento.").show();
                                     break;
                                 case R.id.equipofrio:
                                     //EQUIPO FRIO
-                                    showDialogFormulariosModificacion(codigoCliente,false, true);
+                                    showDialogFormulariosModificacion(codigoCliente,false, true, false, false);
                                     //Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
+                                    break;
+                                case R.id.racks:
+                                    //EQUIPO FRIO
+                                    showDialogFormulariosRacks(codigoCliente);
+                                    //Toasty.info(getBaseContext(),"Funcionalidad de Avisos de equipo frio NO disponible de momento.").show();
+                                    break;
+                                case R.id.iniciativas:
+                                    //INICIATIVAS, estos formularios son locales y nunca van a SAP
+                                    showDialogFormulariosModificacion(codigoCliente,false, false, true, false);
                                     break;
                                 case R.id.comollegar:
                                     String uri = "";
@@ -375,9 +818,22 @@ public class MantClienteActivity extends AppCompatActivity {
                                                 + longitud + "?q=" + latitud
                                                 + "," + longitud;
                                     }
-                                    startActivity(new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(uri)));
+                                    try {
+                                        startActivity(new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(uri)));
+                                    }catch(ActivityNotFoundException e){
+                                        Toasty.warning(getBaseContext(),"No se encontró una aplicacion GPS para abrir las coordenadas.").show();
+                                    }
                                     break;
-
+                                case R.id.baseinstalada:
+                                    bc = new Bundle();
+                                    bc.putString("codigo_cliente", codigoCliente);
+                                    bc.putString("nombre_cliente", nombreCliente);
+                                    bc.putString("canal_cliente", canalCliente);
+                                    bc.putString("correo_cliente", correoCliente);
+                                    intent = new Intent(getApplicationContext(),BaseInstaladaActivity.class);
+                                    intent.putExtras(bc); //Pase el parametro el Intent
+                                    startActivity(intent);
+                                    break;
                             }
                             return false;
                         }
@@ -403,6 +859,12 @@ public class MantClienteActivity extends AppCompatActivity {
                 }
             };
             holder.listView.setOnClickListener(mOnClickListener);*/
+
+            long elapsed = System.currentTimeMillis() - t0;
+
+            if (elapsed > 20) {
+                Log.d("PERF_BIND", "position " + position + " took " + elapsed + " ms");
+            }
         }
 
         // Return the size of your dataset (invoked by the layout manager)
@@ -445,13 +907,21 @@ public class MantClienteActivity extends AppCompatActivity {
         }
     }
 
-    private void showDialogFormulariosModificacion(final String codigoCliente, boolean credito, boolean equipofrio) {
+    private void showDialogFormulariosModificacion(final String codigoCliente, boolean credito, boolean equipofrio, boolean iniciativas, boolean indirecto) {
         ArrayList<HashMap<String,String>> formulariosPermitidos = null;
         if(credito) {
-            formulariosPermitidos = db.getModificacionesCreditoPermitidas();
-            if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
-                Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de crédito para HH.").show();
-                return;
+            if(db.UsaIndirectos() && indirecto){
+                formulariosPermitidos = db.getModificacionesCreditoIndirectosPermitidas();
+                if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
+                    Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de crédito clientes Indirecto para HH.").show();
+                    return;
+                }
+            }else {
+                formulariosPermitidos = db.getModificacionesCreditoPermitidas();
+                if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
+                    Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de crédito para HH.").show();
+                    return;
+                }
             }
         }else if(equipofrio) {
             formulariosPermitidos = db.getOrdenesServicioPermitidas();
@@ -459,11 +929,25 @@ public class MantClienteActivity extends AppCompatActivity {
                 Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de Equipo frio para HH.").show();
                 return;
             }
-        }else {
-            formulariosPermitidos = db.getModificacionesPermitidas();
+        }else if(iniciativas) {
+            formulariosPermitidos = db.getIniciativasLocalesPermitidas();
             if(formulariosPermitidos == null || formulariosPermitidos.size() == 0){
-                Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de modificación para HH.").show();
+                Toasty.info(getBaseContext(),"No se ha configurado ningun formulario de Iniciativas para HH.").show();
                 return;
+            }
+        }else {
+            if(db.UsaIndirectos() && indirecto){
+                formulariosPermitidos = db.getModificacionesIndirectosPermitidas();
+                if (formulariosPermitidos == null || formulariosPermitidos.size() == 0) {
+                    Toasty.info(getBaseContext(), "No se ha configurado ningun formulario de modificación Cliente Indirecto para HH.").show();
+                    return;
+                }
+            }else {
+                formulariosPermitidos = db.getModificacionesPermitidas();
+                if (formulariosPermitidos == null || formulariosPermitidos.size() == 0) {
+                    Toasty.info(getBaseContext(), "No se ha configurado ningun formulario de modificación para HH.").show();
+                    return;
+                }
             }
         }
 
@@ -518,7 +1002,7 @@ public class MantClienteActivity extends AppCompatActivity {
                 if(selectedPosition < 0){
                     Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de modificación!").show();
                 }else {
-                    if (forms[selectedPosition].toLowerCase().contains("credito") || forms[selectedPosition].toLowerCase().contains("crédito")) {
+                    if (forms[selectedPosition].toLowerCase().contains("credito") || forms[selectedPosition].toLowerCase().contains("crédito") || credito) {
                         dialog.dismiss();
                         Bundle b = new Bundle();
                         b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
@@ -526,13 +1010,14 @@ public class MantClienteActivity extends AppCompatActivity {
                         intent = new Intent(getApplicationContext(), SolicitudCreditoActivity.class);
                         intent.putExtras(b); //Pase el parametro el Intent
                         startActivity(intent);
-
                     } else if(forms[selectedPosition].toLowerCase().contains("eq.") || forms[selectedPosition].toLowerCase().contains("frio") || forms[selectedPosition].toLowerCase().contains("equipo")) {
                         if(forms[selectedPosition].toLowerCase().contains("instal")) {//Si es de instalacion no ocupa numero de maquina de equipo frio
                             dialog.dismiss();
                             Bundle b = new Bundle();
                             b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
                             b.putString("codigoCliente", codigoCliente);
+                            b.putString("monitor", "0");
+                            b.putString("numPuertas", "0");
                             intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
                             intent.putExtras(b); //Pase el parametro el Intent
                             startActivity(intent);
@@ -551,6 +1036,75 @@ public class MantClienteActivity extends AppCompatActivity {
                         intent.putExtras(b); //Pase el parametro el Intent
                         startActivity(intent);
                     }
+                }
+            }
+        });
+    }
+
+    private void showDialogFormulariosRacks(final String codigoCliente) {
+        ArrayList<HashMap<String,String>> formulariosPermitidos = null;
+
+        formulariosPermitidos = db.getFormulariosRacksPermitidos();
+
+        String[] idformsTemp = new String[formulariosPermitidos.size()];
+        String[] formsTemp = new String[formulariosPermitidos.size()];
+        for(int x=0; x < formulariosPermitidos.size(); x++){
+            idformsTemp[x] = formulariosPermitidos.get(x).get("idform");
+            formsTemp[x] = formulariosPermitidos.get(x).get("descripcion");
+        }
+        final String[] idforms = idformsTemp;
+        final String[] forms = formsTemp;
+        ContextThemeWrapper cw = new ContextThemeWrapper( this, R.style.AlertDialogTheme );
+        final AlertDialog.Builder builder = new AlertDialog.Builder(cw);
+
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.titlebar, null);
+        builder.setCustomTitle(view);
+        builder.setSingleChoiceItems(forms, -1, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int arg1) {
+                //ListView lw = ((AlertDialog)dialog).getListView();
+                //Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
+            }
+
+        });
+
+        builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                //Solo para crearlo
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        //Sobreescribir handler de click de boton positivo
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                // user clicked OK, so save the mSelectedItems results somewhere
+                // or return them to the component that opened the dialog
+                int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                if(selectedPosition < 0){
+                    Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de modificación!").show();
+                }else {
+                        dialog.dismiss();
+                        Bundle b = new Bundle();
+                        b.putString("tipoSolicitud", idforms[selectedPosition]); //id de solicitud
+                        b.putString("codigoCliente", codigoCliente);
+                        intent = new Intent(getApplicationContext(), SolicitudRacksActivity.class);
+                        intent.putExtras(b); //Pase el parametro el Intent
+                        startActivity(intent);
+
                 }
             }
         });
@@ -591,6 +1145,8 @@ public class MantClienteActivity extends AppCompatActivity {
                     b.putString("tipoSolicitud", tipoSolicitud);
                     b.putString("codigoCliente", codigoCliente);
                     b.putString("codigoEquipoFrio", codigoEquipoFrio);
+                    b.putString("monitor", "0");
+                    b.putString("numPuertas", "0");
                     intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
                     intent.putExtras(b); //Pase el parametro el Intent
                     startActivity(intent);
@@ -617,7 +1173,7 @@ public class MantClienteActivity extends AppCompatActivity {
         equipoFrioSpinner.setSelection(0);
 
         //Scanner
-        AidcManager.create(this, new AidcManager.CreatedCallback() {
+        /*AidcManager.create(this, new AidcManager.CreatedCallback() {
             @Override
             public void onCreated(AidcManager aidcManager) {
                 manager = aidcManager;
@@ -632,7 +1188,8 @@ public class MantClienteActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if(true/*barcodeReadEvent.getAimId().substring(1,2).equals("L")*/) {//Lectura a placa de equipo frio
+                                    //barcodeReadEvent.getAimId().substring(1,2).equals("L")
+                                    if(true) {//Lectura a placa de equipo frio
                                         String lecturaEquipoFrio = barcodeReadEvent.getBarcodeData();
                                         try {
                                             reader.softwareTrigger(false);
@@ -644,6 +1201,8 @@ public class MantClienteActivity extends AppCompatActivity {
                                                 b.putString("tipoSolicitud", tipoSolicitud);
                                                 b.putString("codigoCliente", codigoCliente);
                                                 b.putString("codigoEquipoFrio", equipo.getEqunr().trim());
+                                                b.putString("monitor", "0");
+                                                b.putString("numPuertas", "0");
                                                 intent = new Intent(getApplicationContext(), SolicitudAvisosEquipoFrioActivity.class);
                                                 intent.putExtras(b); //Pase el parametro el Intent
                                                 startActivity(intent);
@@ -710,7 +1269,7 @@ public class MantClienteActivity extends AppCompatActivity {
                     }
                     return false;
             }
-        });
+        });*/
 
         //SHOW DIALOG
         d.show();
@@ -720,4 +1279,93 @@ public class MantClienteActivity extends AppCompatActivity {
         }
     }
 
+    private void mostrarDialogoSeleccionTipoCliente(Context context, String pais) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.titlebar, null);
+        TextView titulo = view.findViewById(R.id.title);
+        titulo.setText("Nuevo Cliente");
+        builder.setCustomTitle(view);
+
+        String[] opciones = {"Mercado Abierto", "Indirecto"};
+
+        builder.setSingleChoiceItems(opciones, -1, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int arg1) {
+                //ListView lw = ((AlertDialog)dialog).getListView();
+                //Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
+            }
+
+        });
+
+        builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                //Solo para crearlo
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        //Sobreescribir handler de click de boton positivo
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                // user clicked OK, so save the mSelectedItems results somewhere
+                // or return them to the component that opened the dialog
+                int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                if(selectedPosition < 0){
+                    Toasty.warning(getBaseContext(),"Debe seleccionar el tipo de cliente!").show();
+                }else {
+                    dialog.dismiss();
+                    if (selectedPosition == 0) {
+                        abrirSolicitud("1");
+                    }
+                    else {
+                        abrirSolicitud("501");
+                    }
+                }
+            }
+        });
+    }
+    private void abrirSolicitud(String tipoSolicitud) {
+        Bundle b = new Bundle();
+        b.putString("tipoSolicitud", tipoSolicitud);
+
+        Intent intent = new Intent(getApplicationContext(), SolicitudActivity.class);
+        intent.putExtras(b);
+        startActivity(intent);
+    }
+    public void actualizarEncuestaDialog() {
+        EncuestaCabeceraDialog fragment = new EncuestaCabeceraDialog();
+        fragment = (EncuestaCabeceraDialog) getSupportFragmentManager().findFragmentByTag("EncuestaCabeceraDialog");
+
+        // Remove previous instance if exists
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment prev = fm.findFragmentByTag("EncuestaCabeceraDialog");
+        if (prev != null) {
+            fm.beginTransaction().remove(prev).commit();
+        }
+
+        if(fragment != null){
+            // ok, we got the fragment instance, but should we manipulate its view?
+            //fragment.dismiss();
+            for (EncuestaCabecera encuestaCabecera:  encuestaCabeceras) {
+                if(encuestaCabecera.isGvc()){
+
+                }
+            }
+
+            fragment.show(fm,"EncuestaCabeceraDialog");
+        }
+    }
 }

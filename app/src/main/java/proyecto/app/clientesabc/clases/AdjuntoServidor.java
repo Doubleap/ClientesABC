@@ -11,11 +11,13 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.core.content.FileProvider;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -30,17 +32,22 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
 
 import es.dmoral.toasty.Toasty;
 import proyecto.app.clientesabc.BuildConfig;
 import proyecto.app.clientesabc.R;
 import proyecto.app.clientesabc.VariablesGlobales;
+import proyecto.app.clientesabc.actividades.EncuestaActivity;
 
 public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
     private WeakReference<Context> context;
     private WeakReference<Activity> activity;
     private ImageView imagen;
     private TextView tv_nombre;
+    private Map<Integer, File> imageFiles;
+    private int position;
     private String nombre;
     private boolean xceptionFlag = false;
     private String messageFlag = "";
@@ -54,6 +61,14 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
         this.activity = a;
         this.imagen = imagen;
         this.tv_nombre = tv_nombre;
+    }
+    public AdjuntoServidor(WeakReference<Context> c, WeakReference<Activity> a, ImageView imagen, TextView tv_nombre,  Map<Integer, File> imageFiles, int position){
+        this.context = c;
+        this.activity = a;
+        this.imagen = imagen;
+        this.tv_nombre = tv_nombre;
+        this.imageFiles = imageFiles;
+        this.position =  position;
     }
     @Override
     protected Bitmap doInBackground(Void... voids) {
@@ -74,15 +89,16 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
                 //Comando String que indicara que se quiere realizar una Sincronizacion
                 publishProgress("Comunicacion establecida...");
                 //Enviar Pais de procedencia
-                /*dos.writeUTF(VariablesGlobales.getSociedad());
+                dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("CONFIG_SOCIEDAD",VariablesGlobales.getSociedad()));
                 dos.flush();
                 //Version con la que quiere transmitir
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                dateFormat.setTimeZone(TimeZone.getTimeZone("GMT-6"));
                 dos.writeUTF(dateFormat.format(BuildConfig.BuildDate));
                 dos.flush();
                 //Enviar Ruta que se quiere sincronizar
                 dos.writeUTF(PreferenceManager.getDefaultSharedPreferences(context.get()).getString("W_CTE_RUTAHH", ""));
-                dos.flush();*/
+                dos.flush();
 
                 dos.writeUTF("Adjunto");
                 dos.flush();
@@ -106,7 +122,7 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
                 //Recibiendo respuesta del servidor para saber como proceder, error o continuar con la sincronizacion
                 long s = dis.readLong();
                 if (s < 0) {
-                    publishProgress("Error en Sincronizacion...");
+                    publishProgress("Error al obtener adjunto...");
                     s = dis.readLong();
                     byte[] e = new byte[(int) s];
                     dis.readFully(e);
@@ -117,6 +133,8 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
                     publishProgress("Recibiendo datos...");
                     byte[] r = new byte[(int) s];
                     dis.readFully(r);
+                    dos.writeUTF("END");
+                    dos.flush();
                     publishProgress("Procesando datos recibidos...");
                     if (nombre.toLowerCase().contains(".pdf")) {
                         adjuntoArray = r;
@@ -171,7 +189,9 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
             }
         });
         dialog = builder.create();
-        dialog.show();
+        if(!activity.get().isFinishing()) {
+            dialog.show();
+        }
     }
     @Override
     protected void onPostExecute(Bitmap adjunto) {
@@ -179,11 +199,21 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
         if (!xceptionFlag){
             if(adjunto != null) {
                 imagen.setImageBitmap(Bitmap.createScaledBitmap(adjunto, adjunto.getWidth(), adjunto.getHeight(), true));
+                if (activity.get() instanceof EncuestaActivity) {
+                    imagen.setTag("foto");
+                    File file = guardarBitmapComoArchivo(adjunto, tv_nombre.getText().toString(), context.get());
+                    EncuestaActivity.ActualizarImagenesEncuesta(file,imageFiles,position);
+                }
             }else{
                 File tempPDF;
+                String ext="";
                 try {
-                    File folder = new File(Environment.getExternalStorageDirectory(), "Download");
-                    tempPDF = new File(folder, "Temp.pdf");
+                    MimeTypeMap mime = MimeTypeMap.getSingleton();
+                    int index = nombre.lastIndexOf('.')+1;
+                    ext = nombre.substring(index).toLowerCase();
+                    String type = mime.getMimeTypeFromExtension(ext);
+                    File folder = new File(context.get().getExternalFilesDir(null), "Download");
+                    tempPDF = new File(folder, "TempMC."+ext);
                     //tempPDF = File.createTempFile("temp", ".pdf", context.get().getExternalCacheDir());
                     //RandomAccessFile raf = new RandomAccessFile(tempPDF, "r");
                     tempPDF.deleteOnExit();
@@ -192,14 +222,17 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
                     //FileOutputStream fos = context.get().openFileOutput(nombre, Context.MODE_WORLD_READABLE);
                     fos.write(adjuntoArray);
                     fos.close();
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setDataAndType(Uri.fromFile(tempPDF), "application/pdf");
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                    intent.putExtra("Adjunto", Uri.fromFile(tempPDF));
-                    activity.get().startActivity(intent);
 
+                    Uri fileURI = FileProvider.getUriForFile(context.get(), BuildConfig.APPLICATION_ID + ".providers.FileProvider", tempPDF);
+
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(fileURI, type);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    intent.putExtra("Adjunto", fileURI);
+                    activity.get().startActivity(intent);
                 } catch (ActivityNotFoundException e) {
-                    Toasty.success(context.get(),"No existe aplicacion para ver PDFs!",Toasty.LENGTH_LONG).show();
+                    Toasty.success(context.get(),"No existe aplicacion para ver este tipo de archivo("+ext+")!",Toasty.LENGTH_LONG).show();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -212,11 +245,47 @@ public class AdjuntoServidor extends AsyncTask<Void,String,Bitmap> {
         else{
             //Toasty.error(context.get(),"Sincronizacion Fallida. "+messageFlag,Toast.LENGTH_LONG).show();
         }
-        dialog.dismiss();
-        if(dialog.isShowing()) {
-            dialog.hide();
+        try {
+            dialog.dismiss();
+            if(dialog.isShowing()) {
+                dialog.hide();
+            }
+        } catch (final IllegalArgumentException e) {
+            // Do nothing.
+        } catch (final Exception e) {
+            // Do nothing.
+        }
+    }
+
+    public File guardarBitmapComoArchivo(Bitmap bitmap, String nombreArchivo, Context context) {
+        // Crear carpeta destino si no existe
+        File directorio = new File(context.getExternalFilesDir(null), "imagenes_guardadas");
+        if (!directorio.exists()) {
+            directorio.mkdirs();
         }
 
+        // Ruta del archivo destino
+        File archivo = new File(directorio, nombreArchivo);
+
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(archivo);
+
+            // Comprimir el Bitmap al archivo (formato JPG con 90% calidad)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+            fos.flush();
+
+            return archivo;  // Devuelve el archivo creado
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                if (fos != null) fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
     public void EnableWiFi(){
         WifiManager wifimanager = (WifiManager) context.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

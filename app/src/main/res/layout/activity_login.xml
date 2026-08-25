@@ -5,178 +5,204 @@
     android:layout_height="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-<android.support.v4.widget.DrawerLayout
 
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/drawer_layout"
+    <androidx.drawerlayout.widget.DrawerLayout
 
-    android:gravity="center_horizontal"
-    android:orientation="vertical"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="0dp"
-    android:paddingRight="0dp"
-    android:background="@drawable/curved_background_inverse">
-    <LinearLayout
+        android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:focusable="true"
-        android:focusableInTouchMode="true">
 
-    <ScrollView
-        android:id="@+id/login_form"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="50dp"
-        >
+        android:background="@drawable/curved_background_inverse"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingLeft="0dp"
+        android:paddingRight="0dp"
+        android:paddingBottom="@dimen/activity_vertical_margin">
+
         <LinearLayout
-            android:id="@+id/main"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:paddingBottom="@dimen/activity_vertical_margin"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="0dp">
+            android:focusable="true"
+            android:focusableInTouchMode="true">
 
-            <ImageView android:id="@+id/image_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                android:maxWidth="100dp"
-                android:layout_gravity="center"
-                android:maxHeight="200dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/logo_transparent"
-                android:layout_marginBottom="0dp"
-                android:layout_marginTop="0dp"
-                />
-            <TextView
-                android:id="@+id/versionPanel"
-                android:text="Version 0.0.0"
-                android:textSize="10dp"
-                android:textColor="@color/black"
-                android:textStyle="normal"
-                android:textAlignment="viewEnd"
-                android:paddingRight="5dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-            <LinearLayout
-            android:id="@+id/botPanel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/rounded"
-            android:paddingBottom="@dimen/margin_medium"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin"
-            >
-
-                <ImageView android:id="@+id/femsa_logo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:adjustViewBounds="true"
-                    android:maxWidth="200dp"
-                    android:layout_gravity="center"
-                    android:maxHeight="100dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/femsa_logo"
-                    android:layout_marginBottom="16dp"
-                    />
-            <android.support.design.widget.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin"
-                >
-
-                <AutoCompleteTextView
-                    android:id="@+id/user"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/prompt_email"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:singleLine="true"/>
-
-            </android.support.design.widget.TextInputLayout>
-
-            <android.support.design.widget.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin">
-
-                <EditText
-                    android:id="@+id/password"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/prompt_password"
-                    android:imeActionId="6"
-                    android:imeActionLabel="@string/action_sign_in_short"
-                    android:imeOptions="actionUnspecified"
-                    android:inputType="textPassword"
-                    android:maxLines="1"
-                    android:singleLine="true"/>
-
-            </android.support.design.widget.TextInputLayout>
-
-            <Button
-                android:id="@+id/sign_in_button"
-                style="?android:textAppearanceSmall"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Ingresar"
-                android:textStyle="bold" />
-<CheckBox
-    android:id="@+id/guardar_contrasena"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Guardar mi contrasena"
-    android:layout_gravity="center"/>
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/footer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="@dimen/margin_medium"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin">
-            <TextView
-                android:id="@+id/ruta_datos"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAlignment="center"
-                android:layout_marginBottom="5dp"/>
-            <ImageView
+            <ScrollView
+                android:id="@+id/login_form"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitCenter"
-                android:src="@drawable/logo_sdo"
-                android:layout_gravity="fill_vertical"
-                android:foregroundGravity="bottom"/>
+                android:layout_marginTop="50dp">
+
+                <LinearLayout
+                    android:id="@+id/main"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:paddingLeft="@dimen/activity_horizontal_margin"
+                    android:paddingTop="0dp"
+                    android:paddingRight="@dimen/activity_horizontal_margin"
+                    android:paddingBottom="@dimen/activity_vertical_margin">
+
+                    <ImageView
+                        android:id="@+id/image_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="0dp"
+                        android:layout_marginBottom="0dp"
+                        android:adjustViewBounds="true"
+                        android:maxWidth="100dp"
+                        android:maxHeight="200dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/logo_transparent" />
+
+                    <TextView
+                        android:id="@+id/versionPanel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingRight="5dp"
+                        android:text="Version 0.0.0"
+                        android:textAlignment="viewEnd"
+                        android:textColor="@color/black"
+                        android:textSize="10dp"
+                        android:textStyle="normal" />
+
+                    <LinearLayout
+                        android:id="@+id/botPanel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/rounded"
+                        android:orientation="vertical"
+                        android:paddingLeft="@dimen/activity_horizontal_margin"
+                        android:paddingTop="@dimen/activity_vertical_margin"
+                        android:paddingRight="@dimen/activity_horizontal_margin"
+                        android:paddingBottom="@dimen/margin_medium">
+
+                        <ImageView
+                            android:id="@+id/femsa_logo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginBottom="16dp"
+                            android:adjustViewBounds="true"
+                            android:maxWidth="200dp"
+                            android:maxHeight="100dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/femsa_logo" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/activity_horizontal_margin"
+                            android:paddingRight="@dimen/activity_horizontal_margin"
+                            android:textColorHint="@color/text_color">
+
+                            <EditText
+                                android:id="@+id/user"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/textbackground_login"
+                                android:drawableRight="@drawable/icon_user_login"
+                                android:hint="@string/prompt_email"
+                                android:inputType="text"
+                                android:maxLines="1"
+                                android:singleLine="true"
+                                android:textColorHint="@color/text_color" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/activity_horizontal_margin"
+                            android:paddingTop="10dp"
+                            android:paddingRight="@dimen/activity_horizontal_margin"
+                            android:textColorHighlight="@color/rechazado"
+                            android:textColorHint="@color/text_color"
+                            android:theme="@style/TextAppearance.App.TextInputLayout">
+
+                            <EditText
+                                android:id="@+id/password"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/textbackground_login"
+                                android:drawableRight="@drawable/icon_lock"
+                                android:hint="@string/prompt_password"
+                                android:imeActionId="6"
+                                android:imeActionLabel="@string/action_sign_in_short"
+                                android:imeOptions="actionUnspecified"
+                                android:inputType="textPassword"
+                                android:maxLines="1"
+                                android:singleLine="true"
+                                android:textColorHighlight="@color/rechazado"
+                                android:textColorHint="@color/text_color" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <Button
+                            android:id="@+id/sign_in_button"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="25dp"
+                            android:layout_marginTop="16dp"
+                            android:layout_marginRight="25dp"
+                            android:background="@drawable/button_drawable"
+                            android:bottomLeftRadius="20dp"
+                            android:bottomRightRadius="20dp"
+                            android:text="Ingresar"
+                            android:textColor="@color/white"
+                            android:topLeftRadius="20dp"
+                            android:topRightRadius="20dp" />
+
+                        <CheckBox
+                            android:id="@+id/guardar_contrasena"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginTop="10dp"
+                            android:text="Guardar mi contrasena" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/footer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingLeft="@dimen/activity_horizontal_margin"
+                        android:paddingTop="@dimen/activity_vertical_margin"
+                        android:paddingRight="@dimen/activity_horizontal_margin"
+                        android:paddingBottom="@dimen/margin_medium">
+
+                        <TextView
+                            android:id="@+id/ruta_datos"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="5dp"
+                            android:textAlignment="center" />
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="fill_vertical"
+                            android:foregroundGravity="bottom"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/logo_sdo" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </ScrollView>
         </LinearLayout>
 
-        </LinearLayout>
-    </ScrollView>
-    </LinearLayout>
+        <include
+            layout="@layout/app_bar_main"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
-    <include
-        layout="@layout/app_bar_main"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <android.support.design.widget.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:fitsSystemWindows="true"
-        app:headerLayout="@layout/header_main_drawer"
-        app:menu="@menu/main_drawer_login" />
-</android.support.v4.widget.DrawerLayout>
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/nav_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:fitsSystemWindows="true"
+            app:headerLayout="@layout/header_main_drawer"
+            app:menu="@menu/main_drawer_login" />
+    </androidx.drawerlayout.widget.DrawerLayout>
 </LinearLayout>

@@ -35,8 +35,8 @@ public class ScannerActivity extends Activity implements ZBarScannerView.ResultH
     @Override
     public void handleResult(Result rawResult) {
         // Do something with the result here
-        Log.v(TAG, rawResult.getContents()); // Prints scan results
-        Log.v(TAG, rawResult.getBarcodeFormat().getName()); // Prints the scan format (qrcode, pdf417 etc.)
+        Log.v("SCANNER", rawResult.getContents()); // Prints scan results
+        Log.v("SCANNER", rawResult.getBarcodeFormat().getName()); // Prints the scan format (qrcode, pdf417 etc.)
 
         // If you would like to resume scanning, call this method below:
         mScannerView.resumeCameraPreview(this);

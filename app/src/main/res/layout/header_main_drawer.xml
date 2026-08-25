@@ -17,8 +17,8 @@
         android:layout_width="100dp"
         android:layout_height="70dp"
         android:contentDescription="Coca Cola Femsa"
-        android:layout_marginBottom="65dp"
-        app:srcCompat="@drawable/femsa_logo" />
+        android:layout_marginBottom="60dp"
+        app:srcCompat="@drawable/femsa_logo_gt" />
 
     <TextView
         android:layout_width="match_parent"
